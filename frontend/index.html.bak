@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<<<<<<< HEAD
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PLE multi vendor E-commerce</title>
+  <script>
+    (function () {
+      try {
+        const storage = localStorage.getItem('theme-storage');
+        if (storage) {
+          const parsed = JSON.parse(storage);
+          if (parsed && parsed.state && parsed.state.theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          }
+        }
+      } catch (e) { }
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.jsx"></script>
+</body>
+
+</html>
+=======
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Appzeto multi vendor E-commerce</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+
+>>>>>>> 7e1ede7eb9f7749eb8236ccced972a7cc5a93910

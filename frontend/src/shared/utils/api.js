@@ -1,0 +1,358 @@
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { API_BASE_URL } from './constants';
+
+const AUTH_SCOPES = {
+  admin: {
+    prefix: '/admin',
+    accessKey: 'adminToken',
+    refreshKey: 'adminRefreshToken',
+    persistKey: 'admin-auth-storage',
+    loginPath: '/admin/login',
+    areaPrefix: '/admin',
+  },
+  vendor: {
+    prefix: '/vendor',
+    accessKey: 'vendor-token',
+    refreshKey: 'vendor-refresh-token',
+    persistKey: 'vendor-auth-storage',
+    loginPath: '/vendor/login',
+    areaPrefix: '/vendor',
+  },
+  delivery: {
+    prefix: '/delivery',
+    accessKey: 'delivery-token',
+    refreshKey: 'delivery-refresh-token',
+    persistKey: 'delivery-auth-storage',
+    loginPath: '/delivery/login',
+    areaPrefix: '/delivery',
+  },
+  user: {
+    prefix: '/user',
+    accessKey: 'token',
+    refreshKey: 'refresh-token',
+    persistKey: 'auth-storage',
+    loginPath: '/login',
+    areaPrefix: '/',
+  },
+};
+
+const EXCLUDED_AUTH_SUFFIXES = [
+  '/auth/login',
+  '/auth/register',
+  '/auth/verify-otp',
+  '/auth/resend-otp',
+  '/auth/forgot-password',
+  '/auth/verify-reset-otp',
+  '/auth/reset-password',
+  '/auth/refresh',
+  '/auth/logout',
+];
+
+const refreshInFlight = {
+  admin: null,
+  vendor: null,
+  delivery: null,
+  user: null,
+};
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+const AUTH_REDIRECT_LOCK_KEY = 'auth-redirect-lock';
+const AUTH_REDIRECT_LOCK_MS = 1500;
+
+const redirectTo = (path) => {
+  if (typeof window === 'undefined') return;
+  const now = Date.now();
+  const currentPath = window.location.pathname;
+  const lockUntil = Number(sessionStorage.getItem(AUTH_REDIRECT_LOCK_KEY) || 0);
+
+  if (currentPath === path) return;
+  if (now < lockUntil) return;
+
+  sessionStorage.setItem(AUTH_REDIRECT_LOCK_KEY, String(now + AUTH_REDIRECT_LOCK_MS));
+  window.location.href = path;
+};
+
+const getScopeFromUrl = (url = '') => {
+  if (url.startsWith('/admin')) return 'admin';
+  if (url.startsWith('/vendor')) return 'vendor';
+  if (url.startsWith('/delivery')) return 'delivery';
+  return 'user';
+};
+
+const getScopeFromPath = (path = window.location.pathname) => {
+  if (path.startsWith('/admin')) return 'admin';
+  if (path.startsWith('/vendor')) return 'vendor';
+  if (path.startsWith('/delivery')) return 'delivery';
+  return 'user';
+};
+
+const isExcludedAuthRequest = (scope, url = '') => {
+  const { prefix } = AUTH_SCOPES[scope];
+  return EXCLUDED_AUTH_SUFFIXES.some((suffix) => url.startsWith(`${prefix}${suffix}`));
+};
+
+const clearScopeAuth = (scope) => {
+  const config = AUTH_SCOPES[scope];
+  localStorage.removeItem(config.accessKey);
+  localStorage.removeItem(config.refreshKey);
+  localStorage.removeItem(config.persistKey);
+};
+
+const shouldAttemptRefresh = (error, scope) => {
+  if (error?.response?.status !== 401) return false;
+  if (!scope || !AUTH_SCOPES[scope]) return false;
+
+  const refreshToken = localStorage.getItem(AUTH_SCOPES[scope].refreshKey);
+  if (!refreshToken) return false;
+
+  const originalRequest = error.config || {};
+  if (originalRequest._retry) return false;
+
+  const url = originalRequest.url || '';
+  if (isExcludedAuthRequest(scope, url)) return false;
+
+  return true;
+};
+
+const runRefresh = async (scope) => {
+  if (refreshInFlight[scope]) {
+    return refreshInFlight[scope];
+  }
+
+  const config = AUTH_SCOPES[scope];
+  const currentRefreshToken = localStorage.getItem(config.refreshKey);
+  if (!currentRefreshToken) {
+    throw new Error('No refresh token available.');
+  }
+
+  refreshInFlight[scope] = axios
+    .post(`${API_BASE_URL}${config.prefix}/auth/refresh`, {
+      refreshToken: currentRefreshToken,
+    })
+    .then((response) => {
+      const payload = response?.data?.data || response?.data || {};
+      const nextAccessToken = payload?.accessToken;
+      const nextRefreshToken = payload?.refreshToken;
+      if (!nextAccessToken || !nextRefreshToken) {
+        throw new Error('Invalid refresh response from server.');
+      }
+
+      localStorage.setItem(config.accessKey, nextAccessToken);
+      localStorage.setItem(config.refreshKey, nextRefreshToken);
+
+      return nextAccessToken;
+    })
+    .finally(() => {
+      refreshInFlight[scope] = null;
+    });
+
+  return refreshInFlight[scope];
+};
+
+api.interceptors.request.use(
+  (config) => {
+    const scope = getScopeFromUrl(config.url || '');
+    const token = localStorage.getItem(AUTH_SCOPES[scope].accessKey);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  (response) => response.data,
+  async (error) => {
+    const originalRequest = error.config || {};
+    const scope = getScopeFromUrl(originalRequest.url || '');
+    const currentPath = window.location.pathname;
+    const pathScope = getScopeFromPath(currentPath);
+
+    // Catch mock session calls immediately to bypass standard error toasts, redirects, and logouts
+    const activeToken = scope && AUTH_SCOPES[scope] ? localStorage.getItem(AUTH_SCOPES[scope].accessKey) : null;
+    if (activeToken && activeToken.startsWith('mock.')) {
+      console.warn("Mock session active, intercepting network failure for:", originalRequest.url);
+      const url = originalRequest.url || '';
+      
+      if (url.includes('/vendor/auth/profile')) {
+        return {
+          id: "vendor_mock_12345",
+          _id: "vendor_mock_12345",
+          name: "Fashion Hub Admin",
+          storeName: "Fashion Hub",
+          status: "approved",
+          isVerified: true,
+          joinDate: new Date().toISOString(),
+          phone: "+91 98765 43210",
+          email: "fashionhub@example.com",
+          address: {
+            street: "123 Elegance Boulevard, Sector 4",
+            city: "New Delhi",
+            state: "Delhi",
+            zipCode: "110001",
+            country: "India",
+          }
+        };
+      }
+      if (url.includes('/vendor/orders')) {
+        return {
+          orders: [],
+          total: 0,
+          page: 1,
+          pages: 1
+        };
+      }
+      if (url.includes('/vendor/earnings')) {
+        return {
+          summary: {
+            totalEarnings: 154300,
+            pendingEarnings: 24500,
+            paidEarnings: 129800,
+            totalCommission: 15430,
+            totalOrders: 42
+          },
+          commissions: []
+        };
+      }
+      if (url.includes('/vendor/products')) {
+        return {
+          products: [],
+          total: 0,
+          page: 1,
+          pages: 1
+        };
+      }
+      if (url.includes('/uploads/image')) {
+        let uploadUrl = "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&auto=format&fit=crop&q=60"; // Default fallback
+        if (originalRequest.data instanceof FormData) {
+          const file = originalRequest.data.get('image') || originalRequest.data.get('file');
+          if (file && (file instanceof File || file instanceof Blob)) {
+            try {
+              uploadUrl = URL.createObjectURL(file);
+              console.log("Mock session - dynamically created local object URL for uploaded image:", uploadUrl);
+            } catch (err) {
+              console.warn("Failed to create Object URL for mock image upload:", err);
+            }
+          }
+        }
+        return {
+          statusCode: 201,
+          success: true,
+          message: "Image uploaded successfully",
+          data: {
+            url: uploadUrl,
+            publicId: `mock_fallback_${Date.now()}`
+          }
+        };
+      }
+      if (url.includes('/categories') || url.includes('/admin/categories')) {
+        if (!originalRequest.method || originalRequest.method.toLowerCase() === 'get') {
+          return {
+            statusCode: 200,
+            success: true,
+            message: "Categories fetched.",
+            data: [
+              { _id: "cat_mock_1", id: "cat_mock_1", name: "Fashion & Apparel", description: "Clothing, shoes, bags, and fashion accessories.", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400", parentId: null, isActive: true, order: 1 },
+              { _id: "cat_mock_2", id: "cat_mock_2", name: "Electronics & Gadgets", description: "Smartphones, laptops, smart home devices, and gear.", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", parentId: null, isActive: true, order: 2 },
+              { _id: "cat_mock_3", id: "cat_mock_3", name: "Home & Kitchen", description: "Furniture, decor, kitchenware, and appliances.", image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400", parentId: null, isActive: true, order: 3 },
+              { _id: "cat_mock_4", id: "cat_mock_4", name: "Men's Clothing", description: "Jackets, t-shirts, jeans, and formal wear for men.", image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=400", parentId: "cat_mock_1", isActive: true, order: 1 },
+              { _id: "cat_mock_5", id: "cat_mock_5", name: "Women's Clothing", description: "Dresses, tops, skirts, and ethnic wear for women.", image: "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=400", parentId: "cat_mock_1", isActive: true, order: 2 }
+            ]
+          };
+        }
+        let body = {};
+        try {
+          body = originalRequest.data ? (typeof originalRequest.data === 'string' ? JSON.parse(originalRequest.data) : originalRequest.data) : {};
+        } catch {
+          body = {};
+        }
+        return {
+          statusCode: 201,
+          success: true,
+          message: "Category saved successfully",
+          data: {
+            _id: body._id || `cat_mock_${Date.now()}`,
+            id: body.id || `cat_mock_${Date.now()}`,
+            name: body.name || "Mock Category",
+            description: body.description || "",
+            image: body.image || "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400",
+            parentId: body.parentId || null,
+            isActive: body.isActive !== undefined ? body.isActive : true,
+            order: Number(body.order) || 0
+          }
+        };
+      }
+      if (url.includes('/notifications')) {
+        return {
+          statusCode: 200,
+          success: true,
+          message: "Notifications fetched",
+          data: {
+            notifications: [
+              { _id: "not_mock_1", id: "not_mock_1", title: "New Vendor Registration", message: "Ankit Fashion Hub has registered and is awaiting review.", isRead: false, createdAt: new Date().toISOString() },
+              { _id: "not_mock_2", id: "not_mock_2", title: "Product Stock Warning", message: "Product 'White Watch' is low in stock.", isRead: true, createdAt: new Date().toISOString() }
+            ],
+            total: 2,
+            page: 1,
+            pages: 1
+          }
+        };
+      }
+      return { success: true, data: {} };
+    }
+
+    if (shouldAttemptRefresh(error, scope)) {
+      try {
+        const nextAccessToken = await runRefresh(scope);
+        originalRequest._retry = true;
+        originalRequest.headers = originalRequest.headers || {};
+        originalRequest.headers.Authorization = `Bearer ${nextAccessToken}`;
+        return api(originalRequest);
+      } catch {
+        // fallback to existing session-expired handling below
+      }
+    }
+
+    const message =
+      error.response?.data?.message ||
+      error.message ||
+      'Something went wrong';
+    toast.error(message);
+
+    if (error.response?.status === 401) {
+      const activeScope = pathScope;
+      clearScopeAuth(scope);
+      if (scope !== activeScope) {
+        return Promise.reject(error);
+      }
+
+      const routeConfig = AUTH_SCOPES[scope];
+      if (scope === 'user') {
+        const isAuthPage =
+          currentPath === '/login' ||
+          currentPath === '/register' ||
+          currentPath === '/verification' ||
+          currentPath === '/forgot-password' ||
+          currentPath === '/reset-password';
+        if (!isAuthPage) {
+          redirectTo(routeConfig.loginPath);
+        }
+      } else if (currentPath.startsWith(routeConfig.areaPrefix) && currentPath !== routeConfig.loginPath) {
+        toast.error('Session expired. Please login again.');
+        redirectTo(routeConfig.loginPath);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+export default api;

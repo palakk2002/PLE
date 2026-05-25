@@ -1,0 +1,39 @@
+<<<<<<< HEAD
+import dns from "dns";
+
+try {
+  dns.setDefaultResultOrder("ipv4first");
+} catch (error) {
+  // Ignore error if not supported in older Node versions
+}
+
+try {
+  dns.setServers(["8.8.8.8", "8.8.4.4"]);
+} catch (error) {
+  // Ignore error if DNS servers cannot be set
+}
+
+=======
+>>>>>>> 7e1ede7eb9f7749eb8236ccced972a7cc5a93910
+import "dotenv/config";
+import app from "./app.js";
+import connectDB from "./config/db.js";
+import { validateEnv } from "./config/env.js";
+
+const PORT = process.env.PORT || 5000;
+
+const startServer = async () => {
+  try {
+    validateEnv();
+    await connectDB();
+    app.listen(PORT, () => {
+      console.log(`Server running on http://localhost:${PORT}`);
+      console.log(`🚀 Environment: ${process.env.NODE_ENV || "development"}`);
+    });
+  } catch (error) {
+    console.error("📦 Server startup failed:", error.message);
+    process.exit(1);
+  }
+};
+
+startServer();

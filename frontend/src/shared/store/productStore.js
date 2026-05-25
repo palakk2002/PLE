@@ -1,0 +1,171 @@
+import { create } from 'zustand';
+import * as adminService from '../../modules/Admin/services/adminService';
+import toast from 'react-hot-toast';
+
+export const useProductStore = create((set, get) => ({
+    products: [],
+    isLoading: false,
+    pagination: {
+        total: 0,
+        page: 1,
+        limit: 10,
+        pages: 1
+    },
+
+    fetchProducts: async (params = {}) => {
+        set({ isLoading: true });
+        try {
+            const response = await adminService.getAllProducts(params);
+            // Check if response.data is an array or object with products
+            const productsData = Array.isArray(response.data) ? response.data : (response.data.products || []);
+            const normalizedProducts = productsData.map(p => ({
+                ...p,
+                id: p._id,
+                stockQuantity: p.stockQuantity || 0,
+                price: p.price || 0,
+                image: p.image || p.images?.[0] || 'https://via.placeholder.com/50x50?text=Product'
+            }));
+
+            // Merge custom products created by the vendor locally
+            const localProds = JSON.parse(localStorage.getItem('mock-vendor-products') || '[]');
+            const merged = [...normalizedProducts];
+            localProds.forEach(p => {
+                if (!merged.some(v => String(v.id || v._id) === String(p.id || p._id) || v.name === p.name)) {
+                    merged.push({
+                        ...p,
+                        id: p._id || p.id,
+                        stockQuantity: p.stockQuantity || 0,
+                        price: p.price || 0,
+                        image: p.image || 'https://via.placeholder.com/50x50?text=Product'
+                    });
+                }
+            });
+
+            set({
+                products: merged,
+                pagination: response.data.pagination || get().pagination,
+                isLoading: false
+            });
+        } catch (error) {
+            console.warn("storefront fetchProducts failed, loading mock catalogs:", error);
+            
+            // Core mock fashion catalog matching seller designs
+            const mockCatalog = [
+                {
+                    id: "prod_1",
+                    _id: "prod_1",
+                    name: "Premium Cotton Slim-Fit Denim Shirt",
+                    price: 1299,
+                    originalPrice: 1999,
+                    image: "https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?w=500&auto=format&fit=crop&q=60",
+                    categoryId: "cat_fashion",
+                    stock: "in_stock",
+                    stockQuantity: 150,
+                    b2bEnabled: true,
+                    b2bWholesalePrice: 650,
+                    b2bMinOrderQty: 50,
+                    b2bUnitsPerCarton: 10,
+                    b2bGstRate: "12",
+                    b2bGstInvoice: true,
+                    b2bPackagingType: "standard",
+                    b2bLeadTimeDays: 5,
+                    b2bCreditTerms: "net30",
+                    b2bBulkPricingSlabs: [
+                      { minQty: 50, maxQty: 100, pricePerUnit: 650 },
+                      { minQty: 101, maxQty: 250, pricePerUnit: 600 },
+                      { minQty: 251, maxQty: null, pricePerUnit: 550 }
+                    ]
+                },
+                {
+                    id: "prod_2",
+                    _id: "prod_2",
+                    name: "Elite Leather Chelsea Boots",
+                    price: 4999,
+                    originalPrice: 6999,
+                    image: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=500&auto=format&fit=crop&q=60",
+                    categoryId: "cat_footwear",
+                    stock: "in_stock",
+                    stockQuantity: 85,
+                    b2bEnabled: true,
+                    b2bWholesalePrice: 2400,
+                    b2bMinOrderQty: 20,
+                    b2bUnitsPerCarton: 5,
+                    b2bGstRate: "18",
+                    b2bGstInvoice: true,
+                    b2bPackagingType: "custom",
+                    b2bLeadTimeDays: 7,
+                    b2bCreditTerms: "prepaid",
+                    b2bBulkPricingSlabs: [
+                      { minQty: 20, maxQty: 50, pricePerUnit: 2400 },
+                      { minQty: 51, maxQty: null, pricePerUnit: 2200 }
+                    ]
+                },
+                {
+                    id: "prod_3",
+                    _id: "prod_3",
+                    name: "Classic Aviator Polarized Sunglasses",
+                    price: 1599,
+                    originalPrice: 2499,
+                    image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=500&auto=format&fit=crop&q=60",
+                    categoryId: "cat_accessories",
+                    stock: "in_stock",
+                    stockQuantity: 240,
+                    b2bEnabled: false
+                },
+                {
+                    id: "prod_4",
+                    _id: "prod_4",
+                    name: "Designer Floral Print Silk Maxi Dress",
+                    price: 3499,
+                    originalPrice: 4999,
+                    image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&auto=format&fit=crop&q=60",
+                    categoryId: "cat_fashion",
+                    stock: "low_stock",
+                    stockQuantity: 8,
+                    b2bEnabled: true,
+                    b2bWholesalePrice: 1750,
+                    b2bMinOrderQty: 10,
+                    b2bUnitsPerCarton: 2,
+                    b2bGstRate: "12",
+                    b2bGstInvoice: true,
+                    b2bPackagingType: "standard",
+                    b2bLeadTimeDays: 4,
+                    b2bCreditTerms: "net15",
+                    b2bBulkPricingSlabs: []
+                },
+                {
+                    id: "prod_5",
+                    _id: "prod_5",
+                    name: "Athletic Quick-Dry Track Pants",
+                    price: 999,
+                    originalPrice: 1499,
+                    image: "https://images.unsplash.com/photo-1506152983158-b4a74a01c721?w=500&auto=format&fit=crop&q=60",
+                    categoryId: "cat_sports",
+                    stock: "out_of_stock",
+                    stockQuantity: 0,
+                    b2bEnabled: false
+                }
+            ];
+
+            // Merge custom vendor products from localStorage
+            const localProds = JSON.parse(localStorage.getItem('mock-vendor-products') || '[]');
+            const merged = [...mockCatalog];
+            localProds.forEach(p => {
+                if (!merged.some(v => String(v.id || v._id) === String(p.id || p._id) || v.name === p.name)) {
+                    merged.push({
+                        ...p,
+                        id: p._id || p.id,
+                        stockQuantity: p.stockQuantity || 0,
+                        price: p.price || 0,
+                        image: p.image || 'https://via.placeholder.com/50x50?text=Product'
+                    });
+                }
+            });
+
+            set({
+                products: merged,
+                isLoading: false
+            });
+        }
+    }
+}));
