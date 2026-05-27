@@ -6,9 +6,11 @@ import appLogoBlack from "../../../../assets/PLEblack.png";
 import appLogoWhite from "../../../../assets/PLEwhite.png";
 
 import SearchBar from "../../../../shared/components/SearchBar";
-import { FiHeart, FiShoppingBag, FiUser, FiLogOut, FiGrid, FiBell, FiSun, FiMoon } from "react-icons/fi";
+import { FiHeart, FiShoppingBag, FiUser, FiLogOut, FiGrid, FiBell, FiSun, FiMoon, FiMenu } from "react-icons/fi";
+import Sidebar from '../../../../shared/components/Sidebar';
 import { HiOutlineUserCircle } from "react-icons/hi";
 import { useState, useRef, useEffect } from "react";
+// isSidebarOpen state moved inside component
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserNotificationStore } from "../../store/userNotificationStore";
 import { useThemeStore } from "../../../../shared/store/themeStore"; // needed for conditional logo
@@ -16,8 +18,8 @@ import { useThemeStore } from "../../../../shared/store/themeStore"; // needed f
 const DesktopHeader = () => {
     const { theme, toggleTheme } = useThemeStore();
     const appLogo = {
-      src: (theme === "dark" ? appLogoBlack : appLogoWhite),
-      alt: "PLE Logo",
+        src: (theme === "dark" ? appLogoBlack : appLogoWhite),
+        alt: "PLE Logo",
     };
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuthStore();
@@ -28,6 +30,7 @@ const DesktopHeader = () => {
     const toggleCart = useUIStore((state) => state.toggleCart);
 
     const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
     const userMenuRef = useRef(null);
 
     useEffect(() => {
@@ -68,6 +71,15 @@ const DesktopHeader = () => {
                     )}
                 </Link>
 
+                {/* Hamburger Menu */}
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="hidden md:block p-2 text-gray-600 hover:text-primary-600 transition-colors"
+                  aria-label="Menu"
+                >
+                  <FiMenu className="text-2xl" />
+                </button>
+
                 {/* Navigation Links */}
                 <nav className="flex items-center gap-6">
                     <Link to="/home" className="text-gray-600 hover:text-primary-600 font-medium text-sm lg:text-base">Home</Link>
@@ -75,6 +87,7 @@ const DesktopHeader = () => {
                         <FiGrid /> Categories
                     </Link>
                     <Link to="/offers" className="text-gray-600 hover:text-primary-600 font-medium text-sm lg:text-base">Offers</Link>
+                    <Link to="/search?condition=refurbished" className="text-gray-600 hover:text-primary-600 font-medium text-sm lg:text-base">Refurbished</Link>
                 </nav>
 
                 {/* Search Bar */}
@@ -119,6 +132,8 @@ const DesktopHeader = () => {
                             </span>
                         )}
                     </Link>
+                    {/* Hamburger Menu */}
+
 
                     {/* Theme Toggle */}
                     <button
@@ -210,6 +225,13 @@ const DesktopHeader = () => {
                         </Link>
                     )}
                 </div>
+                {/* Sidebar */}
+                <Sidebar
+                  isOpen={isSidebarOpen}
+                  onClose={() => setSidebarOpen(false)}
+                  user={user}
+                  onLogout={handleLogout}
+                />
             </div>
         </header>
     );

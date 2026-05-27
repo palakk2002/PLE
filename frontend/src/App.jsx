@@ -70,6 +70,14 @@ import B2BProducts from "./modules/Admin/pages/b2b/B2BProducts";
 import B2BOrders from "./modules/Admin/pages/b2b/B2BOrders";
 import B2BSettings from "./modules/Admin/pages/b2b/B2BSettings";
 
+// Refurbished Marketplace pages
+import RefurbishedMarketplace from "./modules/Admin/pages/refurbished/RefurbishedMarketplace";
+import RefurbishedDashboard from "./modules/Admin/pages/refurbished/RefurbishedDashboard";
+import ProductApprovals from "./modules/Admin/pages/refurbished/ProductApprovals";
+import FraudModeration from "./modules/Admin/pages/refurbished/FraudModeration";
+import ComplaintsReturns from "./modules/Admin/pages/refurbished/ComplaintsReturns";
+import RefurbishedCategories from "./modules/Admin/pages/refurbished/RefurbishedCategories";
+
 // Offers & Sliders child pages
 import HomeSliders from "./modules/Admin/pages/offers/HomeSliders";
 import FestivalOffers from "./modules/Admin/pages/offers/FestivalOffers";
@@ -485,6 +493,14 @@ const AppRoutes = () => {
         <Route path="b2b/b2b-products" element={<B2BProducts />} />
         <Route path="b2b/b2b-orders" element={<B2BOrders />} />
         <Route path="b2b/b2b-settings" element={<B2BSettings />} />
+
+        {/* Refurbished Marketplace Routes */}
+        <Route path="refurbished" element={<RefurbishedMarketplace />} />
+        <Route path="refurbished/dashboard" element={<RefurbishedDashboard />} />
+        <Route path="refurbished/approvals" element={<ProductApprovals />} />
+        <Route path="refurbished/moderation" element={<FraudModeration />} />
+        <Route path="refurbished/complaints" element={<ComplaintsReturns />} />
+        <Route path="refurbished/categories" element={<RefurbishedCategories />} />
 
         <Route path="offers" element={<HomeSliders />} />
         <Route path="offers/home-sliders" element={<HomeSliders />} />

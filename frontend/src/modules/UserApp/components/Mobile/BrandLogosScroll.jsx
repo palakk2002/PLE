@@ -83,18 +83,18 @@ const BrandLogosScroll = ({ brands = null }) => {
                             >
                                 <div
                                     onClick={() => navigate(`/brand/${brand.id}`)}
-                                    className="bg-white rounded-lg sm:rounded-xl lg:rounded-lg p-1.5 sm:p-2 md:p-2 lg:p-1.5 xl:p-2 shadow-md transition-all duration-300 flex items-center justify-center w-full aspect-square group cursor-pointer border border-gray-100 mb-1.5 lg:mb-1 hover:shadow-lg">
+                                    className="bg-white rounded-2xl p-2 shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-300 flex items-center justify-center w-full aspect-square group cursor-pointer mb-1.5 hover:shadow-md">
                                     <img
                                         src={brand.logo}
                                         alt={brand.name}
-                                        className="w-[85%] h-[85%] lg:w-[80%] lg:h-[80%] object-contain"
+                                        className="w-[85%] h-[85%] object-contain"
                                         onError={(e) => {
                                             e.target.src = 'https://via.placeholder.com/120x80?text=Brand';
                                         }}
                                         loading="lazy"
                                     />
                                 </div>
-                                <p className="text-xs sm:text-sm lg:text-xs font-semibold text-black text-center transition-colors truncate w-full px-1">
+                                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 text-center transition-colors truncate w-full px-1 mt-1">
                                     {brand.name}
                                 </p>
                             </motion.div>

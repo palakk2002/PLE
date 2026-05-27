@@ -11,6 +11,7 @@ import RecommendedSection from "../components/Mobile/RecommendedSection";
 import FeaturedVendorsSection from "../components/Mobile/FeaturedVendorsSection";
 import BrandLogosScroll from "../components/Mobile/BrandLogosScroll";
 import MobileCategoryGrid from "../components/Mobile/MobileCategoryGrid";
+import MobileCategoryQuickNav from "../components/Mobile/MobileCategoryQuickNav";
 import LazyImage from "../../../shared/components/LazyImage";
 import {
   getMostPopular,
@@ -22,6 +23,7 @@ import {
   getApprovedVendors,
   getCatalogBrands,
 } from "../data/catalogData";
+import { products as allStaticProducts } from "../../../data/products";
 import PageTransition from "../../../shared/components/PageTransition";
 import usePullToRefresh from "../hooks/usePullToRefresh";
 import toast from "react-hot-toast";
@@ -250,6 +252,11 @@ const MobileHome = () => {
     return catalogProducts.filter((product) => product.flashSale).slice(0, 6);
   }, [catalogProducts, fallbackFlashSale]);
 
+  const computedRefurbished = useMemo(() => {
+    const list = catalogProducts.length > 0 ? catalogProducts : allStaticProducts;
+    return list.filter((p) => p.condition && p.condition !== "brand_new").slice(0, 5);
+  }, [catalogProducts]);
+
   const computedVendors = useMemo(() => {
     if (homeVendors.length === 0) return fallbackVendors;
     return [...homeVendors]
@@ -321,7 +328,14 @@ const MobileHome = () => {
             link: resolveBannerLink(banner),
             title: banner.title || "",
           }));
-        setSlides(bannerSlides.length > 0 ? bannerSlides : DEFAULT_HERO_SLIDES);
+        const baseSlides = bannerSlides.length > 0 ? bannerSlides : [...DEFAULT_HERO_SLIDES];
+        baseSlides.push({
+          id: "refurbished-promo-slide",
+          image: heroSlide3,
+          link: "/search?condition=refurbished",
+          title: "Save up to 50% on Certified Refurbished Products",
+        });
+        setSlides(baseSlides);
 
         const banners = allBanners
           .filter((banner) => String(banner?.type || "") === "promotional")
@@ -499,6 +513,9 @@ const MobileHome = () => {
             transform: `translateY(${Math.min(pullDistance, 80)}px)`,
             transition: isPulling ? "none" : "transform 0.3s ease-out",
           }}>
+          {/* Top Category Quick Nav Bar */}
+          <MobileCategoryQuickNav />
+
           {/* Hero Banner */}
           <div className="px-4 py-4">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -643,7 +660,35 @@ const MobileHome = () => {
           {/* Daily Deals */}
           <DailyDealsSection products={computedDailyDeals} />
 
-
+          {/* Refurbished & Renewed Deals */}
+          {computedRefurbished && computedRefurbished.length > 0 && (
+            <div className="px-4 py-6 bg-gradient-to-br from-cyan-50/20 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 border-t border-b border-gray-100 dark:border-gray-900 my-4">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-xl font-black text-gray-800 dark:text-white flex items-center gap-2">
+                    <span className="bg-gradient-to-r from-cyan-500 to-blue-600 text-transparent bg-clip-text">Refurbished & Renewed Deals</span>
+                  </h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Certified products in like-new condition with full warranty</p>
+                </div>
+                <Link
+                  to="/search?condition=refurbished"
+                  className="text-sm text-primary-600 dark:text-primary-400 font-bold hover:underline">
+                  View All
+                </Link>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                {computedRefurbished.map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.05 }}>
+                    <ProductCard product={product} />
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Flash Sale */}
           {computedFlashSale.length > 0 && (

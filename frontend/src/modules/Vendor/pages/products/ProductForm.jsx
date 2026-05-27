@@ -17,6 +17,8 @@ import {
   buildVariantPayload,
   normalizeVariantStateForForm,
 } from "../../utils/variantHelpers";
+import RefurbishedFieldsSection from "../../components/Refurbished/RefurbishedFieldsSection";
+import { DEFAULT_REFURBISHED_STATE } from "../../components/Refurbished/refurbishedConstants";
 
 const ProductForm = () => {
   const navigate = useNavigate();
@@ -83,6 +85,7 @@ const ProductForm = () => {
     b2bPackagingType: "standard",
     b2bLeadTimeDays: "",
     b2bCreditTerms: "prepaid",
+    ...DEFAULT_REFURBISHED_STATE,
   });
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [variantAxisInput, setVariantAxisInput] = useState({
@@ -196,6 +199,27 @@ const ProductForm = () => {
       b2bPackagingType: product.b2bPackagingType || "standard",
       b2bLeadTimeDays: product.b2bLeadTimeDays || "",
       b2bCreditTerms: product.b2bCreditTerms || "prepaid",
+      
+      // Refurbished settings
+      condition: product.condition || 'brand_new',
+      refurbishedGrade: product.refurbishedGrade || '',
+      refurbishedWarrantyDuration: product.refurbishedWarrantyDuration || 'none',
+      deviceHealthBattery: product.deviceHealthBattery !== undefined ? product.deviceHealthBattery : 100,
+      deviceHealthCosmetic: product.deviceHealthCosmetic || 'excellent',
+      deviceHealthFunctional: product.deviceHealthFunctional || 'fully_working',
+      isTested: product.isTested || false,
+      isFullyFunctional: product.isFullyFunctional || false,
+      isCertified: product.isCertified || false,
+      refurbishedOriginalMrp: product.refurbishedOriginalMrp || '',
+      refurbishedSellingPrice: product.refurbishedSellingPrice || '',
+      accessoryCharger: product.accessoryCharger || false,
+      accessoryBox: product.accessoryBox || false,
+      accessoryOthers: product.accessoryOthers || false,
+      cosmeticDamageNotes: product.cosmeticDamageNotes || '',
+      productAgeMonths: product.productAgeMonths || '',
+      purchaseYear: product.purchaseYear || '',
+      repairHistory: product.repairHistory || '',
+      refurbishedApprovalStatus: product.refurbishedApprovalStatus || 'approved'
     });
   };
 
@@ -711,6 +735,12 @@ const ProductForm = () => {
             </div>
           </div>
         </div>
+
+        {/* Product Condition & Refurbished Settings */}
+        <RefurbishedFieldsSection
+          formData={formData}
+          onChange={handleChange}
+        />
 
         {/* B2B / Wholesale Settings */}
         <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm space-y-4">

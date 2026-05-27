@@ -21,6 +21,9 @@ const Badge = ({ children, variant = 'flash', className = '' }) => {
     'return-rejected': 'bg-red-500 text-white',
     'return-processing': 'bg-blue-500 text-white',
     'return-completed': 'bg-success-500 text-white',
+    refurbished: 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-sm',
+    renewed: 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm',
+    'open-box': 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-sm',
   };
 
   return (

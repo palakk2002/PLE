@@ -24,6 +24,16 @@ const ManageVendors = () => {
   const { vendors, initialize, updateVendorStatus, updateCommissionRate } =
     useVendorStore();
   const [orders, setOrders] = useState([]);
+  const [refurbishedSellers, setRefurbishedSellers] = useState({});
+
+  useEffect(() => {
+    try {
+      const config = JSON.parse(localStorage.getItem("refurbished-sellers-config") || "{}");
+      setRefurbishedSellers(config);
+    } catch {
+      setRefurbishedSellers({});
+    }
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -130,8 +140,13 @@ const ManageVendors = () => {
             />
           )}
           <div>
-            <span className="font-medium text-gray-800">
+            <span className="font-medium text-gray-800 flex items-center gap-1.5">
               {value || row.name}
+              {refurbishedSellers[row.id] && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-amber-100 text-amber-800 border border-amber-200 uppercase tracking-wide">
+                  Refurbished
+                </span>
+              )}
             </span>
             <p className="text-xs text-gray-500">{row.name}</p>
           </div>

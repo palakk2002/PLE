@@ -38,7 +38,25 @@ const VendorDetail = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditingCommission, setIsEditingCommission] = useState(false);
   const [commissionRate, setCommissionRate] = useState("");
+  const [isRefurbishedEnabled, setIsRefurbishedEnabled] = useState(false);
   const isSameVendorId = (a, b) => String(a) === String(b);
+
+  const handleToggleRefurbished = () => {
+    try {
+      const config = JSON.parse(localStorage.getItem("refurbished-sellers-config") || "{}");
+      const newVal = !isRefurbishedEnabled;
+      config[id] = newVal;
+      localStorage.setItem("refurbished-sellers-config", JSON.stringify(config));
+      setIsRefurbishedEnabled(newVal);
+      if (newVal) {
+        toast.success("Refurbished selling permission enabled for this seller.");
+      } else {
+        toast.error("Refurbished selling permission disabled.");
+      }
+    } catch {
+      toast.error("Failed to update refurbished selling status.");
+    }
+  };
 
   useEffect(() => {
     const fetchVendorData = async () => {
@@ -47,6 +65,12 @@ const VendorDetail = () => {
       if (data) {
         setVendor(data);
         setCommissionRate(((data.commissionRate || 0) * 100).toFixed(1));
+        try {
+          const config = JSON.parse(localStorage.getItem("refurbished-sellers-config") || "{}");
+          setIsRefurbishedEnabled(!!config[id]);
+        } catch {
+          setIsRefurbishedEnabled(false);
+        }
 
         // 2. Fetch Vendor Orders (all pages)
         try {
@@ -283,7 +307,10 @@ const VendorDetail = () => {
             <p className="text-xs text-gray-500">Vendor ID: {vendor.id}</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 font-bold">
+          {isRefurbishedEnabled && (
+            <Badge variant="warning">REFURBISHED SELLER</Badge>
+          )}
           <Badge
             variant={
               vendor.status === "approved"
@@ -505,7 +532,7 @@ const VendorDetail = () => {
                       />
                       <button
                         onClick={handleCommissionUpdate}
-                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold">
                         Save
                       </button>
                       <button
@@ -515,7 +542,7 @@ const VendorDetail = () => {
                             ((vendor.commissionRate || 0) * 100).toFixed(1)
                           );
                         }}
-                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                        className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-bold">
                         Cancel
                       </button>
                     </>
@@ -526,12 +553,40 @@ const VendorDetail = () => {
                       </p>
                       <button
                         onClick={() => setIsEditingCommission(true)}
-                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2">
+                        className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors flex items-center gap-2 font-bold">
                         <FiEdit />
                         Edit
                       </button>
                     </>
                   )}
+                </div>
+              </div>
+
+              <hr className="border-gray-200" />
+              
+              <div>
+                <h2 className="text-lg font-bold text-gray-800 mb-2">
+                  Refurbished Selling Control
+                </h2>
+                <p className="text-xs text-gray-500 mb-4">
+                  Authorize this vendor to submit Refurbished, Renewed, and Open-Box product listings for approval.
+                </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleToggleRefurbished}
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      isRefurbishedEnabled ? "bg-[#C07A3D]" : "bg-gray-200"
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        isRefurbishedEnabled ? "translate-x-5" : "translate-x-0"
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm font-semibold text-gray-700">
+                    {isRefurbishedEnabled ? "Refurbished Selling Enabled" : "Refurbished Selling Disabled"}
+                  </span>
                 </div>
               </div>
             </div>

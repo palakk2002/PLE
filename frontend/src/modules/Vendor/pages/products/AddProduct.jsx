@@ -16,6 +16,8 @@ import {
   syncVariantPricesWithAxes,
   buildVariantPayload,
 } from "../../utils/variantHelpers";
+import RefurbishedFieldsSection from "../../components/Refurbished/RefurbishedFieldsSection";
+import { DEFAULT_REFURBISHED_STATE } from "../../components/Refurbished/refurbishedConstants";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -78,6 +80,7 @@ const AddProduct = () => {
     b2bPackagingType: "standard",
     b2bLeadTimeDays: "",
     b2bCreditTerms: "prepaid",
+    ...DEFAULT_REFURBISHED_STATE,
   });
   const [isUploadingMedia, setIsUploadingMedia] = useState(false);
   const [variantAxisInput, setVariantAxisInput] = useState({
@@ -618,6 +621,12 @@ const AddProduct = () => {
             </div>
           </div>
         </div>
+
+        {/* Product Condition & Refurbished Settings */}
+        <RefurbishedFieldsSection
+          formData={formData}
+          onChange={handleChange}
+        />
 
         {/* B2B / Wholesale Settings */}
         <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm space-y-4">

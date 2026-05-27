@@ -51,7 +51,9 @@ const connectDB = async () => {
     await autoSeedAdmin();
   } catch (error) {
     const publicIP = await getPublicIP();
-    console.error(`
+    console.error(`❌ Database Connection Failed.
+    Ensure your current Public IP (${publicIP}) is whitelisted in MongoDB Atlas Network Access.
+    Error: ${error.message}`);
   }
 };
 

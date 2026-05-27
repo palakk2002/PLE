@@ -4,6 +4,9 @@ import {
   FiShoppingBag,
   FiSun,
   FiMoon,
+  FiChevronDown,
+  FiUser,
+  FiSearch,
 } from "react-icons/fi";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
@@ -144,7 +147,7 @@ const MobileHeader = () => {
 
     // Page-specific gradients
     const pageGradients = {
-      home: "linear-gradient(to bottom, rgb(196, 181, 253) 0%, rgb(221, 214, 254) 25%, rgb(245, 243, 255) 50%, rgb(255, 255, 255) 100%)", // Purple gradient for home - lighter intensity
+      home: "linear-gradient(to bottom, #E8D5FF 0%, #E8D5FF 100%)", // Lavender background
       product:
         "linear-gradient(to bottom, rgb(237, 233, 254) 0%, rgb(245, 243, 255) 50%, rgb(255, 255, 255) 100%)", // Light purple
       search:
@@ -159,8 +162,7 @@ const MobileHeader = () => {
         "linear-gradient(to bottom, rgb(59, 130, 246) 0%, rgb(96, 165, 250) 30%, rgb(219, 234, 254) 60%, rgb(255, 255, 255) 100%)", // Blue gradient
       checkout:
         "linear-gradient(to bottom, rgb(16, 185, 129) 0%, rgb(52, 211, 153) 30%, rgb(209, 250, 229) 60%, rgb(255, 255, 255) 100%)", // Green gradient
-      offers:
-        "linear-gradient(to bottom, rgb(249, 115, 22) 0%, rgb(251, 146, 60) 30%, rgb(255, 237, 213) 60%, rgb(255, 255, 255) 100%)", // Orange gradient
+      offers: "linear-gradient(to bottom, #E8D5FF 0%, #E8D5FF 100%)", // Lavender background
       dailyDeals:
         "linear-gradient(to bottom, rgb(234, 179, 8) 0%, rgb(250, 204, 21) 30%, rgb(254, 243, 199) 60%, rgb(255, 255, 255) 100%)", // Yellow gradient
       flashSale:
@@ -339,7 +341,7 @@ const MobileHeader = () => {
   const headerContent = (
     <motion.header
       key="mobile-header" // Stable key to prevent re-mounting
-      className="fixed top-0 left-0 right-0 z-[9999] shadow-lg overflow-visible md:hidden"
+      className="fixed top-0 left-0 right-0 z-[9999] shadow-none overflow-visible md:hidden"
       style={{
         background: headerBackground,
         transition: "background 0.5s ease-in-out",
@@ -355,10 +357,10 @@ const MobileHeader = () => {
         mass: 0.8,
       }}>
       <div className="px-4 py-3 overflow-visible">
-        {/* First Row: Logo and Actions */}
+        {/* First Row: Location & Actions */}
         <motion.div
           ref={topRowRef}
-          className="flex items-center justify-between gap-3 mb-3"
+          className="flex items-center justify-between gap-3 mb-2"
           initial={false}
           animate={{
             opacity: isTopRowVisible ? 1 : 0,
@@ -372,53 +374,25 @@ const MobileHeader = () => {
           style={{
             pointerEvents: isTopRowVisible ? "auto" : "none",
           }}>
-          {/* Logo and Marketplace Badge */}
-          <div className="flex items-center gap-2 flex-shrink-0 overflow-visible relative z-[10001]">
-            <Link
-              to="/home"
-              className="flex items-center overflow-visible relative z-[10002]">
-              <div
-                ref={logoRef}
-                className="overflow-visible relative z-[10003]">
-                {appLogo.src ? (
-                  <img
-                    src={appLogo.src}
-                    alt={appLogo.alt}
-                    className="h-9 sm:h-11 w-auto object-contain origin-left relative z-[10004]"
-                    style={{ filter: "none" }}
-                    onError={(e) => {
-                      // Hide image if logo doesn't exist
-                      e.target.style.display = "none";
-                      // Show text fallback
-                      const parent = e.target.parentElement;
-                      if (
-                        parent &&
-                        !parent.querySelector(".logo-text-fallback")
-                      ) {
-                        const fallback = document.createElement("span");
-                        fallback.className =
-                          "logo-text-fallback text-primary-600 font-bold text-sm sm:text-lg";
-                        fallback.textContent = "PLE";
-                        parent.appendChild(fallback);
-                      }
-                    }}
-                  />
-                ) : (
-                  <span className="logo-text-fallback text-primary-600 font-bold text-sm sm:text-lg">
-                    PLE
-                  </span>
-                )}
-              </div>
-            </Link>
-            {isBusiness && <B2BBusinessBadge className="scale-[0.8] sm:scale-90 origin-left flex-shrink-0 relative z-[10005]" />}
+          {/* Static Location Time and Address */}
+          <div className="flex items-center gap-2 flex-shrink-0 overflow-visible relative z-[10001] max-w-[60%]">
+            <div className="flex flex-col text-left">
+              <span className="font-black text-[#111827] dark:text-[#EAD2C1] text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none">
+                ⚡ 10 minutes
+              </span>
+              <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-[#C8B3A3] flex items-center gap-0.5 truncate cursor-pointer mt-0.5">
+                Police Quarters, Belgaum
+                <FiChevronDown className="text-xs text-gray-500 mt-0.5 flex-shrink-0" />
+              </span>
+            </div>
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 flex-shrink-0">
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2.5 hover:bg-white/50 rounded-full transition-all duration-300 text-gray-700 dark:text-[#C8B3A3] focus:outline-none"
+              className="p-2 hover:bg-white/50 rounded-full transition-all duration-300 text-gray-700 dark:text-[#C8B3A3] focus:outline-none"
               title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
             >
               <motion.div
@@ -437,12 +411,21 @@ const MobileHeader = () => {
               </motion.div>
             </button>
 
+            {/* Profile Button */}
+            <button
+              onClick={() => navigate(isAuthenticated ? "/profile" : "/login")}
+              className="p-2 hover:bg-white/50 rounded-full transition-all duration-300 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-[#C8B3A3] flex items-center justify-center"
+              title="Profile"
+            >
+              <FiUser className="text-xl" />
+            </button>
+
             {/* Cart Button */}
             <motion.button
               ref={cartRef}
               data-cart-icon
               onClick={toggleCart}
-              className="relative p-2.5 hover:bg-white/50 rounded-full transition-all duration-300"
+              className="relative p-2 hover:bg-white/50 rounded-full transition-all duration-300"
               animate={
                 cartAnimationTrigger > 0
                   ? {
@@ -463,10 +446,104 @@ const MobileHeader = () => {
                 </motion.span>
               )}
             </motion.button>
-
-
           </div>
         </motion.div>
+
+        {/* Second Row: 3 Premium Navigation Capsule Tabs (Zepto-style) */}
+        <div className="flex items-center justify-between gap-2.5 mt-2 w-full relative z-[10006]">
+          {[
+            {
+              label: "ple",
+              path: "/home",
+              active:
+                location.pathname === "/" ||
+                location.pathname === "/home" ||
+                location.pathname.startsWith("/product/") ||
+                location.pathname.startsWith("/brand/") ||
+                location.pathname.startsWith("/seller/"),
+              style: {
+                activeLight: "bg-white border border-[#7C3AED] text-[#7C3AED] font-extrabold text-sm tracking-tight lowercase shadow-sm",
+                activeDark: "bg-[#1E1512] border border-[#A78BFA] text-[#C4B5FD] font-extrabold text-sm tracking-tight lowercase shadow-sm",
+                inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-sm tracking-tight lowercase",
+                inactiveDark: "bg-[#120D0B]/60 border border-white/10 text-gray-500 font-semibold text-sm tracking-tight lowercase",
+              }
+            },
+            {
+              label: "Categories",
+              path: "/categories",
+              active: location.pathname === "/categories" || location.pathname.startsWith("/category/"),
+              style: {
+                activeLight: "bg-white border border-[#2563EB] text-[#2563EB] font-bold text-xs tracking-tight shadow-sm",
+                activeDark: "bg-[#1E1512] border border-[#60A5FA] text-[#93C5FD] font-bold text-xs tracking-tight shadow-sm",
+                inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-xs tracking-tight",
+                inactiveDark: "bg-[#120D0B]/60 border border-white/10 text-gray-500 font-semibold text-xs tracking-tight",
+              }
+            },
+            {
+              label: "Offer",
+              path: "/offers",
+              active: location.pathname === "/offers",
+              style: {
+                activeLight: "bg-[#FCD34D] border border-[#FBBF24] text-[#064E3B] font-serif font-black text-xs uppercase tracking-wider shadow-sm",
+                activeDark: "bg-[#FCD34D] border border-[#FBBF24] text-[#064E3B] font-serif font-black text-xs uppercase tracking-wider shadow-sm",
+                inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-xs uppercase tracking-wider",
+                inactiveDark: "bg-[#120D0B]/60 border border-white/10 text-gray-500 font-semibold text-xs uppercase tracking-wider",
+              }
+            },
+          ].map((tab) => {
+            return (
+              <Link
+                key={tab.label}
+                to={tab.path}
+                className={`flex-1 text-center py-2 px-3 rounded-full transition-all duration-300 cursor-pointer select-none
+                  ${theme === "dark" 
+                    ? (tab.active ? tab.style.activeDark : tab.style.inactiveDark) 
+                    : (tab.active ? tab.style.activeLight : tab.style.inactiveLight)
+                  }
+                  ${tab.active ? "opacity-100 scale-100" : "opacity-75 hover:opacity-100 scale-100"}
+                `}
+                style={{
+                  willChange: "transform",
+                }}
+              >
+                {tab.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        {/* Third Row: Single Integrated Search & Offers Bar (Zepto-style) */}
+        <div className="flex items-center justify-between w-full bg-white dark:bg-[#1E1512] rounded-full border border-gray-200 dark:border-white/5 pl-4 pr-3.5 py-2 mt-2 relative z-[10007] shadow-sm select-none">
+          {/* Left Side: Search trigger */}
+          <div
+            onClick={() => navigate("/search")}
+            className="flex-grow flex items-center gap-2 cursor-pointer min-w-0"
+          >
+            <FiSearch className="text-gray-400 text-base flex-shrink-0" />
+            <span className="text-xs text-gray-400 font-semibold truncate">
+              Search for "Earphones"
+            </span>
+          </div>
+
+          {/* Vertical Divider */}
+          <div className="w-[1px] h-6 bg-gray-200 dark:bg-white/10 mx-3 flex-shrink-0" />
+
+          {/* Right Side: Get Offers Action */}
+          <div 
+            onClick={() => navigate("/offers")}
+            className="flex-shrink-0 flex items-center gap-1.5 cursor-pointer"
+          >
+            <span className="text-xl select-none">🎁</span>
+            <div className="flex flex-col text-left leading-none">
+              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">
+                Get
+              </span>
+              <span className="text-[10px] font-black text-[#7C3AED] dark:text-[#E29B5D] tracking-tight">
+                Offers
+              </span>
+            </div>
+          </div>
+        </div>
 
 
       </div>

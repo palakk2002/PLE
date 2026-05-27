@@ -599,6 +599,14 @@ const MobileProductDetail = () => {
                     </div>
                   )}
 
+                  {product.condition && product.condition !== "brand_new" && (
+                    <div className="mb-4">
+                      <Badge variant={product.condition === 'open_box' ? 'open-box' : product.condition} className="inline-block text-xs uppercase font-extrabold tracking-wider px-3 py-1.5 rounded-lg shadow-sm">
+                        Certified {product.condition.replace('_', ' ')}
+                      </Badge>
+                    </div>
+                  )}
+
                   <h1 className="text-2xl lg:text-4xl font-extrabold text-gray-900 mb-4 leading-tight">
                     {product.name}
                   </h1>
@@ -621,7 +629,7 @@ const MobileProductDetail = () => {
                   )}
 
                   {/* Price */}
-                  <div className="bg-gray-50 rounded-2xl p-6 mb-8 border border-gray-100">
+                  <div className="bg-gray-50 rounded-2xl p-6 mb-6 border border-gray-100">
                     <div className="flex items-end gap-3 mb-2">
                       <span className="text-4xl font-extrabold text-gray-900">
                         {formatPrice(activePrice)}
@@ -654,6 +662,100 @@ const MobileProductDetail = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Condition Details Dashboard */}
+                  {product.condition && product.condition !== "brand_new" && (
+                    <div className="bg-white rounded-2xl p-6 mb-6 border border-gray-100 shadow-sm space-y-6">
+                      <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                        Product Condition & Inspection Report
+                      </h3>
+                      
+                      {/* 3-Column Metrics */}
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                          <span className="block text-xs text-gray-500 font-medium mb-1">Cosmetic Grade</span>
+                          <span className="text-lg font-black text-gray-800 uppercase bg-white px-2 py-0.5 rounded shadow-sm border border-gray-200">
+                            Grade {product.refurbishedGrade}
+                          </span>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                          <span className="block text-xs text-gray-500 font-medium mb-1">Warranty</span>
+                          <span className="text-sm font-bold text-gray-850">
+                            {product.refurbishedWarrantyDuration || "3 Months"}
+                          </span>
+                        </div>
+                        <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                          <span className="block text-xs text-gray-500 font-medium mb-1">Prior Usage</span>
+                          <span className="text-sm font-bold text-gray-850">
+                            {product.refurbishedUsedDuration || "N/A"}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Battery Health Slider (if applicable) */}
+                      {product.refurbishedBatteryHealth && (
+                        <div className="space-y-2">
+                          <div className="flex justify-between text-xs font-bold text-gray-750">
+                            <span>Battery Capacity Health</span>
+                            <span className="text-cyan-600">{product.refurbishedBatteryHealth}%</span>
+                          </div>
+                          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500" 
+                              style={{ width: `${product.refurbishedBatteryHealth}%` }}
+                            />
+                          </div>
+                          <span className="block text-[10px] text-gray-400 font-medium">Battery capacity is guaranteed to exceed 80% of original brand-new specification.</span>
+                        </div>
+                      )}
+
+                      {/* Quality Checklist */}
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-bold text-gray-750 uppercase tracking-wider">Quality Vetting & Testing Checks</h4>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="flex items-center gap-2 text-xs text-gray-700">
+                            <span className="text-green-500 text-sm">✓</span>
+                            <span>{product.refurbishedTestingPassed ? "Diagnostic Testing Passed" : "Fully Functional"}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-700">
+                            <span className="text-green-500 text-sm">✓</span>
+                            <span>Sanitized & Cleaned</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-700">
+                            <span className="text-green-500 text-sm">✓</span>
+                            <span>{product.refurbishedCertified ? "Certified Refurbished Seals" : "Quality Inspected"}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-gray-700">
+                            <span className="text-green-500 text-sm">✓</span>
+                            <span>Accessories Included</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Included Accessories */}
+                      {product.refurbishedAccessories && product.refurbishedAccessories.length > 0 && (
+                        <div className="bg-cyan-50/50 dark:bg-cyan-950/10 rounded-xl p-3 border border-cyan-100/50">
+                          <span className="block text-xs font-bold text-cyan-800 dark:text-cyan-300 mb-1">Included Accessories:</span>
+                          <div className="flex flex-wrap gap-2">
+                            {product.refurbishedAccessories.map((acc, idx) => (
+                              <span key={idx} className="bg-white dark:bg-gray-800 text-[10px] text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded shadow-sm border border-cyan-100/50">
+                                {acc}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Cosmetic Damage Notes */}
+                      {product.refurbishedCosmeticNotes && (
+                        <div className="bg-orange-50/50 dark:bg-orange-950/10 rounded-xl p-3 border border-orange-100/50 text-xs text-gray-750 leading-relaxed">
+                          <span className="block font-bold text-orange-800 dark:text-orange-300 mb-1">Cosmetic Assessment Notes:</span>
+                          <p className="text-gray-600 dark:text-gray-400">{product.refurbishedCosmeticNotes}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Variants & Quantity */}

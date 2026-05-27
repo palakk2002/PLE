@@ -24,6 +24,7 @@ import {
   FiX,
   FiUser,
   FiBriefcase,
+  FiRefreshCw,
 } from "react-icons/fi";
 import { useAdminAuthStore } from "../../store/adminStore";
 import adminMenu from "../../config/adminMenu.json";
@@ -38,6 +39,7 @@ const iconMap = {
   Brands: FiTag,
   Customers: FiUsers,
   "B2B Marketplace": FiBriefcase,
+  "Refurbished Mkt": FiRefreshCw,
   "Delivery Management": FiTruck,
   "Offers & Sliders": FiImage,
   Banners: FiImage,
@@ -80,6 +82,13 @@ const getChildRoute = (parentRoute, childName) => {
       "B2B Products": "/admin/b2b/b2b-products",
       "B2B Orders": "/admin/b2b/b2b-orders",
       "B2B Settings": "/admin/b2b/b2b-settings",
+    },
+    "/admin/refurbished": {
+      "QC Dashboard": "/admin/refurbished/dashboard",
+      "Product Approvals": "/admin/refurbished/approvals",
+      "Fraud & Moderation": "/admin/refurbished/moderation",
+      "Complaints & Returns": "/admin/refurbished/complaints",
+      "Category Management": "/admin/refurbished/categories",
     },
     "/admin/delivery": {
       "Delivery Boys": "/admin/delivery/delivery-boys",

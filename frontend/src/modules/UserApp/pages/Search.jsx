@@ -81,6 +81,7 @@ const MobileSearch = () => {
     minPrice: searchParams.get('minPrice') || '',
     maxPrice: searchParams.get('maxPrice') || '',
     minRating: searchParams.get('minRating') || '',
+    condition: searchParams.get('condition') || '',
   });
 
   // Sync searchQuery with URL params
@@ -95,6 +96,7 @@ const MobileSearch = () => {
       minPrice: searchParams.get('minPrice') || '',
       maxPrice: searchParams.get('maxPrice') || '',
       minRating: searchParams.get('minRating') || '',
+      condition: searchParams.get('condition') || '',
     });
   }, [searchParams]);
 
@@ -211,10 +213,11 @@ const MobileSearch = () => {
       if (filters.minPrice) query.minPrice = filters.minPrice;
       if (filters.maxPrice) query.maxPrice = filters.maxPrice;
       if (filters.minRating) query.minRating = filters.minRating;
+      if (filters.condition) query.condition = filters.condition;
 
       return query;
     },
-    [filters.category, filters.vendor, filters.minPrice, filters.maxPrice, sortBy, searchParams]
+    [filters.category, filters.vendor, filters.minPrice, filters.maxPrice, filters.minRating, filters.condition, sortBy, searchParams]
   );
 
   const fetchResults = useCallback(
@@ -371,6 +374,7 @@ const MobileSearch = () => {
       minPrice: '',
       maxPrice: '',
       minRating: '',
+      condition: '',
     });
     setSearchQuery('');
     setSortBy('newest');
@@ -690,6 +694,24 @@ const MobileSearch = () => {
                                     )}
                                   </AnimatePresence>
                                 </div>
+                              </div>
+
+                              {/* Condition Filter */}
+                              <div>
+                                <h4 className="font-semibold text-gray-700 mb-1.5 text-xs">
+                                  Product Condition
+                                </h4>
+                                <select
+                                  value={filters.condition}
+                                  onChange={(e) => handleFilterChange("condition", e.target.value)}
+                                  className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs text-gray-700 font-medium"
+                                >
+                                  <option value="">All Conditions</option>
+                                  <option value="brand_new">Brand New</option>
+                                  <option value="refurbished">Refurbished</option>
+                                  <option value="renewed">Renewed</option>
+                                  <option value="open_box">Open Box</option>
+                                </select>
                               </div>
 
                               {/* Rating Filter */}

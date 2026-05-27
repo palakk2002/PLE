@@ -33,11 +33,10 @@ const MobileCategoryGrid = () => {
   }, [categories, getRootCategories]);
 
   return (
-    <div className="px-4 py-4">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">
-        Browse Categories
-      </h2>
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+    <div 
+      className="bg-transparent pt-3 pb-3 px-4 overflow-visible relative z-20 select-none mt-2"
+    >
+      <div className="flex gap-3.5 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
         {displayCategories.map((category, index) => (
           <motion.div
             key={category.id}
@@ -47,19 +46,19 @@ const MobileCategoryGrid = () => {
             className="flex-shrink-0">
             <Link
               to={`/category/${category.id}`}
-              className="flex flex-col items-center gap-2 w-20">
-              <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 ring-2 ring-gray-200">
+              className="flex flex-col items-center gap-1.5 w-16 select-none">
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-white dark:bg-[#1E1512] flex items-center justify-center p-1.5 border border-purple-200 dark:border-purple-900/40 shadow-sm">
                 <LazyImage
                   src={category.image}
                   alt={category.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain rounded-full"
                   onError={(e) => {
                     e.target.src =
-                      "https://via.placeholder.com/64x64?text=Category";
+                      "https://via.placeholder.com/64x64?text=Cat";
                   }}
                 />
               </div>
-              <span className="text-xs font-semibold text-gray-700 text-center line-clamp-2">
+              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 text-center mt-2 truncate max-w-full px-0.5">
                 {category.name}
               </span>
             </Link>

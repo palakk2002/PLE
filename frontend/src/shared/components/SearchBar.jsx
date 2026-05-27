@@ -17,6 +17,35 @@ const SearchBar = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
 
+  // Animated placeholder texts
+  const placeholders = ["Search products...", "Find brands...", "Explore categories...", "Search deals...", "Discover new items..."];
+  const [placeholderIdx, setPlaceholderIdx] = useState(0);
+  const [charIdx, setCharIdx] = useState(0);
+  const [displayedPlaceholder, setDisplayedPlaceholder] = useState('');
+
+  // Cycle placeholder and typing effect
+  useEffect(() => {
+    const typeInterval = setInterval(() => {
+      const current = placeholders[placeholderIdx];
+      setCharIdx((i) => {
+        if (i < current.length) {
+          setDisplayedPlaceholder(current.slice(0, i + 1));
+          return i + 1;
+        } else {
+          // pause before moving to next placeholder
+          clearInterval(typeInterval);
+          const pause = setTimeout(() => {
+            setPlaceholderIdx((idx) => (idx + 1) % placeholders.length);
+            setCharIdx(0);
+            setDisplayedPlaceholder('');
+          }, 1500);
+          return i;
+        }
+      });
+    }, 100);
+    return () => clearInterval(typeInterval);
+  }, [placeholderIdx]);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -235,9 +264,20 @@ const SearchBar = () => {
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             onKeyDown={handleKeyDown}
-            placeholder="Search products..."
-            className="w-full pl-12 pr-4 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400"
+            className="w-full pl-12 pr-4 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400 md:text-center"
           />
+          {/* Animated placeholder overlay */}
+          <motion.span
+            initial={{ opacity: 0, x: 0 }}
+            animate={{ opacity: searchQuery ? 0 : 1, x: [0, 30] }}
+            transition={{
+              opacity: { duration: 0.2 },
+              x: { repeat: Infinity, repeatType: "loop", duration: 4, ease: "linear" }
+            }}
+            className="absolute left-12 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10 whitespace-nowrap"
+          >
+            {displayedPlaceholder}
+          </motion.span>
         </div>
       </form>
 

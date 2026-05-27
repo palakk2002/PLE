@@ -1,6 +1,8 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { API_BASE_URL } from './constants';
+import { products as mockProductsList } from '../../data/products';
+
 
 const AUTH_SCOPES = {
   admin: {
@@ -168,10 +170,138 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+const getFilteredMockCircularProducts = (params = {}) => {
+  let list = mockProductsList.filter(p => p.condition && p.condition !== 'brand_new');
+  
+  if (params.category) {
+    const catId = String(params.category).trim();
+    list = list.filter(p => String(p.categoryId).trim() === catId);
+  }
+  
+  if (params.brand) {
+    const brandId = String(params.brand).trim();
+    list = list.filter(p => String(p.brandId).trim() === brandId);
+  }
+  
+  if (params.vendor) {
+    const vendorId = String(params.vendor).trim();
+    list = list.filter(p => String(p.vendorId).trim() === vendorId);
+  }
+
+  if (params.condition) {
+    const condition = String(params.condition).trim();
+    if (condition !== 'all' && condition !== 'brand_new') {
+      list = list.filter(p => String(p.condition).trim() === condition);
+    } else if (condition === 'brand_new') {
+      return [];
+    }
+  }
+  
+  if (params.q) {
+    const q = String(params.q).trim().toLowerCase();
+    list = list.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      (p.description && p.description.toLowerCase().includes(q))
+    );
+  }
+  
+  if (params.minPrice) {
+    const min = parseFloat(params.minPrice);
+    if (!isNaN(min)) {
+      list = list.filter(p => p.price >= min);
+    }
+  }
+  
+  if (params.maxPrice) {
+    const max = parseFloat(params.maxPrice);
+    if (!isNaN(max)) {
+      list = list.filter(p => p.price <= max);
+    }
+  }
+  
+  return list;
+};
+
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => {
+    const url = response.config?.url || '';
+    
+    // Intercept GET /products
+    if (url.endsWith('/products') || url.includes('/products?')) {
+      const params = response.config?.params || {};
+      const mockItems = getFilteredMockCircularProducts(params);
+      
+      if (response.data) {
+        if (response.data.products && Array.isArray(response.data.products)) {
+          const merged = [...response.data.products, ...mockItems];
+          const unique = merged.filter((item, index, self) => 
+            index === self.findIndex((t) => String(t.id) === String(item.id))
+          );
+          response.data.products = unique;
+          if (typeof response.data.total === 'number') {
+            response.data.total = unique.length;
+          }
+        } else if (response.data.data && response.data.data.products && Array.isArray(response.data.data.products)) {
+          const merged = [...response.data.data.products, ...mockItems];
+          const unique = merged.filter((item, index, self) => 
+            index === self.findIndex((t) => String(t.id) === String(item.id))
+          );
+          response.data.data.products = unique;
+          if (typeof response.data.data.total === 'number') {
+            response.data.data.total = unique.length;
+          }
+        }
+      }
+    }
+    
+    // Intercept GET /vendors/:vendorId/products
+    const vendorProductsMatch = url.match(/\/vendors\/([^/]+)\/products/);
+    if (vendorProductsMatch) {
+      const vendorId = vendorProductsMatch[1];
+      const params = response.config?.params || {};
+      const mockItems = getFilteredMockCircularProducts({ ...params, vendor: vendorId });
+      
+      if (response.data) {
+        if (response.data.products && Array.isArray(response.data.products)) {
+          const merged = [...response.data.products, ...mockItems];
+          const unique = merged.filter((item, index, self) => 
+            index === self.findIndex((t) => String(t.id) === String(item.id))
+          );
+          response.data.products = unique;
+          if (typeof response.data.total === 'number') {
+            response.data.total = unique.length;
+          }
+        } else if (response.data.data && response.data.data.products && Array.isArray(response.data.data.products)) {
+          const merged = [...response.data.data.products, ...mockItems];
+          const unique = merged.filter((item, index, self) => 
+            index === self.findIndex((t) => String(t.id) === String(item.id))
+          );
+          response.data.data.products = unique;
+          if (typeof response.data.data.total === 'number') {
+            response.data.data.total = unique.length;
+          }
+        }
+      }
+    }
+    
+    return response.data;
+  },
   async (error) => {
     const originalRequest = error.config || {};
+    const url = originalRequest.url || '';
+    
+    // Intercept details request for mock circular products
+    if (url.includes('/products/refurb_')) {
+      const mockId = url.split('/').pop();
+      const matched = mockProductsList.find(p => String(p.id) === String(mockId));
+      if (matched) {
+        return {
+          success: true,
+          data: matched
+        };
+      }
+    }
+
     const scope = getScopeFromUrl(originalRequest.url || '');
     const currentPath = window.location.pathname;
     const pathScope = getScopeFromPath(currentPath);
@@ -179,7 +309,7 @@ api.interceptors.response.use(
     // Catch mock session calls immediately to bypass standard error toasts, redirects, and logouts
     const activeToken = scope && AUTH_SCOPES[scope] ? localStorage.getItem(AUTH_SCOPES[scope].accessKey) : null;
     if (activeToken && activeToken.startsWith('mock.')) {
-      console.warn("Mock session active, intercepting network failure for:", originalRequest.url);
+      if (!originalRequest.url.includes('/vendors/all')) { console.warn("Mock session active, intercepting network failure for:", originalRequest.url); }
       const url = originalRequest.url || '';
       
       if (url.includes('/vendor/auth/profile')) {

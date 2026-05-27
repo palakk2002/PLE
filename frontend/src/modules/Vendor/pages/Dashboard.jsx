@@ -135,6 +135,10 @@ const VendorDashboard = () => {
     return products.filter((p) => p.b2bEnabled === true);
   }, [products]);
 
+  const refurbishedProducts = useMemo(() => {
+    return products.filter((p) => p.condition && p.condition !== "brand_new");
+  }, [products]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -212,6 +216,48 @@ const VendorDashboard = () => {
             <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-4 rounded-xl border border-emerald-100">
               <p className="text-xs font-medium text-emerald-800">Pending RFQs / Inquiries</p>
               <p className="text-2xl font-bold text-emerald-900 mt-1">0</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Refurbished Overview Widget */}
+      {refurbishedProducts.length > 0 && (
+        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></span>
+                Refurbished & Renewed Overview
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">Vetting status, grading, and warranty insights for your circular catalog.</p>
+            </div>
+            <button
+              onClick={() => navigate("/vendor/products/manage-products")}
+              className="text-xs font-semibold text-cyan-600 hover:text-cyan-700 bg-cyan-50 px-2.5 py-1.5 rounded-lg transition-colors border border-cyan-100"
+            >
+              Manage Circular Listings
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-gradient-to-br from-cyan-50 to-cyan-100/50 p-4 rounded-xl border border-cyan-100">
+              <p className="text-xs font-medium text-cyan-800">Circular Products Listings</p>
+              <p className="text-2xl font-bold text-cyan-900 mt-1">{refurbishedProducts.length}</p>
+            </div>
+
+            <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 p-4 rounded-xl border border-amber-100">
+              <p className="text-xs font-medium text-amber-800">Pending Vetting / Review</p>
+              <p className="text-2xl font-bold text-amber-900 mt-1">
+                {refurbishedProducts.filter((p) => p.refurbishedApprovalStatus === "pending").length}
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 p-4 rounded-xl border border-emerald-100">
+              <p className="text-xs font-medium text-emerald-800">Certified Quality Badges</p>
+              <p className="text-2xl font-bold text-emerald-900 mt-1">
+                {refurbishedProducts.filter((p) => p.isCertified === true).length}
+              </p>
             </div>
           </div>
         </div>

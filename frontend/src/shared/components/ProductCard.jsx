@@ -6,6 +6,7 @@ import { useWishlistStore } from "../store/wishlistStore";
 import { formatPrice, getPlaceholderImage } from "../utils/helpers";
 import toast from "react-hot-toast";
 import LazyImage from "./LazyImage";
+import Badge from "./Badge";
 import { useState, useRef } from "react";
 import useLongPress from "../../modules/UserApp/hooks/useLongPress";
 import LongPressMenu from "../../modules/UserApp/components/Mobile/LongPressMenu";
@@ -222,6 +223,13 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
                   e.target.src = getPlaceholderImage(300, 300, "Product Image");
                 }}
               />
+              {product.condition && product.condition !== "brand_new" && (
+                <div className="absolute bottom-2 left-2 z-10">
+                  <Badge variant={product.condition === 'open_box' ? 'open-box' : product.condition} className="text-[8px] md:text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded shadow">
+                    {product.condition.replace('_', ' ')}
+                  </Badge>
+                </div>
+              )}
             </div>
           </Link>
         </div>
@@ -237,7 +245,18 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
             {product.unit}
           </p>
 
-
+          {product.condition && product.condition !== "brand_new" && (
+            <div className="flex flex-wrap gap-1 mb-1 items-center">
+              <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded text-[8px] md:text-[9px] font-extrabold uppercase tracking-wide">
+                Grade {product.refurbishedGrade}
+              </span>
+              {product.refurbishedWarrantyDuration && (
+                <span className="px-1.5 py-0.5 bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-300 rounded text-[8px] md:text-[9px] font-medium">
+                  {product.refurbishedWarrantyDuration} Warranty
+                </span>
+              )}
+            </div>
+          )}
 
           {/* Rating */}
           <div className="flex items-center justify-between mb-2">
@@ -286,6 +305,11 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
               {product.originalPrice && (
                 <span className="text-[9px] md:text-xs text-gray-400 line-through font-medium leading-none mb-0.5">
                   {formatPrice(product.originalPrice)}
+                </span>
+              )}
+              {product.condition && product.condition !== "brand_new" && product.originalPrice && (
+                <span className="text-[9px] md:text-xs text-green-600 font-black leading-none mb-0.5">
+                  (Save {formatPrice(product.originalPrice - product.price)})
                 </span>
               )}
             </div>

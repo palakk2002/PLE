@@ -11,6 +11,8 @@ import { formatPrice } from "../../../../shared/utils/helpers";
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import { useVendorProductStore } from "../../store/vendorProductStore";
 import { useCategoryStore } from "../../../../shared/store/categoryStore";
+import RefurbishedBadge from "../../components/Refurbished/RefurbishedBadge";
+import ApprovalStatusBadge from "../../components/Refurbished/ApprovalStatusBadge";
 
 const ManageProducts = () => {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ const ManageProducts = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
+  const [selectedCondition, setSelectedCondition] = useState("all");
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     productId: null,
@@ -67,8 +70,17 @@ const ManageProducts = () => {
       });
     }
 
+    if (selectedCondition !== "all") {
+      filtered = filtered.filter((product) => {
+        if (selectedCondition === "brand_new") {
+          return product.condition === "brand_new" || !product.condition;
+        }
+        return product.condition === selectedCondition;
+      });
+    }
+
     return filtered;
-  }, [products, searchQuery, selectedStatus, selectedCategory, selectedType]);
+  }, [products, searchQuery, selectedStatus, selectedCategory, selectedType, selectedCondition]);
 
   const columns = [
     {
@@ -125,13 +137,41 @@ const ManageProducts = () => {
       ),
     },
     {
+      key: "condition",
+      label: "Condition Status",
+      sortable: true,
+      render: (_, row) => {
+        if (!row.condition || row.condition === "brand_new") {
+          return <span className="text-xs text-gray-500 font-medium">Brand New</span>;
+        }
+        return (
+          <div className="flex flex-col gap-1">
+            <span className="text-xs capitalize font-bold text-gray-700">
+              {row.condition.replace("_", " ")} {row.refurbishedGrade ? `(Grade ${row.refurbishedGrade})` : ""}
+            </span>
+            {row.refurbishedApprovalStatus && (
+              <ApprovalStatusBadge status={row.refurbishedApprovalStatus} />
+            )}
+          </div>
+        );
+      }
+    },
+    {
       key: "b2bEnabled",
       label: "Type",
       sortable: true,
-      render: (value) => (
-        <div className="flex gap-1.5 flex-wrap">
+      render: (value, row) => (
+        <div className="flex gap-1.5 flex-wrap items-center">
           <Badge variant="success">B2C</Badge>
           {value && <Badge variant="warning">B2B</Badge>}
+          {row.condition && row.condition !== "brand_new" && (
+            <RefurbishedBadge
+              condition={row.condition}
+              grade={row.refurbishedGrade}
+              warranty={row.refurbishedWarrantyDuration}
+              showDetails={false}
+            />
+          )}
         </div>
       ),
     },
@@ -241,6 +281,19 @@ const ManageProducts = () => {
                 { value: "b2b", label: "B2B Wholesale" },
               ]}
               className="w-full sm:w-auto min-w-[140px]"
+            />
+
+            <AnimatedSelect
+              value={selectedCondition}
+              onChange={(e) => setSelectedCondition(e.target.value)}
+              options={[
+                { value: "all", label: "All Conditions" },
+                { value: "brand_new", label: "Brand New" },
+                { value: "refurbished", label: "Refurbished" },
+                { value: "renewed", label: "Renewed" },
+                { value: "open_box", label: "Open Box" },
+              ]}
+              className="w-full sm:w-auto min-w-[150px]"
             />
 
             <button

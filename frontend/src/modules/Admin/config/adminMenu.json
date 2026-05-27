@@ -61,6 +61,17 @@
     ]
   },
   {
+    "title": "Refurbished Mkt",
+    "route": "/admin/refurbished",
+    "children": [
+      "QC Dashboard",
+      "Product Approvals",
+      "Fraud & Moderation",
+      "Complaints & Returns",
+      "Category Management"
+    ]
+  },
+  {
     "title": "Delivery Management",
     "route": "/admin/delivery",
     "children": [
