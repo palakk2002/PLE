@@ -607,7 +607,7 @@ const MobileHome = () => {
                   <button
                     type="button"
                     onClick={() => handleBannerNavigation(sideBanner?.link || "/offers")}
-                    className="bg-white text-gray-900 font-bold py-3.5 px-10 rounded-xl w-full hover:bg-gray-100 transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-xl uppercase tracking-widest text-sm"
+                    className="bg-white dark:!bg-[#7B0A0A] text-gray-900 dark:text-white font-bold py-3.5 px-10 rounded-xl w-full hover:bg-gray-100 dark:hover:!bg-[#AE020B] transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-xl uppercase tracking-widest text-sm"
                   >
                     Shop Now
                   </button>
@@ -636,10 +636,13 @@ const MobileHome = () => {
           {/* Most Popular */}
           <div className="px-4 py-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Most Popular</h2>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                <span>Most </span>
+                <span className="dark:text-[#7B0A0A]">Popular</span>
+              </h2>
               <Link
                 to="/search"
-                className="text-sm text-primary-600 font-semibold">
+                className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
                 See All
               </Link>
             </div>
@@ -692,17 +695,17 @@ const MobileHome = () => {
 
           {/* Flash Sale */}
           {computedFlashSale.length > 0 && (
-            <div className="px-4 py-4 bg-gradient-to-br from-red-50 to-orange-50">
+            <div className="px-4 py-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-transparent dark:to-transparent dark:bg-none">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-800">
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">
                     Flash Sale
                   </h2>
-                  <p className="text-xs text-gray-600">Limited time offers</p>
+                  <p className="text-xs text-gray-600 dark:text-[#888888]">Limited time offers</p>
                 </div>
                 <Link
                   to="/flash-sale"
-                  className="text-sm text-primary-600 font-semibold">
+                  className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
                   See All
                 </Link>
               </div>
@@ -724,10 +727,10 @@ const MobileHome = () => {
           {/* Trending Items */}
           <div className="px-4 py-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800">Trending Now</h2>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white">Trending Now</h2>
               <Link
                 to="/search"
-                className="text-sm text-primary-600 font-semibold">
+                className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
                 See All
               </Link>
             </div>

@@ -7,6 +7,7 @@ import {
   FiChevronDown,
   FiUser,
   FiSearch,
+  FiMenu,
 } from "react-icons/fi";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
@@ -19,6 +20,7 @@ import { motion } from "framer-motion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import SearchBar from "../../../../shared/components/SearchBar";
 import MobileCategoryIcons from "../Mobile/MobileCategoryIcons";
+import Sidebar from "../../../../shared/components/Sidebar";
 import { useBusinessBuyer } from "../../hooks/useBusinessBuyer";
 import { B2BBusinessBadge } from "../B2B/B2BBusinessBadge";
 
@@ -41,6 +43,7 @@ const MobileHeader = () => {
   };
 
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showCartAnimation, setShowCartAnimation] = useState(false);
   const [positionsReady, setPositionsReady] = useState(false);
   const [hasPlayed, setHasPlayed] = useState(false);
@@ -101,30 +104,30 @@ const MobileHeader = () => {
     if (theme === "dark") {
       if (currentCategoryId) {
         const darkCategoryGradients = {
-          1: "linear-gradient(to bottom, #2d1412 0%, #1e0f0e 50%, #120d0b 100%)", // Pinkish dark
-          2: "linear-gradient(to bottom, #241a14 0%, #1a130e 50%, #120d0b 100%)", // Amber dark
-          3: "linear-gradient(to bottom, #2d1e16 0%, #1e1510 50%, #120d0b 100%)", // Orange dark
-          4: "linear-gradient(to bottom, #15241b 0%, #0f1a13 50%, #120d0b 100%)", // Greenish dark
-          5: "linear-gradient(to bottom, #221428 0%, #170e1b 50%, #120d0b 100%)", // Purple dark
-          6: "linear-gradient(to bottom, #121c26 0%, #0d141c 50%, #120d0b 100%)", // Blue dark
+          1: "linear-gradient(to bottom, #1A0A0A 0%, #110606 50%, #0D0D0D 100%)", // Pinkish dark
+          2: "linear-gradient(to bottom, #1A0D0A 0%, #110806 50%, #0D0D0D 100%)", // Amber dark
+          3: "linear-gradient(to bottom, #1A0E0A 0%, #110906 50%, #0D0D0D 100%)", // Orange dark
+          4: "linear-gradient(to bottom, #0A1A0E 0%, #06110A 50%, #0D0D0D 100%)", // Greenish dark
+          5: "linear-gradient(to bottom, #120A1A 0%, #0C0611 50%, #0D0D0D 100%)", // Purple dark
+          6: "linear-gradient(to bottom, #0A0E1A 0%, #060911 50%, #0D0D0D 100%)", // Blue dark
         };
-        return darkCategoryGradients[currentCategoryId] || "linear-gradient(to bottom, #1e1512 0%, #120d0b 100%)";
+        return darkCategoryGradients[currentCategoryId] || "linear-gradient(to bottom, #1A0A0A 0%, #0D0D0D 100%)";
       }
 
       const pageDarkGradients = {
-        home: "linear-gradient(to bottom, #1e1512 0%, #1a1310 30%, #120d0b 100%)", // Home warm dark
-        product: "linear-gradient(to bottom, #1e1512 0%, #120d0b 100%)",
-        search: "linear-gradient(to bottom, #2a1c16 0%, #1c120e 50%, #120d0b 100%)", // Orange/brown dark
-        wishlist: "linear-gradient(to bottom, #2a1212 0%, #1c0c0c 50%, #120d0b 100%)", // Red dark
-        profile: "linear-gradient(to bottom, #102a1c 0%, #0b1c13 50%, #120d0b 100%)", // Green dark
-        orders: "linear-gradient(to bottom, #121c2a 0%, #0c131c 50%, #120d0b 100%)", // Blue dark
-        orderDetail: "linear-gradient(to bottom, #121c2a 0%, #0c131c 50%, #120d0b 100%)",
-        checkout: "linear-gradient(to bottom, #102a1c 0%, #0b1c13 50%, #120d0b 100%)",
-        offers: "linear-gradient(to bottom, #2a1c16 0%, #1c120e 50%, #120d0b 100%)",
-        dailyDeals: "linear-gradient(to bottom, #262412 0%, #19180c 50%, #120d0b 100%)",
-        flashSale: "linear-gradient(to bottom, #2a1212 0%, #1c0c0c 50%, #120d0b 100%)",
-        vendor: "linear-gradient(to bottom, #1e122a 0%, #140c1c 50%, #120d0b 100%)",
-        default: "linear-gradient(to bottom, #1e1512 0%, #120d0b 100%)",
+        home: "linear-gradient(to bottom, #1A0A0A 0%, #140808 30%, #0D0D0D 100%)", // Home red-black
+        product: "linear-gradient(to bottom, #1A0A0A 0%, #0D0D0D 100%)",
+        search: "linear-gradient(to bottom, #1A0A0A 0%, #110606 50%, #0D0D0D 100%)",
+        wishlist: "linear-gradient(to bottom, #200808 0%, #160404 50%, #0D0D0D 100%)",
+        profile: "linear-gradient(to bottom, #0A1A0E 0%, #060B09 50%, #0D0D0D 100%)",
+        orders: "linear-gradient(to bottom, #0A0E1A 0%, #060911 50%, #0D0D0D 100%)",
+        orderDetail: "linear-gradient(to bottom, #0A0E1A 0%, #060911 50%, #0D0D0D 100%)",
+        checkout: "linear-gradient(to bottom, #0A1A0E 0%, #060B09 50%, #0D0D0D 100%)",
+        offers: "linear-gradient(to bottom, #1A0A0A 0%, #110606 50%, #0D0D0D 100%)",
+        dailyDeals: "linear-gradient(to bottom, #1A1200 0%, #110C00 50%, #0D0D0D 100%)",
+        flashSale: "linear-gradient(to bottom, #200808 0%, #160404 50%, #0D0D0D 100%)",
+        vendor: "linear-gradient(to bottom, #120A1A 0%, #0C0611 50%, #0D0D0D 100%)",
+        default: "linear-gradient(to bottom, #1A0A0A 0%, #0D0D0D 100%)",
       };
       return pageDarkGradients[currentPage] || pageDarkGradients.default;
     }
@@ -374,13 +377,21 @@ const MobileHeader = () => {
           style={{
             pointerEvents: isTopRowVisible ? "auto" : "none",
           }}>
+          {/* Hamburger Menu Icon */}
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 hover:bg-white/30 dark:hover:bg-white/10 rounded-lg transition-all duration-300 text-gray-800 dark:text-[#FFFFFF] flex items-center justify-center flex-shrink-0"
+            title="Menu">
+            <FiMenu className="text-2xl" />
+          </button>
+
           {/* Static Location Time and Address */}
           <div className="flex items-center gap-2 flex-shrink-0 overflow-visible relative z-[10001] max-w-[60%]">
             <div className="flex flex-col text-left">
-              <span className="font-black text-[#111827] dark:text-[#EAD2C1] text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none">
+              <span className="font-black text-[#111827] dark:text-[#FFFFFF] text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none">
                 ⚡ 10 minutes
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-[#C8B3A3] flex items-center gap-0.5 truncate cursor-pointer mt-0.5">
+              <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-[#AAAAAA] flex items-center gap-0.5 truncate cursor-pointer mt-0.5">
                 Police Quarters, Belgaum
                 <FiChevronDown className="text-xs text-gray-500 mt-0.5 flex-shrink-0" />
               </span>
@@ -392,7 +403,7 @@ const MobileHeader = () => {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2 hover:bg-white/50 rounded-full transition-all duration-300 text-gray-700 dark:text-[#C8B3A3] focus:outline-none"
+              className="p-2 hover:bg-white/50 rounded-full transition-all duration-300 text-gray-700 dark:text-[#AAAAAA] focus:outline-none"
               title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
             >
               <motion.div
@@ -414,7 +425,7 @@ const MobileHeader = () => {
             {/* Profile Button */}
             <button
               onClick={() => navigate(isAuthenticated ? "/profile" : "/login")}
-              className="p-2 hover:bg-white/50 rounded-full transition-all duration-300 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-[#C8B3A3] flex items-center justify-center"
+              className="p-2 hover:bg-white/50 rounded-full transition-all duration-300 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-[#AAAAAA] flex items-center justify-center"
               title="Profile"
             >
               <FiUser className="text-xl" />
@@ -434,7 +445,7 @@ const MobileHeader = () => {
                   : {}
               }
               transition={{ duration: 0.5, ease: "easeOut" }}>
-              <FiShoppingBag className="text-xl text-gray-700 dark:text-[#C8B3A3]" />
+              <FiShoppingBag className="text-xl text-gray-700 dark:text-[#AAAAAA]" />
               {itemCount > 0 && (
                 <motion.span
                   key={itemCount}
@@ -463,9 +474,9 @@ const MobileHeader = () => {
                 location.pathname.startsWith("/seller/"),
               style: {
                 activeLight: "bg-white border border-[#7C3AED] text-[#7C3AED] font-extrabold text-sm tracking-tight lowercase shadow-sm",
-                activeDark: "bg-[#1E1512] border border-[#A78BFA] text-[#C4B5FD] font-extrabold text-sm tracking-tight lowercase shadow-sm",
+                activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-extrabold text-sm tracking-tight lowercase shadow-sm",
                 inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-sm tracking-tight lowercase",
-                inactiveDark: "bg-[#120D0B]/60 border border-white/10 text-gray-500 font-semibold text-sm tracking-tight lowercase",
+                inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-sm tracking-tight lowercase",
               }
             },
             {
@@ -474,9 +485,9 @@ const MobileHeader = () => {
               active: location.pathname === "/categories" || location.pathname.startsWith("/category/"),
               style: {
                 activeLight: "bg-white border border-[#2563EB] text-[#2563EB] font-bold text-xs tracking-tight shadow-sm",
-                activeDark: "bg-[#1E1512] border border-[#60A5FA] text-[#93C5FD] font-bold text-xs tracking-tight shadow-sm",
+                activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-bold text-xs tracking-tight shadow-sm",
                 inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-xs tracking-tight",
-                inactiveDark: "bg-[#120D0B]/60 border border-white/10 text-gray-500 font-semibold text-xs tracking-tight",
+                inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-xs tracking-tight",
               }
             },
             {
@@ -485,9 +496,9 @@ const MobileHeader = () => {
               active: location.pathname === "/offers",
               style: {
                 activeLight: "bg-[#FCD34D] border border-[#FBBF24] text-[#064E3B] font-serif font-black text-xs uppercase tracking-wider shadow-sm",
-                activeDark: "bg-[#FCD34D] border border-[#FBBF24] text-[#064E3B] font-serif font-black text-xs uppercase tracking-wider shadow-sm",
+                activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-black text-xs uppercase tracking-wider shadow-sm",
                 inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-xs uppercase tracking-wider",
-                inactiveDark: "bg-[#120D0B]/60 border border-white/10 text-gray-500 font-semibold text-xs uppercase tracking-wider",
+                inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-xs uppercase tracking-wider",
               }
             },
           ].map((tab) => {
@@ -513,7 +524,7 @@ const MobileHeader = () => {
         </div>
 
         {/* Third Row: Single Integrated Search & Offers Bar (Zepto-style) */}
-        <div className="flex items-center justify-between w-full bg-white dark:bg-[#1E1512] rounded-full border border-gray-200 dark:border-white/5 pl-4 pr-3.5 py-2 mt-2 relative z-[10007] shadow-sm select-none">
+        <div className="flex items-center justify-between w-full bg-white dark:bg-[#1A1A1A] rounded-full border border-gray-200 dark:border-white/5 pl-4 pr-3.5 py-2 mt-2 relative z-[10007] shadow-sm select-none">
           {/* Left Side: Search trigger */}
           <div
             onClick={() => navigate("/search")}
@@ -538,7 +549,7 @@ const MobileHeader = () => {
               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">
                 Get
               </span>
-              <span className="text-[10px] font-black text-[#7C3AED] dark:text-[#E29B5D] tracking-tight">
+              <span className="text-[10px] font-black text-[#7C3AED] dark:text-[#7B0A0A] tracking-tight">
                 Offers
               </span>
             </div>
@@ -557,6 +568,12 @@ const MobileHeader = () => {
         createPortal(headerContent, document.body)}
       {typeof document !== "undefined" &&
         createPortal(animationContent, document.body)}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+        user={user}
+        onLogout={handleLogout}
+      />
     </>
   );
 };

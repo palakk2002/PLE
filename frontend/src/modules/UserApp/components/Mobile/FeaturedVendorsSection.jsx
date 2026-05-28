@@ -18,12 +18,12 @@ const FeaturedVendorsSection = ({ vendors = null }) => {
     <div className="px-4 py-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-xl font-bold text-gray-800">Best Sellers</h2>
-          <p className="text-xs text-gray-600 mt-0.5">Shop from trusted stores</p>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Best Sellers</h2>
+          <p className="text-xs text-gray-600 dark:text-[#888888] mt-0.5">Shop from trusted stores</p>
         </div>
         <Link
           to="/search"
-          className="flex items-center gap-1 text-sm text-primary-600 font-semibold hover:text-primary-700 transition-colors"
+          className="flex items-center gap-1 text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold hover:text-primary-700 dark:hover:text-[#FF3333] transition-colors"
         >
           <span>See All</span>
           <FiArrowRight className="text-sm" />

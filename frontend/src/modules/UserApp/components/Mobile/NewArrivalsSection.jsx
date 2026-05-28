@@ -20,17 +20,17 @@ const NewArrivalsSection = ({ products = null }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       whileHover={{ scale: 1.01 }}
-      className="relative mx-4 my-4 rounded-2xl overflow-hidden shadow-xl border-2 border-cyan-200 dark:border-dark-accent/20 bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-500 dark:from-dark-card dark:via-[#1A1310] dark:to-dark-bg dark:shadow-[0_4px_25px_rgba(192,122,61,0.15)]">
+      className="relative mx-4 my-4 rounded-3xl overflow-hidden shadow-2xl border-2 border-cyan-200 dark:border-[#7B0A0A]/40 bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-500 dark:from-[#1a0f0f] dark:via-[#0d0d0d] dark:to-[#000000] dark:shadow-[0_8px_32px_rgba(123, 10, 10,0.25)]">
       {/* Animated Gradient Overlay */}
       <motion.div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-30"
         animate={{
           background: [
-            "linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%)",
-            "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 50%)",
-            "linear-gradient(225deg, rgba(255,255,255,0.1) 0%, transparent 50%)",
-            "linear-gradient(315deg, rgba(255,255,255,0.1) 0%, transparent 50%)",
-            "linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 50%)",
+            "linear-gradient(45deg, rgba(123, 10, 10,0.15) 0%, transparent 50%)",
+            "linear-gradient(135deg, rgba(123, 10, 10,0.15) 0%, transparent 50%)",
+            "linear-gradient(225deg, rgba(123, 10, 10,0.15) 0%, transparent 50%)",
+            "linear-gradient(315deg, rgba(123, 10, 10,0.15) 0%, transparent 50%)",
+            "linear-gradient(45deg, rgba(123, 10, 10,0.15) 0%, transparent 50%)",
           ],
         }}
         transition={{
@@ -41,9 +41,9 @@ const NewArrivalsSection = ({ products = null }) => {
       />
 
       {/* Decorative Background Pattern with Floating Animation */}
-      <div className="absolute inset-0 opacity-10 overflow-hidden">
+      <div className="absolute inset-0 opacity-15 overflow-hidden">
         <motion.div
-          className="absolute top-0 left-0 w-32 h-32 bg-white dark:bg-dark-accent/10 rounded-full blur-3xl"
+          className="absolute top-0 left-0 w-32 h-32 bg-white dark:bg-[#7B0A0A] rounded-full blur-3xl"
           animate={{
             x: [0, 20, 0],
             y: [0, 15, 0],
@@ -56,7 +56,7 @@ const NewArrivalsSection = ({ products = null }) => {
           }}
         />
         <motion.div
-          className="absolute bottom-0 right-0 w-24 h-24 bg-white dark:bg-dark-accent/10 rounded-full blur-2xl"
+          className="absolute bottom-0 right-0 w-24 h-24 bg-white dark:bg-[#7B0A0A] rounded-full blur-2xl"
           animate={{
             x: [0, -15, 0],
             y: [0, -10, 0],
@@ -74,10 +74,10 @@ const NewArrivalsSection = ({ products = null }) => {
       {/* Content */}
       <div className="relative px-4 py-5">
         {/* Header with Badge */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
             <motion.div
-              className="bg-white/20 backdrop-blur-sm rounded-full p-2 dark:bg-dark-accent/20"
+              className="bg-white/25 backdrop-blur-md rounded-full p-3 dark:bg-[#7B0A0A]/30 dark:border dark:border-[#7B0A0A]/50 shadow-lg"
               animate={{
                 scale: [1, 1.1, 1],
                 rotate: [0, 5, -5, 0],
@@ -97,7 +97,7 @@ const NewArrivalsSection = ({ products = null }) => {
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}>
-                <FiTag className="text-white dark:text-dark-accent text-lg" />
+                <FiTag className="text-white dark:text-[#FF4D4D] text-xl" />
               </motion.div>
             </motion.div>
             <motion.div
@@ -105,12 +105,12 @@ const NewArrivalsSection = ({ products = null }) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.2 }}>
               <motion.h2
-                className="text-xl font-extrabold text-white dark:text-[#F5E6DA] drop-shadow-lg"
+                className="text-2xl font-extrabold text-white dark:text-[#FFFFFF] drop-shadow-lg"
                 animate={{
                   textShadow: [
-                    "0 2px 4px rgba(0,0,0,0.2)",
-                    "0 4px 12px rgba(192, 122, 61, 0.4)",
-                    "0 2px 4px rgba(0,0,0,0.2)",
+                    "0 2px 4px rgba(0,0,0,0.3)",
+                    "0 6px 16px rgba(123, 10, 10, 0.5)",
+                    "0 2px 4px rgba(0,0,0,0.3)",
                   ],
                 }}
                 transition={{
@@ -120,22 +120,22 @@ const NewArrivalsSection = ({ products = null }) => {
                 }}>
                 New Arrivals
               </motion.h2>
-              <p className="text-xs text-white/90 dark:text-[#C8B3A3] font-medium">
+              <p className="text-xs text-white/95 dark:text-[#BBBBBB] font-semibold">
                 Fresh products just added
               </p>
             </motion.div>
           </div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+          <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}>
             <Link
               to="/new-arrivals"
-              className="bg-white/20 backdrop-blur-sm text-white dark:text-[#F5E6DA] text-sm font-bold px-3 py-1.5 rounded-lg hover:bg-white/30 dark:hover:bg-dark-accent/30 transition-all block dark:bg-dark-accent/20 dark:border dark:border-dark-accent/30">
+              className="bg-white/30 backdrop-blur-md text-white dark:text-[#FFFFFF] text-sm font-bold px-4 py-2 rounded-full hover:bg-white/40 dark:hover:bg-[#7B0A0A]/40 transition-all block dark:bg-[#7B0A0A]/25 dark:border dark:border-[#7B0A0A]/50 shadow-lg">
               See All
             </Link>
           </motion.div>
         </div>
 
         {/* Products Grid - Image Only */}
-        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2 md:gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-3 md:gap-4">
           {newArrivals.map((product, index) => {
             const productLink = `/product/${product.id}`;
             return (
@@ -154,9 +154,9 @@ const NewArrivalsSection = ({ products = null }) => {
                   <motion.div
                     animate={{
                       boxShadow: [
-                        "0 4px 6px rgba(0,0,0,0.1)",
-                        "0 8px 12px var(--new-arrival-glow)",
-                        "0 4px 6px rgba(0,0,0,0.1)",
+                        "0 4px 12px rgba(123, 10, 10,0.1)",
+                        "0 12px 24px rgba(123, 10, 10,0.25)",
+                        "0 4px 12px rgba(123, 10, 10,0.1)",
                       ],
                     }}
                     transition={{
@@ -165,7 +165,7 @@ const NewArrivalsSection = ({ products = null }) => {
                       ease: "easeInOut",
                       delay: index * 0.2,
                     }}
-                    className="rounded-xl overflow-hidden aspect-square bg-white/10 backdrop-blur-sm relative dark:bg-[#1E1512]/60 dark:border dark:border-dark-accent/15">
+                    className="rounded-2xl overflow-hidden aspect-square bg-white/15 backdrop-blur-md relative dark:bg-[#1a1a1a]/80 dark:border-2 dark:border-[#7B0A0A]/35 shadow-lg hover:shadow-2xl transition-shadow">
                     <div className="w-full h-full relative overflow-hidden">
                       <LazyImage
                         src={product.image}
@@ -177,7 +177,7 @@ const NewArrivalsSection = ({ products = null }) => {
                         }}
                       />
                       {/* Hover Overlay */}
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-colors duration-300" />
                     </div>
                   </motion.div>
                 </Link>

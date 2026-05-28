@@ -111,7 +111,7 @@ const ProductListItem = ({ product, index, isFlashSale = false }) => {
             />
           </div>
           {product.originalPrice && (
-            <div className="absolute top-1 left-1 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg shadow-sm">
+            <div className="absolute top-1 left-1 bg-red-500 dark:bg-[#7B0A0A] text-white text-[9px] font-bold px-1.5 py-0.5 rounded-lg shadow-sm">
               {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% OFF
             </div>
           )}
@@ -160,7 +160,7 @@ const ProductListItem = ({ product, index, isFlashSale = false }) => {
               </div>
               <div className="h-1 w-full bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-red-500 to-orange-400 transition-all duration-1000"
+                  className="h-full bg-gradient-to-r from-red-500 to-orange-400 dark:from-[#7B0A0A] dark:to-[#AE020B] transition-all duration-1000"
                   style={{ width: `${soldPercentage}%` }}
                 />
               </div>
@@ -193,7 +193,7 @@ const ProductListItem = ({ product, index, isFlashSale = false }) => {
                 type="button"
                 onClick={handleAddToCart}
                 className={`px-4 py-2 rounded-xl font-bold text-xs md:text-sm flex items-center gap-2 transition-all shadow-sm active:scale-95 whitespace-nowrap ${isFlashSale
-                  ? "bg-gradient-to-r from-red-500 to-orange-500 text-white hover:shadow-red-200"
+                  ? "bg-gradient-to-r from-red-500 to-orange-500 dark:!bg-none dark:!bg-[#7B0A0A] text-white hover:shadow-red-200"
                   : "gradient-green text-white hover:shadow-glow-green"
                   }`}>
                 <FiShoppingBag className="text-xs md:text-base" />

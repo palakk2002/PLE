@@ -174,14 +174,14 @@ const MobileFlashSale = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
-        <div className="w-full pb-24 min-h-screen bg-gray-50">
-          <div className="px-4 py-4 bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div className="w-full pb-24 min-h-screen bg-gray-50 dark:bg-[#0D0D0D]">
+          <div className="px-4 py-4 bg-white dark:bg-[#0D0D0D] border-b border-gray-200 dark:border-[rgba(123, 10, 10,0.15)] sticky top-0 z-30">
             <div className="flex items-center gap-3 mb-3">
-              <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <FiArrowLeft className="text-xl text-gray-700" />
+              <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 dark:hover:bg-[#222222] rounded-full transition-colors">
+                <FiArrowLeft className="text-xl text-gray-700 dark:text-white" />
               </button>
               <div className="flex-1">
-                <h1 className="text-xl font-bold text-gray-800">Flash Sale</h1>
+                <h1 className="text-xl font-bold text-gray-800 dark:text-white">Flash Sale</h1>
                 <div className="relative mt-1">
                   <FiSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
                   <input
@@ -264,8 +264,8 @@ const MobileFlashSale = () => {
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl text-gray-300 mx-auto mb-4">[ ]</div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">No flash sale items</h3>
-                <p className="text-gray-600">Check back later for flash sales.</p>
+                <h3 className="text-xl font-bold text-gray-800 dark:text-white mb-2">No flash sale items</h3>
+                <p className="text-gray-600 dark:text-[#888888]">Check back later for flash sales.</p>
               </div>
             ) : viewMode === "grid" ? (
               <>

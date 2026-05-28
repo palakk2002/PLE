@@ -47,7 +47,7 @@ const MobileCategoryGrid = () => {
             <Link
               to={`/category/${category.id}`}
               className="flex flex-col items-center gap-1.5 w-16 select-none">
-              <div className="w-14 h-14 rounded-full overflow-hidden bg-white dark:bg-[#1E1512] flex items-center justify-center p-1.5 border border-purple-200 dark:border-purple-900/40 shadow-sm">
+              <div className="w-14 h-14 rounded-full overflow-hidden bg-white dark:bg-[#1A1A1A] flex items-center justify-center p-1.5 border border-purple-200 dark:border-[#7B0A0A] shadow-sm dark:shadow-[0_0_8px_rgba(123, 10, 10,0.4)]">
                 <LazyImage
                   src={category.image}
                   alt={category.name}
@@ -58,7 +58,7 @@ const MobileCategoryGrid = () => {
                   }}
                 />
               </div>
-              <span className="text-xs font-semibold text-gray-800 dark:text-gray-200 text-center mt-2 truncate max-w-full px-0.5">
+              <span className="text-xs font-semibold text-gray-800 dark:text-white text-center mt-2 truncate max-w-full px-0.5">
                 {category.name}
               </span>
             </Link>

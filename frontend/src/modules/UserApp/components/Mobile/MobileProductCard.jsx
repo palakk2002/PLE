@@ -265,7 +265,7 @@ const MobileProductCard = ({ product }) => {
                 type="button"
                 onClick={() => navigate(`/product/${product.id}`)}
                 whileTap={{ scale: 0.95 }}
-                className="w-full py-3 rounded-xl font-semibold text-sm gradient-green text-white hover:shadow-glow-green flex items-center justify-center gap-2"
+                className="w-full py-3 rounded-full font-semibold text-sm gradient-green text-white hover:shadow-glow-green flex items-center justify-center gap-2"
               >
                 <span>Order Bulk</span>
                 <FiArrowRight className="text-base" />
@@ -275,7 +275,7 @@ const MobileProductCard = ({ product }) => {
                 type="button"
                 onClick={handleRemoveFromCart}
                 whileTap={{ scale: 0.95 }}
-                className="w-full py-3 rounded-xl font-semibold text-sm bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all duration-300 flex items-center justify-center gap-2">
+                className="w-full py-3 rounded-full font-semibold text-sm bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all duration-300 flex items-center justify-center gap-2">
                 <FiTrash2 className="text-base" />
                 <span>Remove</span>
               </motion.button>
@@ -286,7 +286,7 @@ const MobileProductCard = ({ product }) => {
                 onClick={handleAddToCart}
                 disabled={product.stock === "out_of_stock"}
                 whileTap={{ scale: 0.95 }}
-                className={`w-full py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${product.stock === "out_of_stock"
+                className={`w-full py-3 rounded-full font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${product.stock === "out_of_stock"
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "gradient-green text-white hover:shadow-glow-green"
                   }`}>

@@ -27,7 +27,7 @@ const BrandLogosScroll = ({ brands = null }) => {
                             >
                                 <div
                                     onClick={() => navigate(`/brand/${brand.id}`)}
-                                    className="bg-gray-50 rounded-lg p-2 shadow-sm transition-all duration-300 flex items-center justify-center w-16 h-16 group cursor-pointer border border-gray-100 mb-2 hover:shadow-md hover:border-gray-200">
+                                    className="bg-gray-50 dark:bg-[#000000] dark:border-[rgba(123,10,10,0.3)] dark:hover:border-[#7B0A0A] rounded-lg p-2 shadow-sm transition-all duration-300 flex items-center justify-center w-16 h-16 group cursor-pointer border border-gray-100 mb-2 hover:shadow-md hover:border-gray-200 dark:hover:shadow-[0_0_12px_rgba(123,10,10,0.4)]">
                                     <img
                                         src={brand.logo}
                                         alt={brand.name}
@@ -83,18 +83,18 @@ const BrandLogosScroll = ({ brands = null }) => {
                             >
                                 <div
                                     onClick={() => navigate(`/brand/${brand.id}`)}
-                                    className="bg-white rounded-2xl p-2 shadow-[0_4px_12px_rgba(0,0,0,0.05)] transition-all duration-300 flex items-center justify-center w-full aspect-square group cursor-pointer mb-1.5 hover:shadow-md">
+                                    className="bg-white dark:bg-[#000000] dark:border dark:border-[rgba(123,10,10,0.3)] dark:hover:border-[#7B0A0A] rounded-2xl p-2 shadow-[0_4px_12px_rgba(0,0,0,0.05)] dark:shadow-[0_0_12px_rgba(123,10,10,0.2)] transition-all duration-300 flex items-center justify-center w-full aspect-square group cursor-pointer mb-1.5 hover:shadow-md dark:hover:shadow-[0_0_18px_rgba(123,10,10,0.4)]">
                                     <img
                                         src={brand.logo}
                                         alt={brand.name}
-                                        className="w-[85%] h-[85%] object-contain"
+                                        className="w-[85%] h-[85%] object-contain dark:brightness-90"
                                         onError={(e) => {
                                             e.target.src = 'https://via.placeholder.com/120x80?text=Brand';
                                         }}
                                         loading="lazy"
                                     />
                                 </div>
-                                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 text-center transition-colors truncate w-full px-1 mt-1">
+                                <p className="text-[11px] font-bold text-gray-800 dark:text-white text-center transition-colors truncate w-full px-1 mt-1">
                                     {brand.name}
                                 </p>
                             </motion.div>

@@ -1,5 +1,5 @@
-import { useB2bStore } from '../../../shared/store/b2bStore';
-import { getB2bProductSpecs } from '../data/b2bMockData';
+import { useB2bStore } from "../../../shared/store/b2bStore";
+import { getB2bProductSpecs } from "../data/b2bMockData";
 
 export const useBusinessBuyer = () => {
   const userRole = useB2bStore((state) => state.userRole);
@@ -7,10 +7,17 @@ export const useBusinessBuyer = () => {
   const businessProfile = useB2bStore((state) => state.businessProfile);
   const quotations = useB2bStore((state) => state.quotations);
   const addQuotation = useB2bStore((state) => state.addQuotation);
-  const updateBusinessProfile = useB2bStore((state) => state.updateBusinessProfile);
+  const stockRequests = useB2bStore((state) => state.stockRequests);
+  const addStockRequest = useB2bStore((state) => state.addStockRequest);
+  const updateStockRequestStatus = useB2bStore(
+    (state) => state.updateStockRequestStatus,
+  );
+  const updateBusinessProfile = useB2bStore(
+    (state) => state.updateBusinessProfile,
+  );
   const resetB2b = useB2bStore((state) => state.resetB2b);
 
-  const isBusiness = userRole === 'business_buyer';
+  const isBusiness = userRole === "business_buyer";
 
   /**
    * Get B2B specifications for a given product
@@ -57,6 +64,9 @@ export const useBusinessBuyer = () => {
     businessProfile,
     quotations,
     addQuotation,
+    stockRequests,
+    addStockRequest,
+    updateStockRequestStatus,
     updateBusinessProfile,
     resetB2b,
     getWholesaleSpecs,

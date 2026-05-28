@@ -18,7 +18,7 @@ const RecommendedSection = ({ products = null }) => {
   }
 
   return (
-    <div className="relative overflow-hidden px-4 py-5 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/40 dark:from-dark-card dark:via-[#1A1310] dark:to-dark-bg rounded-2xl mx-2 dark:border dark:border-dark-accent/15 dark:shadow-[0_4px_25px_rgba(0,0,0,0.4)]">
+    <div className="relative overflow-hidden px-4 py-5 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/40 dark:from-dark-card dark:via-[#141414] dark:to-dark-bg rounded-2xl mx-2 dark:border dark:border-dark-accent/20 dark:shadow-[0_4px_25px_rgba(0,0,0,0.6)]">
       {/* Decorative Background Pattern with Floating Animation */}
       <div className="absolute inset-0 opacity-10 overflow-hidden pointer-events-none">
         <motion.div
@@ -38,14 +38,14 @@ const RecommendedSection = ({ products = null }) => {
 
       <div className="relative z-10 flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-dark-accent dark:to-[#9A5420] rounded-xl shadow-md dark:shadow-[0_0_15px_rgba(192,122,61,0.3)]">
-            <FiThumbsUp className="text-white dark:text-[#F5E6DA] text-lg" />
+          <div className="p-2.5 bg-gradient-to-br from-blue-500 to-purple-500 dark:from-dark-accent dark:to-[#AA1010] rounded-xl shadow-md dark:shadow-[0_0_15px_rgba(123, 10, 10,0.3)]">
+            <FiThumbsUp className="text-white dark:text-[#FFFFFF] text-lg" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-[#F5E6DA] leading-tight">
+            <h2 className="text-xl font-bold text-gray-800 dark:text-[#FFFFFF] leading-tight">
               Recommended for You
             </h2>
-            <p className="text-xs text-gray-500 dark:text-[#C8B3A3] mt-0.5">Curated just for you</p>
+            <p className="text-xs text-gray-500 dark:text-[#888888] mt-0.5">Curated just for you</p>
           </div>
         </div>
         <Link

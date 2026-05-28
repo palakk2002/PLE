@@ -44,7 +44,7 @@ const MobileCategoryQuickNav = () => {
   const isAllActive = location.pathname === "/" || location.pathname === "/home";
 
   return (
-    <div className="bg-[#E8D5FF] md:bg-transparent dark:bg-[#1E1512] md:dark:bg-transparent py-2 px-4 select-none relative z-10 overflow-hidden">
+    <div className="bg-[#E8D5FF] md:bg-transparent dark:bg-[#0D0D0D] md:dark:bg-transparent py-2 px-4 select-none relative z-10 overflow-hidden">
       <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-0.5 -mx-4 px-4 items-center">
         {/* "All" Category */}
         <Link
@@ -62,7 +62,7 @@ const MobileCategoryQuickNav = () => {
           {isAllActive && (
             <motion.div
               layoutId="quickNavUnderline"
-              className="absolute bottom-0 left-2 right-2 h-[3px] bg-black dark:bg-[#EAD2C1] rounded-full"
+              className="absolute bottom-0 left-2 right-2 h-[3px] bg-black dark:bg-[#7B0A0A] rounded-full"
               transition={{ type: "spring", stiffness: 380, damping: 30 }}
             />
           )}
@@ -92,7 +92,7 @@ const MobileCategoryQuickNav = () => {
               {isActive && (
                 <motion.div
                   layoutId="quickNavUnderline"
-                  className="absolute bottom-0 left-2 right-2 h-[3px] bg-black dark:bg-[#EAD2C1] rounded-full"
+                  className="absolute bottom-0 left-2 right-2 h-[3px] bg-black dark:bg-[#7B0A0A] rounded-full"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}

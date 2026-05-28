@@ -2,7 +2,7 @@ import React from 'react';
 import { useBusinessBuyer } from '../../hooks/useBusinessBuyer';
 import { B2BWholesaleBadge } from './B2BWholesaleBadge';
 import { formatPrice } from '../../../../shared/utils/helpers';
-import { FiAlertCircle } from 'react-icons/fi';
+import { FiAlertCircle, FiMessageCircle, FiPackage } from 'react-icons/fi';
 
 export const B2BProductCardOverlay = ({ product, className = '' }) => {
   const { isBusiness, getWholesaleSpecs } = useBusinessBuyer();
@@ -14,10 +14,22 @@ export const B2BProductCardOverlay = ({ product, className = '' }) => {
   const entryTierPrice = specs.tiers[0]?.price;
 
   return (
-    <div className={`mt-auto pt-2 border-t border-dashed border-gray-100 flex flex-col gap-1.5 ${className}`}>
-      <div className="flex items-center justify-between">
+    <div className={`mt-auto pt-2 border-t border-dashed border-gray-100 flex flex-col gap-2 ${className}`}>
+      {/* Badges Row */}
+      <div className="flex flex-wrap gap-1">
         <B2BWholesaleBadge size="xs" />
-        <span className="text-[9px] font-bold text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded">
+        <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+          <FiPackage className="w-2.5 h-2.5" />
+          Bulk Available
+        </span>
+        <span className="text-[9px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+          <FiMessageCircle className="w-2.5 h-2.5" />
+          Enquiry Available
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-bold text-primary-600 bg-primary-50 px-1.5 py-0.5 rounded">
           Save Up to {Math.round(((product.price - bestTierPrice) / product.price) * 100)}%
         </span>
       </div>

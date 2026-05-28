@@ -95,12 +95,12 @@ const isSafeInternalPath = (target) => String(target || "").startsWith("/");
 const getDarkGradient = (title) => {
   const t = String(title || "").toLowerCase();
   if (t.includes("flash") || t.includes("sale")) {
-    return "dark:from-[#2A1510] dark:via-[#1E120E] dark:to-[#120D0B] dark:border-[#3D1D16]";
+    return "dark:from-[#1A0808] dark:via-[#110505] dark:to-[#0D0D0D] dark:border-[#3D0A0A]";
   }
   if (t.includes("daily") || t.includes("deal")) {
-    return "dark:from-[#1C122C] dark:via-[#150F22] dark:to-[#120D0B] dark:border-[#2F164D]";
+    return "dark:from-[#1A0808] dark:via-[#110505] dark:to-[#0D0D0D] dark:border-[#3D0A0A]";
   }
-  return "dark:from-[#102C20] dark:via-[#0F2018] dark:to-[#120D0B] dark:border-[#143B2A]";
+  return "dark:from-[#0F1A0F] dark:via-[#0C150C] dark:to-[#0D0D0D] dark:border-[#143B2A]";
 };
 
 const AnimatedBanner = ({ banners = null }) => {
@@ -260,7 +260,7 @@ const AnimatedBanner = ({ banners = null }) => {
                         <Icon className="text-white dark:text-dark-accent text-lg drop-shadow-lg" />
                       </motion.div>
                       <motion.span
-                        className="text-white/90 dark:text-[#EAD2C1] text-xs font-medium"
+                        className="text-white/90 dark:text-[#DDDDDD] text-xs font-medium"
                         animate={{
                           opacity: [0.9, 1, 0.9],
                         }}
@@ -277,7 +277,7 @@ const AnimatedBanner = ({ banners = null }) => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 }}
-                      className="text-white dark:text-[#F5E6DA] text-xl font-extrabold mb-0 drop-shadow-lg relative inline-block">
+                      className="text-white dark:text-[#FFFFFF] text-xl font-extrabold mb-0 drop-shadow-lg relative inline-block">
                       {banner.title}
                     </motion.h3>
 
@@ -285,7 +285,7 @@ const AnimatedBanner = ({ banners = null }) => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.4 }}
-                      className="text-white/90 dark:text-[#C8B3A3] text-xs mb-1">
+                      className="text-white/90 dark:text-[#AAAAAA] text-xs mb-1">
                       {banner.description}
                     </motion.p>
 
@@ -299,10 +299,10 @@ const AnimatedBanner = ({ banners = null }) => {
                       }}
                       className="inline-flex items-center gap-2 bg-white/25 dark:bg-dark-accent/20 px-3 py-1.5 rounded-full relative overflow-hidden dark:border dark:border-dark-accent/30 dark:backdrop-blur-md"
                       whileTap={{ scale: 0.95 }}>
-                      <span className="text-white dark:text-[#F5E6DA] font-bold text-sm relative z-10">
+                      <span className="text-white dark:text-[#FFFFFF] font-bold text-sm relative z-10">
                         {banner.discount}
                       </span>
-                      <FiArrowRight className="text-white dark:text-[#F5E6DA] text-sm relative z-10" />
+                      <FiArrowRight className="text-white dark:text-[#FFFFFF] text-sm relative z-10" />
                     </motion.div>
                   </div>
                 </button>

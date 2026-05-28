@@ -7,3 +7,7 @@ export { B2BRequestQuoteModal } from './B2BRequestQuoteModal.jsx';
 export { B2BCartSummary } from './B2BCartSummary.jsx';
 export { B2BBusinessDashboard } from './B2BBusinessDashboard.jsx';
 export { B2BBusinessBadge } from './B2BBusinessBadge.jsx';
+export { B2BNotifyMe } from './B2BNotifyMe.jsx';
+export { B2BStockAvailability } from './B2BStockAvailability.jsx';
+export { B2BMyEnquiries } from './B2BMyEnquiries.jsx';
+export { B2BRequestStockModal } from './B2BRequestStockModal.jsx';

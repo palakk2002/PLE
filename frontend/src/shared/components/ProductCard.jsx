@@ -177,7 +177,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
         whileTap={{ scale: 0.98 }}
         whileHover={{ y: -4 }}
         style={{ willChange: "transform", transform: "translateZ(0)" }}
-        className={`glass-card rounded-xl overflow-hidden group cursor-pointer h-full flex flex-col hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(192,122,61,0.15)] transition-all duration-300 ${isFlashSale ? "border border-red-100 dark:border-dark-accent/20 bg-red-50/10 dark:bg-dark-accent/5" : ""
+        className={`glass-card rounded-xl overflow-hidden group cursor-pointer h-full flex flex-col hover:shadow-lg dark:hover:shadow-[0_0_20px_rgba(123, 10, 10,0.20)] transition-all duration-300 ${isFlashSale ? "border border-red-100 dark:border-[#7B0A0A] bg-red-50/10 dark:bg-black" : ""
           }`}
         {...longPressHandlers}>
         <div className="relative">
@@ -185,7 +185,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
           <div className="absolute top-2 right-2 z-10">
             <button
               onClick={handleFavorite}
-              className="p-1.5 glass rounded-full shadow-lg transition-all duration-300 group hover:bg-white">
+              className="wishlist-btn p-1.5 glass rounded-full shadow-lg transition-all duration-300 group hover:bg-white">
               <FiHeart
                 className={`text-xs md:text-sm transition-all duration-300 ${isFavorite
                   ? "text-red-500 fill-red-500 scale-110"
@@ -197,9 +197,9 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
 
           {/* Product Image */}
           <Link to={productLink} className="block">
-            <div className="w-full h-28 md:h-40 lg:h-36 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden relative group-hover:bg-gray-200/50 transition-colors">
+            <div className="product-img-bg w-full h-28 md:h-40 lg:h-36 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden relative group-hover:bg-gray-200/50 transition-colors">
               {product.originalPrice && (
-                <div className={`absolute top-0 left-0 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-br-lg z-10 shadow-sm ${isFlashSale ? "bg-gradient-to-r from-red-600 to-orange-500" : "bg-red-500"}`}>
+                <div className={`absolute top-0 left-0 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-br-lg z-10 shadow-sm dark:!bg-none dark:!bg-[#7B0A0A] ${isFlashSale ? "bg-gradient-to-r from-red-600 to-orange-500" : "bg-red-500"}`}>
                   {Math.round(
                     ((product.originalPrice - product.price) /
                       product.originalPrice) *
@@ -209,7 +209,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
               )}
               {isFlashSale && (
                 <div className="absolute top-0 right-0 p-1">
-                  <div className="bg-yellow-400 text-gray-900 text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse uppercase tracking-tighter">
+                  <div className="bg-red-600 dark:bg-[#7B0A0A] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse uppercase tracking-tighter">
                     Hot Deal
                   </div>
                 </div>
@@ -235,7 +235,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
         </div>
 
         {/* Product Info */}
-        <div className="p-1.5 md:p-4 lg:p-3 flex-1 flex flex-col bg-white">
+        <div className="p-1.5 md:p-4 lg:p-3 flex-1 flex flex-col product-info-bg">
           <Link to={productLink} className="block lg:h-6">
             <h3 className="font-bold text-gray-800 mb-0 md:mb-1 lg:mb-0.5 line-clamp-2 md:line-clamp-1 text-[11px] md:text-sm transition-colors group-hover:text-primary-600 leading-tight">
               {product.name}
@@ -283,14 +283,14 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
             <div className="mb-3 space-y-1">
               <div className="flex justify-between text-[8px] md:text-[10px] font-bold">
                 <span className="text-gray-500 uppercase">Available</span>
-                <span className="text-orange-600">{soldPercentage}% Sold</span>
+                <span className="text-orange-600 dark:text-[#7B0A0A]">{soldPercentage}% Sold</span>
               </div>
-              <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-1.5 w-full bg-gray-100 dark:bg-[#2A2A2A] rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${soldPercentage}%` }}
                   transition={{ duration: 1, delay: 0.2 }}
-                  className="h-full bg-gradient-to-r from-red-500 to-orange-400"
+                  className="h-full bg-gradient-to-r from-red-500 to-orange-400 dark:from-[#7B0A0A] dark:to-[#CC1010]"
                 />
               </div>
             </div>
@@ -323,7 +323,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
               type="button"
               onClick={() => navigate(productLink)}
               whileTap={{ scale: 0.95 }}
-              className="w-full py-1.5 md:py-2.5 lg:py-2 rounded-xl font-bold text-xs md:text-sm gradient-green text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-1.5"
+              className="w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-xs md:text-sm gradient-green text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-1.5"
             >
               <span>Order Bulk</span>
               <FiArrowRight className="text-xs md:text-base" />
@@ -333,7 +333,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
               type="button"
               onClick={handleRemoveFromCart}
               whileTap={{ scale: 0.95 }}
-              className="w-full py-1.5 md:py-2.5 lg:py-2 rounded-xl font-bold text-xs md:text-sm bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all duration-300 flex items-center justify-center gap-1.5">
+              className="w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-xs md:text-sm bg-red-50 text-red-600 border border-red-100 hover:bg-red-100 transition-all duration-300 flex items-center justify-center gap-1.5">
               <FiTrash2 className="text-xs md:text-base" />
               <span>Remove</span>
             </motion.button>
@@ -352,10 +352,10 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
                   : {}
               }
               style={{ willChange: "transform", transform: "translateZ(0)" }}
-              className={`w-full py-1 md:py-2.5 lg:py-2 rounded-xl font-bold text-[10px] md:text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${product.stock === "out_of_stock"
+              className={`w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-[10px] md:text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${product.stock === "out_of_stock"
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
                 : isFlashSale
-                  ? "bg-gradient-to-r from-red-500 to-orange-500 text-white shadow-lg hover:shadow-red-200 dark:hover:shadow-red-950/40 hover:-translate-y-0.5"
+                  ? "bg-gradient-to-r from-red-500 to-orange-500 dark:!bg-none dark:!bg-[#7B0A0A] text-white shadow-lg hover:shadow-red-200 dark:hover:shadow-red-950/40 hover:-translate-y-0.5"
                   : "gradient-green text-white shadow-md hover:shadow-lg hover:-translate-y-0.5"
                 }`}>
               <motion.div

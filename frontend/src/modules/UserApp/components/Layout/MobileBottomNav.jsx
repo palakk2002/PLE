@@ -42,7 +42,7 @@ const MobileBottomNav = () => {
     },
     active: {
       scale: 1.1,
-      color: "#7C3AED", // Primary Buttons color
+      color: "#7B0A0A", // Red accent for dark mode / primary
       transition: {
         duration: 0.3,
         ease: "easeOut",
@@ -51,7 +51,7 @@ const MobileBottomNav = () => {
   };
 
   const navContent = (
-    <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-l border-r border-accent-200/30 z-[9999] safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)] md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#0D0D0D] border-t border-l border-r border-accent-200/30 dark:border-[rgba(123, 10, 10,0.25)] z-[9999] safe-area-bottom shadow-[0_-2px_10px_rgba(0,0,0,0.05)] md:hidden">
       <div className="flex items-center justify-around h-16 px-1">
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -69,7 +69,7 @@ const MobileBottomNav = () => {
                 {active && (
                   <motion.div
                     layoutId="activeTab"
-                    className="absolute inset-0 bg-primary-50 rounded-full"
+                    className="absolute inset-0 bg-primary-50 dark:bg-[rgba(123, 10, 10,0.12)] rounded-full"
                     initial={false}
                     transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   />

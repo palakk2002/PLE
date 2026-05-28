@@ -11,6 +11,7 @@ import {
   FiCheckCircle,
   FiTrash2,
   FiFileText,
+  FiPackage,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useCartStore, useUIStore } from "../../../shared/store/useStore";
@@ -41,6 +42,9 @@ import {
   B2BBulkQuantitySelector,
   B2BProductDetailSections,
   B2BRequestQuoteModal,
+  B2BRequestStockModal,
+  B2BNotifyMe,
+  B2BStockAvailability,
 } from "../components/B2B";
 
 const resolveVariantPrice = (product, selectedVariant) => {
@@ -59,7 +63,7 @@ const resolveVariantPrice = (product, selectedVariant) => {
       if (Number.isFinite(parsed) && parsed >= 0) return parsed;
     }
     const normalized = entries.find(
-      ([key]) => String(key).trim().toLowerCase() === dynamicKey.toLowerCase()
+      ([key]) => String(key).trim().toLowerCase() === dynamicKey.toLowerCase(),
     );
     if (normalized) {
       const parsed = Number(normalized[1]);
@@ -67,8 +71,12 @@ const resolveVariantPrice = (product, selectedVariant) => {
     }
   }
 
-  const size = String(selectedVariant.size || "").trim().toLowerCase();
-  const color = String(selectedVariant.color || "").trim().toLowerCase();
+  const size = String(selectedVariant.size || "")
+    .trim()
+    .toLowerCase();
+  const color = String(selectedVariant.color || "")
+    .trim()
+    .toLowerCase();
 
   const candidates = [
     `${size}|${color}`,
@@ -86,7 +94,7 @@ const resolveVariantPrice = (product, selectedVariant) => {
       if (Number.isFinite(parsed) && parsed >= 0) return parsed;
     }
     const normalized = entries.find(
-      ([key]) => String(key).trim().toLowerCase() === candidate
+      ([key]) => String(key).trim().toLowerCase() === candidate,
     );
     if (normalized) {
       const parsed = Number(normalized[1]);
@@ -123,11 +131,21 @@ const normalizeProduct = (raw) => {
   const id = String(raw?.id || raw?._id || "").trim();
   if (!id) return null;
 
-  const vendorId = String(vendorObj?._id || vendorObj?.id || raw?.vendorId || "").trim();
-  const brandId = String(brandObj?._id || brandObj?.id || raw?.brandId || "").trim();
-  const categoryId = String(categoryObj?._id || categoryObj?.id || raw?.categoryId || "").trim();
+  const vendorId = String(
+    vendorObj?._id || vendorObj?.id || raw?.vendorId || "",
+  ).trim();
+  const brandId = String(
+    brandObj?._id || brandObj?.id || raw?.brandId || "",
+  ).trim();
+  const categoryId = String(
+    categoryObj?._id || categoryObj?.id || raw?.categoryId || "",
+  ).trim();
   const image = raw?.image || raw?.images?.[0] || "";
-  const images = Array.isArray(raw?.images) ? raw.images.filter(Boolean) : image ? [image] : [];
+  const images = Array.isArray(raw?.images)
+    ? raw.images.filter(Boolean)
+    : image
+      ? [image]
+      : [];
 
   return {
     ...raw,
@@ -146,20 +164,21 @@ const normalizeProduct = (raw) => {
     rating: Number(raw?.rating) || 0,
     reviewCount: Number(raw?.reviewCount) || 0,
     stockQuantity: Number(raw?.stockQuantity) || 0,
-    vendorName: raw?.vendorName || vendorObj?.storeName || vendorObj?.name || "",
+    vendorName:
+      raw?.vendorName || vendorObj?.storeName || vendorObj?.name || "",
     brandName: raw?.brandName || brandObj?.name || "",
     categoryName: raw?.categoryName || categoryObj?.name || "",
     vendor: vendorObj
       ? {
-        ...vendorObj,
-        id: String(vendorObj?.id || vendorObj?._id || vendorId),
-      }
+          ...vendorObj,
+          id: String(vendorObj?.id || vendorObj?._id || vendorId),
+        }
       : null,
     brand: brandObj
       ? {
-        ...brandObj,
-        id: String(brandObj?.id || brandObj?._id || brandId),
-      }
+          ...brandObj,
+          id: String(brandObj?.id || brandObj?._id || brandId),
+        }
       : null,
     stock:
       raw?.stock ||
@@ -171,15 +190,20 @@ const normalizeProduct = (raw) => {
 const MobileProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const localFallbackProduct = useMemo(() => normalizeProduct(getProductById(id)), [id]);
+  const localFallbackProduct = useMemo(
+    () => normalizeProduct(getProductById(id)),
+    [id],
+  );
   const [product, setProduct] = useState(localFallbackProduct);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
 
-  const { isBusiness, getWholesaleSpecs, getWholesalePriceForQty } = useBusinessBuyer();
+  const { isBusiness, getWholesaleSpecs, getWholesalePriceForQty } =
+    useBusinessBuyer();
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [isStockRequestModalOpen, setIsStockRequestModalOpen] = useState(false);
 
   useEffect(() => {
     if (product?.id && isBusiness) {
@@ -192,7 +216,7 @@ const MobileProductDetail = () => {
 
   const { items, addItem, removeItem } = useCartStore();
   const triggerCartAnimation = useUIStore(
-    (state) => state.triggerCartAnimation
+    (state) => state.triggerCartAnimation,
   );
   const {
     addItem: addToWishlist,
@@ -217,10 +241,10 @@ const MobileProductDetail = () => {
   const selectedVariantSignature = getVariantSignature(selectedVariant || {});
   const isInCart = product
     ? items.some(
-      (item) =>
-        String(item.id) === String(product.id) &&
-        getVariantSignature(item.variant || {}) === selectedVariantSignature
-    )
+        (item) =>
+          String(item.id) === String(product.id) &&
+          getVariantSignature(item.variant || {}) === selectedVariantSignature,
+      )
     : false;
   const productReviews = product ? sortReviews(product.id, "newest") : [];
 
@@ -237,21 +261,24 @@ const MobileProductDetail = () => {
 
         const detailPayload =
           detailRes.status === "fulfilled"
-            ? detailRes.value?.data ?? detailRes.value
+            ? (detailRes.value?.data ?? detailRes.value)
             : null;
-        const resolvedProduct = normalizeProduct(detailPayload) || localFallbackProduct;
+        const resolvedProduct =
+          normalizeProduct(detailPayload) || localFallbackProduct;
 
         const similarPayload =
           similarRes.status === "fulfilled"
-            ? similarRes.value?.data ?? similarRes.value
+            ? (similarRes.value?.data ?? similarRes.value)
             : null;
         const resolvedSimilar = Array.isArray(similarPayload)
           ? similarPayload
-            .map(normalizeProduct)
-            .filter(
-              (item) => item?.id && String(item.id) !== String(resolvedProduct?.id || "")
-            )
-            .slice(0, 5)
+              .map(normalizeProduct)
+              .filter(
+                (item) =>
+                  item?.id &&
+                  String(item.id) !== String(resolvedProduct?.id || ""),
+              )
+              .slice(0, 5)
           : [];
 
         if (!active) return;
@@ -268,7 +295,9 @@ const MobileProductDetail = () => {
         if (!active) return;
         setProduct(localFallbackProduct);
         setSimilarProducts(
-          localFallbackProduct?.id ? getSimilarProducts(localFallbackProduct.id, 5) : []
+          localFallbackProduct?.id
+            ? getSimilarProducts(localFallbackProduct.id, 5)
+            : [],
         );
       } finally {
         if (active) setIsLoadingProduct(false);
@@ -282,7 +311,10 @@ const MobileProductDetail = () => {
   }, [id, localFallbackProduct]);
 
   useEffect(() => {
-    if (product?.variants?.defaultSelection && typeof product.variants.defaultSelection === "object") {
+    if (
+      product?.variants?.defaultSelection &&
+      typeof product.variants.defaultSelection === "object"
+    ) {
       setSelectedVariant(product.variants.defaultSelection);
       return;
     }
@@ -306,7 +338,9 @@ const MobileProductDetail = () => {
           <div className="flex items-center justify-center min-h-[60vh] px-4">
             <div className="text-center">
               {isLoadingProduct ? (
-                <h2 className="text-xl font-bold text-gray-800 mb-4">Loading product...</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-4">
+                  Loading product...
+                </h2>
               ) : (
                 <>
                   <h2 className="text-xl font-bold text-gray-800 mb-4">
@@ -314,7 +348,8 @@ const MobileProductDetail = () => {
                   </h2>
                   <button
                     onClick={() => navigate("/home")}
-                    className="gradient-green text-white px-6 py-3 rounded-xl font-semibold">
+                    className="gradient-green text-white px-6 py-3 rounded-xl font-semibold"
+                  >
                     Go Back Home
                   </button>
                 </>
@@ -333,28 +368,53 @@ const MobileProductDetail = () => {
       return;
     }
     const attributeAxes = Array.isArray(product?.variants?.attributes)
-      ? product.variants.attributes.filter((attr) => Array.isArray(attr?.values) && attr.values.length > 0)
+      ? product.variants.attributes.filter(
+          (attr) => Array.isArray(attr?.values) && attr.values.length > 0,
+        )
       : [];
     const hasDynamicAxes = attributeAxes.length > 0;
-    const hasSizeVariants = Array.isArray(product?.variants?.sizes) && product.variants.sizes.length > 0;
-    const hasColorVariants = Array.isArray(product?.variants?.colors) && product.variants.colors.length > 0;
+    const hasSizeVariants =
+      Array.isArray(product?.variants?.sizes) &&
+      product.variants.sizes.length > 0;
+    const hasColorVariants =
+      Array.isArray(product?.variants?.colors) &&
+      product.variants.colors.length > 0;
     const isMissingDynamicAxis = hasDynamicAxes
-      ? attributeAxes.some((attr) => !String(selectedVariant?.[attr.name] || selectedVariant?.[String(attr.name || "").toLowerCase().replace(/\s+/g, "_")] || "").trim())
+      ? attributeAxes.some(
+          (attr) =>
+            !String(
+              selectedVariant?.[attr.name] ||
+                selectedVariant?.[
+                  String(attr.name || "")
+                    .toLowerCase()
+                    .replace(/\s+/g, "_")
+                ] ||
+                "",
+            ).trim(),
+        )
       : false;
     const selectedSize = String(selectedVariant?.size || "").trim();
     const selectedColor = String(selectedVariant?.color || "").trim();
-    if (isMissingDynamicAxis || ((hasSizeVariants && !selectedSize) || (hasColorVariants && !selectedColor))) {
+    if (
+      isMissingDynamicAxis ||
+      (hasSizeVariants && !selectedSize) ||
+      (hasColorVariants && !selectedColor)
+    ) {
       toast.error("Please select required variant options");
       return;
     }
 
     const finalPrice = isBusiness
-      ? getWholesalePriceForQty(product.id, resolveVariantPrice(product, selectedVariant), quantity)
+      ? getWholesalePriceForQty(
+          product.id,
+          resolveVariantPrice(product, selectedVariant),
+          quantity,
+        )
       : resolveVariantPrice(product, selectedVariant);
     const variantKey = getVariantSignature(selectedVariant || {});
     const variantStockValue = Number(
       product?.variants?.stockMap?.[variantKey] ??
-      product?.variants?.stockMap?.get?.(variantKey)
+        product?.variants?.stockMap?.get?.(variantKey),
     );
     const effectiveStock = Number.isFinite(variantStockValue)
       ? variantStockValue
@@ -364,7 +424,9 @@ const MobileProductDetail = () => {
       return;
     }
     if (quantity > effectiveStock) {
-      toast.error(`Only ${effectiveStock} item(s) available for selected variant`);
+      toast.error(
+        `Only ${effectiveStock} item(s) available for selected variant`,
+      );
       return;
     }
 
@@ -413,7 +475,7 @@ const MobileProductDetail = () => {
     const variantKey = getVariantSignature(selectedVariant || {});
     const variantStockValue = Number(
       product?.variants?.stockMap?.[variantKey] ??
-      product?.variants?.stockMap?.get?.(variantKey)
+        product?.variants?.stockMap?.get?.(variantKey),
     );
     const maxStock = Number.isFinite(variantStockValue)
       ? Math.max(0, variantStockValue)
@@ -428,8 +490,8 @@ const MobileProductDetail = () => {
     const selectedVariantKey = getVariantSignature(selectedVariant || {});
     const variantImage = String(
       product?.variants?.imageMap?.[selectedVariantKey] ||
-      product?.variants?.imageMap?.get?.(selectedVariantKey) ||
-      ""
+        product?.variants?.imageMap?.get?.(selectedVariantKey) ||
+        "",
     ).trim();
     const images =
       Array.isArray(product.images) && product.images.length > 0
@@ -458,7 +520,7 @@ const MobileProductDetail = () => {
     const variantKey = getVariantSignature(selectedVariant || {});
     const variantStockValue = Number(
       product?.variants?.stockMap?.[variantKey] ??
-      product?.variants?.stockMap?.get?.(variantKey)
+        product?.variants?.stockMap?.get?.(variantKey),
     );
     if (Number.isFinite(variantStockValue)) {
       return Math.max(0, variantStockValue);
@@ -480,10 +542,12 @@ const MobileProductDetail = () => {
     if (!isAuthenticated || !user?.id || !isMongoId(product?.id)) return null;
     const userOrders = getAllOrders(user.id) || [];
     const eligibleOrder = userOrders.find((order) => {
-      if (String(order?.status || "").toLowerCase() !== "delivered") return false;
+      if (String(order?.status || "").toLowerCase() !== "delivered")
+        return false;
       const items = Array.isArray(order?.items) ? order.items : [];
       return items.some(
-        (item) => String(item?.productId || item?.id || "") === String(product.id)
+        (item) =>
+          String(item?.productId || item?.id || "") === String(product.id),
       );
     });
     return eligibleOrder?._id || null;
@@ -516,7 +580,8 @@ const MobileProductDetail = () => {
           <div className="px-4 pt-4 lg:pt-8 lg:px-8 mb-6">
             <button
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors group">
+              className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors group"
+            >
               <div className="p-2 rounded-full group-hover:bg-gray-100 transition-colors">
                 <FiArrowLeft className="text-xl" />
               </div>
@@ -528,11 +593,16 @@ const MobileProductDetail = () => {
             {/* Left Column: Product Image */}
             <div className="px-4 py-4 lg:p-0 sticky top-24">
               <div className="bg-white rounded-3xl p-2 lg:p-4 shadow-sm border border-gray-100">
-                <ImageGallery images={productImages} productName={product.name} />
+                <ImageGallery
+                  images={productImages}
+                  productName={product.name}
+                />
               </div>
               {product.flashSale && (
                 <div className="mt-4 flex justify-center lg:justify-start">
-                  <Badge variant="flash" size="lg">Flash Sale - Limited Time Offer</Badge>
+                  <Badge variant="flash" size="lg">
+                    Flash Sale - Limited Time Offer
+                  </Badge>
                 </div>
               )}
             </div>
@@ -546,7 +616,8 @@ const MobileProductDetail = () => {
                     <div className="mb-4">
                       <Link
                         to={`/seller/${vendor.id}`}
-                        className="inline-flex items-center gap-3 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-full transition-all duration-300 border border-gray-200 group">
+                        className="inline-flex items-center gap-3 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-full transition-all duration-300 border border-gray-200 group"
+                      >
                         {vendor.storeLogo ? (
                           <div className="w-6 h-6 rounded-full overflow-hidden bg-white border border-gray-200 flex-shrink-0">
                             <img
@@ -572,7 +643,9 @@ const MobileProductDetail = () => {
                             title="Verified Vendor"
                           />
                         )}
-                        <span className="text-gray-400 group-hover:translate-x-1 transition-transform">{"->"}</span>
+                        <span className="text-gray-400 group-hover:translate-x-1 transition-transform">
+                          {"->"}
+                        </span>
                       </Link>
                     </div>
                   )}
@@ -580,7 +653,8 @@ const MobileProductDetail = () => {
                     <div className="mb-4">
                       <Link
                         to={`/brand/${brand.id}`}
-                        className="inline-flex items-center gap-3 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-full transition-all duration-300 border border-gray-200 group">
+                        className="inline-flex items-center gap-3 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 rounded-full transition-all duration-300 border border-gray-200 group"
+                      >
                         <div className="w-6 h-6 rounded-full overflow-hidden bg-white border border-gray-200 flex-shrink-0">
                           <img
                             src={brand.logo}
@@ -594,15 +668,24 @@ const MobileProductDetail = () => {
                         <span className="font-medium text-sm group-hover:text-primary-600 transition-colors">
                           {brand.name}
                         </span>
-                        <span className="text-gray-400 group-hover:translate-x-1 transition-transform">{"->"}</span>
+                        <span className="text-gray-400 group-hover:translate-x-1 transition-transform">
+                          {"->"}
+                        </span>
                       </Link>
                     </div>
                   )}
 
                   {product.condition && product.condition !== "brand_new" && (
                     <div className="mb-4">
-                      <Badge variant={product.condition === 'open_box' ? 'open-box' : product.condition} className="inline-block text-xs uppercase font-extrabold tracking-wider px-3 py-1.5 rounded-lg shadow-sm">
-                        Certified {product.condition.replace('_', ' ')}
+                      <Badge
+                        variant={
+                          product.condition === "open_box"
+                            ? "open-box"
+                            : product.condition
+                        }
+                        className="inline-block text-xs uppercase font-extrabold tracking-wider px-3 py-1.5 rounded-lg shadow-sm"
+                      >
+                        Certified {product.condition.replace("_", " ")}
                       </Badge>
                     </div>
                   )}
@@ -615,7 +698,9 @@ const MobileProductDetail = () => {
                   {product.rating && (
                     <div className="flex items-center gap-4 mb-6">
                       <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg border border-yellow-100">
-                        <span className="font-bold text-yellow-700">{product.rating}</span>
+                        <span className="font-bold text-yellow-700">
+                          {product.rating}
+                        </span>
                         <FiStar className="text-yellow-500 fill-yellow-500" />
                       </div>
                       <span className="text-gray-500 text-sm font-medium hover:text-gray-700 cursor-pointer">
@@ -623,7 +708,11 @@ const MobileProductDetail = () => {
                       </span>
                       <span className="text-gray-300">|</span>
                       <span className="text-green-600 text-sm font-medium bg-green-50 px-2 py-1 rounded-lg">
-                        {product.stock === "in_stock" ? "In Stock" : product.stock === "low_stock" ? "Low Stock" : "Out of Stock"}
+                        {product.stock === "in_stock"
+                          ? "In Stock"
+                          : product.stock === "low_stock"
+                            ? "Low Stock"
+                            : "Out of Stock"}
                       </span>
                     </div>
                   )}
@@ -634,9 +723,12 @@ const MobileProductDetail = () => {
                       <span className="text-4xl font-extrabold text-gray-900">
                         {formatPrice(activePrice)}
                       </span>
-                      {(product.originalPrice || (isBusiness && currentPrice !== activePrice)) && (
+                      {(product.originalPrice ||
+                        (isBusiness && currentPrice !== activePrice)) && (
                         <span className="text-xl text-gray-400 line-through font-medium mb-1.5">
-                          {formatPrice(isBusiness ? currentPrice : product.originalPrice)}
+                          {formatPrice(
+                            isBusiness ? currentPrice : product.originalPrice,
+                          )}
                         </span>
                       )}
                     </div>
@@ -646,22 +738,44 @@ const MobileProductDetail = () => {
                           Wholesale Price
                         </span>
                         <span className="text-sm text-gray-500 font-medium">
-                          (Saved {Math.round(((currentPrice - activePrice) / currentPrice) * 100)}% based on quantity)
-                        </span>
-                      </div>
-                    ) : product.originalPrice && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-accent-600 font-bold bg-accent-50 px-3 py-1 rounded-full text-sm">
+                          (Saved{" "}
                           {Math.round(
-                            ((product.originalPrice - currentPrice) /
-                              product.originalPrice) *
-                            100
-                          )}% OFF
+                            ((currentPrice - activePrice) / currentPrice) * 100,
+                          )}
+                          % based on quantity)
                         </span>
-                        <span className="text-sm text-gray-500">Best price guaranteed</span>
                       </div>
+                    ) : (
+                      product.originalPrice && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-accent-600 font-bold bg-accent-50 px-3 py-1 rounded-full text-sm">
+                            {Math.round(
+                              ((product.originalPrice - currentPrice) /
+                                product.originalPrice) *
+                                100,
+                            )}
+                            % OFF
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            Best price guaranteed
+                          </span>
+                        </div>
+                      )
                     )}
                   </div>
+
+                  {/* B2B Stock Availability */}
+                  {isBusiness && (
+                    <B2BStockAvailability
+                      product={product}
+                      stockQuantity={selectedAvailableStock}
+                    />
+                  )}
+
+                  {/* Notify Me for Out of Stock */}
+                  {product.stock === "out_of_stock" && isBusiness && (
+                    <B2BNotifyMe product={product} isBusiness={isBusiness} />
+                  )}
 
                   {/* Condition Details Dashboard */}
                   {product.condition && product.condition !== "brand_new" && (
@@ -670,23 +784,29 @@ const MobileProductDetail = () => {
                         <span className="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></span>
                         Product Condition & Inspection Report
                       </h3>
-                      
+
                       {/* 3-Column Metrics */}
                       <div className="grid grid-cols-3 gap-4 text-center">
                         <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                          <span className="block text-xs text-gray-500 font-medium mb-1">Cosmetic Grade</span>
+                          <span className="block text-xs text-gray-500 font-medium mb-1">
+                            Cosmetic Grade
+                          </span>
                           <span className="text-lg font-black text-gray-800 uppercase bg-white px-2 py-0.5 rounded shadow-sm border border-gray-200">
                             Grade {product.refurbishedGrade}
                           </span>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                          <span className="block text-xs text-gray-500 font-medium mb-1">Warranty</span>
+                          <span className="block text-xs text-gray-500 font-medium mb-1">
+                            Warranty
+                          </span>
                           <span className="text-sm font-bold text-gray-850">
                             {product.refurbishedWarrantyDuration || "3 Months"}
                           </span>
                         </div>
                         <div className="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                          <span className="block text-xs text-gray-500 font-medium mb-1">Prior Usage</span>
+                          <span className="block text-xs text-gray-500 font-medium mb-1">
+                            Prior Usage
+                          </span>
                           <span className="text-sm font-bold text-gray-850">
                             {product.refurbishedUsedDuration || "N/A"}
                           </span>
@@ -698,25 +818,38 @@ const MobileProductDetail = () => {
                         <div className="space-y-2">
                           <div className="flex justify-between text-xs font-bold text-gray-750">
                             <span>Battery Capacity Health</span>
-                            <span className="text-cyan-600">{product.refurbishedBatteryHealth}%</span>
+                            <span className="text-cyan-600">
+                              {product.refurbishedBatteryHealth}%
+                            </span>
                           </div>
                           <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500" 
-                              style={{ width: `${product.refurbishedBatteryHealth}%` }}
+                            <div
+                              className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500"
+                              style={{
+                                width: `${product.refurbishedBatteryHealth}%`,
+                              }}
                             />
                           </div>
-                          <span className="block text-[10px] text-gray-400 font-medium">Battery capacity is guaranteed to exceed 80% of original brand-new specification.</span>
+                          <span className="block text-[10px] text-gray-400 font-medium">
+                            Battery capacity is guaranteed to exceed 80% of
+                            original brand-new specification.
+                          </span>
                         </div>
                       )}
 
                       {/* Quality Checklist */}
                       <div className="space-y-3">
-                        <h4 className="text-xs font-bold text-gray-750 uppercase tracking-wider">Quality Vetting & Testing Checks</h4>
+                        <h4 className="text-xs font-bold text-gray-750 uppercase tracking-wider">
+                          Quality Vetting & Testing Checks
+                        </h4>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="flex items-center gap-2 text-xs text-gray-700">
                             <span className="text-green-500 text-sm">✓</span>
-                            <span>{product.refurbishedTestingPassed ? "Diagnostic Testing Passed" : "Fully Functional"}</span>
+                            <span>
+                              {product.refurbishedTestingPassed
+                                ? "Diagnostic Testing Passed"
+                                : "Fully Functional"}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-700">
                             <span className="text-green-500 text-sm">✓</span>
@@ -724,7 +857,11 @@ const MobileProductDetail = () => {
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-700">
                             <span className="text-green-500 text-sm">✓</span>
-                            <span>{product.refurbishedCertified ? "Certified Refurbished Seals" : "Quality Inspected"}</span>
+                            <span>
+                              {product.refurbishedCertified
+                                ? "Certified Refurbished Seals"
+                                : "Quality Inspected"}
+                            </span>
                           </div>
                           <div className="flex items-center gap-2 text-xs text-gray-700">
                             <span className="text-green-500 text-sm">✓</span>
@@ -734,24 +871,36 @@ const MobileProductDetail = () => {
                       </div>
 
                       {/* Included Accessories */}
-                      {product.refurbishedAccessories && product.refurbishedAccessories.length > 0 && (
-                        <div className="bg-cyan-50/50 dark:bg-cyan-950/10 rounded-xl p-3 border border-cyan-100/50">
-                          <span className="block text-xs font-bold text-cyan-800 dark:text-cyan-300 mb-1">Included Accessories:</span>
-                          <div className="flex flex-wrap gap-2">
-                            {product.refurbishedAccessories.map((acc, idx) => (
-                              <span key={idx} className="bg-white dark:bg-gray-800 text-[10px] text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded shadow-sm border border-cyan-100/50">
-                                {acc}
-                              </span>
-                            ))}
+                      {product.refurbishedAccessories &&
+                        product.refurbishedAccessories.length > 0 && (
+                          <div className="bg-cyan-50/50 dark:bg-cyan-950/10 rounded-xl p-3 border border-cyan-100/50">
+                            <span className="block text-xs font-bold text-cyan-800 dark:text-cyan-300 mb-1">
+                              Included Accessories:
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                              {product.refurbishedAccessories.map(
+                                (acc, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="bg-white dark:bg-gray-800 text-[10px] text-cyan-700 dark:text-cyan-300 px-2 py-0.5 rounded shadow-sm border border-cyan-100/50"
+                                  >
+                                    {acc}
+                                  </span>
+                                ),
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
 
                       {/* Cosmetic Damage Notes */}
                       {product.refurbishedCosmeticNotes && (
                         <div className="bg-orange-50/50 dark:bg-orange-950/10 rounded-xl p-3 border border-orange-100/50 text-xs text-gray-750 leading-relaxed">
-                          <span className="block font-bold text-orange-800 dark:text-orange-300 mb-1">Cosmetic Assessment Notes:</span>
-                          <p className="text-gray-600 dark:text-gray-400">{product.refurbishedCosmeticNotes}</p>
+                          <span className="block font-bold text-orange-800 dark:text-orange-300 mb-1">
+                            Cosmetic Assessment Notes:
+                          </span>
+                          <p className="text-gray-600 dark:text-gray-400">
+                            {product.refurbishedCosmeticNotes}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -784,7 +933,8 @@ const MobileProductDetail = () => {
                           <button
                             onClick={() => handleQuantityChange(-1)}
                             disabled={quantity <= 1}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow-sm hover:shadow-md disabled:shadow-none disabled:bg-transparent disabled:opacity-50 transition-all text-gray-700">
+                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow-sm hover:shadow-md disabled:shadow-none disabled:bg-transparent disabled:opacity-50 transition-all text-gray-700"
+                          >
                             <FiMinus />
                           </button>
                           <span className="w-12 text-center font-bold text-gray-900 text-lg">
@@ -792,8 +942,11 @@ const MobileProductDetail = () => {
                           </span>
                           <button
                             onClick={() => handleQuantityChange(1)}
-                            disabled={quantity >= (selectedAvailableStock || 10)}
-                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow-sm hover:shadow-md disabled:shadow-none disabled:bg-transparent disabled:opacity-50 transition-all text-gray-700">
+                            disabled={
+                              quantity >= (selectedAvailableStock || 10)
+                            }
+                            className="w-10 h-10 flex items-center justify-center rounded-lg bg-white shadow-sm hover:shadow-md disabled:shadow-none disabled:bg-transparent disabled:opacity-50 transition-all text-gray-700"
+                          >
                             <FiPlus />
                           </button>
                         </div>
@@ -806,31 +959,48 @@ const MobileProductDetail = () => {
                 </div>
 
                 {/* DESKTOP ACTIONS */}
-                <div className="hidden lg:grid grid-cols-5 gap-4 py-4">
+                <div className="hidden lg:grid grid-cols-6 gap-4 py-4">
                   {isBusiness ? (
                     <>
                       <button
                         onClick={handleAddToCart}
                         disabled={product.stock === "out_of_stock"}
-                        className={`col-span-2 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${product.stock === "out_of_stock"
-                          ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                          : "gradient-green text-white hover:shadow-glow-green hover:-translate-y-0.5"
-                          }`}>
+                        className={`col-span-2 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
+                          product.stock === "out_of_stock"
+                            ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                            : "gradient-green text-white hover:shadow-glow-green hover:-translate-y-0.5"
+                        }`}
+                      >
                         <FiShoppingBag className="text-xl" />
-                        <span>Add Bulk to Cart</span>
+                        <span>Request Bulk Order</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setIsQuoteModalOpen(true)}
-                        className="col-span-2 py-4 bg-white text-primary-600 border-2 border-primary-200 hover:border-primary-500 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2">
+                        className="col-span-2 py-4 bg-white text-primary-600 border-2 border-primary-200 hover:border-primary-500 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2"
+                      >
                         <FiFileText className="text-xl" />
-                        <span>Request RFQ</span>
+                        <span>Send Enquiry</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setIsStockRequestModalOpen(true)}
+                        className={`col-span-2 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                          product.stock === "out_of_stock" ||
+                          product.stock === "low_stock"
+                            ? "bg-orange-50 text-orange-600 border-2 border-orange-200 hover:border-orange-500"
+                            : "bg-gray-50 text-gray-400 border-2 border-gray-200"
+                        }`}
+                      >
+                        <FiPackage className="text-xl" />
+                        <span>Request Stock</span>
                       </button>
                     </>
                   ) : isInCart ? (
                     <button
                       onClick={handleRemoveFromCart}
-                      className="col-span-3 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100">
+                      className="col-span-4 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 bg-red-50 text-red-600 border border-red-100 hover:bg-red-100"
+                    >
                       <FiTrash2 className="text-xl" />
                       <span>Remove from Cart</span>
                     </button>
@@ -838,10 +1008,12 @@ const MobileProductDetail = () => {
                     <button
                       onClick={handleAddToCart}
                       disabled={product.stock === "out_of_stock"}
-                      className={`col-span-3 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${product.stock === "out_of_stock"
-                        ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                        : "gradient-green text-white hover:shadow-glow-green hover:-translate-y-0.5"
-                        }`}>
+                      className={`col-span-4 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
+                        product.stock === "out_of_stock"
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
+                          : "gradient-green text-white hover:shadow-glow-green hover:-translate-y-0.5"
+                      }`}
+                    >
                       <FiShoppingBag className="text-xl" />
                       <span>
                         {product.stock === "out_of_stock"
@@ -851,33 +1023,40 @@ const MobileProductDetail = () => {
                     </button>
                   )}
 
-                  <button
-                    onClick={handleFavorite}
-                    className={`col-span-1 py-4 rounded-xl font-semibold transition-all duration-300 border-2 flex items-center justify-center ${isFavorite
-                      ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
-                      : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                      }`}>
-                    <FiHeart
-                      className={`text-2xl ${isFavorite ? "fill-current" : ""}`}
-                    />
-                  </button>
+                  <div className="col-span-6 flex gap-4 mt-2">
+                    <button
+                      onClick={handleFavorite}
+                      className={`flex-1 py-4 rounded-xl font-semibold transition-all duration-300 border-2 flex items-center justify-center ${
+                        isFavorite
+                          ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
+                          : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <FiHeart
+                        className={`text-2xl ${isFavorite ? "fill-current" : ""}`}
+                      />
+                      <span className="ml-2">Wishlist</span>
+                    </button>
 
-                  <button
-                    onClick={() => {
-                      if (navigator.share) {
-                        navigator.share({
-                          title: product.name,
-                          text: `Check out ${product.name}`,
-                          url: window.location.href,
-                        });
-                      } else {
-                        navigator.clipboard.writeText(window.location.href);
-                        toast.success("Link copied to clipboard");
-                      }
-                    }}
-                    className="col-span-1 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-semibold transition-all duration-300 hover:border-gray-300 hover:bg-gray-50 flex items-center justify-center">
-                    <FiShare2 className="text-2xl" />
-                  </button>
+                    <button
+                      onClick={() => {
+                        if (navigator.share) {
+                          navigator.share({
+                            title: product.name,
+                            text: `Check out ${product.name}`,
+                            url: window.location.href,
+                          });
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                          toast.success("Link copied to clipboard");
+                        }
+                      }}
+                      className="flex-1 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-semibold transition-all duration-300 hover:border-gray-300 hover:bg-gray-50 flex items-center justify-center"
+                    >
+                      <FiShare2 className="text-2xl" />
+                      <span className="ml-2">Share</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Description */}
@@ -891,8 +1070,8 @@ const MobileProductDetail = () => {
                     ) : (
                       <p>
                         High-quality {product.name.toLowerCase()} available in{" "}
-                        {product.unit.toLowerCase()}. This product is carefully selected
-                        to ensure the best quality and freshness.
+                        {product.unit.toLowerCase()}. This product is carefully
+                        selected to ensure the best quality and freshness.
                       </p>
                     )}
                   </div>
@@ -949,7 +1128,10 @@ const MobileProductDetail = () => {
                     </h3>
                     <div className="space-y-4">
                       {productReviews.slice(0, 3).map((review) => (
-                        <div key={review.id} className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm">
+                        <div
+                          key={review.id}
+                          className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm"
+                        >
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
@@ -960,17 +1142,23 @@ const MobileProductDetail = () => {
                               </span>
                             </div>
                             <div className="flex items-center gap-1">
-                              <span className="font-bold text-sm text-gray-700">{review.rating}</span>
+                              <span className="font-bold text-sm text-gray-700">
+                                {review.rating}
+                              </span>
                               <FiStar className="text-yellow-400 fill-yellow-400 text-sm" />
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600 leading-relaxed pl-10">{review.comment}</p>
+                          <p className="text-sm text-gray-600 leading-relaxed pl-10">
+                            {review.comment}
+                          </p>
                           {review.vendorResponse && (
                             <div className="mt-3 ml-10 bg-primary-50 border border-primary-100 rounded-lg p-3">
                               <p className="text-xs font-semibold text-primary-700 mb-1">
                                 Vendor Response
                               </p>
-                              <p className="text-sm text-primary-800">{review.vendorResponse}</p>
+                              <p className="text-sm text-primary-800">
+                                {review.vendorResponse}
+                              </p>
                             </div>
                           )}
                         </div>
@@ -1005,10 +1193,12 @@ const MobileProductDetail = () => {
           <div className="flex items-center gap-3">
             <button
               onClick={handleFavorite}
-              className={`p-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center ${isFavorite
-                ? "bg-red-50 text-red-600 border-2 border-red-200"
-                : "bg-gray-100 text-gray-700"
-                }`}>
+              className={`p-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center ${
+                isFavorite
+                  ? "bg-red-50 text-red-600 border-2 border-red-200"
+                  : "bg-gray-100 text-gray-700"
+              }`}
+            >
               <FiHeart
                 className={`text-xl ${isFavorite ? "fill-red-600" : ""}`}
               />
@@ -1026,33 +1216,51 @@ const MobileProductDetail = () => {
                   toast.success("Link copied to clipboard");
                 }
               }}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition-all duration-300">
+              className="p-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition-all duration-300"
+            >
               <FiShare2 className="text-xl" />
             </button>
             {isBusiness ? (
-              <div className="flex-1 flex gap-2">
+              <div className="flex-1 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stock === "out_of_stock"}
-                  className={`flex-1 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${product.stock === "out_of_stock"
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "gradient-green text-white hover:shadow-glow-green"
-                    }`}>
+                  className={`flex-none px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap ${
+                    product.stock === "out_of_stock"
+                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      : "gradient-green text-white hover:shadow-glow-green"
+                  }`}
+                >
                   <FiShoppingBag className="text-lg" />
-                  <span>Add Bulk</span>
+                  <span>Request Bulk</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsQuoteModalOpen(true)}
-                  className="flex-1 py-4 bg-white text-primary-600 border border-primary-200 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2">
+                  className="flex-none px-4 py-4 bg-white text-primary-600 border border-primary-200 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap"
+                >
                   <FiFileText className="text-lg" />
-                  <span>RFQ Quote</span>
+                  <span>Send Enquiry</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsStockRequestModalOpen(true)}
+                  className={`flex-none px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap ${
+                    product.stock === "out_of_stock" ||
+                    product.stock === "low_stock"
+                      ? "bg-orange-50 text-orange-600 border border-orange-200"
+                      : "bg-gray-100 text-gray-400 border border-gray-200"
+                  }`}
+                >
+                  <FiPackage className="text-lg" />
+                  <span>Request Stock</span>
                 </button>
               </div>
             ) : isInCart ? (
               <button
                 onClick={handleRemoveFromCart}
-                className="flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100">
+                className="flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100"
+              >
                 <FiTrash2 className="text-xl" />
                 <span>Remove</span>
               </button>
@@ -1060,10 +1268,12 @@ const MobileProductDetail = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === "out_of_stock"}
-                className={`flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${product.stock === "out_of_stock"
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "gradient-green text-white hover:shadow-glow-green"
-                  }`}>
+                className={`flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
+                  product.stock === "out_of_stock"
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "gradient-green text-white hover:shadow-glow-green"
+                }`}
+              >
                 <FiShoppingBag className="text-xl" />
                 <span>
                   {product.stock === "out_of_stock"

@@ -1,92 +1,200 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiUser, FiShoppingBag, FiSettings, FiLogOut } from 'react-icons/fi';
+import { FiX, FiUser, FiShoppingBag, FiSettings, FiLogOut, FiChevronDown } from 'react-icons/fi';
+import { useCategoryStore } from '../store/categoryStore';
+import { categories as fallbackCategories } from '../../data/categories';
+import { IoShirtOutline } from "react-icons/io5";
+import { LuFootprints } from "react-icons/lu";
+import { IoBagHandleOutline } from "react-icons/io5";
+import { FiStar, FiTag, FiZap, FiPackage } from "react-icons/fi";
+
+// Map category names to icons
+const categoryIcons = {
+  Clothing: IoShirtOutline,
+  Footwear: LuFootprints,
+  Bags: IoBagHandleOutline,
+  Jewelry: FiStar,
+  Accessories: FiTag,
+  Athletic: FiZap,
+};
 
 /**
- * Reusable slide‑in sidebar.
+ * Reusable slide‑in sidebar with categories support.
  * Props:
  *   isOpen: boolean – controls visibility
  *   onClose: () => void – called when backdrop or close button clicked
  *   user: object (optional) – user data for avatar/name display
  *   onLogout: () => void – logout handler
  */
-const Sidebar = ({ isOpen, onClose, user, onLogout }) => (
-  <AnimatePresence>
-    {isOpen && (
-      <motion.div
-        className="fixed inset-0 z-50 flex"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
-        {/* Backdrop */}
+const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
+  const { categories: apiCategories, getRootCategories, initialize } = useCategoryStore();
+  const [showCategories, setShowCategories] = useState(false);
+
+  // Initialize categories
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  const categories = useMemo(() => {
+    const roots = getRootCategories().filter((cat) => cat.isActive !== false);
+    if (!roots.length) return fallbackCategories;
+
+    return roots.map((cat) => {
+      const fallback = fallbackCategories.find(
+        (fc) =>
+          String(fc.id) === String(cat.id) ||
+          String(fc.name || "").toLowerCase() ===
+            String(cat.name || "").toLowerCase()
+      );
+
+      return {
+        ...(fallback || {}),
+        ...cat,
+        id: String(cat.id ?? cat._id ?? fallback?.id ?? ""),
+      };
+    });
+  }, [apiCategories, getRootCategories]);
+
+  const sidebarContent = (
+    <AnimatePresence>
+      {isOpen && (
         <motion.div
-          className="absolute inset-0 bg-black/30"
+          className="fixed inset-0 z-[99999] flex"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-        />
-        {/* Sidebar panel */}
-        <motion.div
-          className="relative w-64 h-full bg-white dark:bg-gray-800 shadow-lg p-4"
-          initial={{ x: '-100%' }}
-          animate={{ x: 0, transition: { duration: 0.3 } }}
-          exit={{ x: '-100%', transition: { duration: 0.3 } }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={onClose}
         >
-          <button
-            onClick={onClose}
-            className="absolute top-2 right-2 text-gray-600 dark:text-gray-300"
-            aria-label="Close sidebar"
+          {/* Backdrop */}
+          <motion.div
+            className="absolute inset-0 bg-black/40 dark:bg-black/60"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          />
+          {/* Sidebar panel */}
+          <motion.div
+            className="relative w-64 md:w-80 h-full bg-white dark:bg-[#1A1A1A] shadow-2xl pt-14 pb-4 px-4 overflow-y-auto z-[100000]"
+            initial={{ x: '-100%' }}
+            animate={{ x: 0, transition: { duration: 0.3 } }}
+            exit={{ x: '-100%', transition: { duration: 0.3 } }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <FiX size={24} />
-          </button>
-          {user && (
-            <div className="flex items-center gap-2 mb-6">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full" />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gray-300" />
-              )}
-              <span className="font-medium text-gray-800 dark:text-gray-200">{user.name || 'User'}</span>
-            </div>
-          )}
-          <nav className="space-y-4">
-            <Link
-              to="/profile"
-              className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-primary-600"
-            >
-              <FiUser />
-              Profile
-            </Link>
-            <Link
-              to="/orders"
-              className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-primary-600"
-            >
-              <FiShoppingBag />
-              Orders
-            </Link>
-            <Link
-              to="/settings"
-              className="flex items-center gap-2 text-gray-700 dark:text-gray-200 hover:text-primary-600"
-            >
-              <FiSettings />
-              Settings
-            </Link>
             <button
-              onClick={onLogout}
-              className="flex w-full items-center gap-2 text-red-600 hover:text-red-700"
+              onClick={onClose}
+              className="absolute top-4 right-4 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 p-1.5 rounded-lg transition-all"
+              aria-label="Close sidebar"
             >
-              <FiLogOut />
-              Logout
+              <FiX size={24} />
             </button>
-          </nav>
+
+            {/* User Section */}
+            {user && (
+              <div className="flex items-center gap-2 mb-6 mt-2">
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-600" />
+                )}
+                <span className="font-medium text-gray-800 dark:text-white truncate">{user.name || 'User'}</span>
+              </div>
+            )}
+
+            <nav className="space-y-2">
+              {/* Profile & Orders */}
+              <Link
+                to="/profile"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiUser />
+                Profile
+              </Link>
+              <Link
+                to="/orders"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiShoppingBag />
+                Orders
+              </Link>
+
+              {/* Categories Section */}
+              <div className="my-4 pt-4 border-t border-gray-200 dark:border-white/10">
+                <button
+                  onClick={() => setShowCategories(!showCategories)}
+                  className="flex items-center justify-between w-full px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors font-semibold"
+                >
+                  <span>Shop by Category</span>
+                  <motion.div
+                    animate={{ rotate: showCategories ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <FiChevronDown />
+                  </motion.div>
+                </button>
+
+                {/* Categories List */}
+                <AnimatePresence>
+                  {showCategories && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="mt-2 space-y-1">
+                        {categories.map((category) => {
+                          const IconComponent = categoryIcons[category.name] || FiPackage;
+                          return (
+                            <Link
+                              key={category.id}
+                              to={`/category/${category.id}`}
+                              onClick={onClose}
+                              className="flex items-center gap-3 px-5 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors text-sm"
+                            >
+                              <IconComponent className="text-lg flex-shrink-0" />
+                              <span>{category.name}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Settings & Logout */}
+              <Link
+                to="/settings"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiSettings />
+                Settings
+              </Link>
+              <button
+                onClick={() => {
+                  onLogout();
+                  onClose();
+                }}
+                className="flex w-full items-center gap-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+              >
+                <FiLogOut />
+                Logout
+              </button>
+            </nav>
+          </motion.div>
         </motion.div>
-      </motion.div>
-    )}
-  </AnimatePresence>
-);
+      )}
+    </AnimatePresence>
+  );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(sidebarContent, document.body);
+};
 
 export default Sidebar;
