@@ -23,6 +23,15 @@
                      ]
     },
     {
+        "title": "B2B Enquiries",
+        "route": "/vendor/b2b-enquiries",
+        "children": [
+            "All Enquiries",
+            "B2B Analytics",
+            "B2B Settings"
+        ]
+    },
+    {
         "title":  "Return Requests",
         "route":  "/vendor/return-requests",
         "children":  [

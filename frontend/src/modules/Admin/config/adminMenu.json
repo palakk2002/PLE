@@ -61,6 +61,16 @@
     ]
   },
   {
+    "title": "B2B Enquiries",
+    "route": "/admin/b2b-enquiries",
+    "children": [
+      "RFQ Dashboard",
+      "Seller Responses",
+      "Disputes & Complaints",
+      "Spam Monitoring"
+    ]
+  },
+  {
     "title": "Refurbished Mkt",
     "route": "/admin/refurbished",
     "children": [

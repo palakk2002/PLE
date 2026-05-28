@@ -70,6 +70,13 @@ import B2BProducts from "./modules/Admin/pages/b2b/B2BProducts";
 import B2BOrders from "./modules/Admin/pages/b2b/B2BOrders";
 import B2BSettings from "./modules/Admin/pages/b2b/B2BSettings";
 
+// Admin B2B Enquiry RFQ Routes
+import AdminB2BEnquiries from "./modules/Admin/pages/b2b-enquiries/AdminB2BEnquiries";
+import AdminRFQDetail from "./modules/Admin/pages/b2b-enquiries/AdminRFQDetail";
+import AdminSellerResponses from "./modules/Admin/pages/b2b-enquiries/AdminSellerResponses";
+import AdminRFQDisputes from "./modules/Admin/pages/b2b-enquiries/AdminRFQDisputes";
+import AdminRFQSpamMonitor from "./modules/Admin/pages/b2b-enquiries/AdminRFQSpamMonitor";
+
 // Refurbished Marketplace pages
 import RefurbishedMarketplace from "./modules/Admin/pages/refurbished/RefurbishedMarketplace";
 import RefurbishedDashboard from "./modules/Admin/pages/refurbished/RefurbishedDashboard";
@@ -194,6 +201,14 @@ import VendorSupportTickets from "./modules/Vendor/pages/SupportTickets";
 import VendorPickupLocations from "./modules/Vendor/pages/PickupLocations";
 import VendorReports from "./modules/Vendor/pages/Reports";
 import VendorLanguageSettings from "./modules/Vendor/pages/LanguageSettings";
+
+// B2B Enquiry Routes
+import VendorB2BEnquiries from "./modules/Vendor/pages/b2b/B2BEnquiries";
+import VendorB2BEnquiryDetail from "./modules/Vendor/pages/b2b/B2BEnquiryDetail";
+import VendorB2BCreateQuote from "./modules/Vendor/pages/b2b/B2BCreateQuote";
+import VendorB2BQuoteDetail from "./modules/Vendor/pages/b2b/B2BQuoteDetail";
+import VendorB2BAnalytics from "./modules/Vendor/pages/b2b/B2BAnalytics";
+import VendorB2BSettings from "./modules/Vendor/pages/b2b/B2BSettings";
 
 // Inner component that has access to useLocation
 const AppRoutes = () => {
@@ -494,6 +509,14 @@ const AppRoutes = () => {
         <Route path="b2b/b2b-orders" element={<B2BOrders />} />
         <Route path="b2b/b2b-settings" element={<B2BSettings />} />
 
+        {/* Admin B2B Enquiry/RFQ Routes */}
+        <Route path="b2b-enquiries" element={<AdminB2BEnquiries />} />
+        <Route path="b2b-enquiries/all" element={<AdminB2BEnquiries />} />
+        <Route path="b2b-enquiries/:id" element={<AdminRFQDetail />} />
+        <Route path="b2b-enquiries/seller-responses" element={<AdminSellerResponses />} />
+        <Route path="b2b-enquiries/disputes" element={<AdminRFQDisputes />} />
+        <Route path="b2b-enquiries/spam" element={<AdminRFQSpamMonitor />} />
+
         {/* Refurbished Marketplace Routes */}
         <Route path="refurbished" element={<RefurbishedMarketplace />} />
         <Route path="refurbished/dashboard" element={<RefurbishedDashboard />} />
@@ -652,6 +675,14 @@ const AppRoutes = () => {
         <Route path="settings/payment-settings" element={<VendorSettings />} />
         <Route path="settings/shipping" element={<VendorSettings />} />
         <Route path="settings/shipping-settings" element={<VendorSettings />} />
+        {/* B2B Enquiry Routes */}
+        <Route path="b2b-enquiries" element={<VendorB2BEnquiries />} />
+        <Route path="b2b-enquiries/all" element={<VendorB2BEnquiries />} />
+        <Route path="b2b-enquiries/:id" element={<VendorB2BEnquiryDetail />} />
+        <Route path="b2b-enquiries/:id/create-quote" element={<VendorB2BCreateQuote />} />
+        <Route path="b2b-enquiries/:id/quote/:quoteId" element={<VendorB2BQuoteDetail />} />
+        <Route path="b2b-enquiries/analytics" element={<VendorB2BAnalytics />} />
+        <Route path="b2b-enquiries/settings" element={<VendorB2BSettings />} />
         <Route path="profile" element={<VendorSettings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
