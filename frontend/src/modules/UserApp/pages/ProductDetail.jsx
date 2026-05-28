@@ -46,6 +46,7 @@ import {
   B2BNotifyMe,
   B2BStockAvailability,
 } from "../components/B2B";
+import { estimateDeliveryETA } from "../../../shared/data/deliveryMockData";
 
 const resolveVariantPrice = (product, selectedVariant) => {
   const basePrice = Number(product?.price) || 0;
@@ -204,6 +205,25 @@ const MobileProductDetail = () => {
     useBusinessBuyer();
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [isStockRequestModalOpen, setIsStockRequestModalOpen] = useState(false);
+
+  // Smart Delivery State Hooks
+  const [pincode, setPincode] = useState("");
+  const [estDelivery, setEstDelivery] = useState(null);
+  const [checkedPincode, setCheckedPincode] = useState(false);
+
+  const handleCheckDelivery = (e) => {
+    e.preventDefault();
+    if (!pincode.trim() || pincode.trim().length < 5) {
+      toast.error("Please enter a valid postal code");
+      return;
+    }
+    // Simulate lookup: Super Electro is vendor 400001, otherwise Noida 201301. Pincodes match if first 3 digits match Crawford Mumbai.
+    const vendorZip = product?.vendorId === "SEL-301" || product?.id % 2 === 0 ? "400001" : "201301";
+    const info = estimateDeliveryETA(vendorZip, pincode, isBusiness);
+    setEstDelivery(info);
+    setCheckedPincode(true);
+    toast.success("Delivery SLA updated for your location!");
+  };
 
   useEffect(() => {
     if (product?.id && isBusiness) {
@@ -955,6 +975,59 @@ const MobileProductDetail = () => {
                         </span>
                       </div>
                     </div>
+                  )}
+                </div>
+
+                {/* Smart Delivery Estimation Widget */}
+                <div className="bg-gray-50 border border-gray-150 rounded-2xl p-5 mb-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-extrabold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                      <span>🚚 Logistics Speed Check</span>
+                    </h4>
+                    <span className="text-[10px] text-gray-400 font-bold uppercase">Dynamic SLA Tracking</span>
+                  </div>
+                  
+                  <form onSubmit={handleCheckDelivery} className="flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={6}
+                      value={pincode}
+                      onChange={(e) => setPincode(e.target.value.replace(/\D/g, ""))}
+                      placeholder="Enter Delivery Pincode (e.g. 400001)"
+                      className="flex-1 bg-white border border-gray-250 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
+                    />
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-gray-900 hover:bg-black text-white text-xs font-bold rounded-xl transition-colors shadow-sm"
+                    >
+                      Check Speed
+                    </button>
+                  </form>
+
+                  {checkedPincode && estDelivery ? (
+                    <div className="bg-white rounded-xl p-3 border border-gray-100/80 space-y-2 text-xs">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
+                        <span className="text-gray-400 font-medium">Estimated Handover Time:</span>
+                        <span className={`px-2 py-0.5 rounded-full font-bold text-[10px] uppercase ${estDelivery.badgeColor}`}>
+                          {estDelivery.badgeText}
+                        </span>
+                      </div>
+                      <div className="text-gray-700 font-semibold flex items-center gap-1">
+                        <span>ETA:</span>
+                        <span className="text-primary-600 font-extrabold">{estDelivery.displayETA}</span>
+                      </div>
+                      <p className="text-[10px] text-gray-400 leading-normal">
+                        {estDelivery.type === "express" 
+                          ? "⚡ Same-City express guarantees local dispatch inside 2 hours and doorstep delivery within selected ETA window."
+                          : estDelivery.type === "bulk"
+                          ? "📦 Heavy freight cargo handling. High-volume pallet security dispatch with priority courier routing."
+                          : "🚚 Standard nationwide express delivery. Fully tracked regional corridor logistics."}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[10.5px] text-gray-400 font-medium">
+                      Enter your zipcode to verify Same-City Express eligibility (8–16 Hours) or regional courier durations.
+                    </p>
                   )}
                 </div>
 

@@ -73,10 +73,36 @@ export const useAdminAuthStore = create(
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminRefreshToken');
       },
+
+      // Initialize admin auth state from localStorage
+      initialize: () => {
+        const token = localStorage.getItem('adminToken');
+        if (token) {
+          const storedState = JSON.parse(localStorage.getItem('admin-auth-storage') || '{}');
+          const refreshToken = localStorage.getItem('adminRefreshToken');
+          if (storedState.state?.admin) {
+            set({
+              admin: storedState.state.admin,
+              token,
+              refreshToken: refreshToken || null,
+              isAuthenticated: true,
+              isLoading: false, // Reset stale disk loading states
+            });
+          }
+        } else {
+          set({ isLoading: false });
+        }
+      },
     }),
     {
       name: 'admin-auth-storage',
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        admin: state.admin,
+        token: state.token,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
+      }), // Exclude loading UI state from persistence
     }
   )
 );

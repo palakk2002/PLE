@@ -134,6 +134,7 @@ import MobileCategories from "./modules/UserApp/pages/categories";
 import MobileCheckout from "./modules/UserApp/pages/Checkout";
 import MobileSearch from "./modules/UserApp/pages/Search";
 import MobileLogin from "./modules/UserApp/pages/Login";
+import MobileHelpSupport from "./modules/UserApp/pages/HelpSupport";
 import MobileRegister from "./modules/UserApp/pages/Register";
 import MobileVerification from "./modules/UserApp/pages/Verification";
 import MobileForgotPassword from "./modules/UserApp/pages/ForgotPassword";
@@ -209,6 +210,8 @@ import VendorB2BCreateQuote from "./modules/Vendor/pages/b2b/B2BCreateQuote";
 import VendorB2BQuoteDetail from "./modules/Vendor/pages/b2b/B2BQuoteDetail";
 import VendorB2BAnalytics from "./modules/Vendor/pages/b2b/B2BAnalytics";
 import VendorB2BSettings from "./modules/Vendor/pages/b2b/B2BSettings";
+import VendorDeliverySettings from "./modules/Vendor/pages/VendorDeliverySettings";
+import AdminDeliveryManager from "./modules/Admin/pages/AdminDeliveryManager";
 
 // Inner component that has access to useLocation
 const AppRoutes = () => {
@@ -418,6 +421,16 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/help-support"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <MobileHelpSupport />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
         path="/notifications"
         element={
           <RouteWrapper>
@@ -489,6 +502,7 @@ const AppRoutes = () => {
         <Route path="delivery/delivery-boys" element={<DeliveryBoys />} />
         <Route path="delivery/cash-collection" element={<CashCollection />} />
         <Route path="delivery/assign-delivery" element={<AssignDelivery />} />
+        <Route path="delivery-control" element={<AdminDeliveryManager />} />
         <Route path="vendors" element={<Vendors />} />
         <Route path="vendors/manage-vendors" element={<ManageVendors />} />
         <Route
@@ -683,6 +697,7 @@ const AppRoutes = () => {
         <Route path="b2b-enquiries/:id/quote/:quoteId" element={<VendorB2BQuoteDetail />} />
         <Route path="b2b-enquiries/analytics" element={<VendorB2BAnalytics />} />
         <Route path="b2b-enquiries/settings" element={<VendorB2BSettings />} />
+        <Route path="delivery-settings" element={<VendorDeliverySettings />} />
         <Route path="profile" element={<VendorSettings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

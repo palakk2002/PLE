@@ -24,6 +24,7 @@ import MobileLayout from "../components/Layout/MobileLayout";
 import MobileCheckoutSteps from "../components/Mobile/MobileCheckoutSteps";
 import PageTransition from "../../../shared/components/PageTransition";
 import OrderSummary from "../components/Mobile/CheckoutOrderSummary";
+import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 
 
 const MobileCheckout = () => {
@@ -32,6 +33,8 @@ const MobileCheckout = () => {
   const { user, isAuthenticated } = useAuthStore();
   const { addresses, getDefaultAddress, addAddress, fetchAddresses } = useAddressStore();
   const { createOrder } = useOrderStore();
+  
+  const { isBusiness } = useBusinessBuyer();
 
   // Group items by vendor
   const itemsByVendor = useMemo(
@@ -47,7 +50,7 @@ const MobileCheckout = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
-  const [shippingOption, setShippingOption] = useState("standard");
+  const [shippingOption, setShippingOption] = useState(() => isBusiness ? "bulk" : "standard");
   const [estimatedShipping, setEstimatedShipping] = useState(null);
   const [isEstimatingShipping, setIsEstimatingShipping] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
@@ -62,6 +65,14 @@ const MobileCheckout = () => {
     country: "",
     paymentMethod: "card",
   });
+
+  useEffect(() => {
+    if (isBusiness) {
+      setShippingOption("bulk");
+    } else {
+      setShippingOption("standard");
+    }
+  }, [isBusiness]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -120,23 +131,23 @@ const MobileCheckout = () => {
 
   const calculateShippingFallback = () => {
     const total = getTotal();
+    if (isBusiness) {
+      return 1500; // Flat B2B bulk cargo pallet fee
+    }
+    if (shippingOption === "express") {
+      return 150; // Express local same-city surcharge
+    }
     if (appliedCoupon?.type === "freeship") {
       return 0;
     }
     if (total >= 100) {
       return 0;
     }
-    if (shippingOption === "express") {
-      return 100;
-    }
     return 50;
   };
 
   const total = getTotal();
-  const shipping =
-    typeof estimatedShipping === "number"
-      ? estimatedShipping
-      : calculateShippingFallback();
+  const shipping = calculateShippingFallback();
   const discount = appliedCoupon ? appliedDiscount : 0;
   const taxableAmount = Math.max(0, total - discount);
   const tax = taxableAmount * 0.18;
@@ -584,71 +595,114 @@ const MobileCheckout = () => {
                       ))}
                     </div>
 
-                    {/* Shipping Options */}
-                    {total < 100 && (
-                      <div className="mb-6">
-                        <h3 className="text-base font-semibold text-gray-800 mb-3">
-                          Shipping Options
-                        </h3>
-                        <div className="space-y-3">
-                          <label
-                            className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingOption === "standard"
-                              ? "border-primary-500 bg-primary-50"
-                              : "border-gray-200"
-                              }`}>
-                            <div>
-                              <input
-                                type="radio"
-                                name="shippingOption"
-                                value="standard"
-                                checked={shippingOption === "standard"}
-                                onChange={(e) => setShippingOption(e.target.value)}
-                                className="w-5 h-5 text-primary-500 mr-3"
-                              />
-                              <span className="font-semibold text-gray-800 text-base">
-                                Standard Shipping
+                    {/* B2C/B2B Smart Shipping Options */}
+                    <div className="mb-6">
+                      <h3 className="text-base font-bold text-gray-800 mb-3">
+                        Shipping & Logistics Options
+                      </h3>
+                      {isBusiness ? (
+                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 space-y-3">
+                          <div className="flex items-start gap-3">
+                            <input
+                              type="radio"
+                              name="shippingOption"
+                              value="bulk"
+                              checked={true}
+                              readOnly
+                              className="w-5 h-5 text-primary-500 mt-1"
+                            />
+                            <div className="flex-1">
+                              <span className="font-extrabold text-blue-900 text-base flex items-center gap-1.5">
+                                <span>📦 B2B Bulk Pallet Dispatch</span>
+                                <span className="bg-blue-100 text-blue-700 text-[9px] uppercase font-black px-2 py-0.5 rounded-full border border-blue-200">
+                                  Enterprise SLA
+                                </span>
                               </span>
-                              <p className="text-xs text-gray-600">
-                                5-7 business days
+                              <p className="text-xs text-blue-750 font-bold mt-1">
+                                Estimated Handover: 3–5 Business Days
+                              </p>
+                              <p className="text-[10px] text-blue-700 leading-normal mt-1">
+                                High-volume pallet security dispatch with priority freight logistics. Delivery is fully vetted and audited for business invoice clearance.
                               </p>
                             </div>
-                            <span className="font-bold text-gray-800">
-                              {formatPrice(50)}
+                            <span className="font-black text-blue-900 shrink-0 text-sm">
+                              {formatPrice(1500)}
                             </span>
-                          </label>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {/* Express Local same-city shipping option */}
                           <label
-                            className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingOption === "express"
+                            className={`flex items-start justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingOption === "express"
                               ? "border-primary-500 bg-primary-50"
                               : "border-gray-200"
                               }`}>
-                            <div>
+                            <div className="flex items-start gap-3">
                               <input
                                 type="radio"
                                 name="shippingOption"
                                 value="express"
                                 checked={shippingOption === "express"}
                                 onChange={(e) => setShippingOption(e.target.value)}
-                                className="w-5 h-5 text-primary-500 mr-3"
+                                className="w-5 h-5 text-primary-500 mt-1"
                               />
-                              <span className="font-semibold text-gray-800 text-base">
-                                Express Shipping
-                              </span>
-                              <p className="text-xs text-gray-600">
-                                2-3 business days
-                              </p>
+                              <div>
+                                <span className="font-bold text-gray-800 text-base flex items-center gap-1.5">
+                                  <span>⚡ Local Same-City Express</span>
+                                </span>
+                                <p className="text-xs text-gray-700 font-semibold mt-0.5">
+                                  Delivered inside 8–16 Hours
+                                </p>
+                                <p className="text-[10px] text-gray-400 leading-normal mt-0.5 max-w-[280px]">
+                                  Guaranteed same-day local dispatch loop inside municipal metro limits.
+                                </p>
+                              </div>
                             </div>
-                            <span className="font-bold text-gray-800">
-                              {formatPrice(100)}
+                            <span className="font-bold text-gray-800 shrink-0">
+                              {formatPrice(150)}
+                            </span>
+                          </label>
+
+                          {/* Standard shipping option */}
+                          <label
+                            className={`flex items-start justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingOption === "standard"
+                              ? "border-primary-500 bg-primary-50"
+                              : "border-gray-200"
+                              }`}>
+                            <div className="flex items-start gap-3">
+                              <input
+                                type="radio"
+                                name="shippingOption"
+                                value="standard"
+                                checked={shippingOption === "standard"}
+                                onChange={(e) => setShippingOption(e.target.value)}
+                                className="w-5 h-5 text-primary-500 mt-1"
+                              />
+                              <div>
+                                <span className="font-bold text-gray-800 text-base">
+                                  Standard National Courier
+                                </span>
+                                <p className="text-xs text-gray-700 font-semibold mt-0.5">
+                                  Delivered in 2–4 Business Days
+                                </p>
+                                <p className="text-[10px] text-gray-400 leading-normal mt-0.5 max-w-[280px]">
+                                  Nationwide delivery via regional express cargo lines.
+                                </p>
+                              </div>
+                            </div>
+                            <span className="font-bold text-gray-800 shrink-0">
+                              {total >= 100 ? "FREE" : formatPrice(50)}
                             </span>
                           </label>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">
-                          {isEstimatingShipping
-                            ? "Updating shipping estimate..."
-                            : `Estimated shipping: ${formatPrice(shipping)}`}
-                        </p>
-                      </div>
-                    )}
+                      )}
+                      
+                      <p className="text-xs text-gray-500 mt-2 font-bold flex items-center gap-1.5">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span>Logistics Cost Verified: {formatPrice(shipping)}</span>
+                      </p>
+                    </div>
 
                     {/* Coupon Code */}
                     <div className="mb-6">

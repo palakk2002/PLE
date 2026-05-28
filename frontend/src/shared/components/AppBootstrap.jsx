@@ -1,5 +1,9 @@
 import { useEffect } from "react";
 import api from "../utils/api";
+import { useAuthStore } from "../store/authStore";
+import { useVendorAuthStore } from "../../modules/Vendor/store/vendorAuthStore";
+import { useDeliveryAuthStore } from "../../modules/Delivery/store/deliveryStore";
+import { useAdminAuthStore } from "../../modules/Admin/store/adminStore";
 
 const PRODUCTS_CACHE_KEY = "user-catalog-products-cache";
 const VENDORS_CACHE_KEY = "user-catalog-vendors-cache";
@@ -39,6 +43,12 @@ const normalizeBrand = (raw) => ({
 
 const AppBootstrap = () => {
   useEffect(() => {
+    // Initialize authentication stores to synchronize tokens and clear stale loading flags
+    try { useAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
+    try { useVendorAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
+    try { useDeliveryAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
+    try { useAdminAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
+
     let cancelled = false;
 
     const syncCatalog = async () => {

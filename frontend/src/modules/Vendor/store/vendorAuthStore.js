@@ -261,15 +261,23 @@ export const useVendorAuthStore = create(
               token,
               refreshToken: refreshToken || null,
               isAuthenticated: true,
-              isLoading: false,
+              isLoading: false, // Reset stale disk-persisted loading state
             });
           }
+        } else {
+          set({ isLoading: false });
         }
       },
     }),
     {
       name: "vendor-auth-storage",
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        vendor: state.vendor,
+        token: state.token,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
+      }), // Exclude transient loading variables from local disk persist
     }
   )
 );

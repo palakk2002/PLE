@@ -14,6 +14,7 @@ import FlyingItem from "../../modules/UserApp/components/Mobile/FlyingItem";
 import { getVariantSignature } from "../utils/variant";
 import { useBusinessBuyer } from "../../modules/UserApp/hooks/useBusinessBuyer";
 import { B2BProductCardOverlay } from "../../modules/UserApp/components/B2B/B2BProductCardOverlay";
+import { estimateDeliveryETA } from "../data/deliveryMockData";
 
 
 const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
@@ -44,6 +45,12 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
   });
   const buttonRef = useRef(null);
   const cartIconRef = useRef(null);
+
+  // Compute logistics metadata based on mockup attributes (supports express if id is even or vendor matches)
+  const isExpressEligible = product.id % 2 === 0 || product.vendorName === "Super Electro Corp";
+  const deliveryInfo = isExpressEligible
+    ? estimateDeliveryETA("400001", "400001", isBusiness)
+    : estimateDeliveryETA("400001", "110001", isBusiness);
 
   const handleAddToCart = (e) => {
     if (e) {
@@ -259,7 +266,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
           )}
 
           {/* Rating */}
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5">
             {product.rating && !hideRating && (
               <div className="flex items-center gap-1">
                 <div className="flex items-center bg-yellow-50 px-1.5 py-0.5 rounded-md border border-yellow-100">
@@ -276,6 +283,13 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
                 Ending Soon
               </span>
             )}
+          </div>
+
+          {/* Smart Delivery ETA Badge */}
+          <div className="mb-2 flex items-center">
+            <span className={`text-[8px] md:text-[9.5px] font-black px-2 py-0.5 rounded-full ${deliveryInfo.badgeColor}`}>
+              {deliveryInfo.badgeText}
+            </span>
           </div>
 
           {/* Flash Sale Progress Bar */}

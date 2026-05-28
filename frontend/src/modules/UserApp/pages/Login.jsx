@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiPhone } from 'react-icons/fi';
@@ -20,7 +20,14 @@ import { B2BAccountTypeSwitcher } from '../components/B2B/B2BAccountTypeSwitcher
 const MobileLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, isLoading } = useAuthStore();
+  const { login, isLoading, isAuthenticated } = useAuthStore();
+
+  // Auto-redirect when authentication state changes
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/home', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -49,11 +56,13 @@ const MobileLogin = () => {
 
   const onSubmit = async (data) => {
     try {
+      console.log('Login submit start', data);
       await login(data.email, data.password, rememberMe);
+      console.log('Login successful, navigating to home');
       replayPendingAction();
       toast.success('Login successful!');
       clearPostLoginRedirect();
-      navigate(from === '/login' ? '/home' : from, { replace: true });
+      navigate('/home', { replace: true });
     } catch (error) {
       const backendMessage = String(
         error?.response?.data?.message ||

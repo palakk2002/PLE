@@ -454,14 +454,33 @@ export const useDeliveryAuthStore = create(
               token,
               refreshToken: refreshToken || null,
               isAuthenticated: true,
+              isLoading: false,
+              isLoadingOrders: false,
+              isLoadingOrder: false,
+              isUpdatingOrderStatus: false,
+              isUpdatingStatus: false, // Reset stale disk-persisted loading flags
             });
           }
+        } else {
+          set({
+            isLoading: false,
+            isLoadingOrders: false,
+            isLoadingOrder: false,
+            isUpdatingOrderStatus: false,
+            isUpdatingStatus: false,
+          });
         }
       },
     }),
     {
       name: 'delivery-auth-storage',
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        deliveryBoy: state.deliveryBoy,
+        token: state.token,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
+      }), // Exclude loading/status flags from persistence
     }
   )
 );

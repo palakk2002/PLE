@@ -87,7 +87,9 @@
     "children": [
       "Delivery Boys",
       "Cash Collection",
-      "Assign Delivery"
+      "Assign Delivery",
+      "Logistics Control Center",
+      "Zone Configuration"
     ]
   },
   {

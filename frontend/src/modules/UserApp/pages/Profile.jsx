@@ -18,6 +18,7 @@ import {
   FiBriefcase,
   FiTrendingUp,
   FiFileText,
+  FiHelpCircle,
 } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -222,6 +223,14 @@ const MobileProfile = () => {
       icon: FiLock,
       color: "text-purple-600",
       bg: "bg-purple-50",
+    },
+    {
+      id: "help",
+      label: "Help & Support",
+      icon: FiHelpCircle,
+      color: "text-blue-600",
+      bg: "bg-blue-50",
+      link: "/help-support",
     },
   ];
 
