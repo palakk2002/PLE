@@ -1,10 +1,10 @@
 import whiteTShirtImg from "../../data/products/white t shirt.png";
 import blueJeansImg from "../../data/products/blue jeans.png";
-import summerDressImg from "../../data/products/summer dress.png";
+import summerDressImg from "../../data/products/white t shirt.png";
 import leatherBagImg from "../../data/products/leather bag.png";
 import sneakersImg from "../../data/products/sneakers.png";
 import sunglassImg from "../../data/products/sunglass.png";
-import winterScarfImg from "../../data/products/winter scarf.png";
+import winterScarfImg from "../../data/products/sweater.png";
 import blazerImg from "../../data/products/blazer.png";
 import denimJacketImg from "../../data/products/denim jacket.png";
 import healsImg from "../../data/products/heals.png";

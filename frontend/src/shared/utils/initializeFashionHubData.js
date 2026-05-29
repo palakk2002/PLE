@@ -13,9 +13,9 @@ import leatherBootsImg from "../../../data/products/leather boots.png";
 import gownImg from "../../../data/products/gown.png";
 import shirtImg from "../../../data/products/shirt.png";
 import necklessImg from "../../../data/products/neckless.png";
-import winterScarfImg from "../../../data/products/winter scarf.png";
+import winterScarfImg from "../../../data/products/sweater.png";
 import beltImg from "../../../data/products/belt.png";
-import summerDressImg from "../../../data/products/summer dress.png";
+import summerDressImg from "../../../data/products/white t shirt.png";
 import denimJacketImg from "../../../data/products/denim jacket.png";
 
 /**

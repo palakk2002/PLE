@@ -8,7 +8,7 @@ import necklessImg from "../../../data/products/neckless.png";
 import sunglassImg from "../../../data/products/sunglass.png";
 import maxiImg from "../../../data/products/maxi.png";
 import healsImg from "../../../data/products/heals.png";
-import winterScarfImg from "../../../data/products/winter scarf.png";
+import winterScarfImg from "../../../data/products/sweater.png";
 
 /**
  * Initialize dummy products for Fashion Hub vendor (vendorId: 1)

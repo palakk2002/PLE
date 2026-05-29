@@ -6,11 +6,11 @@
 // Product images
 import whiteTShirt from "../../../data/products/white t shirt.png";
 import blueJeans from "../../../data/products/blue jeans.png";
-import summerDress from "../../../data/products/summer dress.png";
+import summerDress from "../../../data/products/white t shirt.png";
 import leatherBag from "../../../data/products/leather bag.png";
 import sneakers from "../../../data/products/sneakers.png";
 import sunglass from "../../../data/products/sunglass.png";
-import winterScarf from "../../../data/products/winter scarf.png";
+import winterScarf from "../../../data/products/sweater.png";
 import blazer from "../../../data/products/blazer.png";
 import denimJacket from "../../../data/products/denim jacket.png";
 import heals from "../../../data/products/heals.png";
@@ -38,10 +38,10 @@ import allenSollyLogo from "../../../data/brands/allen solly.png";
 import pantaloonsLogo from "../../../data/brands/pantaloons.png";
 
 // Category images
-import clothingCategory from "../../../data/categories/clothing.png";
+import clothingCategory from "../../../data/categories/accessories.png";
 import shoesCategory from "../../../data/categories/shoes.png";
 import bagsCategory from "../../../data/categories/bags.png";
-import jeweleryCategory from "../../../data/categories/jewelery.png";
+import jeweleryCategory from "../../../data/categories/accessories.png";
 import accessoriesCategory from "../../../data/categories/accessories.png";
 import athleticsCategory from "../../../data/categories/Athletics.png";
 

@@ -1,5 +1,5 @@
 import blueJeansImg from "../../data/products/blue jeans.png";
-import summerDressImg from "../../data/products/summer dress.png";
+import summerDressImg from "../../data/products/white t shirt.png";
 import sneakersImg from "../../data/products/sneakers.png";
 
 // Mock analytics data for admin dashboard

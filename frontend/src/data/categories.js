@@ -1,7 +1,7 @@
-import clothingCategory from "../../data/categories/clothing.png";
+import clothingCategory from "../../data/categories/accessories.png";
 import shoesCategory from "../../data/categories/shoes.png";
 import bagsCategory from "../../data/categories/bags.png";
-import jeweleryCategory from "../../data/categories/jewelery.png";
+import jeweleryCategory from "../../data/categories/accessories.png";
 import accessoriesCategory from "../../data/categories/accessories.png";
 import athleticsCategory from "../../data/categories/Athletics.png";
 
