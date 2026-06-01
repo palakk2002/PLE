@@ -144,15 +144,15 @@ const MobileHeader = () => {
       };
       return (
         gradientMap[currentCategoryId] ||
-        "linear-gradient(to bottom, #EDE9FE 0%, #F5F3FF 50%, #FFFFFF 100%)"
+        "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)"
       );
     }
 
     // Page-specific gradients
     const pageGradients = {
-      home: "linear-gradient(to bottom, #E8D5FF 0%, #E8D5FF 100%)", // Lavender background
+      home: "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)", // Brand red background
       product:
-        "linear-gradient(to bottom, rgb(237, 233, 254) 0%, rgb(245, 243, 255) 50%, rgb(255, 255, 255) 100%)", // Light purple
+        "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)", // Brand red background
       search:
         "linear-gradient(to bottom, rgb(249, 115, 22) 0%, rgb(251, 146, 60) 30%, rgb(255, 237, 213) 60%, rgb(255, 255, 255) 100%)", // Orange gradient
       wishlist:
@@ -165,15 +165,15 @@ const MobileHeader = () => {
         "linear-gradient(to bottom, rgb(59, 130, 246) 0%, rgb(96, 165, 250) 30%, rgb(219, 234, 254) 60%, rgb(255, 255, 255) 100%)", // Blue gradient
       checkout:
         "linear-gradient(to bottom, rgb(16, 185, 129) 0%, rgb(52, 211, 153) 30%, rgb(209, 250, 229) 60%, rgb(255, 255, 255) 100%)", // Green gradient
-      offers: "linear-gradient(to bottom, #E8D5FF 0%, #E8D5FF 100%)", // Lavender background
+      offers: "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)", // Brand red background
       dailyDeals:
         "linear-gradient(to bottom, rgb(234, 179, 8) 0%, rgb(250, 204, 21) 30%, rgb(254, 243, 199) 60%, rgb(255, 255, 255) 100%)", // Yellow gradient
       flashSale:
         "linear-gradient(to bottom, rgb(239, 68, 68) 0%, rgb(248, 113, 113) 30%, rgb(254, 226, 226) 60%, rgb(255, 255, 255) 100%)", // Red gradient
       vendor:
-        "linear-gradient(to bottom, rgb(124, 58, 237) 0%, rgb(167, 139, 250) 30%, rgb(237, 233, 254) 60%, rgb(255, 255, 255) 100%)", // Purple gradient
+        "linear-gradient(to bottom, rgb(185, 28, 28) 0%, rgb(239, 68, 68) 30%, rgb(254, 226, 226) 60%, rgb(255, 255, 255) 100%)", // Premium brand red gradient
       default:
-        "linear-gradient(to bottom, rgb(237, 233, 254) 0%, rgb(245, 243, 255) 50%, rgb(255, 255, 255) 100%)", // Light purple default
+        "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)", // Brand red background
     };
 
     return pageGradients[currentPage] || pageGradients.default;
@@ -380,7 +380,7 @@ const MobileHeader = () => {
           {/* Hamburger Menu Icon */}
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 hover:bg-white/30 dark:hover:bg-white/10 rounded-lg transition-all duration-300 text-gray-800 dark:text-[#FFFFFF] flex items-center justify-center flex-shrink-0"
+            className="p-2 hover:bg-white/10 rounded-lg transition-all duration-300 text-white flex items-center justify-center flex-shrink-0"
             title="Menu">
             <FiMenu className="text-2xl" />
           </button>
@@ -388,12 +388,12 @@ const MobileHeader = () => {
           {/* Static Location Time and Address */}
           <div className="flex items-center gap-2 flex-shrink-0 overflow-visible relative z-[10001] max-w-[60%]">
             <div className="flex flex-col text-left">
-              <span className="font-black text-[#111827] dark:text-[#FFFFFF] text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none">
+              <span className="font-black text-white text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none">
                 ⚡ 10 minutes
               </span>
-              <span className="text-[10px] sm:text-xs font-semibold text-gray-700 dark:text-[#AAAAAA] flex items-center gap-0.5 truncate cursor-pointer mt-0.5">
+              <span className="text-[10px] sm:text-xs font-semibold text-white/95 flex items-center gap-0.5 truncate cursor-pointer mt-0.5">
                 Police Quarters, Belgaum
-                <FiChevronDown className="text-xs text-gray-500 mt-0.5 flex-shrink-0" />
+                <FiChevronDown className="text-xs text-white/80 mt-0.5 flex-shrink-0" />
               </span>
             </div>
           </div>
@@ -403,7 +403,7 @@ const MobileHeader = () => {
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="p-2 hover:bg-white/50 rounded-full transition-all duration-300 text-gray-700 dark:text-[#AAAAAA] focus:outline-none"
+              className="p-2 hover:bg-white/10 rounded-full transition-all duration-300 text-white focus:outline-none"
               title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
             >
               <motion.div
@@ -415,7 +415,7 @@ const MobileHeader = () => {
                 className="flex items-center justify-center"
               >
                 {theme === "light" ? (
-                  <FiMoon className="text-xl text-gray-700" />
+                  <FiMoon className="text-xl text-white" />
                 ) : (
                   <FiSun className="text-xl text-yellow-500" />
                 )}
@@ -425,7 +425,7 @@ const MobileHeader = () => {
             {/* Profile Button */}
             <button
               onClick={() => navigate(isAuthenticated ? "/profile" : "/login")}
-              className="p-2 hover:bg-white/50 rounded-full transition-all duration-300 border border-gray-300 dark:border-white/10 text-gray-700 dark:text-[#AAAAAA] flex items-center justify-center"
+              className="p-2 hover:bg-white/10 rounded-full transition-all duration-300 border border-white/20 text-white flex items-center justify-center"
               title="Profile"
             >
               <FiUser className="text-xl" />
@@ -436,7 +436,7 @@ const MobileHeader = () => {
               ref={cartRef}
               data-cart-icon
               onClick={toggleCart}
-              className="relative p-2 hover:bg-white/50 rounded-full transition-all duration-300"
+              className="relative p-2 hover:bg-white/10 rounded-full transition-all duration-300"
               animate={
                 cartAnimationTrigger > 0
                   ? {
@@ -445,7 +445,7 @@ const MobileHeader = () => {
                   : {}
               }
               transition={{ duration: 0.5, ease: "easeOut" }}>
-              <FiShoppingBag className="text-xl text-gray-700 dark:text-[#AAAAAA]" />
+              <FiShoppingBag className="text-xl text-white" />
               {itemCount > 0 && (
                 <motion.span
                   key={itemCount}
@@ -473,7 +473,7 @@ const MobileHeader = () => {
                 location.pathname.startsWith("/brand/") ||
                 location.pathname.startsWith("/seller/"),
               style: {
-                activeLight: "bg-white border border-[#7C3AED] text-[#7C3AED] font-extrabold text-sm tracking-tight lowercase shadow-sm",
+                activeLight: "bg-white border border-[#AE020B] text-[#AE020B] font-extrabold text-sm tracking-tight lowercase shadow-sm",
                 activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-extrabold text-sm tracking-tight lowercase shadow-sm",
                 inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-sm tracking-tight lowercase",
                 inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-sm tracking-tight lowercase",
@@ -549,7 +549,7 @@ const MobileHeader = () => {
               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">
                 Get
               </span>
-              <span className="text-[10px] font-black text-[#7C3AED] dark:text-[#7B0A0A] tracking-tight">
+              <span className="text-[10px] font-black text-[#AE020B] dark:text-[#7B0A0A] tracking-tight">
                 Offers
               </span>
             </div>

@@ -368,7 +368,7 @@ const MobileProductDetail = () => {
                   </h2>
                   <button
                     onClick={() => navigate("/home")}
-                    className="gradient-green text-white px-6 py-3 rounded-xl font-semibold"
+                    className="bg-[#7B0A0A] hover:bg-[#AE020B] text-white px-6 py-3 rounded-xl font-semibold hover:shadow-glow"
                   >
                     Go Back Home
                   </button>
@@ -1041,7 +1041,7 @@ const MobileProductDetail = () => {
                         className={`col-span-2 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
                           product.stock === "out_of_stock"
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                            : "gradient-green text-white hover:shadow-glow-green hover:-translate-y-0.5"
+                            : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow hover:-translate-y-0.5"
                         }`}
                       >
                         <FiShoppingBag className="text-xl" />
@@ -1084,7 +1084,7 @@ const MobileProductDetail = () => {
                       className={`col-span-4 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
                         product.stock === "out_of_stock"
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                          : "gradient-green text-white hover:shadow-glow-green hover:-translate-y-0.5"
+                          : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow hover:-translate-y-0.5"
                       }`}
                     >
                       <FiShoppingBag className="text-xl" />
@@ -1301,7 +1301,7 @@ const MobileProductDetail = () => {
                   className={`flex-none px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap ${
                     product.stock === "out_of_stock"
                       ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "gradient-green text-white hover:shadow-glow-green"
+                      : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow"
                   }`}
                 >
                   <FiShoppingBag className="text-lg" />
@@ -1344,7 +1344,7 @@ const MobileProductDetail = () => {
                 className={`flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
                   product.stock === "out_of_stock"
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "gradient-green text-white hover:shadow-glow-green"
+                    : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow"
                 }`}
               >
                 <FiShoppingBag className="text-xl" />

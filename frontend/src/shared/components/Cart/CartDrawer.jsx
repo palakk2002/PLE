@@ -155,7 +155,7 @@ const CartDrawer = () => {
                   <Link
                     to={checkoutLink}
                     onClick={toggleCart}
-                    className="w-full gradient-green text-white py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base text-center">
+                    className="w-full bg-[#7B0A0A] hover:bg-[#AE020B] text-white py-2 sm:py-3 rounded-xl font-semibold text-sm sm:text-base text-center hover:shadow-glow">
                     Proceed to Checkout
                   </Link>
                   <button

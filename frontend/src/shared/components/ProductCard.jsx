@@ -206,7 +206,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
           <Link to={productLink} className="block">
             <div className="product-img-bg w-full h-28 md:h-40 lg:h-36 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden relative group-hover:bg-gray-200/50 transition-colors">
               {product.originalPrice && (
-                <div className={`absolute top-0 left-0 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-br-lg z-10 shadow-sm dark:!bg-none dark:!bg-[#7B0A0A] ${isFlashSale ? "bg-gradient-to-r from-red-600 to-orange-500" : "bg-red-500"}`}>
+                <div className={`absolute top-0 left-0 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-br-lg z-10 shadow-sm dark:!bg-none dark:!bg-[#7B0A0A] ${isFlashSale ? "bg-gradient-to-r from-red-600 to-[#AE020B]" : "bg-red-500"}`}>
                   {Math.round(
                     ((product.originalPrice - product.price) /
                       product.originalPrice) *
@@ -297,14 +297,14 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
             <div className="mb-3 space-y-1">
               <div className="flex justify-between text-[8px] md:text-[10px] font-bold">
                 <span className="text-gray-500 uppercase">Available</span>
-                <span className="text-orange-600 dark:text-[#7B0A0A]">{soldPercentage}% Sold</span>
+                <span className="text-red-600 dark:text-[#7B0A0A]">{soldPercentage}% Sold</span>
               </div>
               <div className="h-1.5 w-full bg-gray-100 dark:bg-[#2A2A2A] rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${soldPercentage}%` }}
                   transition={{ duration: 1, delay: 0.2 }}
-                  className="h-full bg-gradient-to-r from-red-500 to-orange-400 dark:from-[#7B0A0A] dark:to-[#CC1010]"
+                  className="h-full bg-gradient-to-r from-red-500 to-red-600 dark:from-[#7B0A0A] dark:to-[#CC1010]"
                 />
               </div>
             </div>
@@ -369,8 +369,8 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
               className={`w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-[10px] md:text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${product.stock === "out_of_stock"
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
                 : isFlashSale
-                  ? "bg-gradient-to-r from-red-500 to-orange-500 dark:!bg-none dark:!bg-[#7B0A0A] text-white shadow-lg hover:shadow-red-200 dark:hover:shadow-red-950/40 hover:-translate-y-0.5"
-                  : "gradient-green text-white shadow-md hover:shadow-lg hover:-translate-y-0.5"
+                  ? "bg-gradient-to-r from-[#7B0A0A] to-[#AE020B] dark:!bg-none dark:!bg-[#7B0A0A] text-white shadow-lg hover:shadow-red-200 dark:hover:shadow-red-950/40 hover:-translate-y-0.5"
+                  : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5"
                 }`}>
               <motion.div
                 animate={

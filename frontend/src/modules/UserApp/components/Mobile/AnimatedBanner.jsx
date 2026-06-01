@@ -15,7 +15,7 @@ const defaultBanners = [
     subtitle: "Limited Time Offer",
     discount: "Up to 50% OFF",
     description: "Shop now before it ends!",
-    gradient: "from-red-500 via-pink-500 to-orange-500",
+    gradient: "from-[#E35F47] via-[#EB7963] to-[#F1937D]",
     link: "/flash-sale",
     icon: FiZap,
     heroImage: sneakersImg,
@@ -26,7 +26,7 @@ const defaultBanners = [
     subtitle: "New Deals Every Day",
     discount: "Save 30%",
     description: "Check out today's best deals",
-    gradient: "from-blue-500 via-purple-500 to-indigo-500",
+    gradient: "from-[#DE523D] via-[#EB735E] to-[#F3917C]",
     link: "/daily-deals",
     icon: FiTag,
     heroImage: sunglassImg,
@@ -35,9 +35,9 @@ const defaultBanners = [
     id: 3,
     title: "Special Offers",
     subtitle: "Exclusive Discounts",
-    discount: "Up to 40% OFF",
+    discount: "Claim Now",
     description: "Don't miss out!",
-    gradient: "from-green-500 via-teal-500 to-cyan-500",
+    gradient: "from-[#E25C44] via-[#EA7A65] to-[#F0947E]",
     link: "/offers",
     icon: FiTag,
     heroImage: watchImg,
@@ -45,9 +45,9 @@ const defaultBanners = [
 ];
 
 const gradientPalette = [
-  "from-red-500 via-pink-500 to-orange-500",
-  "from-blue-500 via-purple-500 to-indigo-500",
-  "from-green-500 via-teal-500 to-cyan-500",
+  "from-[#E35F47] via-[#EB7963] to-[#F1937D]",
+  "from-[#DE523D] via-[#EB735E] to-[#F3917C]",
+  "from-[#E25C44] via-[#EA7A65] to-[#F0947E]",
 ];
 
 const KNOWN_USER_ROUTE_PATTERNS = [
@@ -297,7 +297,7 @@ const AnimatedBanner = ({ banners = null }) => {
                         willChange: "transform",
                         transform: "translateZ(0)",
                       }}
-                      className="inline-flex items-center gap-2 bg-white/25 dark:bg-dark-accent/20 px-3 py-1.5 rounded-full relative overflow-hidden dark:border dark:border-dark-accent/30 dark:backdrop-blur-md"
+                      className="inline-flex items-center gap-2 bg-[#7B0A0A] hover:bg-[#AE020B] px-4 py-1.5 rounded-full relative overflow-hidden shadow-md dark:border dark:border-[#7B0A0A]/50 transition-colors duration-200"
                       whileTap={{ scale: 0.95 }}>
                       <span className="text-white dark:text-[#FFFFFF] font-bold text-sm relative z-10">
                         {banner.discount}

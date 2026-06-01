@@ -288,13 +288,13 @@ const MobileProductCard = ({ product }) => {
                 whileTap={{ scale: 0.95 }}
                 className={`w-full py-3 rounded-full font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${product.stock === "out_of_stock"
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "gradient-green text-white hover:shadow-glow-green"
+                  : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow"
                   }`}>
                 <FiShoppingBag className="text-base" />
                 <span>
                   {product.stock === "out_of_stock"
                     ? "Out of Stock"
-                    : "Add to Cart"}
+                    : "Add"}
                 </span>
               </motion.button>
             )}
