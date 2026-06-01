@@ -209,6 +209,25 @@ const MobileLogin = () => {
                   </Link>
                 </p>
               </div>
+
+              {/* Legal Disclosure */}
+              <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed px-4">
+                By continuing, you agree to our{' '}
+                <Link
+                  to="/terms-and-conditions"
+                  className="text-[#7B0A0A] hover:text-[#AE020B] font-bold underline transition-colors"
+                >
+                  Terms & Conditions
+                </Link>{' '}
+                and{' '}
+                <Link
+                  to="/privacy-policy"
+                  className="text-[#7B0A0A] hover:text-[#AE020B] font-bold underline transition-colors"
+                >
+                  Privacy Policy
+                </Link>
+                .
+              </div>
             </div>
           </motion.div>
         </div>

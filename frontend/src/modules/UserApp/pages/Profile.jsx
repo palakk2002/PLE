@@ -234,6 +234,41 @@ const MobileProfile = () => {
     },
   ];
 
+  const legalOptions = [
+    {
+      id: "privacy",
+      label: "Privacy Policy",
+      icon: FiFileText,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/privacy-policy",
+    },
+    {
+      id: "terms",
+      label: "Terms & Conditions",
+      icon: FiFileText,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/terms-and-conditions",
+    },
+    {
+      id: "agreement",
+      label: "User Agreement",
+      icon: FiFileText,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/user-agreement",
+    },
+    {
+      id: "return",
+      label: "Return Policy",
+      icon: FiFileText,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/return-policy",
+    },
+  ];
+
   return (
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
@@ -316,6 +351,21 @@ const MobileProfile = () => {
                     <FiLock className="text-lg" />
                     Password
                   </button>
+                  <div className="pt-2 mt-2 border-t border-gray-100">
+                    <p className="px-4 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Legal & Policies
+                    </p>
+                    {legalOptions.map((option) => (
+                      <Link
+                        key={option.id}
+                        to={option.link}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-left font-semibold text-gray-600 hover:bg-gray-50 text-sm"
+                      >
+                        <option.icon className="text-base text-gray-400" />
+                        {option.label}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -424,6 +474,34 @@ const MobileProfile = () => {
                           </button>
                         ),
                       )}
+                    </div>
+                  </div>
+
+                  {/* Legal & Policies Options */}
+                  <div className="space-y-3">
+                    <p className="px-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                      Legal & Policies
+                    </p>
+                    <div className="glass-card rounded-2xl overflow-hidden divide-y divide-gray-50 shadow-sm border border-gray-100">
+                      {legalOptions.map((option) => (
+                        <Link
+                          key={option.id}
+                          to={option.link}
+                          className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors bg-white"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div
+                              className={`w-10 h-10 rounded-xl ${option.bg} ${option.color} flex items-center justify-center`}
+                            >
+                              <option.icon className="text-lg" />
+                            </div>
+                            <span className="font-bold text-gray-700 text-sm">
+                              {option.label}
+                            </span>
+                          </div>
+                          <FiChevronRight className="text-gray-400" />
+                        </Link>
+                      ))}
                     </div>
                   </div>
 

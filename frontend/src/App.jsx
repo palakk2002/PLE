@@ -153,6 +153,10 @@ import MobileCampaignSale from "./modules/UserApp/pages/CampaignSale";
 import MobileTrackOrder from "./modules/UserApp/pages/TrackOrder";
 import MobileOrderConfirmation from "./modules/UserApp/pages/OrderConfirmation";
 import ComingSoon from "./modules/UserApp/pages/ComingSoon";
+import UserPrivacyPolicy from "./modules/UserApp/pages/PrivacyPolicy";
+import UserTermsConditions from "./modules/UserApp/pages/TermsConditions";
+import UserAgreement from "./modules/UserApp/pages/UserAgreement";
+import UserReturnPolicy from "./modules/UserApp/pages/ReturnPolicy";
 // Delivery Routes
 import DeliveryLogin from "./modules/Delivery/pages/Login";
 import DeliveryRegister from "./modules/Delivery/pages/Register";
@@ -427,6 +431,38 @@ const AppRoutes = () => {
             <ProtectedRoute>
               <MobileHelpSupport />
             </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/privacy-policy"
+        element={
+          <RouteWrapper>
+            <UserPrivacyPolicy />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/terms-and-conditions"
+        element={
+          <RouteWrapper>
+            <UserTermsConditions />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/user-agreement"
+        element={
+          <RouteWrapper>
+            <UserAgreement />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/return-policy"
+        element={
+          <RouteWrapper>
+            <UserReturnPolicy />
           </RouteWrapper>
         }
       />
