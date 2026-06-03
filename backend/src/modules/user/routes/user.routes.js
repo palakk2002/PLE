@@ -9,7 +9,7 @@ import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter, otpLimiter } from '../../../middlewares/rateLimiter.js';
 import { validate } from '../../../middlewares/validate.js';
-import { uploadSingle } from '../../../middlewares/upload.js';
+import { uploadSingle, uploadDocumentSingle } from '../../../middlewares/upload.js';
 import {
     registerSchema,
     loginSchema,
@@ -34,6 +34,7 @@ const customerAuth = [authenticate, authorize('customer'), enforceAccountStatus]
 
 // Auth routes
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
+router.post('/auth/register-b2b', uploadDocumentSingle('gstCertificate'), authController.registerB2B);
 router.post('/auth/verify-otp', validate(otpSchema), authController.verifyOTP);
 router.post('/auth/resend-otp', otpLimiter, validate(resendOtpSchema), authController.resendOTP);
 router.post('/auth/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);

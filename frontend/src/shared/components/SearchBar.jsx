@@ -264,17 +264,22 @@ const SearchBar = () => {
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             onKeyDown={handleKeyDown}
-            className="w-full pl-12 pr-4 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400 md:text-center"
+            className="w-full pl-12 pr-4 md:pl-12 md:pr-12 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400 md:text-center"
           />
           {/* Animated placeholder overlay */}
           <motion.span
             initial={{ opacity: 0, x: 0 }}
-            animate={{ opacity: searchQuery ? 0 : 1, x: [0, 30] }}
+            animate={{ 
+              opacity: searchQuery ? 0 : 1, 
+              x: typeof window !== 'undefined' && window.innerWidth < 768 ? [0, 30] : 0 
+            }}
             transition={{
               opacity: { duration: 0.2 },
-              x: { repeat: Infinity, repeatType: "loop", duration: 4, ease: "linear" }
+              x: typeof window !== 'undefined' && window.innerWidth < 768 
+                ? { repeat: Infinity, repeatType: "loop", duration: 4, ease: "linear" } 
+                : { duration: 0 }
             }}
-            className="absolute left-12 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10 whitespace-nowrap"
+            className="absolute inset-y-0 left-12 md:left-12 md:right-12 flex items-center justify-start md:justify-center text-gray-400 pointer-events-none z-10 whitespace-nowrap overflow-hidden text-ellipsis text-left md:text-center"
           >
             {displayedPlaceholder}
           </motion.span>

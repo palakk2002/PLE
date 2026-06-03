@@ -118,6 +118,15 @@
                      ]
     },
     {
+        "title":  "My Offers",
+        "route":  "/vendor/my-offers",
+        "children":  [
+                         "Dashboard",
+                         "My Offers List",
+                         "Create Offer"
+                     ]
+    },
+    {
         "title":  "Settings",
         "route":  "/vendor/settings",
         "children":  [

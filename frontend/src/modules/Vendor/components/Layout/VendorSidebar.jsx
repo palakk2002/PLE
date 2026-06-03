@@ -43,6 +43,7 @@ const iconMap = {
   "Pickup Locations": FiMapPin,
   Chat: FiMessageCircle,
   Promotions: FiTag,
+  "My Offers": FiTag,
   Notifications: FiBell,
   "Shipping Management": FiTruck,
   Customers: FiUsers,
@@ -84,6 +85,11 @@ const getChildRoute = (parentRoute, childName) => {
     },
     "/vendor/shipping-management": {
       "Dispatch Settings": "/vendor/delivery-settings",
+    },
+    "/vendor/my-offers": {
+      "Dashboard": "/vendor/my-offers/dashboard",
+      "My Offers List": "/vendor/my-offers/list",
+      "Create Offer": "/vendor/my-offers/create",
     },
   };
 

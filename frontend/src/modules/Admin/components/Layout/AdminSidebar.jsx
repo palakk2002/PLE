@@ -44,6 +44,7 @@ const iconMap = {
   "Refurbished Mkt": FiRefreshCw,
   "Delivery Management": FiTruck,
   "Offers & Sliders": FiImage,
+  "Offers Management": FiPercent,
   Banners: FiImage,
   "Promo Codes": FiPercent,
   Notifications: FiBell,
@@ -108,6 +109,11 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/offers": {
       "Home Sliders": "/admin/offers/home-sliders",
       "Festival Offers": "/admin/offers/festival-offers",
+    },
+    "/admin/offers-management": {
+      "Dashboard": "/admin/offers-management/dashboard",
+      "Offers List": "/admin/offers-management/list",
+      "Create Offer": "/admin/offers-management/create",
     },
     "/admin/notifications": {
       "All Notifications": "/admin/notifications",

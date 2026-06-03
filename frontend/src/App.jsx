@@ -123,6 +123,14 @@ import Authentication from "./modules/Admin/pages/firebase/Authentication";
 import RouteWrapper from "./shared/components/RouteWrapper";
 import ScrollToTop from "./shared/components/ScrollToTop";
 import AppBootstrap from "./shared/components/AppBootstrap";
+import OfflineDetector from "./shared/components/OfflineDetector";
+
+// Offer & Promotion Management System Pages
+import OfferDashboard from "./modules/offers/pages/OfferDashboard";
+import OfferList from "./modules/offers/pages/OfferList";
+import CreateOffer from "./modules/offers/pages/CreateOffer";
+import EditOffer from "./modules/offers/pages/EditOffer";
+import OfferDetails from "./modules/offers/pages/OfferDetails";
 
 // Mobile App Routes
 import MobileHome from "./modules/UserApp/pages/Home";
@@ -578,6 +586,15 @@ const AppRoutes = () => {
         <Route path="offers" element={<HomeSliders />} />
         <Route path="offers/home-sliders" element={<HomeSliders />} />
         <Route path="offers/festival-offers" element={<FestivalOffers />} />
+
+        {/* Offers & Promotion Management System (Admin) */}
+        <Route path="offers-management" element={<Navigate to="dashboard" replace />} />
+        <Route path="offers-management/dashboard" element={<OfferDashboard />} />
+        <Route path="offers-management/list" element={<OfferList />} />
+        <Route path="offers-management/create" element={<CreateOffer />} />
+        <Route path="offers-management/edit/:id" element={<EditOffer />} />
+        <Route path="offers-management/details/:id" element={<OfferDetails />} />
+
         <Route path="promocodes" element={<PromoCodes />} />
         <Route path="notifications" element={<AllNotifications />} />
         <Route
@@ -733,6 +750,14 @@ const AppRoutes = () => {
         <Route path="b2b-enquiries/:id/quote/:quoteId" element={<VendorB2BQuoteDetail />} />
         <Route path="b2b-enquiries/analytics" element={<VendorB2BAnalytics />} />
         <Route path="b2b-enquiries/settings" element={<VendorB2BSettings />} />
+        {/* Offers & Promotion Management System (Seller) */}
+        <Route path="my-offers" element={<Navigate to="dashboard" replace />} />
+        <Route path="my-offers/dashboard" element={<OfferDashboard />} />
+        <Route path="my-offers/list" element={<OfferList />} />
+        <Route path="my-offers/create" element={<CreateOffer />} />
+        <Route path="my-offers/edit/:id" element={<EditOffer />} />
+        <Route path="my-offers/details/:id" element={<OfferDetails />} />
+
         <Route path="delivery-settings" element={<VendorDeliverySettings />} />
         <Route path="profile" element={<VendorSettings />} />
       </Route>
@@ -749,34 +774,36 @@ function App() {
           v7_startTransition: true,
           v7_relativeSplatPath: true,
         }}>
-        <AppBootstrap />
-        <ScrollToTop />
-        <AppRoutes />
-        <CartDrawer />
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 3000,
-            style: {
-              background: "#212121",
-              color: "#fff",
-            },
-            success: {
+        <OfflineDetector>
+          <AppBootstrap />
+          <ScrollToTop />
+          <AppRoutes />
+          <CartDrawer />
+          <Toaster
+            position="top-right"
+            toastOptions={{
               duration: 3000,
-              iconTheme: {
-                primary: "#388E3C",
-                secondary: "#fff",
+              style: {
+                background: "#212121",
+                color: "#fff",
               },
-            },
-            error: {
-              duration: 4000,
-              iconTheme: {
-                primary: "#FF6161",
-                secondary: "#fff",
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: "#388E3C",
+                  secondary: "#fff",
+                },
               },
-            },
-          }}
-        />
+              error: {
+                duration: 4000,
+                iconTheme: {
+                  primary: "#FF6161",
+                  secondary: "#fff",
+                },
+              },
+            }}
+          />
+        </OfflineDetector>
       </Router>
     </ErrorBoundary>
   );

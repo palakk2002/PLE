@@ -315,8 +315,26 @@ const B2BQuoteDetail = () => {
                 <p className="font-semibold text-gray-800 mt-0.5">{enquiry.buyer.company}</p>
               </div>
               <div>
+                <p className="text-xs text-gray-400 font-semibold">Business Type</p>
+                <p className="font-semibold text-gray-800 mt-0.5">{enquiry.buyer.businessType || "Retailer"}</p>
+              </div>
+              <div>
                 <p className="text-xs text-gray-400 font-semibold">GSTIN</p>
-                <p className="font-medium text-gray-700 mt-0.5">{enquiry.buyer.gstNumber || "N/A"}</p>
+                <p className="font-medium text-gray-700 mt-0.5 font-mono">{enquiry.buyer.gstNumber || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 font-semibold mb-1">Verification Status</p>
+                <div>
+                  {(enquiry.buyer.verificationStatus === "Approved" || enquiry.buyer.verified !== false) ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                      Verified Business ✅
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-50 text-amber-700 border border-amber-200 shadow-sm animate-pulse">
+                      Verification Pending ⏳
+                    </span>
+                  )}
+                </div>
               </div>
               <div>
                 <p className="text-xs text-gray-400 font-semibold">Shipping Destination</p>

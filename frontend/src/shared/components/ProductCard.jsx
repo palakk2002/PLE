@@ -16,8 +16,12 @@ import { useBusinessBuyer } from "../../modules/UserApp/hooks/useBusinessBuyer";
 import { B2BProductCardOverlay } from "../../modules/UserApp/components/B2B/B2BProductCardOverlay";
 import { estimateDeliveryETA } from "../data/deliveryMockData";
 
+// Offers System Imports
+import { offerMockService } from "../../modules/offers/services/offerMockService";
+import OfferBadge from "../../modules/offers/components/OfferBadge";
 
-const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
+
+const ProductCard = ({ product, hideRating = false, isFlashSale = false, showCondition = false }) => {
   const navigate = useNavigate();
   const { isBusiness } = useBusinessBuyer();
   const productLink = `/product/${product.id}`;
@@ -51,6 +55,10 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
   const deliveryInfo = isExpressEligible
     ? estimateDeliveryETA("400001", "400001", isBusiness)
     : estimateDeliveryETA("400001", "110001", isBusiness);
+
+  // Check for any active matching offer
+  const productOffers = offerMockService.getOffersForProduct(product.id, product.categoryId);
+  const activeOffer = productOffers[0];
 
   const handleAddToCart = (e) => {
     if (e) {
@@ -205,7 +213,9 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
           {/* Product Image */}
           <Link to={productLink} className="block">
             <div className="product-img-bg w-full h-28 md:h-40 lg:h-36 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center overflow-hidden relative group-hover:bg-gray-200/50 transition-colors">
-              {product.originalPrice && (
+              {activeOffer ? (
+                <OfferBadge offer={activeOffer} />
+              ) : product.originalPrice ? (
                 <div className={`absolute top-0 left-0 text-white text-[10px] md:text-xs font-bold px-2 py-1 rounded-br-lg z-10 shadow-sm dark:!bg-none dark:!bg-[#7B0A0A] ${isFlashSale ? "bg-gradient-to-r from-red-600 to-[#AE020B]" : "bg-red-500"}`}>
                   {Math.round(
                     ((product.originalPrice - product.price) /
@@ -213,7 +223,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
                     100
                   )}% OFF
                 </div>
-              )}
+              ) : null}
               {isFlashSale && (
                 <div className="absolute top-0 right-0 p-1">
                   <div className="bg-red-600 dark:bg-[#7B0A0A] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full animate-pulse uppercase tracking-tighter">
@@ -230,7 +240,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
                   e.target.src = getPlaceholderImage(300, 300, "Product Image");
                 }}
               />
-              {product.condition && product.condition !== "brand_new" && (
+              {showCondition && product.condition && product.condition !== "brand_new" && (
                 <div className="absolute bottom-2 left-2 z-10">
                   <Badge variant={product.condition === 'open_box' ? 'open-box' : product.condition} className="text-[8px] md:text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded shadow">
                     {product.condition.replace('_', ' ')}
@@ -252,7 +262,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false }) => {
             {product.unit}
           </p>
 
-          {product.condition && product.condition !== "brand_new" && (
+          {showCondition && product.condition && product.condition !== "brand_new" && (
             <div className="flex flex-wrap gap-1 mb-1 items-center">
               <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded text-[8px] md:text-[9px] font-extrabold uppercase tracking-wide">
                 Grade {product.refurbishedGrade}

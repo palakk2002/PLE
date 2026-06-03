@@ -272,7 +272,7 @@ const MobileCategoryIcons = () => {
               }}
               className="flex-shrink-0">
               <Link
-                to={`/category/${category.id}`}
+                to={`/home?category=${category.id}`}
                 className="flex flex-col items-center gap-1.5 w-16 relative">
                 {!isScrolling && (
                   <div>

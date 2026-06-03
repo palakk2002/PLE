@@ -145,6 +145,33 @@ export const useAuthStore = create(
         }
       },
 
+      // Register B2B action
+      registerB2B: async (formData) => {
+        set({ isLoading: true });
+        try {
+          await api.post('/user/auth/register-b2b', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
+
+          set({
+            user: null,
+            token: null,
+            refreshToken: null,
+            isAuthenticated: false,
+            pendingEmail: formData.get('email'),
+            isLoading: false,
+          });
+
+          localStorage.removeItem('token');
+          localStorage.removeItem('refresh-token');
+
+          return { success: true, email: formData.get('email') };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
       // Verify OTP and complete login
       verifyOTP: async (email, otp) => {
         set({ isLoading: true });

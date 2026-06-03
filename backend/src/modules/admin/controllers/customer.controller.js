@@ -431,3 +431,111 @@ export const getCustomerAddresses = asyncHandler(async (req, res) => {
         }, 'Customer addresses fetched successfully')
     );
 });
+
+/**
+ * @desc    Get all B2B business users with verification status
+ * @route   GET /api/admin/b2b/users
+ * @access  Private (Admin)
+ */
+export const getB2BUsers = asyncHandler(async (req, res) => {
+    const { status, search, page = 1, limit = 10 } = req.query;
+    const numericPage = Number(page) || 1;
+    const numericLimit = Number(limit) || 10;
+    const skip = (numericPage - 1) * numericLimit;
+
+    // Filter to find users who have B2B fields (companyName exists)
+    const filter = { companyName: { $exists: true, $ne: '' } };
+
+    if (status && status !== 'all') {
+        if (status === 'Pending') {
+            filter.verificationStatus = 'Pending Verification';
+        } else {
+            filter.verificationStatus = status;
+        }
+    }
+
+    if (search) {
+        filter.$or = [
+            { name: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { companyName: { $regex: search, $options: 'i' } },
+            { gstNumber: { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    const [users, total, stats] = await Promise.all([
+        User.find(filter)
+            .select('-password -otp -otpExpiry')
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(numericLimit),
+        User.countDocuments(filter),
+        User.aggregate([
+            { $match: { companyName: { $exists: true, $ne: '' } } },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: 1 },
+                    pending: {
+                        $sum: {
+                            $cond: [{ $eq: ['$verificationStatus', 'Pending Verification'] }, 1, 0]
+                        }
+                    },
+                    approved: {
+                        $sum: {
+                            $cond: [{ $eq: ['$verificationStatus', 'Approved'] }, 1, 0]
+                        }
+                    },
+                    rejected: {
+                        $sum: {
+                            $cond: [{ $eq: ['$verificationStatus', 'Rejected'] }, 1, 0]
+                        }
+                    }
+                }
+            }
+        ])
+    ]);
+
+    const statsData = stats[0] || { total: 0, pending: 0, approved: 0, rejected: 0 };
+
+    res.status(200).json(
+        new ApiResponse(200, {
+            users,
+            stats: statsData,
+            pagination: {
+                total,
+                page: numericPage,
+                limit: numericLimit,
+                pages: Math.ceil(total / numericLimit)
+            }
+        }, 'B2B users fetched successfully')
+    );
+});
+
+/**
+ * @desc    Verify or Reject a B2B business user
+ * @route   PATCH /api/admin/b2b/users/:id/verify
+ * @access  Private (Admin)
+ */
+export const verifyB2BUser = asyncHandler(async (req, res) => {
+    const { status } = req.body; // Approved or Rejected
+    const { id } = req.params;
+
+    if (!['Approved', 'Rejected'].includes(status)) {
+        throw new ApiError(400, 'Invalid status value. Must be Approved or Rejected');
+    }
+
+    const user = await User.findOneAndUpdate(
+        { _id: id, companyName: { $exists: true, $ne: '' } },
+        { verificationStatus: status },
+        { new: true }
+    ).select('-password');
+
+    if (!user) {
+        throw new ApiError(404, 'B2B user not found');
+    }
+
+    res.status(200).json(
+        new ApiResponse(200, user, `B2B user status updated to ${status}`)
+    );
+});

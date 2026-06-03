@@ -514,7 +514,4 @@ router.get('/orders/track/:id', asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, order, 'Order tracking info.'));
 }));
 
-// Legacy support: GET /api/:id (only ObjectId-like values to avoid swallowing unknown routes)
-router.get('/:id([a-fA-F0-9]{24})', getProductDetail);
-
 export default router;

@@ -54,6 +54,9 @@ const MobileCheckout = () => {
   const [estimatedShipping, setEstimatedShipping] = useState(null);
   const [isEstimatingShipping, setIsEstimatingShipping] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [selectedUpiApp, setSelectedUpiApp] = useState("gpay"); // "gpay" | "phonepe" | "paytm"
+  const [showUpiRedirect, setShowUpiRedirect] = useState(false);
+  const [shippingDetails, setShippingDetails] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -328,6 +331,12 @@ const MobileCheckout = () => {
     if (step === 1) {
       setStep(2);
     } else if (step === 2) {
+      if (formData.paymentMethod === "upi") {
+        setShippingDetails(normalizedShipping);
+        setShowUpiRedirect(true);
+        return;
+      }
+
       setIsPlacingOrder(true);
       try {
         const order = await createOrder({
@@ -352,6 +361,35 @@ const MobileCheckout = () => {
       } finally {
         setIsPlacingOrder(false);
       }
+    }
+  };
+
+  const handleCompleteUpiOrder = async () => {
+    if (isPlacingOrder) return;
+    setIsPlacingOrder(true);
+    try {
+      const order = await createOrder({
+        userId: isAuthenticated ? user?.id : null,
+        items: items,
+        shippingAddress: shippingDetails,
+        paymentMethod: `upi_${selectedUpiApp}`,
+        subtotal: total,
+        shipping: shipping,
+        tax: tax,
+        discount: discount,
+        total: finalTotal,
+        couponCode: appliedCoupon ? (appliedCoupon.code || couponCode.trim().toUpperCase()) : null,
+        shippingOption,
+      });
+
+      clearCart();
+      toast.success("Order placed successfully!");
+      setShowUpiRedirect(false);
+      navigate(`/order-confirmation/${order.id}`);
+    } catch (error) {
+      toast.error(error?.message || "Failed to place order");
+    } finally {
+      setIsPlacingOrder(false);
     }
   };
 
@@ -569,7 +607,7 @@ const MobileCheckout = () => {
                       Payment Method
                     </h2>
                     <div className="space-y-3 mb-6">
-                      {["card", "cash", "bank"].map((method) => (
+                      {["card", "upi", "cash", "bank"].map((method) => (
                         <label
                           key={method}
                           className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.paymentMethod === method
@@ -587,13 +625,50 @@ const MobileCheckout = () => {
                           <span className="font-semibold text-gray-800 capitalize text-base">
                             {method === "card"
                               ? "Credit/Debit Card"
-                              : method === "cash"
-                                ? "Cash on Delivery"
-                                : "Bank Transfer"}
+                              : method === "upi"
+                                ? "UPI Payment (GPay / PhonePe / Paytm)"
+                                : method === "cash"
+                                  ? "Cash on Delivery"
+                                  : "Bank Transfer"}
                           </span>
                         </label>
                       ))}
                     </div>
+
+                    {formData.paymentMethod === "upi" && (
+                      <div className="bg-teal-50 border border-teal-150 rounded-2xl p-5 mb-6 space-y-4">
+                        <div className="flex items-center gap-2 text-teal-800">
+                          <span className="text-sm font-black uppercase tracking-wider">📱 Choose UPI Application</span>
+                        </div>
+                        <p className="text-xs text-teal-700 font-medium">
+                          Select one of the supported UPI apps. You will be redirected to authorize the payment securely.
+                        </p>
+                        <div className="grid grid-cols-3 gap-3">
+                          {[
+                            { id: "gpay", label: "Google Pay", color: "border-blue-400 bg-blue-50/50 text-blue-900", icon: "🟢" },
+                            { id: "phonepe", label: "PhonePe", color: "border-purple-400 bg-purple-50/50 text-purple-900", icon: "🟣" },
+                            { id: "paytm", label: "Paytm", color: "border-cyan-400 bg-cyan-50/50 text-cyan-900", icon: "🔵" },
+                          ].map((app) => (
+                            <button
+                              key={app.id}
+                              type="button"
+                              onClick={() => setSelectedUpiApp(app.id)}
+                              className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
+                                selectedUpiApp === app.id
+                                  ? `${app.color} ring-2 ring-teal-500 ring-offset-2`
+                                  : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                              }`}
+                            >
+                              <span className="text-xl">{app.icon}</span>
+                              <span>{app.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <p className="text-[11px] text-teal-700 text-center font-medium mt-1">
+                          Payment app: <strong className="capitalize">{selectedUpiApp === "gpay" ? "Google Pay" : selectedUpiApp}</strong> will be launched upon clicking "Place Order".
+                        </p>
+                      </div>
+                    )}
 
                     {/* B2C/B2B Smart Shipping Options */}
                     <div className="mb-6">
@@ -785,6 +860,45 @@ const MobileCheckout = () => {
                       )}
                     </div>
 
+                    {/* Available Offers & Suggestions (UI Only) */}
+                    <div className="mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                      <div className="flex items-center gap-2 text-primary-600">
+                        <FiTag className="text-lg" />
+                        <h3 className="text-sm font-extrabold text-gray-800 uppercase tracking-wide">
+                          Available Savings & Offers
+                        </h3>
+                      </div>
+                      
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-bold text-emerald-800">Potential Savings Available</p>
+                          <p className="text-[10px] text-emerald-600">Try applying coupon codes listed below to save extra.</p>
+                        </div>
+                        <span className="text-xs font-black text-emerald-800 bg-emerald-100 px-2.5 py-1 rounded-lg">
+                          Save Up To 20%
+                        </span>
+                      </div>
+
+                      {/* Coupon Suggestions */}
+                      <div className="space-y-2">
+                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-gray-850">🏦 SBI Card 10% Discount</span>
+                            <span className="font-mono font-bold text-[#C07A3D]">SBISAVE10</span>
+                          </div>
+                          <p className="text-[10px] text-gray-400">Min transaction: ₹5,000. Save up to ₹1,500.</p>
+                        </div>
+
+                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-gray-850">🎉 Site-wide Festival Sale</span>
+                            <span className="font-mono font-bold text-[#C07A3D]">FESTIVAL20</span>
+                          </div>
+                          <p className="text-[10px] text-gray-400">Flat 20% off all products across clothing & accessories.</p>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* Order Summary (Mobile Only) */}
                     <div className="glass-card rounded-xl p-4 lg:hidden">
                       <OrderSummary
@@ -869,6 +983,18 @@ const MobileCheckout = () => {
             <AddressFormModal
               onSubmit={handleNewAddress}
               onCancel={() => setShowAddressForm(false)}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* UPI Redirect Modal */}
+        <AnimatePresence>
+          {showUpiRedirect && (
+            <UpiRedirectModal
+              upiApp={selectedUpiApp}
+              totalAmount={finalTotal}
+              onSuccess={handleCompleteUpiOrder}
+              onCancel={() => setShowUpiRedirect(false)}
             />
           )}
         </AnimatePresence>
@@ -1042,6 +1168,148 @@ const AddressFormModal = ({ onSubmit, onCancel }) => {
             </button>
           </div>
         </form>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Simulated Fullscreen UPI redirect payment gateway
+const UpiRedirectModal = ({ upiApp, totalAmount, onSuccess, onCancel }) => {
+  const [paymentState, setPaymentState] = useState("redirecting"); // "redirecting" | "authorizing"
+
+  useEffect(() => {
+    // Stage 1: Redirecting simulation (1.5 seconds)
+    const redirectTimer = setTimeout(() => {
+      setPaymentState("authorizing");
+    }, 1500);
+
+    return () => clearTimeout(redirectTimer);
+  }, []);
+
+  // Theme configuration based on the chosen app
+  const appThemes = {
+    gpay: {
+      name: "Google Pay",
+      bgColor: "bg-blue-600",
+      textColor: "text-blue-900",
+      bgLight: "bg-blue-50",
+      borderColor: "border-blue-200",
+      btnColor: "bg-blue-600 hover:bg-blue-750 focus:ring-blue-400",
+      logo: "🟢",
+    },
+    phonepe: {
+      name: "PhonePe",
+      bgColor: "bg-purple-700",
+      textColor: "text-purple-900",
+      bgLight: "bg-purple-50",
+      borderColor: "border-purple-200",
+      btnColor: "bg-purple-700 hover:bg-purple-800 focus:ring-purple-400",
+      logo: "🟣",
+    },
+    paytm: {
+      name: "Paytm",
+      bgColor: "bg-cyan-600",
+      textColor: "text-cyan-900",
+      bgLight: "bg-cyan-50",
+      borderColor: "border-cyan-200",
+      btnColor: "bg-cyan-600 hover:bg-cyan-700 focus:ring-cyan-400",
+      logo: "🔵",
+    },
+  };
+
+  const theme = appThemes[upiApp] || appThemes.gpay;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ scale: 0.9, y: 20 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.9, y: 20 }}
+        className="bg-white rounded-3xl overflow-hidden shadow-2xl max-w-md w-full border border-gray-150 flex flex-col min-h-[420px]"
+      >
+        {/* App Bar Header */}
+        <div className={`p-5 ${theme.bgColor} text-white flex items-center justify-between`}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{theme.logo}</span>
+            <span className="font-extrabold tracking-wide text-lg">{theme.name}</span>
+          </div>
+          <span className="text-[10px] uppercase font-bold tracking-widest bg-white/20 px-2 py-0.5 rounded-full">
+            Secure UPI
+          </span>
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 p-6 flex flex-col items-center justify-center text-center space-y-6">
+          {paymentState === "redirecting" && (
+            <div className="space-y-4 py-8">
+              <div className="w-16 h-16 border-4 border-t-transparent border-teal-500 rounded-full animate-spin mx-auto"></div>
+              <p className="font-bold text-gray-750 text-base">
+                Redirecting to {theme.name} sandbox...
+              </p>
+              <p className="text-xs text-gray-400">
+                Launching payment interface. Do not refresh or press back.
+              </p>
+            </div>
+          )}
+
+          {paymentState === "authorizing" && (
+            <div className="space-y-6 w-full">
+              {/* Payment Details Card */}
+              <div className={`${theme.bgLight} border ${theme.borderColor} rounded-2xl p-5 text-left space-y-3`}>
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <span>Merchant</span>
+                  <span className="font-extrabold text-gray-800">PLE eCommerce Store</span>
+                </div>
+                <div className="flex justify-between items-center text-xs text-gray-500">
+                  <span>Transaction ID</span>
+                  <span className="font-mono font-bold text-gray-800">TXN{Date.now().toString().slice(-8)}</span>
+                </div>
+                <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between items-center">
+                  <span className="text-sm font-bold text-gray-700">Total Payable Amount</span>
+                  <span className="text-xl font-black text-gray-900">{formatPrice(totalAmount)}</span>
+                </div>
+              </div>
+
+              {/* Action Prompt */}
+              <div className="space-y-2">
+                <p className="text-sm font-bold text-gray-800">
+                  Confirm UPI Authorization
+                </p>
+                <p className="text-xs text-gray-500 px-4">
+                  Please tap the button below to simulate entering your security UPI PIN and complete payment transaction.
+                </p>
+              </div>
+
+              {/* Complete / Cancel Buttons */}
+              <div className="flex flex-col gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={onSuccess}
+                  className={`w-full py-3.5 rounded-2xl text-white font-bold text-base shadow-lg transition-all ${theme.btnColor}`}
+                >
+                  Pay & Authorize {formatPrice(totalAmount)}
+                </button>
+                <button
+                  type="button"
+                  onClick={onCancel}
+                  className="w-full py-2.5 rounded-2xl text-gray-500 font-bold hover:bg-gray-50 transition-colors text-sm"
+                >
+                  Cancel Transaction
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Powered by logo */}
+        <div className="p-4 bg-gray-50 border-t border-gray-100 flex items-center justify-center gap-1.5 text-[10px] text-gray-400 font-bold">
+          <span>🔒 Powered by UPI Unified Payments Interface</span>
+        </div>
       </motion.div>
     </motion.div>
   );

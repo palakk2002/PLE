@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Link, matchPath, useNavigate } from "react-router-dom";
+import { Link, matchPath, useNavigate, useLocation } from "react-router-dom";
 import { FiHeart } from "react-icons/fi";
 import MobileLayout from "../components/Layout/MobileLayout";
 import ProductCard from "../../../shared/components/ProductCard";
@@ -13,6 +13,7 @@ import BrandLogosScroll from "../components/Mobile/BrandLogosScroll";
 import MobileCategoryGrid from "../components/Mobile/MobileCategoryGrid";
 import MobileCategoryQuickNav from "../components/Mobile/MobileCategoryQuickNav";
 import LazyImage from "../../../shared/components/LazyImage";
+import { useCategoryStore } from "../../../shared/store/categoryStore";
 import {
   getMostPopular,
   getTrending,
@@ -24,6 +25,7 @@ import {
   getCatalogBrands,
 } from "../data/catalogData";
 import { products as allStaticProducts } from "../../../data/products";
+import { categories as fallbackCategories } from "../../../data/categories";
 import PageTransition from "../../../shared/components/PageTransition";
 import usePullToRefresh from "../hooks/usePullToRefresh";
 import toast from "react-hot-toast";
@@ -33,6 +35,11 @@ import heroSlide2 from "../../../../data/hero/slide2.png";
 import heroSlide3 from "../../../../data/hero/slide3.png";
 import heroSlide4 from "../../../../data/hero/slide4.png";
 import stylishWatchImg from "../../../../data/products/stylish watch.png";
+
+// Offers System Imports
+import { useOffers } from "../../offers/hooks/useOffers";
+import OfferCarousel from "../../offers/components/OfferCarousel";
+import OfferModal from "../../offers/components/OfferModal";
 
 const normalizeId = (value) => String(value ?? "").trim();
 const toNumber = (value, fallback = 0) => {
@@ -184,8 +191,59 @@ const resolveBannerLink = (banner) => {
 const isExternalLink = (target) => /^https?:\/\//i.test(String(target || "").trim());
 const isSafeInternalPath = (target) => String(target || "").startsWith("/");
 
+const fallbackSubcategories = {
+  // Clothing (id: 1)
+  "1": [
+    { id: "1", name: "Trends", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=150&fit=crop" },
+    { id: "1", name: "Kurta sets", image: "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=150&fit=crop" },
+    { id: "1", name: "Dresses", image: "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=150&fit=crop" },
+    { id: "1", name: "Sarees", image: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=150&fit=crop" },
+    { id: "1", name: "Jeans", image: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?w=150&fit=crop" },
+    { id: "1", name: "T-Shirts", image: "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=150&fit=crop" }
+  ],
+  // Footwear (id: 2)
+  "2": [
+    { id: "2", name: "Sneakers", image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&fit=crop" },
+    { id: "2", name: "Formal Shoes", image: "https://images.unsplash.com/photo-1533867617858-e7b97e060509?w=150&fit=crop" },
+    { id: "2", name: "Sandals", image: "https://images.unsplash.com/photo-1601924994987-69e26d50dc26?w=150&fit=crop" },
+    { id: "2", name: "Sports Shoes", image: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?w=150&fit=crop" }
+  ],
+  // Bags (id: 3)
+  "3": [
+    { id: "3", name: "Handbags", image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=150&fit=crop" },
+    { id: "3", name: "Backpacks", image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=150&fit=crop" },
+    { id: "3", name: "Wallets", image: "https://images.unsplash.com/photo-1627124712838-19d843193af4?w=150&fit=crop" }
+  ],
+  // Jewelry (id: 4)
+  "4": [
+    { id: "4", name: "Jewellery", image: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=150&fit=crop" },
+    { id: "4", name: "Watches", image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=150&fit=crop" },
+    { id: "4", name: "Rings", image: "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=150&fit=crop" }
+  ],
+  // Accessories (id: 5)
+  "5": [
+    { id: "5", name: "Sunglasses", image: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=150&fit=crop" },
+    { id: "5", name: "Belts & Scarves", image: "https://images.unsplash.com/photo-1624206112918-f14bf82845a7?w=150&fit=crop" }
+  ],
+  // Athletic (id: 6)
+  "6": [
+    { id: "6", name: "Activewear", image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=150&fit=crop" },
+    { id: "6-2", name: "Tracksuits", image: "https://images.unsplash.com/photo-1483721310020-03333e577078?w=150&fit=crop" }
+  ]
+};
+
+const categoryBanners = {
+  "1": { title: "Casual co-ords Under ₹449", subtitle: "Hurry, limited picks!", image: "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&fit=crop" },
+  "2": { title: "Step Up In Style", subtitle: "Flat 40% Off on Top Brands", image: "https://images.unsplash.com/photo-1549298916-b41d501d3772?w=800&fit=crop" },
+  "3": { title: "Carry Your World", subtitle: "Up to 60% Off on Premium Bags", image: "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&fit=crop" },
+  "4": { title: "Shine Brighter", subtitle: "Exclusive Designs For You", image: "https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=800&fit=crop" },
+  "5": { title: "Perfect Finish", subtitle: "Style Essentials Under ₹299", image: "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=800&fit=crop" },
+  "6": { title: "Push Your Limits", subtitle: "Best Activewear Collections", image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&fit=crop" }
+};
+
 const MobileHome = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [touchEnd, setTouchEnd] = useState(null);
@@ -198,6 +256,59 @@ const MobileHome = () => {
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [homeVendors, setHomeVendors] = useState([]);
   const [homeBrands, setHomeBrands] = useState([]);
+  const [selectedHomeOffer, setSelectedHomeOffer] = useState(null);
+
+  // Load active offers
+  const { offers } = useOffers();
+
+  const { categories: allCategories, getCategoryById, getCategoriesByParent, initialize: initializeCategories } = useCategoryStore();
+
+  useEffect(() => {
+    initializeCategories();
+  }, [initializeCategories]);
+
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const activeCategoryId = queryParams.get("category");
+
+  const activeCategory = useMemo(() => {
+    if (!activeCategoryId) return null;
+    return getCategoryById(activeCategoryId) || 
+           allCategories.find(c => String(c.id) === String(activeCategoryId) || String(c._id) === String(activeCategoryId)) ||
+           fallbackCategories.find(c => String(c.id) === String(activeCategoryId));
+  }, [activeCategoryId, allCategories, getCategoryById]);
+
+  const activeCategoryKey = useMemo(() => {
+    if (!activeCategory) return null;
+    const name = String(activeCategory.name || "").toLowerCase();
+    if (name.includes("clothing") || name.includes("fashion")) return "1";
+    if (name.includes("footwear") || name.includes("shoe")) return "2";
+    if (name.includes("bags") || name.includes("bag")) return "3";
+    if (name.includes("jewelry") || name.includes("jewellery")) return "4";
+    if (name.includes("accessories")) return "5";
+    if (name.includes("athletic") || name.includes("sport")) return "6";
+    if (["1", "2", "3", "4", "5", "6"].includes(String(activeCategory.id))) {
+      return String(activeCategory.id);
+    }
+    return null;
+  }, [activeCategory]);
+
+  const subcategories = useMemo(() => {
+    if (!activeCategoryId || !activeCategory) return [];
+    const dbSubs = getCategoriesByParent(activeCategory.id) || [];
+    if (dbSubs.length > 0) return dbSubs;
+    return fallbackSubcategories[activeCategoryKey] || [];
+  }, [activeCategoryId, activeCategory, activeCategoryKey, getCategoriesByParent]);
+
+  const activeCategoryProducts = useMemo(() => {
+    if (!activeCategoryId || !activeCategory) return [];
+    const matched = catalogProducts.filter(p => String(p.categoryId) === String(activeCategory.id));
+    if (matched.length > 0) return matched;
+    const list = catalogProducts.length > 0 ? catalogProducts : allStaticProducts;
+    return list.map(normalizeProduct).filter(p => 
+      String(p.categoryId) === String(activeCategory.id) || 
+      String(p.categoryName || "").toLowerCase().includes(String(activeCategory.name || "").toLowerCase())
+    );
+  }, [activeCategoryId, activeCategory, catalogProducts]);
 
   const fallbackMostPopular = getMostPopular();
   const fallbackTrending = getTrending();
@@ -516,269 +627,351 @@ const MobileHome = () => {
           {/* Top Category Quick Nav Bar */}
           <MobileCategoryQuickNav />
 
-          {/* Hero Banner */}
-          <div className="px-4 py-4">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div
-                className="relative w-full h-48 md:h-80 lg:h-[400px] xl:h-[450px] rounded-xl md:rounded-2xl overflow-hidden lg:col-span-2"
-                data-carousel
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-                style={{ touchAction: "pan-y", userSelect: "none" }}>
-                {/* Slider Container - All slides in a row */}
-                <motion.div
-                  className="flex h-full"
-                  style={{
-                    width: `${slides.length * 100}%`,
-                    height: "100%",
-                  }}
-                  animate={{
-                    x:
-                      dragOffset !== 0
-                        ? `calc(-${currentSlide * (100 / slides.length)
-                        }% - ${dragOffset}px)`
-                        : `-${currentSlide * (100 / slides.length)}%`,
-                  }}
-                  transition={{
-                    duration: dragOffset !== 0 ? 0 : 0.6,
-                    ease: [0.25, 0.46, 0.45, 0.94], // Smooth easing
-                    type: "tween",
-                  }}>
-                  {slides.map((slide, index) => (
-                    <div
-                      key={index}
-                      className="flex-shrink-0"
-                      onClick={() => handleSlideClick(slide)}
+          {activeCategoryId && activeCategory ? (
+            <div className="w-full min-h-screen bg-gray-50 pb-20">
+              {/* Category banner */}
+              <div className="px-4 pt-2">
+                <div className="relative rounded-2xl overflow-hidden shadow-sm aspect-[16/9] md:aspect-[21/9]">
+                  <img
+                    src={categoryBanners[activeCategoryKey]?.image || activeCategory.image || heroSlide1}
+                    alt={activeCategory.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex flex-col justify-center px-6 text-left">
+                    <span className="text-[10px] uppercase tracking-wider font-extrabold text-yellow-400 mb-1">
+                      Special Offer
+                    </span>
+                    <h2 className="text-xl md:text-3xl font-black text-white leading-tight">
+                      {categoryBanners[activeCategoryKey]?.title || `${activeCategory.name} Sale`}
+                    </h2>
+                    <p className="text-xs md:text-sm text-white/90 font-medium mt-1">
+                      {categoryBanners[activeCategoryKey]?.subtitle || "Limited time picks!"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subcategories Circles Grid */}
+              <div className="px-4 py-6">
+                <div className="grid grid-cols-4 gap-4 bg-white p-4 rounded-2xl shadow-sm">
+                  {((subcategories.length > 0 ? subcategories : fallbackSubcategories[activeCategoryKey]) || []).map((sub) => (
+                    <Link
+                      key={sub.id}
+                      to={sub.id && String(sub.id).includes("-") ? `/search?query=${sub.name}` : `/category/${sub.id}`}
+                      className="flex flex-col items-center gap-1.5 active:scale-95 transition-transform"
+                    >
+                      <div className="w-14 h-14 rounded-full overflow-hidden border border-gray-100 bg-gray-50">
+                        <img
+                          src={sub.image || "https://via.placeholder.com/150"}
+                          alt={sub.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <span className="text-[10px] font-bold text-center text-gray-700 leading-tight truncate w-full">
+                        {sub.name}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              {/* Shop for Loved Ones Section / Curated Products */}
+              <div className="px-4 py-2">
+                <h3 className="text-base font-extrabold text-gray-900 mb-3 tracking-tight">
+                  Shop for loved ones!
+                </h3>
+                {activeCategoryProducts.length === 0 ? (
+                  <div className="text-center py-12 bg-white rounded-2xl p-6 shadow-sm">
+                    <div className="text-5xl text-gray-300 mb-3">🛍️</div>
+                    <h4 className="font-bold text-gray-800">No products found</h4>
+                    <p className="text-xs text-gray-500 mt-1">We couldn't find any items in this category.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {activeCategoryProducts.slice(0, 10).map((product) => (
+                      <ProductCard key={product.id} product={product} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <>
+              {/* Hero Banner */}
+              <div className="px-4 py-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div
+                    className="relative w-full h-48 md:h-80 lg:h-[400px] xl:h-[450px] rounded-xl md:rounded-2xl overflow-hidden lg:col-span-2"
+                    data-carousel
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={onTouchEnd}
+                    style={{ touchAction: "pan-y", userSelect: "none" }}>
+                    {/* Slider Container - All slides in a row */}
+                    <motion.div
+                      className="flex h-full"
                       style={{
-                        width: `${100 / slides.length}%`,
+                        width: `${slides.length * 100}%`,
                         height: "100%",
-                        cursor: slide?.link ? "pointer" : "default",
-                      }}>
-                      <LazyImage
-                        src={slide.image}
-                        alt={`Slide ${index + 1}`}
-                        className="w-full h-full object-cover pointer-events-none select-none"
-                        draggable={false}
-                        onError={(e) => {
-                          e.target.src = `https://via.placeholder.com/400x200?text=Slide+${index + 1
-                            }`;
-                        }}
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10 pointer-events-none">
-                  {slides.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => {
-                        setCurrentSlide(index);
-                        setAutoSlidePaused(true);
-                        setTimeout(() => setAutoSlidePaused(false), 2000);
                       }}
-                      className={`h-1.5 rounded-full transition-all pointer-events-auto ${index === currentSlide
-                        ? "bg-white w-6"
-                        : "bg-white/50 w-1.5"
-                        }`}
+                      animate={{
+                        x:
+                          dragOffset !== 0
+                            ? `calc(-${currentSlide * (100 / slides.length)
+                            }% - ${dragOffset}px)`
+                            : `-${currentSlide * (100 / slides.length)}%`,
+                      }}
+                      transition={{
+                        duration: dragOffset !== 0 ? 0 : 0.6,
+                        ease: [0.25, 0.46, 0.45, 0.94], // Smooth easing
+                        type: "tween",
+                      }}>
+                      {slides.map((slide, index) => (
+                        <div
+                          key={index}
+                          className="flex-shrink-0"
+                          onClick={() => handleSlideClick(slide)}
+                          style={{
+                            width: `${100 / slides.length}%`,
+                            height: "100%",
+                            cursor: slide?.link ? "pointer" : "default",
+                          }}>
+                          <LazyImage
+                            src={slide.image}
+                            alt={`Slide ${index + 1}`}
+                            className="w-full h-full object-cover pointer-events-none select-none"
+                            draggable={false}
+                            onError={(e) => {
+                              e.target.src = `https://via.placeholder.com/400x200?text=Slide+${index + 1
+                                }`;
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </motion.div>
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10 pointer-events-none">
+                      {slides.map((_, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setCurrentSlide(index);
+                            setAutoSlidePaused(true);
+                            setTimeout(() => setAutoSlidePaused(false), 2000);
+                          }}
+                          className={`h-1.5 rounded-full transition-all pointer-events-auto ${index === currentSlide
+                            ? "bg-white w-6"
+                            : "bg-white/50 w-1.5"
+                            }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Side Banner for Large Screens */}
+                  <div className="hidden lg:block lg:col-span-1 h-[400px] xl:h-[450px] rounded-2xl overflow-hidden relative bg-gray-900 group">
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/90 z-10" />
+                    <LazyImage
+                      src={sideBanner?.image || stylishWatchImg}
+                      alt={sideBanner?.title || "Premium Watch"}
+                      className="w-full h-full object-contain p-8 group-hover:scale-110 transition-transform duration-700"
+                      onError={(e) => {
+                        e.target.src = "https://via.placeholder.com/400x400?text=Premium+Watch";
+                      }}
                     />
+                    <div className="absolute inset-x-0 bottom-0 p-8 z-20 flex flex-col items-center text-center">
+                      <span className="text-yellow-400 font-bold text-3xl mb-2 tracking-wider drop-shadow-lg">
+                        {sideBanner?.title || "PREMIUM"}
+                      </span>
+                      <p className="text-gray-300 text-sm mb-6 font-medium">
+                        {sideBanner?.subtitle || "Exclusive Collection"}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => handleBannerNavigation(sideBanner?.link || "/offers")}
+                        className="bg-[#ffffff] dark:!bg-[#7B0A0A] text-gray-900 dark:text-white font-bold py-3.5 px-10 rounded-xl w-full hover:bg-gray-100 dark:hover:!bg-[#AE020B] transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-xl uppercase tracking-widest text-sm"
+                      >
+                        Shop Now
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Brand Logos Scroll */}
+              <BrandLogosScroll brands={computedBrands} />
+
+              {/* Offer Carousel Section */}
+              <div className="px-4 py-2">
+                <OfferCarousel offers={offers} onOfferClick={setSelectedHomeOffer} />
+              </div>
+
+              {/* Categories */}
+              <MobileCategoryGrid />
+
+              {/* Featured Vendors Section */}
+              <FeaturedVendorsSection vendors={computedVendors} />
+
+              {/* Animated Banner */}
+              <AnimatedBanner banners={promoBanners} />
+
+              {/* New Arrivals */}
+              <NewArrivalsSection products={computedNewArrivals} />
+
+              {/* Most Popular */}
+              <div className="px-4 py-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                    <span>Most </span>
+                    <span className="dark:text-[#7B0A0A]">Popular</span>
+                  </h2>
+                  <Link
+                    to="/search"
+                    className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
+                    See All
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                  {computedMostPopular.map((product, index) => (
+                    <motion.div
+                      key={product.id}
+                      className={index === 5 ? "xl:hidden" : ""}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}>
+                      <ProductCard product={product} />
+                    </motion.div>
                   ))}
                 </div>
               </div>
 
-              {/* Side Banner for Large Screens */}
-              <div className="hidden lg:block lg:col-span-1 h-[400px] xl:h-[450px] rounded-2xl overflow-hidden relative bg-gray-900 group">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/90 z-10" />
-                <LazyImage
-                  src={sideBanner?.image || stylishWatchImg}
-                  alt={sideBanner?.title || "Premium Watch"}
-                  className="w-full h-full object-contain p-8 group-hover:scale-110 transition-transform duration-700"
-                  onError={(e) => {
-                    e.target.src = "https://via.placeholder.com/400x400?text=Premium+Watch";
-                  }}
-                />
-                <div className="absolute inset-x-0 bottom-0 p-8 z-20 flex flex-col items-center text-center">
-                  <span className="text-yellow-400 font-bold text-3xl mb-2 tracking-wider drop-shadow-lg">
-                    {sideBanner?.title || "PREMIUM"}
-                  </span>
-                  <p className="text-gray-300 text-sm mb-6 font-medium">
-                    {sideBanner?.subtitle || "Exclusive Collection"}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => handleBannerNavigation(sideBanner?.link || "/offers")}
-                    className="bg-white dark:!bg-[#7B0A0A] text-gray-900 dark:text-white font-bold py-3.5 px-10 rounded-xl w-full hover:bg-gray-100 dark:hover:!bg-[#AE020B] transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-xl uppercase tracking-widest text-sm"
-                  >
-                    Shop Now
-                  </button>
+              {/* Daily Deals */}
+              <DailyDealsSection products={computedDailyDeals} />
+
+              {/* Refurbished & Renewed Deals */}
+              {computedRefurbished && computedRefurbished.length > 0 && (
+                <div className="px-4 py-6 bg-gradient-to-br from-cyan-50/20 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 border-t border-b border-gray-100 dark:border-gray-900 my-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-xl font-black text-gray-800 dark:text-white flex items-center gap-2">
+                        <span className="bg-gradient-to-r from-cyan-500 to-blue-600 text-transparent bg-clip-text">Refurbished & Renewed Deals</span>
+                      </h2>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Certified products in like-new condition with full warranty</p>
+                    </div>
+                    <Link
+                      to="/search?condition=refurbished"
+                      className="text-sm text-primary-600 dark:text-primary-400 font-bold hover:underline">
+                      View All
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                    {computedRefurbished.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, y: 15 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}>
+                        <ProductCard product={product} showCondition={true} />
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Flash Sale */}
+              {computedFlashSale.length > 0 && (
+                <div className="px-4 py-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-transparent dark:to-transparent dark:bg-none">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800 dark:text-white">
+                        Flash Sale
+                      </h2>
+                      <p className="text-xs text-gray-600 dark:text-[#888888]">Limited time offers</p>
+                    </div>
+                    <Link
+                      to="/flash-sale"
+                      className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
+                      See All
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                    {computedFlashSale.map((product, index) => (
+                      <motion.div
+                        key={product.id}
+                        className={index === 5 ? "xl:hidden" : ""}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}>
+                        <ProductCard product={product} isFlashSale={true} />
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Trending Items */}
+              <div className="px-4 py-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">Trending Now</h2>
+                  <Link
+                    to="/search"
+                    className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
+                    See All
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
+                  {computedTrending.map((product, index) => (
+                    <motion.div
+                      key={product.id}
+                      className={index === 5 ? "hidden xl:block 2xl:hidden" : ""}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}>
+                      <ProductCard product={product} />
+                    </motion.div>
+                  ))}
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Brand Logos Scroll */}
-          <BrandLogosScroll brands={computedBrands} />
+              {/* Recommended for You */}
+              <RecommendedSection products={computedRecommended} />
 
-          {/* Categories */}
-          <MobileCategoryGrid />
-
-          {/* Featured Vendors Section */}
-          <FeaturedVendorsSection vendors={computedVendors} />
-
-          {/* Animated Banner */}
-          <AnimatedBanner banners={promoBanners} />
-
-          {/* New Arrivals */}
-          <NewArrivalsSection products={computedNewArrivals} />
-
-
-
-          {/* Most Popular */}
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-                <span>Most </span>
-                <span className="dark:text-[#7B0A0A]">Popular</span>
-              </h2>
-              <Link
-                to="/search"
-                className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
-                See All
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-              {computedMostPopular.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  className={index === 5 ? "xl:hidden" : ""}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}>
-                  <ProductCard product={product} />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Daily Deals */}
-          <DailyDealsSection products={computedDailyDeals} />
-
-          {/* Refurbished & Renewed Deals */}
-          {computedRefurbished && computedRefurbished.length > 0 && (
-            <div className="px-4 py-6 bg-gradient-to-br from-cyan-50/20 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 border-t border-b border-gray-100 dark:border-gray-900 my-4">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-                    <span className="bg-gradient-to-r from-cyan-500 to-blue-600 text-transparent bg-clip-text">Refurbished & Renewed Deals</span>
-                  </h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">Certified products in like-new condition with full warranty</p>
-                </div>
-                <Link
-                  to="/search?condition=refurbished"
-                  className="text-sm text-primary-600 dark:text-primary-400 font-bold hover:underline">
-                  View All
-                </Link>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-                {computedRefurbished.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}>
-                    <ProductCard product={product} />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+              {/* Tagline Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="px-4 py-12 text-left">
+                <motion.h2
+                  className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-400 leading-tight flex items-center justify-start gap-3 flex-wrap"
+                  initial={{ opacity: 0 }}
+                  whileInView={{ opacity: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8, delay: 0.2 }}>
+                  <span>Shop from 50+ Trusted Vendors</span>
+                  <motion.span
+                    animate={{
+                      scale: [1, 1.2, 1],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatDelay: 2,
+                    }}
+                    className="text-primary-500 inline-block">
+                    <FiHeart className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl fill-primary-500" />
+                  </motion.span>
+                </motion.h2>
+              </motion.div>
+            </>
           )}
 
-          {/* Flash Sale */}
-          {computedFlashSale.length > 0 && (
-            <div className="px-4 py-4 bg-gradient-to-br from-red-50 to-orange-50 dark:from-transparent dark:to-transparent dark:bg-none">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-xl font-bold text-gray-800 dark:text-white">
-                    Flash Sale
-                  </h2>
-                  <p className="text-xs text-gray-600 dark:text-[#888888]">Limited time offers</p>
-                </div>
-                <Link
-                  to="/flash-sale"
-                  className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
-                  See All
-                </Link>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                {computedFlashSale.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    className={index === 5 ? "xl:hidden" : ""}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05 }}>
-                    <ProductCard product={product} isFlashSale={true} />
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Trending Items */}
-          <div className="px-4 py-4">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-white">Trending Now</h2>
-              <Link
-                to="/search"
-                className="text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold">
-                See All
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-              {computedTrending.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  className={index === 5 ? "hidden xl:block 2xl:hidden" : ""}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}>
-                  <ProductCard product={product} />
-                </motion.div>
-              ))}
-            </div>
-          </div>
-
-          {/* Recommended for You */}
-          <RecommendedSection products={computedRecommended} />
-
-          {/* Tagline Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="px-4 py-12 text-left">
-            <motion.h2
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-gray-400 leading-tight flex items-center justify-start gap-3 flex-wrap"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.2 }}>
-              <span>Shop from 50+ Trusted Vendors</span>
-              <motion.span
-                animate={{
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  repeatDelay: 2,
-                }}
-                className="text-primary-500 inline-block">
-                <FiHeart className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl fill-primary-500" />
-              </motion.span>
-            </motion.h2>
-          </motion.div>
+          {/* Offer Modal Details Preview */}
+          <OfferModal
+            isOpen={!!selectedHomeOffer}
+            onClose={() => setSelectedHomeOffer(null)}
+            offer={selectedHomeOffer}
+          />
 
           {/* Bottom Spacing */}
           <div className="h-4" />

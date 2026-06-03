@@ -68,7 +68,30 @@ export const verifyOTP = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens({ id: user._id, role: 'customer', email: user.email });
     await persistRefreshSession(user, refreshToken);
-    res.status(200).json(new ApiResponse(200, { accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email } }, 'Email verified successfully.'));
+    res.status(200).json(new ApiResponse(200, {
+        accessToken,
+        refreshToken,
+        user: {
+            id: user._id,
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            avatar: user.avatar,
+            role: user.role,
+            companyName: user.companyName,
+            businessType: user.businessType,
+            gstNumber: user.gstNumber,
+            gstCertificate: user.gstCertificate,
+            businessAddress: user.businessAddress,
+            city: user.city,
+            state: user.state,
+            pincode: user.pincode,
+            yearsInBusiness: user.yearsInBusiness,
+            monthlyPurchaseVolume: user.monthlyPurchaseVolume,
+            verificationStatus: user.verificationStatus
+        }
+    }, 'Email verified successfully.'));
 });
 
 // POST /api/user/auth/login
@@ -89,7 +112,30 @@ export const login = asyncHandler(async (req, res) => {
 
     const { accessToken, refreshToken } = generateTokens({ id: user._id, role: 'customer', email: user.email });
     await persistRefreshSession(user, refreshToken);
-    res.status(200).json(new ApiResponse(200, { accessToken, refreshToken, user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar } }, 'Login successful.'));
+    res.status(200).json(new ApiResponse(200, {
+        accessToken,
+        refreshToken,
+        user: {
+            id: user._id,
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone,
+            avatar: user.avatar,
+            role: user.role,
+            companyName: user.companyName,
+            businessType: user.businessType,
+            gstNumber: user.gstNumber,
+            gstCertificate: user.gstCertificate,
+            businessAddress: user.businessAddress,
+            city: user.city,
+            state: user.state,
+            pincode: user.pincode,
+            yearsInBusiness: user.yearsInBusiness,
+            monthlyPurchaseVolume: user.monthlyPurchaseVolume,
+            verificationStatus: user.verificationStatus
+        }
+    }, 'Login successful.'));
 });
 
 // POST /api/user/auth/refresh
@@ -317,6 +363,77 @@ export const uploadProfileAvatar = asyncHandler(async (req, res) => {
         }
         if (uploaded?.publicId) {
             await deleteFromCloudinary(uploaded.publicId).catch(() => null);
+        }
+        throw error;
+    }
+});
+
+// POST /api/user/auth/register-b2b
+export const registerB2B = asyncHandler(async (req, res) => {
+    const {
+        name,
+        email,
+        password,
+        phone,
+        companyName,
+        businessType,
+        gstNumber,
+        businessAddress,
+        city,
+        state,
+        pincode,
+        yearsInBusiness,
+        monthlyPurchaseVolume
+    } = req.body;
+
+    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedPhone = String(phone || '').replace(/\D/g, '').slice(-10);
+
+    const existing = await User.findOne({ email: normalizedEmail });
+    if (existing) {
+        if (req.file?.path) {
+            await cleanupLocalFiles([req.file.path]).catch(() => null);
+        }
+        throw new ApiError(409, 'Email already registered.');
+    }
+
+    if (!req.file?.path) {
+        throw new ApiError(400, 'GST Certificate file is required.');
+    }
+
+    let uploaded = null;
+    try {
+        uploaded = await uploadLocalFileToCloudinaryAndCleanup(
+            req.file.path,
+            'users/gst_certificates'
+        );
+
+        const user = await User.create({
+            name: String(name || '').trim(),
+            email: normalizedEmail,
+            password,
+            ...(normalizedPhone ? { phone: normalizedPhone } : {}),
+            companyName: String(companyName || '').trim(),
+            businessType: String(businessType || '').trim(),
+            gstNumber: String(gstNumber || '').trim(),
+            gstCertificate: uploaded.url,
+            businessAddress: String(businessAddress || '').trim(),
+            city: String(city || '').trim(),
+            state: String(state || '').trim(),
+            pincode: String(pincode || '').trim(),
+            yearsInBusiness: Number(yearsInBusiness) || undefined,
+            monthlyPurchaseVolume: String(monthlyPurchaseVolume || '').trim(),
+            verificationStatus: 'Pending Verification'
+        });
+
+        await sendOTP(user, 'email_verification');
+
+        res.status(201).json(new ApiResponse(201, { email: user.email }, 'B2B Registration successful. Please verify your email.'));
+    } catch (error) {
+        if (uploaded?.publicId) {
+            await deleteFromCloudinary(uploaded.publicId).catch(() => null);
+        } else if (req.file?.path) {
+            await cleanupLocalFiles([req.file.path]).catch(() => null);
         }
         throw error;
     }

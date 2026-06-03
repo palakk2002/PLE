@@ -111,6 +111,15 @@
     ]
   },
   {
+    "title": "Offers Management",
+    "route": "/admin/offers-management",
+    "children": [
+      "Dashboard",
+      "Offers List",
+      "Create Offer"
+    ]
+  },
+  {
     "title": "Banners",
     "route": "/admin/banners",
     "children": []

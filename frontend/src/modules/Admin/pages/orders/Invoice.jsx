@@ -6,7 +6,7 @@ import { formatPrice } from "../../../../shared/utils/helpers";
 import { useSettingsStore } from "../../../../shared/store/settingsStore";
 import { getOrderById } from "../../services/adminService";
 import toast from "react-hot-toast";
-import logoImage from "../../../../assets/PLEblack.png";
+import logoImage from "../../../../assets/PLELOGOBLACK.jpg";
 
 const Invoice = () => {
   const navigate = useNavigate();

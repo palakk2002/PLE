@@ -297,11 +297,31 @@ const B2BEnquiryDetail = () => {
                 </p>
               </div>
               <div>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Business Type</p>
+                <p className="font-semibold text-gray-800 mt-0.5">
+                  {enquiry.buyer.businessType || "Wholesaler"}
+                </p>
+              </div>
+              <div>
                 <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">GSTIN</p>
-                <p className="font-semibold text-gray-800 flex items-center gap-1.5 mt-0.5">
+                <p className="font-semibold text-gray-800 flex items-center gap-1.5 mt-0.5 font-mono">
                   <FiFileText className="text-gray-400" />
                   {enquiry.buyer.gstNumber || "N/A"}
                 </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">Verification Status</p>
+                <div>
+                  {(enquiry.buyer.verificationStatus === "Approved" || enquiry.buyer.verified !== false) ? (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                      Verified Business ✅
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-black bg-amber-50 text-amber-700 border border-amber-200 shadow-sm animate-pulse">
+                      Verification Pending ⏳
+                    </span>
+                  )}
+                </div>
               </div>
               <hr className="border-gray-100" />
               <div>

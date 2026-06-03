@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import api from "../../../../shared/utils/api";
 import {
   FiSearch,
   FiEye,
@@ -163,56 +164,123 @@ const initialBusinessUsers = [
 ];
 
 const BusinessUsers = () => {
-  const [users, setUsers] = useState(initialBusinessUsers);
+  const [users, setUsers] = useState([]);
+  const [backendStats, setBackendStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedUser, setSelectedUser] = useState(null);
 
+  const fetchB2BUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await api.get("/admin/b2b/users");
+      const fetchedData = response?.data?.data || response?.data || response;
+      if (fetchedData?.users) {
+        // Map backend properties to table schema to maintain compatibility
+        const mappedUsers = fetchedData.users.map((u) => ({
+          id: u._id,
+          _id: u._id,
+          businessName: u.companyName || u.name,
+          gstin: u.gstNumber || '',
+          pan: u.gstNumber ? u.gstNumber.substring(2, 12) : '',
+          contactPerson: u.name,
+          email: u.email,
+          phone: u.phone || 'N/A',
+          type: u.businessType || 'Retailer',
+          status: u.verificationStatus === 'Approved' ? 'Verified' : u.verificationStatus === 'Rejected' ? 'Suspended' : 'Pending Verification',
+          ordersCount: 0,
+          totalSpent: 0,
+          address: `${u.businessAddress || ''}, ${u.city || ''}, ${u.state || ''} - ${u.pincode || ''}`,
+          creditTerms: u.verificationStatus === 'Approved' ? 'Net 30' : 'Prepaid Only',
+          creditLimit: u.verificationStatus === 'Approved' ? 100000 : 0,
+          joinDate: u.createdAt ? u.createdAt.substring(0, 10) : '2026-06-02',
+          gstCertificate: u.gstCertificate
+        }));
+        
+        // Merge real backend data at the top, and mock data below it
+        setUsers([...mappedUsers, ...initialBusinessUsers]);
+        
+        const mockStats = {
+          total: initialBusinessUsers.length,
+          approved: initialBusinessUsers.filter(u => u.status === 'Verified').length,
+          pending: initialBusinessUsers.filter(u => u.status === 'Pending Verification').length,
+          rejected: initialBusinessUsers.filter(u => u.status === 'Suspended').length
+        };
+
+        if (fetchedData.stats) {
+          setBackendStats({
+            total: (fetchedData.stats.total || 0) + mockStats.total,
+            pending: (fetchedData.stats.pending || 0) + mockStats.pending,
+            approved: (fetchedData.stats.approved || 0) + mockStats.approved,
+            rejected: (fetchedData.stats.rejected || 0) + mockStats.rejected
+          });
+        } else {
+          setBackendStats(mockStats);
+        }
+      } else {
+        setUsers(initialBusinessUsers);
+      }
+    } catch (error) {
+      console.error("Failed to fetch real B2B users, falling back to mock:", error);
+      setUsers(initialBusinessUsers);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchB2BUsers();
+  }, []);
+
   // Stats calculation
   const stats = useMemo(() => {
     return {
-      total: users.length,
-      verified: users.filter((u) => u.status === "Verified").length,
-      pending: users.filter((u) => u.status === "Pending Verification").length,
-      suspended: users.filter((u) => u.status === "Suspended").length,
+      total: backendStats.total || users.length,
+      verified: backendStats.approved || users.filter((u) => u.status === "Verified").length,
+      pending: backendStats.pending || users.filter((u) => u.status === "Pending Verification").length,
+      suspended: backendStats.rejected || users.filter((u) => u.status === "Suspended").length,
     };
-  }, [users]);
+  }, [users, backendStats]);
 
   // Action Handlers
-  const handleVerify = (id, businessName) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id ? { ...user, status: "Verified", creditTerms: "Net 30", creditLimit: 100000 } : user
-      )
-    );
-    toast.success(`GSTIN for ${businessName} verified successfully!`);
-    if (selectedUser && selectedUser.id === id) {
-      setSelectedUser((prev) => ({ ...prev, status: "Verified", creditTerms: "Net 30", creditLimit: 100000 }));
+  const handleVerify = async (id, businessName) => {
+    try {
+      await api.patch(`/admin/b2b/users/${id}/verify`, { status: "Approved" });
+      toast.success(`GSTIN for ${businessName} verified successfully!`);
+      fetchB2BUsers();
+      if (selectedUser && selectedUser.id === id) {
+        setSelectedUser((prev) => ({ ...prev, status: "Verified", creditTerms: "Net 30", creditLimit: 100000 }));
+      }
+    } catch (error) {
+      toast.error(error.message || "Verification failed.");
     }
   };
 
-  const handleSuspend = (id, businessName) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id ? { ...user, status: "Suspended", creditTerms: "None", creditLimit: 0 } : user
-      )
-    );
-    toast.error(`${businessName} has been suspended.`);
-    if (selectedUser && selectedUser.id === id) {
-      setSelectedUser((prev) => ({ ...prev, status: "Suspended", creditTerms: "None", creditLimit: 0 }));
+  const handleSuspend = async (id, businessName) => {
+    try {
+      await api.patch(`/admin/b2b/users/${id}/verify`, { status: "Rejected" });
+      toast.error(`${businessName} has been suspended.`);
+      fetchB2BUsers();
+      if (selectedUser && selectedUser.id === id) {
+        setSelectedUser((prev) => ({ ...prev, status: "Suspended", creditTerms: "None", creditLimit: 0 }));
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to suspend.");
     }
   };
 
-  const handleActivate = (id, businessName) => {
-    setUsers((prev) =>
-      prev.map((user) =>
-        user.id === id ? { ...user, status: "Verified", creditTerms: "Net 15", creditLimit: 50000 } : user
-      )
-    );
-    toast.success(`${businessName} activated successfully.`);
-    if (selectedUser && selectedUser.id === id) {
-      setSelectedUser((prev) => ({ ...prev, status: "Verified", creditTerms: "Net 15", creditLimit: 50000 }));
+  const handleActivate = async (id, businessName) => {
+    try {
+      await api.patch(`/admin/b2b/users/${id}/verify`, { status: "Approved" });
+      toast.success(`${businessName} activated successfully.`);
+      fetchB2BUsers();
+      if (selectedUser && selectedUser.id === id) {
+        setSelectedUser((prev) => ({ ...prev, status: "Verified", creditTerms: "Net 15", creditLimit: 50000 }));
+      }
+    } catch (error) {
+      toast.error(error.message || "Failed to activate.");
     }
   };
 
@@ -635,22 +703,25 @@ const BusinessUsers = () => {
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2">
                     <FiDownload className="w-4 h-4" /> Documents Submitted
                   </h3>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FiFileText className="w-4 h-4 text-orange-500 flex-shrink-0" />
-                        <span className="text-xs font-medium text-gray-700 truncate">GST_Certificate.pdf</span>
+                  <div className="grid grid-cols-1">
+                    {selectedUser.gstCertificate ? (
+                      <a
+                        href={selectedUser.gstCertificate}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer bg-white"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FiFileText className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                          <span className="text-xs font-medium text-gray-700 truncate">GST_Certificate.pdf</span>
+                        </div>
+                        <FiDownload className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-1" />
+                      </a>
+                    ) : (
+                      <div className="text-xs text-gray-500 italic p-3 border border-dashed border-gray-200 rounded-xl">
+                        No certificate document uploaded.
                       </div>
-                      <FiDownload className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-1" />
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer">
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FiFileText className="w-4 h-4 text-blue-500 flex-shrink-0" />
-                        <span className="text-xs font-medium text-gray-700 truncate">PAN_Card.pdf</span>
-                      </div>
-                      <FiDownload className="w-3.5 h-3.5 text-gray-400 flex-shrink-0 ml-1" />
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>

@@ -20,6 +20,19 @@ const userSchema = new mongoose.Schema(
         refreshTokenExpiresAt: { type: Date, select: false },
         passwordResetToken: { type: String, select: false },
         passwordResetExpiry: { type: Date, select: false },
+        
+        // B2B business verification fields
+        companyName: { type: String, trim: true },
+        businessType: { type: String, enum: ['Retailer', 'Distributor', 'Wholesaler', 'Manufacturer', 'Reseller', 'Importer', 'Exporter'], trim: true },
+        gstNumber: { type: String, trim: true },
+        gstCertificate: { type: String }, // Cloudinary URL
+        businessAddress: { type: String, trim: true },
+        city: { type: String, trim: true },
+        state: { type: String, trim: true },
+        pincode: { type: String, trim: true },
+        yearsInBusiness: { type: Number },
+        monthlyPurchaseVolume: { type: String },
+        verificationStatus: { type: String, enum: ['Pending Verification', 'Approved', 'Rejected'] },
     },
     { timestamps: true }
 );

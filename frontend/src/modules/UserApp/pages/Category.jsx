@@ -14,6 +14,11 @@ import LazyImage from "../../../shared/components/LazyImage";
 import { getPlaceholderImage } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
 
+// Offers System Imports
+import { useOffers } from "../../offers/hooks/useOffers";
+import OfferBanner from "../../offers/components/OfferBanner";
+import OfferModal from "../../offers/components/OfferModal";
+
 const normalizeId = (value) => String(value ?? "").trim();
 
 const getParentId = (category) => {
@@ -73,6 +78,10 @@ const MobileCategory = () => {
   const navigate = useNavigate();
   const categoryId = normalizeId(id);
   const { categories, initialize, getCategoryById } = useCategoryStore();
+
+  const [selectedCategoryOffer, setSelectedCategoryOffer] = useState(null);
+  // Get active offers for the specific category
+  const { offers: categoryOffers } = useOffers({ categoryId });
 
   // Initialize store on mount
   useEffect(() => {
@@ -496,6 +505,20 @@ const MobileCategory = () => {
             </div>
           </div>
 
+          {/* Active Category Offers Strip */}
+          {categoryOffers && categoryOffers.length > 0 && (
+            <div className="px-4 py-2 space-y-2">
+              <h3 className="text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Available Category Offers</h3>
+              <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                {categoryOffers.map((offer) => (
+                  <div key={offer.id} className="min-w-[280px] md:min-w-[400px] flex-shrink-0">
+                    <OfferBanner offer={offer} onClick={() => setSelectedCategoryOffer(offer)} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Products List */}
           <div className="px-4 py-4">
             {categoryProducts.length === 0 ? (
@@ -577,6 +600,12 @@ const MobileCategory = () => {
               </>
             )}
           </div>
+          {/* Category Offer Modal Preview */}
+          <OfferModal
+            isOpen={!!selectedCategoryOffer}
+            onClose={() => setSelectedCategoryOffer(null)}
+            offer={selectedCategoryOffer}
+          />
         </div>
       </MobileLayout>
     </PageTransition>

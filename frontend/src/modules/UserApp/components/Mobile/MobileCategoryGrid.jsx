@@ -45,7 +45,7 @@ const MobileCategoryGrid = () => {
             transition={{ delay: index * 0.05 }}
             className="flex-shrink-0">
             <Link
-              to={`/category/${category.id}`}
+              to={`/home?category=${category.id}`}
               className="flex flex-col items-center gap-1.5 w-16 select-none">
               <div className="w-14 h-14 rounded-full overflow-hidden bg-white dark:bg-[#1A1A1A] flex items-center justify-center p-1.5 border border-purple-200 dark:border-[#7B0A0A] shadow-sm dark:shadow-[0_0_8px_rgba(123, 10, 10,0.4)]">
                 <LazyImage

@@ -48,6 +48,11 @@ import {
 } from "../components/B2B";
 import { estimateDeliveryETA } from "../../../shared/data/deliveryMockData";
 
+// Offers System Imports
+import { useOffers } from "../../offers/hooks/useOffers";
+import OfferCard from "../../offers/components/OfferCard";
+import OfferModal from "../../offers/components/OfferModal";
+
 const resolveVariantPrice = (product, selectedVariant) => {
   const basePrice = Number(product?.price) || 0;
   if (!selectedVariant || !product?.variants?.prices) return basePrice;
@@ -200,6 +205,10 @@ const MobileProductDetail = () => {
   const [isLoadingProduct, setIsLoadingProduct] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
+
+  const [selectedOffer, setSelectedOffer] = useState(null);
+  // Get active offers for this specific product
+  const { offers: productOffers } = useOffers({ productId: product?.id, categoryId: product?.categoryId });
 
   const { isBusiness, getWholesaleSpecs, getWholesalePriceForQty } =
     useBusinessBuyer();
@@ -1031,6 +1040,34 @@ const MobileProductDetail = () => {
                   )}
                 </div>
 
+                {/* Available Offers Section */}
+                {productOffers && productOffers.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-200 p-5 mb-6 space-y-4 shadow-xs">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-sm font-extrabold text-gray-800 uppercase tracking-wide flex items-center gap-2">
+                        <span>🏷️ Available Offers</span>
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedOffer(productOffers[0])}
+                        className="text-xs text-primary-600 hover:text-primary-800 font-bold hover:underline"
+                      >
+                        View All Offers
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {productOffers.slice(0, 2).map((offer) => (
+                        <OfferCard
+                          key={offer.id}
+                          offer={offer}
+                          onViewDetails={setSelectedOffer}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* DESKTOP ACTIONS */}
                 <div className="hidden lg:grid grid-cols-6 gap-4 py-4">
                   {isBusiness ? (
@@ -1366,6 +1403,12 @@ const MobileProductDetail = () => {
             product={product}
           />
         )}
+        {/* Offer Details Modal */}
+        <OfferModal
+          isOpen={!!selectedOffer}
+          onClose={() => setSelectedOffer(null)}
+          offer={selectedOffer}
+        />
       </MobileLayout>
     </PageTransition>
   );

@@ -13,7 +13,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
 import { useThemeStore } from "../../../../shared/store/themeStore";
-import appLogoBlack from "../../../../assets/PLEblack.png";
+import appLogoBlack from "../../../../assets/PLELOGOBLACK.jpg";
 import appLogoWhite from "../../../../assets/PLEwhite.png";
 
 import { motion } from "framer-motion";
@@ -377,19 +377,29 @@ const MobileHeader = () => {
           style={{
             pointerEvents: isTopRowVisible ? "auto" : "none",
           }}>
-          {/* Hamburger Menu Icon */}
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 hover:bg-white/10 rounded-lg transition-all duration-300 text-white flex items-center justify-center flex-shrink-0"
-            title="Menu">
-            <FiMenu className="text-2xl" />
-          </button>
+          {/* Left Brand Area: Hamburger & Logo */}
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {/* Hamburger Menu Icon */}
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 hover:bg-white/10 rounded-lg transition-all duration-300 text-white flex items-center justify-center"
+              title="Menu">
+              <FiMenu className="text-2xl" />
+            </button>
+
+            {/* App Logo */}
+            <img 
+              src={appLogo.src} 
+              alt="PLE Logo" 
+              className="h-8 w-auto object-contain select-none" 
+            />
+          </div>
 
           {/* Static Location Time and Address */}
-          <div className="flex items-center gap-2 flex-shrink-0 overflow-visible relative z-[10001] max-w-[60%]">
+          <div className="flex items-center gap-2 flex-shrink-0 overflow-visible relative z-[10001] max-w-[50%]">
             <div className="flex flex-col text-left">
               <span className="font-black text-white text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none">
-                ⚡ 10 minutes
+                Home
               </span>
               <span className="text-[10px] sm:text-xs font-semibold text-white/95 flex items-center gap-0.5 truncate cursor-pointer mt-0.5">
                 Police Quarters, Belgaum
@@ -464,7 +474,7 @@ const MobileHeader = () => {
         <div className="flex items-center justify-between gap-2.5 mt-2 w-full relative z-[10006]">
           {[
             {
-              label: "ple",
+              label: "PLE",
               path: "/home",
               active:
                 location.pathname === "/" ||
@@ -473,10 +483,10 @@ const MobileHeader = () => {
                 location.pathname.startsWith("/brand/") ||
                 location.pathname.startsWith("/seller/"),
               style: {
-                activeLight: "bg-white border border-[#AE020B] text-[#AE020B] font-extrabold text-sm tracking-tight lowercase shadow-sm",
-                activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-extrabold text-sm tracking-tight lowercase shadow-sm",
-                inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-sm tracking-tight lowercase",
-                inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-sm tracking-tight lowercase",
+                activeLight: "bg-white border border-[#AE020B] text-[#AE020B] font-extrabold text-sm tracking-tight uppercase shadow-sm",
+                activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-extrabold text-sm tracking-tight uppercase shadow-sm",
+                inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-sm tracking-tight uppercase",
+                inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-sm tracking-tight uppercase",
               }
             },
             {
