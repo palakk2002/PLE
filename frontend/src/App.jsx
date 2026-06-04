@@ -131,6 +131,8 @@ const MobileVerification = lazy(() => import("./modules/UserApp/pages/Verificati
 const MobileForgotPassword = lazy(() => import("./modules/UserApp/pages/ForgotPassword"));
 const MobileResetPassword = lazy(() => import("./modules/UserApp/pages/ResetPassword"));
 const MobileProfile = lazy(() => import("./modules/UserApp/pages/Profile"));
+const MobileSettings = lazy(() => import("./modules/UserApp/pages/Settings"));
+const MobileWallet = lazy(() => import("./modules/UserApp/pages/Wallet"));
 const UserNotifications = lazy(() => import("./modules/UserApp/pages/Notifications"));
 const MobileOrders = lazy(() => import("./modules/UserApp/pages/Orders"));
 const MobileOrderDetail = lazy(() => import("./modules/UserApp/pages/OrderDetail"));
@@ -422,6 +424,26 @@ const AppRoutes = () => {
           <RouteWrapper>
             <ProtectedRoute>
               <MobileProfile />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <MobileSettings />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/wallet"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <MobileWallet />
             </ProtectedRoute>
           </RouteWrapper>
         }

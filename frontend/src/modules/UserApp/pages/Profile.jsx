@@ -24,6 +24,7 @@ import {
   FiMessageSquare,
   FiHeart,
   FiUsers,
+  FiCreditCard,
 } from "react-icons/fi";
 
 // Offers System Imports
@@ -69,6 +70,7 @@ const MobileProfile = () => {
     (state) => state.unreadCount,
   );
   const wishlistCount = useWishlistStore((state) => state.getItemCount());
+  const walletBalance = parseFloat(localStorage.getItem(`wallet_balance_${user?.id || "guest"}`) || "1500");
   const ensureNotificationHydrated = useUserNotificationStore(
     (state) => state.ensureHydrated,
   );
@@ -281,6 +283,15 @@ const MobileProfile = () => {
       bg: "bg-red-50",
       link: "/wishlist",
       badge: wishlistCount > 0 ? wishlistCount : null,
+    },
+    {
+      id: "wallet",
+      label: "My Wallet",
+      icon: FiCreditCard,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50",
+      link: "/wallet",
+      badge: `₹${walletBalance.toFixed(0)}`,
     },
     {
       id: "offers",
