@@ -151,6 +151,7 @@ import MobileProfile from "./modules/UserApp/pages/Profile";
 import UserNotifications from "./modules/UserApp/pages/Notifications";
 import MobileOrders from "./modules/UserApp/pages/Orders";
 import MobileOrderDetail from "./modules/UserApp/pages/OrderDetail";
+import MobileRFQDetail from "./modules/UserApp/pages/RFQDetail";
 import MobileAddresses from "./modules/UserApp/pages/Addresses";
 import MobileWishlist from "./modules/UserApp/pages/Wishlist";
 import MobileOffers from "./modules/UserApp/pages/Offers";
@@ -411,6 +412,16 @@ const AppRoutes = () => {
           <RouteWrapper>
             <ProtectedRoute>
               <MobileOrderDetail />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/rfq/:id"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <MobileRFQDetail />
             </ProtectedRoute>
           </RouteWrapper>
         }

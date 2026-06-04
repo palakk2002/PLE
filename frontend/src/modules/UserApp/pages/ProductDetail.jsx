@@ -1067,7 +1067,6 @@ const MobileProductDetail = () => {
                     </div>
                   </div>
                 )}
-
                 {/* DESKTOP ACTIONS */}
                 <div className="hidden lg:grid grid-cols-6 gap-4 py-4">
                   {isBusiness ? (
@@ -1090,7 +1089,7 @@ const MobileProductDetail = () => {
                         className="col-span-2 py-4 bg-white text-primary-600 border-2 border-primary-200 hover:border-primary-500 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-2"
                       >
                         <FiFileText className="text-xl" />
-                        <span>Send Enquiry</span>
+                        <span>Request Quote</span>
                       </button>
                       <button
                         type="button"
@@ -1370,14 +1369,16 @@ const MobileProductDetail = () => {
                   <FiShoppingBag className="text-lg" />
                   <span>Request Bulk</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setIsQuoteModalOpen(true)}
                   className="flex-none px-4 py-4 bg-white text-primary-600 border border-primary-200 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <FiFileText className="text-lg" />
-                  <span>Send Enquiry</span>
+                  <span>Request Quote</span>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => setIsStockRequestModalOpen(true)}

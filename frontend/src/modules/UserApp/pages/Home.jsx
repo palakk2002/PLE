@@ -40,6 +40,7 @@ import stylishWatchImg from "../../../../data/products/stylish watch.png";
 import { useOffers } from "../../offers/hooks/useOffers";
 import OfferCarousel from "../../offers/components/OfferCarousel";
 import OfferModal from "../../offers/components/OfferModal";
+import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 
 const normalizeId = (value) => String(value ?? "").trim();
 const toNumber = (value, fallback = 0) => {
@@ -260,6 +261,7 @@ const MobileHome = () => {
 
   // Load active offers
   const { offers } = useOffers();
+  const { isBusiness } = useBusinessBuyer();
 
   const { categories: allCategories, getCategoryById, getCategoriesByParent, initialize: initializeCategories } = useCategoryStore();
 
@@ -626,6 +628,24 @@ const MobileHome = () => {
           }}>
           {/* Top Category Quick Nav Bar */}
           <MobileCategoryQuickNav />
+
+          {/* Prominent RFQ Section for B2B Users */}
+          {isBusiness && (
+            <div className="px-4 pt-2">
+              <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-5 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-extrabold text-lg sm:text-xl">Need Bulk Orders?</h3>
+                  <p className="text-xs text-primary-105 mt-1 max-w-md">Request a custom quote directly on product pages to unlock bulk discounts, customized packaging, and NET credit terms.</p>
+                </div>
+                <button
+                  onClick={() => navigate('/search')}
+                  className="px-6 py-2.5 bg-white text-primary-750 font-bold rounded-xl text-sm hover:bg-primary-50 hover:shadow-md transition-all whitespace-nowrap active:scale-95"
+                >
+                  Request Quote
+                </button>
+              </div>
+            </div>
+          )}
 
           {activeCategoryId && activeCategory ? (
             <div className="w-full min-h-screen bg-gray-50 pb-20">

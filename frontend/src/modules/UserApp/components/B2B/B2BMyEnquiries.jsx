@@ -1,26 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBusinessBuyer } from '../../hooks/useBusinessBuyer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiFileText, FiPackage, FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiSearch, FiFilter, FiEye, FiDownload } from 'react-icons/fi';
+import { FiFileText, FiPackage, FiClock, FiCheckCircle, FiXCircle, FiAlertCircle, FiSearch, FiFilter, FiEye, FiDownload, FiX } from 'react-icons/fi';
 import { formatPrice } from '../../../../shared/utils/helpers';
 import toast from 'react-hot-toast';
+import api from '../../../../shared/utils/api';
 
 export const B2BMyEnquiries = () => {
-  const { isBusiness, quotations, stockRequests, updateStockRequestStatus } = useBusinessBuyer();
+  const { isBusiness, stockRequests, updateStockRequestStatus } = useBusinessBuyer();
   const [activeTab, setActiveTab] = useState('rfq'); // 'rfq' or 'stock'
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+  const [quotations, setQuotations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const fetchRFQs = async () => {
+    if (!isBusiness) return;
+    try {
+      setLoading(true);
+      const res = await api.get('/rfq');
+      const payload = res?.data ?? res;
+      setQuotations(Array.isArray(payload) ? payload : []);
+    } catch (error) {
+      console.error(error);
+      setQuotations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRFQs();
+  }, [isBusiness]);
 
   if (!isBusiness) return null;
 
   const getStatusColor = (status) => {
+    if (!status) return 'bg-amber-50 text-amber-700 border-amber-200';
     switch (status.toLowerCase()) {
       case 'approved':
+      case 'converted to order':
         return 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'rejected':
         return 'bg-red-50 text-red-700 border-red-200';
       case 'seller responded':
+      case 'negotiating':
         return 'bg-blue-50 text-blue-700 border-blue-200';
       case 'pending':
       default:
@@ -29,12 +56,15 @@ export const B2BMyEnquiries = () => {
   };
 
   const getStatusIcon = (status) => {
+    if (!status) return <FiClock className="w-4 h-4" />;
     switch (status.toLowerCase()) {
       case 'approved':
+      case 'converted to order':
         return <FiCheckCircle className="w-4 h-4" />;
       case 'rejected':
         return <FiXCircle className="w-4 h-4" />;
       case 'seller responded':
+      case 'negotiating':
         return <FiEye className="w-4 h-4" />;
       case 'pending':
       default:
@@ -42,26 +72,34 @@ export const B2BMyEnquiries = () => {
     }
   };
 
-  const filteredRFQs = quotations.filter(q => {
-    const matchesSearch = q.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         q.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || q.status.toLowerCase() === statusFilter.toLowerCase();
+  const filteredRFQs = (Array.isArray(quotations) ? quotations : []).filter(q => {
+    if (!q) return false;
+    const pName = q.productId?.name || q.productName || '';
+    const rId = q.rfqId || q.id || '';
+    const qStatus = q.status || 'Pending';
+    const matchesSearch = pName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          rId.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || qStatus.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
   const filteredStockRequests = stockRequests.filter(s => {
     const matchesSearch = s.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         s.id.toLowerCase().includes(searchQuery.toLowerCase());
+                          s.id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || s.status.toLowerCase() === statusFilter.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
   const handleDownloadInvoice = (enquiry) => {
-    toast.success(`Downloading invoice for ${enquiry.id}...`);
+    toast.success(`Downloading invoice for ${enquiry.rfqId || enquiry.id}...`);
   };
 
   const handleViewDetails = (enquiry) => {
-    setSelectedEnquiry(enquiry);
+    if (activeTab === 'rfq') {
+      navigate(`/rfq/${enquiry._id || enquiry.id}`);
+    } else {
+      setSelectedEnquiry(enquiry);
+    }
   };
 
   return (
@@ -154,81 +192,93 @@ export const B2BMyEnquiries = () => {
               <p className="text-xs mt-1">Start by requesting quotes from product pages</p>
             </div>
           ) : (
-            filteredRFQs.map((rfq) => (
-              <motion.div
-                key={rfq.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-xl p-4 border border-gray-100 hover:shadow-md transition-all"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border flex items-center gap-1.5 ${getStatusColor(rfq.status)}`}>
-                      {getStatusIcon(rfq.status)}
-                      {rfq.status}
-                    </div>
-                    <span className="text-[10px] text-gray-400 font-mono">{rfq.id}</span>
-                  </div>
-                  <span className="text-[10px] text-gray-500">{rfq.date}</span>
-                </div>
+            filteredRFQs.map((rfq) => {
+              const rfqDbId = rfq._id || rfq.id;
+              const rfqDisplayId = rfq.rfqId || rfq.id;
+              const prodName = rfq.productId?.name || rfq.productName || 'Product';
+              const prodUnit = rfq.productId?.unit || rfq.unit || 'units';
+              const rfqDate = rfq.createdAt 
+                ? new Date(rfq.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                : rfq.date;
+              const latestSellerOffer = rfq.timeline && [...rfq.timeline].reverse().find(t => t.senderType === 'seller');
+              const quotedPrice = rfq.quotedPrice || (latestSellerOffer ? latestSellerOffer.price : null);
 
-                <div className="mb-3">
-                  <h4 className="font-bold text-gray-900 text-sm mb-1">{rfq.productName}</h4>
-                  <div className="flex items-center gap-4 text-xs text-gray-600">
-                    <span className="font-medium">Qty: {rfq.quantity} {rfq.unit}s</span>
-                    <span className="font-medium">Target: {formatPrice(rfq.targetPrice)}/unit</span>
-                  </div>
-                </div>
-
-                {rfq.quotedPrice && (
-                  <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3 mb-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wide block">
-                          Approved Price
-                        </span>
-                        <span className="text-base font-black text-emerald-700">
-                          {formatPrice(rfq.quotedPrice)}
-                        </span>
-                        <span className="text-xs text-emerald-600"> / unit</span>
+              return (
+                <motion.div
+                  key={rfqDbId}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white rounded-xl p-4 border border-gray-100 hover:shadow-md transition-all"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border flex items-center gap-1.5 ${getStatusColor(rfq.status)}`}>
+                        {getStatusIcon(rfq.status)}
+                        {rfq.status}
                       </div>
-                      <button
-                        onClick={() => toast.success('Added to cart at quoted price!')}
-                        className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 transition-all shadow-sm"
-                      >
-                        <FiCheckCircle className="w-3 h-3" />
-                        <span>Order Now</span>
-                      </button>
+                      <span className="text-[10px] text-gray-400 font-mono">{rfqDisplayId}</span>
+                    </div>
+                    <span className="text-[10px] text-gray-500">{rfqDate}</span>
+                  </div>
+
+                  <div className="mb-3">
+                    <h4 className="font-bold text-gray-900 text-sm mb-1">{prodName}</h4>
+                    <div className="flex items-center gap-4 text-xs text-gray-600">
+                      <span className="font-medium">Qty: {rfq.quantity} {prodUnit}s</span>
+                      <span className="font-medium">Target: {formatPrice(rfq.targetPrice)}/unit</span>
                     </div>
                   </div>
-                )}
 
-                {rfq.notes && (
-                  <div className="bg-gray-50 rounded-lg p-2.5 text-xs text-gray-600 mb-3">
-                    <span className="font-semibold text-gray-700">Notes:</span> {rfq.notes}
-                  </div>
-                )}
-
-                <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
-                  <button
-                    onClick={() => handleViewDetails(rfq)}
-                    className="flex-1 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <FiEye className="w-3.5 h-3.5" />
-                    <span>View Details</span>
-                  </button>
-                  {rfq.status === 'Approved' && (
-                    <button
-                      onClick={() => handleDownloadInvoice(rfq)}
-                      className="flex-1 py-2 rounded-lg bg-primary-50 hover:bg-primary-100 text-primary-700 text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <FiDownload className="w-3.5 h-3.5" />
-                      <span>Invoice</span>
-                    </button>
+                  {quotedPrice && (
+                    <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3 mb-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wide block">
+                            Seller Quoted Price
+                          </span>
+                          <span className="text-base font-black text-emerald-700">
+                            {formatPrice(quotedPrice)}
+                          </span>
+                          <span className="text-xs text-emerald-600"> / unit</span>
+                        </div>
+                        <button
+                          onClick={() => navigate(`/rfq/${rfqDbId}`)}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1 transition-all shadow-sm"
+                        >
+                          <FiEye className="w-3.5 h-3.5" />
+                          <span>View Quote</span>
+                        </button>
+                      </div>
+                    </div>
                   )}
-                </div>
-              </motion.div>
-            ))
+
+                  {rfq.requirementDetails && (
+                    <div className="bg-gray-50 rounded-lg p-2.5 text-xs text-gray-600 mb-3">
+                      <span className="font-semibold text-gray-700">Notes:</span> {rfq.requirementDetails}
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                    <button
+                      onClick={() => handleViewDetails(rfq)}
+                      className="flex-1 py-2 rounded-lg bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <FiEye className="w-3.5 h-3.5" />
+                      <span>View Details</span>
+                    </button>
+                    {rfq.status === 'Approved' && (
+                      <button
+                        onClick={() => handleDownloadInvoice(rfq)}
+                        className="flex-1 py-2 rounded-lg bg-primary-50 hover:bg-primary-100 text-primary-700 text-xs font-semibold transition-all flex items-center justify-center gap-1.5"
+                      >
+                        <FiDownload className="w-3.5 h-3.5" />
+                        <span>Invoice</span>
+                      </button>
+                    )}
+                  </div>
+                </motion.div>
+              );
+            })
           )}
         </div>
       )}

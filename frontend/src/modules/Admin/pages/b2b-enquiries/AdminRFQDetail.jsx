@@ -24,21 +24,110 @@ import { motion } from "framer-motion";
 import Badge from "../../../../shared/components/Badge";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import toast from "react-hot-toast";
-import { initialB2BEnquiries } from "../../data/adminB2BEnquiryMockData";
+import api from "../../../../shared/utils/api";
+import { useEffect } from "react";
+
+const mapDbRfqToAdminEnquiry = (rfq) => {
+  const latestSellerOffer = rfq.timeline && [...rfq.timeline].reverse().find(t => t.senderType === 'seller');
+
+  return {
+    id: rfq._id,
+    _id: rfq._id,
+    enquiryNumber: rfq.rfqId,
+    status: rfq.status,
+    priority: rfq.quantity > 500 ? "High" : rfq.quantity > 100 ? "Medium" : "Low",
+    createdAt: rfq.createdAt,
+    totalEstimatedValue: rfq.targetPrice * rfq.quantity,
+    buyerMessage: rfq.requirementDetails || "No buyer message provided.",
+    flagged: rfq.status === "Rejected",
+    riskScore: rfq.status === "Rejected" ? 85 : 10,
+    buyer: {
+      name: rfq.buyerId?.name || "Business Buyer",
+      company: rfq.buyerId?.companyName || "Apex General Enterprises",
+      email: rfq.buyerId?.email || "buyer@apex.in",
+      phone: rfq.buyerId?.phone || "9876543210",
+      address: rfq.buyerId?.businessAddress || "BKC, Mumbai",
+      gstin: rfq.buyerId?.gstNumber || "27AAPCG9838F1Z1"
+    },
+    seller: {
+      id: rfq.sellerId?._id || "seller-1",
+      name: rfq.sellerId?.name || "Vendor Representative",
+      storeName: rfq.sellerId?.storeName || "Fashion Hub",
+      phone: rfq.sellerId?.phone || "9876543210",
+      email: rfq.sellerId?.email || "vendor@example.com"
+    },
+    products: [
+      {
+        id: rfq.productId?._id || "prod-1",
+        name: rfq.productId?.name || "Product",
+        qty: rfq.quantity,
+        targetPrice: rfq.targetPrice,
+        subtotal: rfq.targetPrice * rfq.quantity
+      }
+    ],
+    responseHistory: (rfq.timeline || []).map(t => ({
+      stage: t.senderType === "buyer" ? "Buyer Offer" : "Seller Response",
+      user: t.senderType === "buyer" ? "Buyer" : "Seller",
+      date: t.timestamp || new Date().toISOString(),
+      comment: t.notes || (t.senderType === "buyer" ? "Buyer submitted counter offer." : "Seller submitted quote.")
+    })),
+    sellerQuotation: latestSellerOffer ? {
+      quotedValue: latestSellerOffer.price * latestSellerOffer.quantity,
+      paymentTerms: "NET 30 Days",
+      shippingTerms: "FOB Origin",
+      validUntil: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
+      items: [
+        {
+          name: rfq.productId?.name || "Product",
+          qty: latestSellerOffer.quantity,
+          quotedPrice: latestSellerOffer.price,
+          subtotal: latestSellerOffer.price * latestSellerOffer.quantity
+        }
+      ],
+      message: latestSellerOffer.notes || "Official quote response."
+    } : null,
+    expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+  };
+};
 
 const AdminRFQDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [enquiry, setEnquiry] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Find corresponding enquiry
-  const [enquiry, setEnquiry] = useState(() => {
-    return initialB2BEnquiries.find((e) => e.id === id) || initialB2BEnquiries[0];
-  });
+  const fetchEnquiryDetail = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/admin/rfq/${id}`);
+      if (res && res.data) {
+        setEnquiry(mapDbRfqToAdminEnquiry(res.data));
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load RFQ detail");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (id) {
+      fetchEnquiryDetail();
+    }
+  }, [id]);
 
   const [escalationReason, setEscalationReason] = useState("");
   const [showEscalateModal, setShowEscalateModal] = useState(false);
 
-  // If ID doesn't match any enquiry, display error
+  if (loading) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-gray-500 font-semibold">Loading RFQ details...</p>
+      </div>
+    );
+  }
+
   if (!enquiry) {
     return (
       <div className="text-center py-16">

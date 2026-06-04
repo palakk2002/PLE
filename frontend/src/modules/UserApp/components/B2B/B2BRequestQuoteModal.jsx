@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { useBusinessBuyer } from '../../hooks/useBusinessBuyer';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiCheckCircle, FiSend, FiFileText, FiCalendar, FiBriefcase, FiDollarSign } from 'react-icons/fi';
+import { FiX, FiCheckCircle, FiSend, FiFileText, FiCalendar, FiBriefcase, FiDollarSign, FiPaperclip } from 'react-icons/fi';
 import toast from 'react-hot-toast';
+import api from '../../../../shared/utils/api';
 
 export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
-  const { businessProfile, addQuotation, getWholesaleSpecs } = useBusinessBuyer();
+  const { businessProfile, getWholesaleSpecs } = useBusinessBuyer();
   const specs = getWholesaleSpecs(product.id, product.price);
 
   const [quantity, setQuantity] = useState(specs.moq);
@@ -14,9 +15,10 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
   const [budgetRange, setBudgetRange] = useState('');
   const [notes, setNotes] = useState('');
+  const [attachmentFile, setAttachmentFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (quantity < specs.moq) {
       toast.error(`Quantity cannot be lower than MOQ (${specs.moq} ${product.unit}s)`);
@@ -30,23 +32,34 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      addQuotation({
-        productId: product.id,
-        productName: product.name,
+    try {
+      let attachmentUrl = '';
+      if (attachmentFile) {
+        const uploadForm = new FormData();
+        uploadForm.append('file', attachmentFile);
+        const uploadRes = await api.post('/rfq/upload', uploadForm, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        attachmentUrl = uploadRes.data?.url || uploadRes.url || '';
+      }
+
+      await api.post('/rfq', {
+        productId: product.id || product._id,
         quantity,
-        unit: product.unit || 'Piece',
         targetPrice,
-        businessName,
-        expectedDeliveryDate,
-        budgetRange,
-        notes,
+        requirementDetails: notes,
+        expectedDeliveryDate: expectedDeliveryDate || undefined,
+        attachment: attachmentUrl
       });
 
-      setIsSubmitting(false);
       toast.success('Wholesale quote request (RFQ) sent successfully!');
       onClose();
-    }, 800);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || 'Failed to submit RFQ');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -187,6 +200,20 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="w-full border border-gray-300 rounded-xl px-4 py-2.5 text-sm text-gray-800 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500 transition-colors"
+              />
+            </div>
+
+            {/* Attachment Upload */}
+            <div>
+              <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider flex items-center gap-1">
+                <FiPaperclip className="w-3.5 h-3.5" />
+                Upload Attachment (Optional)
+              </label>
+              <input
+                type="file"
+                accept=".pdf,image/*"
+                onChange={(e) => setAttachmentFile(e.target.files[0])}
+                className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-750 hover:file:bg-primary-100 transition-all"
               />
             </div>
 

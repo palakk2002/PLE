@@ -125,4 +125,10 @@ router.delete('/shipping/rates/:id', ...vendorAuth, shippingController.deleteShi
 router.post('/uploads/image', ...vendorAuth, uploadSingle('image'), uploadController.uploadImage);
 router.post('/uploads/images', ...vendorAuth, uploadMultiple('images', 8), uploadController.uploadImages);
 
+// RFQ routes (protected Vendor)
+import * as vendorRfqController from '../controllers/vendorRfq.controller.js';
+router.get('/rfq', ...vendorAuth, vendorRfqController.getVendorRFQs);
+router.post('/rfq/:id/quote', ...vendorAuth, vendorRfqController.vendorSendQuote);
+router.post('/rfq/:id/reject', ...vendorAuth, vendorRfqController.vendorRejectRFQ);
+
 export default router;

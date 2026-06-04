@@ -80,4 +80,14 @@ router.put('/notifications/:id/read', ...customerAuth, notificationController.ma
 router.put('/notifications/read-all', ...customerAuth, notificationController.markAllUserNotificationsAsRead);
 router.delete('/notifications/:id', ...customerAuth, notificationController.deleteUserNotification);
 
+// RFQ routes (protected B2B/Customer)
+import * as rfqController from '../controllers/rfq.controller.js';
+router.post('/rfq', ...customerAuth, rfqController.createRFQ);
+router.post('/rfq/upload', ...customerAuth, uploadDocumentSingle('file'), rfqController.uploadAttachment);
+router.get('/rfq', ...customerAuth, rfqController.getBuyerRFQs);
+router.get('/rfq/:id', ...customerAuth, rfqController.getRFQDetail);
+router.post('/rfq/:id/counter', ...customerAuth, rfqController.buyerCounterOffer);
+router.post('/rfq/:id/accept', ...customerAuth, rfqController.buyerAcceptQuote);
+router.post('/rfq/:id/reject', ...customerAuth, rfqController.buyerRejectQuote);
+
 export default router;

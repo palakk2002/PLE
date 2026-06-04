@@ -192,4 +192,10 @@ router.get('/notifications', ...adminAuth, notificationController.getAdminNotifi
 router.put('/notifications/:id/read', ...adminAuth, notificationController.markAsRead);
 router.put('/notifications/read-all', ...adminAuth, notificationController.markAllAsRead);
 
+// RFQ routes (protected Admin)
+import * as adminRfqController from '../controllers/adminRfq.controller.js';
+router.get('/rfq', ...adminAuth, adminRfqController.getAdminRFQs);
+router.get('/rfq/stats', ...adminAuth, adminRfqController.getRFQStats);
+router.get('/rfq/:id', ...adminAuth, adminRfqController.getAdminRFQDetail);
+
 export default router;
