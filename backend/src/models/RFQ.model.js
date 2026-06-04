@@ -14,8 +14,9 @@ const rfqSchema = new mongoose.Schema(
     {
         rfqId: { type: String, required: true, unique: true, index: true },
         buyerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
-        sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', required: true, index: true },
-        productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true, index: true },
+        sellerId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', index: true },
+        productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', index: true },
+        customProductName: { type: String },
         quantity: { type: Number, required: true },
         targetPrice: { type: Number, required: true },
         requirementDetails: { type: String },

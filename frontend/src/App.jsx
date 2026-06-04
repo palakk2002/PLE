@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -9,223 +10,204 @@ import { Toaster } from "react-hot-toast";
 import CartDrawer from "./shared/components/Cart/CartDrawer";
 import ProtectedRoute from "./shared/components/Auth/ProtectedRoute";
 import ErrorBoundary from "./shared/components/ErrorBoundary/ErrorBoundary";
-import AdminLogin from "./modules/Admin/pages/Login";
 import AdminProtectedRoute from "./modules/Admin/components/AdminProtectedRoute";
 import AdminLayout from "./modules/Admin/components/Layout/AdminLayout";
-import Dashboard from "./modules/Admin/pages/Dashboard";
-import Products from "./modules/Admin/pages/Products";
-import ProductForm from "./modules/Admin/pages/ProductForm";
-import AdminOrders from "./modules/Admin/pages/Orders";
-import OrderDetail from "./modules/Admin/pages/OrderDetail";
-import ReturnRequests from "./modules/Admin/pages/ReturnRequests";
-import ReturnRequestDetail from "./modules/Admin/pages/ReturnRequestDetail";
-import Categories from "./modules/Admin/pages/Categories";
-import Brands from "./modules/Admin/pages/Brands";
-import Customers from "./modules/Admin/pages/Customers";
-
-import Campaigns from "./modules/Admin/pages/Campaigns";
-import Banners from "./modules/Admin/pages/Banners";
-import Reviews from "./modules/Admin/pages/Reviews";
-import Analytics from "./modules/Admin/pages/Analytics";
-import Content from "./modules/Admin/pages/Content";
-import Settings from "./modules/Admin/pages/Settings";
-import More from "./modules/Admin/pages/More";
-import PromoCodes from "./modules/Admin/pages/PromoCodes";
-// Orders child pages
-import AllOrders from "./modules/Admin/pages/orders/AllOrders";
-import OrderTracking from "./modules/Admin/pages/orders/OrderTracking";
-
-import Invoice from "./modules/Admin/pages/orders/Invoice";
-// Products child pages
-import ManageProducts from "./modules/Admin/pages/products/ManageProducts";
-import TaxPricing from "./modules/Admin/pages/products/TaxPricing";
-import ProductRatings from "./modules/Admin/pages/products/ProductRatings";
-
-// Categories child pages
-import ManageCategories from "./modules/Admin/pages/categories/ManageCategories";
-import CategoryOrder from "./modules/Admin/pages/categories/CategoryOrder";
-// Brands child pages
-import ManageBrands from "./modules/Admin/pages/brands/ManageBrands";
-// Customers child pages
-import ViewCustomers from "./modules/Admin/pages/customers/ViewCustomers";
-import CustomerAddresses from "./modules/Admin/pages/customers/Addresses";
-import Transactions from "./modules/Admin/pages/customers/Transactions";
-import CustomerDetailPage from "./modules/Admin/pages/customers/CustomerDetailPage";
-// Delivery Management child pages
-import DeliveryBoys from "./modules/Admin/pages/delivery/DeliveryBoys";
-import CashCollection from "./modules/Admin/pages/delivery/CashCollection";
-import AssignDelivery from "./modules/Admin/pages/delivery/AssignDelivery";
-// Vendors child pages
-import Vendors from "./modules/Admin/pages/Vendors";
-import ManageVendors from "./modules/Admin/pages/vendors/ManageVendors";
-import PendingApprovals from "./modules/Admin/pages/vendors/PendingApprovals";
-import VendorDetail from "./modules/Admin/pages/vendors/VendorDetail";
-import CommissionRates from "./modules/Admin/pages/vendors/CommissionRates";
-import AdminVendorAnalytics from "./modules/Admin/pages/vendors/VendorAnalytics";
-
-// B2B Marketplace pages
-import B2BMarketplace from "./modules/Admin/pages/b2b/B2BMarketplace";
-import BusinessUsers from "./modules/Admin/pages/b2b/BusinessUsers";
-import B2BProducts from "./modules/Admin/pages/b2b/B2BProducts";
-import B2BOrders from "./modules/Admin/pages/b2b/B2BOrders";
-import B2BSettings from "./modules/Admin/pages/b2b/B2BSettings";
-
-// Admin B2B Enquiry RFQ Routes
-import AdminB2BEnquiries from "./modules/Admin/pages/b2b-enquiries/AdminB2BEnquiries";
-import AdminRFQDetail from "./modules/Admin/pages/b2b-enquiries/AdminRFQDetail";
-import AdminSellerResponses from "./modules/Admin/pages/b2b-enquiries/AdminSellerResponses";
-import AdminRFQDisputes from "./modules/Admin/pages/b2b-enquiries/AdminRFQDisputes";
-import AdminRFQSpamMonitor from "./modules/Admin/pages/b2b-enquiries/AdminRFQSpamMonitor";
-
-// Refurbished Marketplace pages
-import RefurbishedMarketplace from "./modules/Admin/pages/refurbished/RefurbishedMarketplace";
-import RefurbishedDashboard from "./modules/Admin/pages/refurbished/RefurbishedDashboard";
-import ProductApprovals from "./modules/Admin/pages/refurbished/ProductApprovals";
-import FraudModeration from "./modules/Admin/pages/refurbished/FraudModeration";
-import ComplaintsReturns from "./modules/Admin/pages/refurbished/ComplaintsReturns";
-import RefurbishedCategories from "./modules/Admin/pages/refurbished/RefurbishedCategories";
-
-// Offers & Sliders child pages
-import HomeSliders from "./modules/Admin/pages/offers/HomeSliders";
-import FestivalOffers from "./modules/Admin/pages/offers/FestivalOffers";
-// Notifications child pages
-import PushNotifications from "./modules/Admin/pages/notifications/PushNotifications";
-import CustomMessages from "./modules/Admin/pages/notifications/CustomMessages";
-import AllNotifications from "./modules/Admin/pages/notifications/AllNotifications";
-// Support Desk child pages
-import LiveChat from "./modules/Admin/pages/support/LiveChat";
-import TicketTypes from "./modules/Admin/pages/support/TicketTypes";
-import Tickets from "./modules/Admin/pages/support/Tickets";
-// Reports child pages
-import SalesReport from "./modules/Admin/pages/reports/SalesReport";
-import InventoryReport from "./modules/Admin/pages/reports/InventoryReport";
-// Analytics & Finance child pages
-import RevenueOverview from "./modules/Admin/pages/finance/RevenueOverview";
-import ProfitLoss from "./modules/Admin/pages/finance/ProfitLoss";
-import OrderTrends from "./modules/Admin/pages/finance/OrderTrends";
-import PaymentBreakdown from "./modules/Admin/pages/finance/PaymentBreakdown";
-import TaxReports from "./modules/Admin/pages/finance/TaxReports";
-import RefundReports from "./modules/Admin/pages/finance/RefundReports";
-// Consolidated Settings pages
-import GeneralSettings from "./modules/Admin/pages/settings/GeneralSettings";
-import PaymentShippingSettings from "./modules/Admin/pages/settings/PaymentShippingSettings";
-import OrdersCustomersSettings from "./modules/Admin/pages/settings/OrdersCustomersSettings";
-import ProductsInventorySettings from "./modules/Admin/pages/settings/ProductsInventorySettings";
-import ContentFeaturesSettings from "./modules/Admin/pages/settings/ContentFeaturesSettings";
-import NotificationsSEOSettings from "./modules/Admin/pages/settings/NotificationsSEOSettings";
-// Policies child pages
-import PrivacyPolicy from "./modules/Admin/pages/policies/PrivacyPolicy";
-import RefundPolicy from "./modules/Admin/pages/policies/RefundPolicy";
-import TermsConditions from "./modules/Admin/pages/policies/TermsConditions";
-// Firebase child pages
-import PushConfig from "./modules/Admin/pages/firebase/PushConfig";
-import Authentication from "./modules/Admin/pages/firebase/Authentication";
 import RouteWrapper from "./shared/components/RouteWrapper";
 import ScrollToTop from "./shared/components/ScrollToTop";
 import AppBootstrap from "./shared/components/AppBootstrap";
 import OfflineDetector from "./shared/components/OfflineDetector";
+import AppSuspenseLoader from "./shared/components/AppSuspenseLoader";
 
-// Offer & Promotion Management System Pages
-import OfferDashboard from "./modules/offers/pages/OfferDashboard";
-import OfferList from "./modules/offers/pages/OfferList";
-import CreateOffer from "./modules/offers/pages/CreateOffer";
-import EditOffer from "./modules/offers/pages/EditOffer";
-import OfferDetails from "./modules/offers/pages/OfferDetails";
+// Lazy Loaded Pages
+// Admin Pages
+const AdminLogin = lazy(() => import("./modules/Admin/pages/Login"));
+const Dashboard = lazy(() => import("./modules/Admin/pages/Dashboard"));
+const Products = lazy(() => import("./modules/Admin/pages/Products"));
+const ProductForm = lazy(() => import("./modules/Admin/pages/ProductForm"));
+const AdminOrders = lazy(() => import("./modules/Admin/pages/Orders"));
+const OrderDetail = lazy(() => import("./modules/Admin/pages/OrderDetail"));
+const ReturnRequests = lazy(() => import("./modules/Admin/pages/ReturnRequests"));
+const ReturnRequestDetail = lazy(() => import("./modules/Admin/pages/ReturnRequestDetail"));
+const Categories = lazy(() => import("./modules/Admin/pages/Categories"));
+const Brands = lazy(() => import("./modules/Admin/pages/Brands"));
+const Customers = lazy(() => import("./modules/Admin/pages/Customers"));
+const Campaigns = lazy(() => import("./modules/Admin/pages/Campaigns"));
+const Banners = lazy(() => import("./modules/Admin/pages/Banners"));
+const Reviews = lazy(() => import("./modules/Admin/pages/Reviews"));
+const Analytics = lazy(() => import("./modules/Admin/pages/Analytics"));
+const Content = lazy(() => import("./modules/Admin/pages/Content"));
+const Settings = lazy(() => import("./modules/Admin/pages/Settings"));
+const More = lazy(() => import("./modules/Admin/pages/More"));
+const PromoCodes = lazy(() => import("./modules/Admin/pages/PromoCodes"));
+const AllOrders = lazy(() => import("./modules/Admin/pages/orders/AllOrders"));
+const OrderTracking = lazy(() => import("./modules/Admin/pages/orders/OrderTracking"));
+const Invoice = lazy(() => import("./modules/Admin/pages/orders/Invoice"));
+const ManageProducts = lazy(() => import("./modules/Admin/pages/products/ManageProducts"));
+const TaxPricing = lazy(() => import("./modules/Admin/pages/products/TaxPricing"));
+const ProductRatings = lazy(() => import("./modules/Admin/pages/products/ProductRatings"));
+const ManageCategories = lazy(() => import("./modules/Admin/pages/categories/ManageCategories"));
+const CategoryOrder = lazy(() => import("./modules/Admin/pages/categories/CategoryOrder"));
+const ManageBrands = lazy(() => import("./modules/Admin/pages/brands/ManageBrands"));
+const ViewCustomers = lazy(() => import("./modules/Admin/pages/customers/ViewCustomers"));
+const CustomerAddresses = lazy(() => import("./modules/Admin/pages/customers/Addresses"));
+const Transactions = lazy(() => import("./modules/Admin/pages/customers/Transactions"));
+const CustomerDetailPage = lazy(() => import("./modules/Admin/pages/customers/CustomerDetailPage"));
+const DeliveryBoys = lazy(() => import("./modules/Admin/pages/delivery/DeliveryBoys"));
+const CashCollection = lazy(() => import("./modules/Admin/pages/delivery/CashCollection"));
+const AssignDelivery = lazy(() => import("./modules/Admin/pages/delivery/AssignDelivery"));
+const Vendors = lazy(() => import("./modules/Admin/pages/Vendors"));
+const ManageVendors = lazy(() => import("./modules/Admin/pages/vendors/ManageVendors"));
+const PendingApprovals = lazy(() => import("./modules/Admin/pages/vendors/PendingApprovals"));
+const VendorDetail = lazy(() => import("./modules/Admin/pages/vendors/VendorDetail"));
+const CommissionRates = lazy(() => import("./modules/Admin/pages/vendors/CommissionRates"));
+const AdminVendorAnalytics = lazy(() => import("./modules/Admin/pages/vendors/VendorAnalytics"));
+const B2BMarketplace = lazy(() => import("./modules/Admin/pages/b2b/B2BMarketplace"));
+const BusinessUsers = lazy(() => import("./modules/Admin/pages/b2b/BusinessUsers"));
+const B2BProducts = lazy(() => import("./modules/Admin/pages/b2b/B2BProducts"));
+const B2BOrders = lazy(() => import("./modules/Admin/pages/b2b/B2BOrders"));
+const B2BSettings = lazy(() => import("./modules/Admin/pages/b2b/B2BSettings"));
+const AdminB2BEnquiries = lazy(() => import("./modules/Admin/pages/b2b-enquiries/AdminB2BEnquiries"));
+const AdminRFQDetail = lazy(() => import("./modules/Admin/pages/b2b-enquiries/AdminRFQDetail"));
+const AdminSellerResponses = lazy(() => import("./modules/Admin/pages/b2b-enquiries/AdminSellerResponses"));
+const AdminRFQDisputes = lazy(() => import("./modules/Admin/pages/b2b-enquiries/AdminRFQDisputes"));
+const AdminRFQSpamMonitor = lazy(() => import("./modules/Admin/pages/b2b-enquiries/AdminRFQSpamMonitor"));
+const RefurbishedMarketplace = lazy(() => import("./modules/Admin/pages/refurbished/RefurbishedMarketplace"));
+const RefurbishedDashboard = lazy(() => import("./modules/Admin/pages/refurbished/RefurbishedDashboard"));
+const ProductApprovals = lazy(() => import("./modules/Admin/pages/refurbished/ProductApprovals"));
+const FraudModeration = lazy(() => import("./modules/Admin/pages/refurbished/FraudModeration"));
+const ComplaintsReturns = lazy(() => import("./modules/Admin/pages/refurbished/ComplaintsReturns"));
+const RefurbishedCategories = lazy(() => import("./modules/Admin/pages/refurbished/RefurbishedCategories"));
+const HomeSliders = lazy(() => import("./modules/Admin/pages/offers/HomeSliders"));
+const FestivalOffers = lazy(() => import("./modules/Admin/pages/offers/FestivalOffers"));
+const PushNotifications = lazy(() => import("./modules/Admin/pages/notifications/PushNotifications"));
+const CustomMessages = lazy(() => import("./modules/Admin/pages/notifications/CustomMessages"));
+const AllNotifications = lazy(() => import("./modules/Admin/pages/notifications/AllNotifications"));
+const LiveChat = lazy(() => import("./modules/Admin/pages/support/LiveChat"));
+const TicketTypes = lazy(() => import("./modules/Admin/pages/support/TicketTypes"));
+const Tickets = lazy(() => import("./modules/Admin/pages/support/Tickets"));
+const SalesReport = lazy(() => import("./modules/Admin/pages/reports/SalesReport"));
+const InventoryReport = lazy(() => import("./modules/Admin/pages/reports/InventoryReport"));
+const RevenueOverview = lazy(() => import("./modules/Admin/pages/finance/RevenueOverview"));
+const ProfitLoss = lazy(() => import("./modules/Admin/pages/finance/ProfitLoss"));
+const OrderTrends = lazy(() => import("./modules/Admin/pages/finance/OrderTrends"));
+const PaymentBreakdown = lazy(() => import("./modules/Admin/pages/finance/PaymentBreakdown"));
+const TaxReports = lazy(() => import("./modules/Admin/pages/finance/TaxReports"));
+const RefundReports = lazy(() => import("./modules/Admin/pages/finance/RefundReports"));
+const GeneralSettings = lazy(() => import("./modules/Admin/pages/settings/GeneralSettings"));
+const PaymentShippingSettings = lazy(() => import("./modules/Admin/pages/settings/PaymentShippingSettings"));
+const OrdersCustomersSettings = lazy(() => import("./modules/Admin/pages/settings/OrdersCustomersSettings"));
+const ProductsInventorySettings = lazy(() => import("./modules/Admin/pages/settings/ProductsInventorySettings"));
+const ContentFeaturesSettings = lazy(() => import("./modules/Admin/pages/settings/ContentFeaturesSettings"));
+const NotificationsSEOSettings = lazy(() => import("./modules/Admin/pages/settings/NotificationsSEOSettings"));
+const PrivacyPolicy = lazy(() => import("./modules/Admin/pages/policies/PrivacyPolicy"));
+const RefundPolicy = lazy(() => import("./modules/Admin/pages/policies/RefundPolicy"));
+const TermsConditions = lazy(() => import("./modules/Admin/pages/policies/TermsConditions"));
+const PushConfig = lazy(() => import("./modules/Admin/pages/firebase/PushConfig"));
+const Authentication = lazy(() => import("./modules/Admin/pages/firebase/Authentication"));
+const AdminDeliveryManager = lazy(() => import("./modules/Admin/pages/AdminDeliveryManager"));
 
-// Mobile App Routes
+// Offers & Promotion Management System Pages
+const OfferDashboard = lazy(() => import("./modules/offers/pages/OfferDashboard"));
+const OfferList = lazy(() => import("./modules/offers/pages/OfferList"));
+const CreateOffer = lazy(() => import("./modules/offers/pages/CreateOffer"));
+const EditOffer = lazy(() => import("./modules/offers/pages/EditOffer"));
+const OfferDetails = lazy(() => import("./modules/offers/pages/OfferDetails"));
+
+// Core Mobile/UserApp Pages (Statically Imported for Quick Opening)
 import MobileHome from "./modules/UserApp/pages/Home";
 import MobileProductDetail from "./modules/UserApp/pages/ProductDetail";
-import MobileSeller from "./modules/UserApp/pages/Seller";
-import MobileCategory from "./modules/UserApp/pages/Category";
-import MobileBrand from "./modules/UserApp/pages/Brand";
 import MobileCategories from "./modules/UserApp/pages/categories";
-import MobileCheckout from "./modules/UserApp/pages/Checkout";
 import MobileSearch from "./modules/UserApp/pages/Search";
-import MobileLogin from "./modules/UserApp/pages/Login";
-import MobileHelpSupport from "./modules/UserApp/pages/HelpSupport";
-import MobileRegister from "./modules/UserApp/pages/Register";
-import MobileVerification from "./modules/UserApp/pages/Verification";
-import MobileForgotPassword from "./modules/UserApp/pages/ForgotPassword";
-import MobileResetPassword from "./modules/UserApp/pages/ResetPassword";
-import MobileProfile from "./modules/UserApp/pages/Profile";
-import UserNotifications from "./modules/UserApp/pages/Notifications";
-import MobileOrders from "./modules/UserApp/pages/Orders";
-import MobileOrderDetail from "./modules/UserApp/pages/OrderDetail";
-import MobileRFQDetail from "./modules/UserApp/pages/RFQDetail";
-import MobileAddresses from "./modules/UserApp/pages/Addresses";
-import MobileWishlist from "./modules/UserApp/pages/Wishlist";
-import MobileOffers from "./modules/UserApp/pages/Offers";
-import MobileDailyDeals from "./modules/UserApp/pages/DailyDeals";
-import MobileFlashSale from "./modules/UserApp/pages/FlashSale";
-import MobileNewArrivals from "./modules/UserApp/pages/NewArrivals";
-import MobileCampaignSale from "./modules/UserApp/pages/CampaignSale";
-import MobileTrackOrder from "./modules/UserApp/pages/TrackOrder";
-import MobileOrderConfirmation from "./modules/UserApp/pages/OrderConfirmation";
-import ComingSoon from "./modules/UserApp/pages/ComingSoon";
-import UserPrivacyPolicy from "./modules/UserApp/pages/PrivacyPolicy";
-import UserTermsConditions from "./modules/UserApp/pages/TermsConditions";
-import UserAgreement from "./modules/UserApp/pages/UserAgreement";
-import UserReturnPolicy from "./modules/UserApp/pages/ReturnPolicy";
-import AboutUs from "./modules/UserApp/pages/AboutUs";
-// Delivery Routes
-import DeliveryLogin from "./modules/Delivery/pages/Login";
-import DeliveryRegister from "./modules/Delivery/pages/Register";
-import DeliveryForgotPassword from "./modules/Delivery/pages/ForgotPassword";
-import DeliveryResetPassword from "./modules/Delivery/pages/ResetPassword";
-import DeliveryProtectedRoute from "./modules/Delivery/components/DeliveryProtectedRoute";
-import DeliveryLayout from "./modules/Delivery/components/Layout/DeliveryLayout";
-import DeliveryDashboard from "./modules/Delivery/pages/Dashboard";
-import DeliveryOrders from "./modules/Delivery/pages/Orders";
-import DeliveryOrderDetail from "./modules/Delivery/pages/OrderDetail";
-import DeliveryProfile from "./modules/Delivery/pages/Profile";
-import DeliveryNotifications from "./modules/Delivery/pages/Notifications";
-// Vendor Routes
-import VendorLogin from "./modules/Vendor/pages/Login";
-import VendorRegister from "./modules/Vendor/pages/Register";
-import VendorVerification from "./modules/Vendor/pages/Verification";
-import VendorForgotPassword from "./modules/Vendor/pages/ForgotPassword";
-import VendorResetPassword from "./modules/Vendor/pages/ResetPassword";
-import VendorProtectedRoute from "./modules/Vendor/components/VendorProtectedRoute";
-import VendorLayout from "./modules/Vendor/components/Layout/VendorLayout";
-import VendorDashboard from "./modules/Vendor/pages/Dashboard";
-import VendorProducts from "./modules/Vendor/pages/Products";
-import VendorManageProducts from "./modules/Vendor/pages/products/ManageProducts";
-import VendorAddProduct from "./modules/Vendor/pages/products/AddProduct";
-import VendorProductForm from "./modules/Vendor/pages/products/ProductForm";
-import VendorOrders from "./modules/Vendor/pages/Orders";
-import VendorAllOrders from "./modules/Vendor/pages/orders/AllOrders";
-import VendorOrderTracking from "./modules/Vendor/pages/orders/OrderTracking";
-import VendorOrderDetail from "./modules/Vendor/pages/orders/OrderDetail";
-import VendorAnalytics from "./modules/Vendor/pages/Analytics";
-import VendorEarnings from "./modules/Vendor/pages/Earnings";
-import VendorSettings from "./modules/Vendor/pages/Settings";
-import VendorStockManagement from "./modules/Vendor/pages/StockManagement";
-import VendorWalletHistory from "./modules/Vendor/pages/WalletHistory";
-import VendorChat from "./modules/Vendor/pages/Chat";
-import VendorReturnRequests from "./modules/Vendor/pages/ReturnRequests";
-import VendorReturnRequestDetail from "./modules/Vendor/pages/returns/ReturnRequestDetail";
-import VendorProductReviews from "./modules/Vendor/pages/ProductReviews";
-import VendorShippingManagement from "./modules/Vendor/pages/ShippingManagement";
-import VendorCustomers from "./modules/Vendor/pages/Customers";
-import VendorCustomerDetail from "./modules/Vendor/pages/CustomerDetail";
-import VendorInventoryReports from "./modules/Vendor/pages/InventoryReports";
-import VendorPerformanceMetrics from "./modules/Vendor/pages/PerformanceMetrics";
-import VendorDocuments from "./modules/Vendor/pages/Documents";
-import VendorNotifications from "./modules/Vendor/pages/Notifications";
-import VendorSupportTickets from "./modules/Vendor/pages/SupportTickets";
-import VendorPickupLocations from "./modules/Vendor/pages/PickupLocations";
-import VendorReports from "./modules/Vendor/pages/Reports";
-import VendorLanguageSettings from "./modules/Vendor/pages/LanguageSettings";
 
-// B2B Enquiry Routes
-import VendorB2BEnquiries from "./modules/Vendor/pages/b2b/B2BEnquiries";
-import VendorB2BEnquiryDetail from "./modules/Vendor/pages/b2b/B2BEnquiryDetail";
-import VendorB2BCreateQuote from "./modules/Vendor/pages/b2b/B2BCreateQuote";
-import VendorB2BQuoteDetail from "./modules/Vendor/pages/b2b/B2BQuoteDetail";
-import VendorB2BAnalytics from "./modules/Vendor/pages/b2b/B2BAnalytics";
-import VendorB2BSettings from "./modules/Vendor/pages/b2b/B2BSettings";
-import VendorDeliverySettings from "./modules/Vendor/pages/VendorDeliverySettings";
-import AdminDeliveryManager from "./modules/Admin/pages/AdminDeliveryManager";
+// Secondary Mobile/UserApp Pages (Lazy Loaded)
+const MobileSeller = lazy(() => import("./modules/UserApp/pages/Seller"));
+const MobileCategory = lazy(() => import("./modules/UserApp/pages/Category"));
+const MobileBrand = lazy(() => import("./modules/UserApp/pages/Brand"));
+const MobileCheckout = lazy(() => import("./modules/UserApp/pages/Checkout"));
+const MobileLogin = lazy(() => import("./modules/UserApp/pages/Login"));
+const MobileHelpSupport = lazy(() => import("./modules/UserApp/pages/HelpSupport"));
+const MobileRegister = lazy(() => import("./modules/UserApp/pages/Register"));
+const MobileVerification = lazy(() => import("./modules/UserApp/pages/Verification"));
+const MobileForgotPassword = lazy(() => import("./modules/UserApp/pages/ForgotPassword"));
+const MobileResetPassword = lazy(() => import("./modules/UserApp/pages/ResetPassword"));
+const MobileProfile = lazy(() => import("./modules/UserApp/pages/Profile"));
+const UserNotifications = lazy(() => import("./modules/UserApp/pages/Notifications"));
+const MobileOrders = lazy(() => import("./modules/UserApp/pages/Orders"));
+const MobileOrderDetail = lazy(() => import("./modules/UserApp/pages/OrderDetail"));
+const MobileRFQDetail = lazy(() => import("./modules/UserApp/pages/RFQDetail"));
+const MobileAddresses = lazy(() => import("./modules/UserApp/pages/Addresses"));
+const MobileWishlist = lazy(() => import("./modules/UserApp/pages/Wishlist"));
+const MobileOffers = lazy(() => import("./modules/UserApp/pages/Offers"));
+const MobileDailyDeals = lazy(() => import("./modules/UserApp/pages/DailyDeals"));
+const MobileFlashSale = lazy(() => import("./modules/UserApp/pages/FlashSale"));
+const MobileNewArrivals = lazy(() => import("./modules/UserApp/pages/NewArrivals"));
+const MobileCampaignSale = lazy(() => import("./modules/UserApp/pages/CampaignSale"));
+const MobileTrackOrder = lazy(() => import("./modules/UserApp/pages/TrackOrder"));
+const MobileOrderConfirmation = lazy(() => import("./modules/UserApp/pages/OrderConfirmation"));
+const ComingSoon = lazy(() => import("./modules/UserApp/pages/ComingSoon"));
+const UserPrivacyPolicy = lazy(() => import("./modules/UserApp/pages/PrivacyPolicy"));
+const UserTermsConditions = lazy(() => import("./modules/UserApp/pages/TermsConditions"));
+const UserAgreement = lazy(() => import("./modules/UserApp/pages/UserAgreement"));
+const UserReturnPolicy = lazy(() => import("./modules/UserApp/pages/ReturnPolicy"));
+const AboutUs = lazy(() => import("./modules/UserApp/pages/AboutUs"));
+
+// Delivery Routes (Lazy Loaded)
+const DeliveryLogin = lazy(() => import("./modules/Delivery/pages/Login"));
+const DeliveryRegister = lazy(() => import("./modules/Delivery/pages/Register"));
+const DeliveryForgotPassword = lazy(() => import("./modules/Delivery/pages/ForgotPassword"));
+const DeliveryResetPassword = lazy(() => import("./modules/Delivery/pages/ResetPassword"));
+const DeliveryProtectedRoute = lazy(() => import("./modules/Delivery/components/DeliveryProtectedRoute"));
+const DeliveryLayout = lazy(() => import("./modules/Delivery/components/Layout/DeliveryLayout"));
+const DeliveryDashboard = lazy(() => import("./modules/Delivery/pages/Dashboard"));
+const DeliveryOrders = lazy(() => import("./modules/Delivery/pages/Orders"));
+const DeliveryOrderDetail = lazy(() => import("./modules/Delivery/pages/OrderDetail"));
+const DeliveryProfile = lazy(() => import("./modules/Delivery/pages/Profile"));
+const DeliveryNotifications = lazy(() => import("./modules/Delivery/pages/Notifications"));
+
+// Vendor Routes (Lazy Loaded)
+const VendorLogin = lazy(() => import("./modules/Vendor/pages/Login"));
+const VendorRegister = lazy(() => import("./modules/Vendor/pages/Register"));
+const VendorVerification = lazy(() => import("./modules/Vendor/pages/Verification"));
+const VendorForgotPassword = lazy(() => import("./modules/Vendor/pages/ForgotPassword"));
+const VendorResetPassword = lazy(() => import("./modules/Vendor/pages/ResetPassword"));
+const VendorProtectedRoute = lazy(() => import("./modules/Vendor/components/VendorProtectedRoute"));
+const VendorLayout = lazy(() => import("./modules/Vendor/components/Layout/VendorLayout"));
+const VendorDashboard = lazy(() => import("./modules/Vendor/pages/Dashboard"));
+const VendorProducts = lazy(() => import("./modules/Vendor/pages/Products"));
+const VendorManageProducts = lazy(() => import("./modules/Vendor/pages/products/ManageProducts"));
+const VendorAddProduct = lazy(() => import("./modules/Vendor/pages/products/AddProduct"));
+const VendorProductForm = lazy(() => import("./modules/Vendor/pages/products/ProductForm"));
+const VendorOrders = lazy(() => import("./modules/Vendor/pages/Orders"));
+const VendorAllOrders = lazy(() => import("./modules/Vendor/pages/orders/AllOrders"));
+const VendorOrderTracking = lazy(() => import("./modules/Vendor/pages/orders/OrderTracking"));
+const VendorOrderDetail = lazy(() => import("./modules/Vendor/pages/orders/OrderDetail"));
+const VendorAnalytics = lazy(() => import("./modules/Vendor/pages/Analytics"));
+const VendorEarnings = lazy(() => import("./modules/Vendor/pages/Earnings"));
+const VendorSettings = lazy(() => import("./modules/Vendor/pages/Settings"));
+const VendorStockManagement = lazy(() => import("./modules/Vendor/pages/StockManagement"));
+const VendorWalletHistory = lazy(() => import("./modules/Vendor/pages/WalletHistory"));
+const VendorChat = lazy(() => import("./modules/Vendor/pages/Chat"));
+const VendorReturnRequests = lazy(() => import("./modules/Vendor/pages/ReturnRequests"));
+const VendorReturnRequestDetail = lazy(() => import("./modules/Vendor/pages/returns/ReturnRequestDetail"));
+const VendorProductReviews = lazy(() => import("./modules/Vendor/pages/ProductReviews"));
+const VendorShippingManagement = lazy(() => import("./modules/Vendor/pages/ShippingManagement"));
+const VendorCustomers = lazy(() => import("./modules/Vendor/pages/Customers"));
+const VendorCustomerDetail = lazy(() => import("./modules/Vendor/pages/CustomerDetail"));
+const VendorInventoryReports = lazy(() => import("./modules/Vendor/pages/InventoryReports"));
+const VendorPerformanceMetrics = lazy(() => import("./modules/Vendor/pages/PerformanceMetrics"));
+const VendorDocuments = lazy(() => import("./modules/Vendor/pages/Documents"));
+const VendorNotifications = lazy(() => import("./modules/Vendor/pages/Notifications"));
+const VendorSupportTickets = lazy(() => import("./modules/Vendor/pages/SupportTickets"));
+const VendorPickupLocations = lazy(() => import("./modules/Vendor/pages/PickupLocations"));
+const VendorReports = lazy(() => import("./modules/Vendor/pages/Reports"));
+const VendorLanguageSettings = lazy(() => import("./modules/Vendor/pages/LanguageSettings"));
+const VendorB2BEnquiries = lazy(() => import("./modules/Vendor/pages/b2b/B2BEnquiries"));
+const VendorB2BEnquiryDetail = lazy(() => import("./modules/Vendor/pages/b2b/B2BEnquiryDetail"));
+const VendorB2BCreateQuote = lazy(() => import("./modules/Vendor/pages/b2b/B2BCreateQuote"));
+const VendorB2BQuoteDetail = lazy(() => import("./modules/Vendor/pages/b2b/B2BQuoteDetail"));
+const VendorB2BAnalytics = lazy(() => import("./modules/Vendor/pages/b2b/B2BAnalytics"));
+const VendorB2BSettings = lazy(() => import("./modules/Vendor/pages/b2b/B2BSettings"));
+const VendorDeliverySettings = lazy(() => import("./modules/Vendor/pages/VendorDeliverySettings"));
 
 // Inner component that has access to useLocation
 const AppRoutes = () => {
@@ -797,7 +779,9 @@ function App() {
         <OfflineDetector>
           <AppBootstrap />
           <ScrollToTop />
-          <AppRoutes />
+          <Suspense fallback={<AppSuspenseLoader />}>
+            <AppRoutes />
+          </Suspense>
           <CartDrawer />
           <Toaster
             position="top-right"

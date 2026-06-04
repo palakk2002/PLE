@@ -48,18 +48,26 @@ export const uploadAttachment = asyncHandler(async (req, res) => {
 
 // POST /api/user/rfq
 export const createRFQ = asyncHandler(async (req, res) => {
-    const { productId, quantity, targetPrice, requirementDetails, expectedDeliveryDate, attachment } = req.body;
+    const { productId, customProductName, quantity, targetPrice, requirementDetails, expectedDeliveryDate, attachment } = req.body;
 
-    const product = await Product.findById(productId);
-    if (!product) {
-        throw new ApiError(404, 'Product not found.');
+    let sellerId = undefined;
+    let productName = customProductName || 'Custom Product';
+
+    if (productId) {
+        const product = await Product.findById(productId);
+        if (!product) {
+            throw new ApiError(404, 'Product not found.');
+        }
+        sellerId = product.vendorId;
+        productName = product.name;
     }
 
     const rfq = await RFQ.create({
         rfqId: generateRfqId(),
         buyerId: req.user.id,
-        sellerId: product.vendorId,
-        productId,
+        sellerId,
+        productId: productId || undefined,
+        customProductName: productId ? undefined : productName,
         quantity,
         targetPrice,
         requirementDetails,
@@ -75,18 +83,20 @@ export const createRFQ = asyncHandler(async (req, res) => {
         }]
     });
 
-    // Notify Vendor
-    await createNotification({
-        recipientId: product.vendorId,
-        recipientType: 'vendor',
-        title: 'New RFQ Received',
-        message: `You have received a new bulk order RFQ for ${product.name}.`,
-        type: 'system',
-        data: {
-            rfqId: rfq.rfqId,
-            id: String(rfq._id)
-        }
-    });
+    // Notify Vendor if assigned
+    if (sellerId) {
+        await createNotification({
+            recipientId: sellerId,
+            recipientType: 'vendor',
+            title: 'New RFQ Received',
+            message: `You have received a new bulk order RFQ for ${productName}.`,
+            type: 'system',
+            data: {
+                rfqId: rfq.rfqId,
+                id: String(rfq._id)
+            }
+        });
+    }
 
     res.status(201).json(new ApiResponse(201, rfq, 'RFQ submitted successfully.'));
 });

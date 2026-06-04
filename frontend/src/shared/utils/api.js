@@ -158,6 +158,37 @@ const runRefresh = async (scope) => {
   return refreshInFlight[scope];
 };
 
+const memoryCache = new Map();
+const CACHE_TTL_MS = 60 * 1000; // 60 seconds
+
+const isCacheableUrl = (url = '') => {
+  if (url.includes('/categories') || url.includes('/admin/categories')) {
+    return true;
+  }
+  if (url.includes('/products') && !url.includes('/products/refurb_')) {
+    return true;
+  }
+  return false;
+};
+
+const getCacheKey = (config) => {
+  const url = config.url || '';
+  const params = config.params ? JSON.stringify(config.params) : '';
+  const scope = getScopeFromUrl(url);
+  return `${scope}:${url}:${params}`;
+};
+
+const clearCacheByUrlMatch = (url = '') => {
+  const lowerUrl = url.toLowerCase();
+  for (const key of memoryCache.keys()) {
+    if (lowerUrl.includes('/products') && key.includes('/products')) {
+      memoryCache.delete(key);
+    } else if (lowerUrl.includes('/categories') && key.includes('/categories')) {
+      memoryCache.delete(key);
+    }
+  }
+};
+
 api.interceptors.request.use(
   (config) => {
     const scope = getScopeFromUrl(config.url || '');
@@ -165,6 +196,34 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // In-memory caching logic
+    const method = config.method?.toLowerCase() || '';
+    if (method === 'get' && isCacheableUrl(config.url)) {
+      const cacheKey = getCacheKey(config);
+      const cached = memoryCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        config.adapter = () => {
+          return Promise.resolve({
+            data: cached.data,
+            headers: config.headers,
+            config,
+            request: null,
+            status: 200,
+            statusText: 'OK',
+          });
+        };
+      }
+    } else if (method !== 'get') {
+      // Invalidate related cache entries on mutation
+      clearCacheByUrlMatch(config.url || '');
+    }
+
+    // Invalidate full cache on logout requests
+    if (config.url?.includes('/logout') || config.url?.includes('/auth/logout')) {
+      memoryCache.clear();
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -284,6 +343,15 @@ api.interceptors.response.use(
       }
     }
     
+    const method = response.config?.method?.toLowerCase() || '';
+    if (method === 'get' && isCacheableUrl(url) && response.status === 200) {
+      const cacheKey = getCacheKey(response.config);
+      memoryCache.set(cacheKey, {
+        data: response.data,
+        timestamp: Date.now()
+      });
+    }
+
     return response.data;
   },
   async (error) => {

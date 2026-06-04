@@ -41,6 +41,7 @@ import { useOffers } from "../../offers/hooks/useOffers";
 import OfferCarousel from "../../offers/components/OfferCarousel";
 import OfferModal from "../../offers/components/OfferModal";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
+import B2BRequestQuoteModal from "../components/B2B/B2BRequestQuoteModal";
 
 const normalizeId = (value) => String(value ?? "").trim();
 const toNumber = (value, fallback = 0) => {
@@ -258,6 +259,7 @@ const MobileHome = () => {
   const [homeVendors, setHomeVendors] = useState([]);
   const [homeBrands, setHomeBrands] = useState([]);
   const [selectedHomeOffer, setSelectedHomeOffer] = useState(null);
+  const [isCustomRfqOpen, setIsCustomRfqOpen] = useState(false);
 
   // Load active offers
   const { offers } = useOffers();
@@ -629,17 +631,21 @@ const MobileHome = () => {
           {/* Top Category Quick Nav Bar */}
           <MobileCategoryQuickNav />
 
-          {/* Prominent RFQ Section for B2B Users */}
+          {/* Slim RFQ Strip for B2B Users */}
           {isBusiness && (
             <div className="px-4 pt-2">
-              <div className="bg-gradient-to-r from-primary-600 to-primary-800 rounded-2xl p-5 text-white shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-extrabold text-lg sm:text-xl">Need Bulk Orders?</h3>
-                  <p className="text-xs text-primary-105 mt-1 max-w-md">Request a custom quote directly on product pages to unlock bulk discounts, customized packaging, and NET credit terms.</p>
+              <div className="bg-gradient-to-r from-[#AE020B] to-[#7B0A0A] rounded-xl px-4 py-2 text-white shadow-sm flex items-center justify-between gap-3 bg-[#AE020B]">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="bg-white/20 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md tracking-wider hidden xs:inline-block shrink-0">
+                    RFQ
+                  </span>
+                  <p className="text-xs font-semibold truncate">
+                    Need custom branding, size, or bulk rates?
+                  </p>
                 </div>
                 <button
-                  onClick={() => navigate('/search')}
-                  className="px-6 py-2.5 bg-white text-primary-750 font-bold rounded-xl text-sm hover:bg-primary-50 hover:shadow-md transition-all whitespace-nowrap active:scale-95"
+                  onClick={() => setIsCustomRfqOpen(true)}
+                  className="px-4 py-1.5 bg-white text-[#AE020B] font-extrabold rounded-lg text-xs hover:bg-red-50 transition-all whitespace-nowrap shrink-0 active:scale-95 shadow-sm"
                 >
                   Request Quote
                 </button>
@@ -991,6 +997,13 @@ const MobileHome = () => {
             isOpen={!!selectedHomeOffer}
             onClose={() => setSelectedHomeOffer(null)}
             offer={selectedHomeOffer}
+          />
+
+          {/* Custom General B2B RFQ Modal */}
+          <B2BRequestQuoteModal
+            isOpen={isCustomRfqOpen}
+            onClose={() => setIsCustomRfqOpen(false)}
+            product={null}
           />
 
           {/* Bottom Spacing */}
