@@ -4,6 +4,7 @@ import ApiError from '../../../utils/ApiError.js';
 import Review from '../../../models/Review.model.js';
 import Product from '../../../models/Product.model.js';
 import Order from '../../../models/Order.model.js';
+import User from '../../../models/User.model.js';
 
 // GET /api/user/reviews/product/:productId
 export const getProductReviews = asyncHandler(async (req, res) => {
@@ -39,7 +40,25 @@ export const addReview = asyncHandler(async (req, res) => {
     const existing = await Review.findOne({ productId, userId: req.user.id });
     if (existing) throw new ApiError(409, 'You have already reviewed this product.');
 
-    const review = await Review.create({ productId, userId: req.user.id, orderId, rating, comment, images, isVerifiedPurchase: true });
+    const user = await User.findById(req.user.id);
+    if (!user) throw new ApiError(404, 'User not found.');
+
+    const reviewerType = user.companyName ? 'B2B' : 'B2C';
+    const companyName = user.companyName || undefined;
+    const verificationStatus = user.verificationStatus || undefined;
+
+    const review = await Review.create({
+        productId,
+        userId: req.user.id,
+        orderId,
+        rating,
+        comment,
+        images,
+        isVerifiedPurchase: true,
+        reviewerType,
+        companyName,
+        verificationStatus,
+    });
     res.status(201).json(new ApiResponse(201, review, 'Review submitted and pending approval.'));
 });
 

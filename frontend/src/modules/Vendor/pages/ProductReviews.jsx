@@ -22,6 +22,7 @@ const ProductReviews = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRating, setSelectedRating] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState("all");
+  const [selectedReviewerType, setSelectedReviewerType] = useState("all");
   const [selectedReview, setSelectedReview] = useState(null);
   const [responseText, setResponseText] = useState("");
 
@@ -37,7 +38,10 @@ const ProductReviews = () => {
       setIsLoading(true);
       try {
         await fetchProducts({ fetchAll: true, limit: 200 });
-        const res = await getAllVendorReviews({ limit: 100 });
+        const res = await getAllVendorReviews({
+          limit: 100,
+          reviewerType: selectedReviewerType === "all" ? undefined : selectedReviewerType
+        });
         const payload = res?.data ?? res;
         setReviews(payload?.reviews ?? []);
       } catch {
@@ -48,7 +52,7 @@ const ProductReviews = () => {
     };
 
     fetchData();
-  }, [vendorId, fetchProducts]);
+  }, [vendorId, fetchProducts, selectedReviewerType]);
 
   const vendorProducts = products || [];
 
@@ -80,8 +84,14 @@ const ProductReviews = () => {
       );
     }
 
+    if (selectedReviewerType !== "all") {
+      filtered = filtered.filter(
+        (review) => review.reviewerType === selectedReviewerType
+      );
+    }
+
     return filtered;
-  }, [reviews, searchQuery, selectedRating, selectedProduct]);
+  }, [reviews, searchQuery, selectedRating, selectedProduct, selectedReviewerType]);
 
   const handleResponse = async (reviewId) => {
     const text = responseText.trim();
@@ -162,6 +172,40 @@ const ProductReviews = () => {
       ),
     },
     {
+      key: "reviewerType",
+      label: "Review Type",
+      sortable: true,
+      render: (value) => (
+        <span className="text-xs font-semibold text-gray-700">
+          {value === 'B2B' ? 'Business Buyer Review' : 'Customer Review'}
+        </span>
+      ),
+    },
+    {
+      key: "buyerType",
+      label: "Buyer Type",
+      sortable: true,
+      render: (_, row) => (
+        <div>
+          <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase ${
+            row.reviewerType === 'B2B'
+              ? 'bg-blue-50 text-blue-700 border border-blue-100'
+              : 'bg-green-50 text-green-700 border border-green-100'
+          }`}>
+            {row.reviewerType === 'B2B' ? 'B2B' : 'B2C'}
+          </span>
+          {row.reviewerType === 'B2B' && row.companyName && (
+            <div className="text-[10px] font-bold text-gray-600 mt-1 flex items-center gap-1">
+              🏢 {row.companyName}
+              {row.verificationStatus === 'Approved' && (
+                <span className="text-[9px] font-extrabold bg-indigo-50 text-indigo-700 px-1 rounded">✓ Verified</span>
+              )}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
       key: "rating",
       label: "Rating",
       sortable: true,
@@ -169,7 +213,7 @@ const ProductReviews = () => {
     },
     {
       key: "comment",
-      label: "Review",
+      label: "Review Content",
       sortable: false,
       render: (value) => (
         <p className="max-w-xs truncate text-sm text-gray-600">
@@ -310,6 +354,17 @@ const ProductReviews = () => {
           />
 
           <AnimatedSelect
+            value={selectedReviewerType}
+            onChange={(e) => setSelectedReviewerType(e.target.value)}
+            options={[
+              { value: "all", label: "All Reviews" },
+              { value: "B2C", label: "B2C Reviews" },
+              { value: "B2B", label: "B2B Reviews" },
+            ]}
+            className="w-full sm:w-auto min-w-[140px]"
+          />
+
+          <AnimatedSelect
             value={selectedProduct}
             onChange={(e) => setSelectedProduct(e.target.value)}
             options={[
@@ -328,8 +383,11 @@ const ProductReviews = () => {
               headers={[
                 { label: "Product", accessor: (row) => row.productName },
                 { label: "Customer", accessor: (row) => row.customerName },
+                { label: "Review Type", accessor: (row) => row.reviewerType === 'B2B' ? 'Business Buyer Review' : 'Customer Review' },
+                { label: "Buyer Type", accessor: (row) => row.reviewerType === 'B2B' ? 'B2B' : 'B2C' },
+                { label: "Company", accessor: (row) => row.companyName || '' },
                 { label: "Rating", accessor: (row) => row.rating },
-                { label: "Review", accessor: (row) => row.comment },
+                { label: "Review Content", accessor: (row) => row.comment },
                 { label: "Status", accessor: (row) => row.status },
                 {
                   label: "Date",
@@ -398,11 +456,29 @@ const ProductReviews = () => {
 
               <div>
                 <label className="text-sm font-semibold text-gray-600">
-                  Customer
+                  Customer / Business
                 </label>
-                <p className="text-base text-gray-800 mt-1">
-                  {selectedReview.customerName}
-                </p>
+                <div className="text-base text-gray-800 mt-1 space-y-1">
+                  <p className="font-semibold">{selectedReview.customerName}</p>
+                  <p className="text-xs text-gray-500">{selectedReview.customerEmail}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase ${
+                      selectedReview.reviewerType === 'B2B'
+                        ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                        : 'bg-green-50 text-green-700 border border-green-100'
+                    }`}>
+                      {selectedReview.reviewerType === 'B2B' ? 'B2B Business' : 'B2C Customer'}
+                    </span>
+                    {selectedReview.reviewerType === 'B2B' && selectedReview.companyName && (
+                      <span className="text-xs font-bold text-gray-600 flex items-center gap-0.5">
+                        🏢 {selectedReview.companyName}
+                      </span>
+                    )}
+                    {selectedReview.reviewerType === 'B2B' && selectedReview.verificationStatus === 'Approved' && (
+                      <span className="text-[9px] font-extrabold bg-indigo-50 text-indigo-700 px-1.5 py-0.25 rounded">✓ Verified Business</span>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -438,11 +514,11 @@ const ProductReviews = () => {
                     Respond to Review
                   </label>
                   <textarea
-                    value={responseText}
-                    onChange={(e) => setResponseText(e.target.value)}
-                    placeholder="Write your response..."
-                    className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    rows="4"
+                     value={responseText}
+                     onChange={(e) => setResponseText(e.target.value)}
+                     placeholder="Write your response..."
+                     className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                     rows="4"
                   />
                   <button
                     onClick={() => handleResponse(selectedReview.id)}

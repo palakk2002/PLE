@@ -10,7 +10,7 @@ import { syncProductAndVendorReviewStats } from '../../../services/reviewAggrega
  * @access  Private (Admin)
  */
 export const getAllReviews = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, search = '', status } = req.query;
+    const { page = 1, limit = 10, search = '', status, reviewerType } = req.query;
     const numericPage = Number(page) || 1;
     const numericLimit = Number(limit) || 10;
 
@@ -18,6 +18,10 @@ export const getAllReviews = asyncHandler(async (req, res) => {
 
     if (status === 'approved') filter.isApproved = true;
     if (status === 'pending') filter.isApproved = false;
+
+    if (reviewerType === 'B2C' || reviewerType === 'B2B') {
+        filter.reviewerType = reviewerType;
+    }
 
     if (search) {
         const regex = new RegExp(search, 'i');
@@ -67,7 +71,10 @@ export const getAllReviews = asyncHandler(async (req, res) => {
         productName: review.productId ? review.productId.name : 'Unknown Product',
         productId: review.productId?._id ? String(review.productId._id) : '',
         review: review.comment || '',
-        status: review.isApproved ? 'approved' : 'pending'
+        status: review.isApproved ? 'approved' : 'pending',
+        reviewerType: review.reviewerType ?? 'B2C',
+        companyName: review.companyName,
+        verificationStatus: review.verificationStatus
     }));
 
     res.status(200).json(

@@ -15,6 +15,9 @@ const reviewSchema = new mongoose.Schema(
         vendorResponse: { type: String, default: '' },
         responseDate: { type: Date },
         isVerifiedPurchase: { type: Boolean, default: false },
+        reviewerType: { type: String, enum: ['B2C', 'B2B'], default: 'B2C', required: true },
+        companyName: { type: String },
+        verificationStatus: { type: String },
     },
     { timestamps: true }
 );

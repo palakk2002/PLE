@@ -1234,39 +1234,65 @@ const MobileProductDetail = () => {
                 {productReviews.length > 0 && (
                   <div className="pt-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">
-                      Customer Reviews ({productReviews.length})
+                      Product Reviews ({productReviews.length})
                     </h3>
                     <div className="space-y-4">
                       {productReviews.slice(0, 3).map((review) => (
                         <div
                           key={review.id}
-                          className="bg-white border border-gray-100 rounded-xl p-4 shadow-sm"
+                          className="bg-white border border-gray-150 rounded-2xl p-5 shadow-sm space-y-3"
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
+                          <div className="flex flex-wrap items-start justify-between gap-2">
+                            <div className="flex items-start gap-3">
+                              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-sm font-extrabold text-gray-700 border border-gray-200">
                                 {review.user.charAt(0)}
                               </div>
-                              <span className="text-sm font-bold text-gray-900">
-                                {review.user}
-                              </span>
+                              <div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-sm font-bold text-gray-900">
+                                    {review.user}
+                                  </span>
+                                  <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                                    review.reviewerType === 'B2B'
+                                      ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                                      : 'bg-green-50 text-green-700 border border-green-100'
+                                  }`}>
+                                    {review.reviewerType === 'B2B' ? 'Business Buyer Review' : 'Customer Review'}
+                                  </span>
+                                </div>
+                                {review.reviewerType === 'B2B' && review.companyName && (
+                                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                                    <span className="text-xs font-semibold text-gray-600">
+                                      🏢 {review.companyName}
+                                    </span>
+                                    {review.verificationStatus === 'Approved' && (
+                                      <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-indigo-700 bg-indigo-50 border border-indigo-100 px-1.5 py-0.25 rounded">
+                                        ✓ Verified Business
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
+                                <div className="text-[11px] text-gray-450 mt-1 font-medium">
+                                  {new Date(review.date || review.createdAt).toLocaleDateString()}
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <span className="font-bold text-sm text-gray-700">
+                            <div className="flex items-center gap-1 bg-yellow-50 border border-yellow-100/60 px-2.5 py-1 rounded-lg">
+                              <span className="font-extrabold text-xs text-yellow-800">
                                 {review.rating}
                               </span>
-                              <FiStar className="text-yellow-400 fill-yellow-400 text-sm" />
+                              <FiStar className="text-yellow-500 fill-yellow-500 text-xs" />
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600 leading-relaxed pl-10">
+                          <p className="text-sm text-gray-750 leading-relaxed pl-12 font-normal">
                             {review.comment}
                           </p>
                           {review.vendorResponse && (
-                            <div className="mt-3 ml-10 bg-primary-50 border border-primary-100 rounded-lg p-3">
-                              <p className="text-xs font-semibold text-primary-700 mb-1">
+                            <div className="mt-3 ml-12 bg-primary-50/50 border border-primary-100/60 rounded-xl p-3.5">
+                              <p className="text-xs font-bold text-primary-800 mb-1">
                                 Vendor Response
                               </p>
-                              <p className="text-sm text-primary-800">
+                              <p className="text-sm text-primary-900/90 leading-relaxed">
                                 {review.vendorResponse}
                               </p>
                             </div>

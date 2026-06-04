@@ -11,6 +11,9 @@ const normalizeReview = (review) => ({
   date: review?.date || review?.createdAt || new Date().toISOString(),
   helpfulCount: review?.helpfulCount || 0,
   notHelpfulCount: review?.notHelpfulCount || 0,
+  reviewerType: review?.reviewerType || 'B2C',
+  companyName: review?.companyName || '',
+  verificationStatus: review?.verificationStatus || '',
 });
 
 export const useReviewsStore = create(

@@ -31,7 +31,7 @@ const BrandLogosScroll = ({ brands = null }) => {
                                     <img
                                         src={brand.logo}
                                         alt={brand.name}
-                                        className="w-full h-full object-contain"
+                                        className="w-full h-full object-contain dark:invert"
                                         onError={(e) => {
                                             e.target.src = 'https://via.placeholder.com/120x80?text=Brand';
                                         }}

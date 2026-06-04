@@ -23,6 +23,7 @@ import {
   FiStar,
   FiMessageSquare,
   FiHeart,
+  FiUsers,
 } from "react-icons/fi";
 
 // Offers System Imports
@@ -344,6 +345,14 @@ const MobileProfile = () => {
       color: "text-[#7B0A0A]",
       bg: "bg-red-50",
       link: "/return-policy",
+    },
+    {
+      id: "about",
+      label: "About Us",
+      icon: FiUsers,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/about-us",
     },
   ];
 

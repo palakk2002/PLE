@@ -144,15 +144,15 @@ const MobileHeader = () => {
       };
       return (
         gradientMap[currentCategoryId] ||
-        "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)"
+        "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)"
       );
     }
 
     // Page-specific gradients
     const pageGradients = {
-      home: "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)", // Brand red background
+      home: "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
       product:
-        "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)", // Brand red background
+        "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
       search:
         "linear-gradient(to bottom, rgb(249, 115, 22) 0%, rgb(251, 146, 60) 30%, rgb(255, 237, 213) 60%, rgb(255, 255, 255) 100%)", // Orange gradient
       wishlist:
@@ -165,7 +165,7 @@ const MobileHeader = () => {
         "linear-gradient(to bottom, rgb(59, 130, 246) 0%, rgb(96, 165, 250) 30%, rgb(219, 234, 254) 60%, rgb(255, 255, 255) 100%)", // Blue gradient
       checkout:
         "linear-gradient(to bottom, rgb(16, 185, 129) 0%, rgb(52, 211, 153) 30%, rgb(209, 250, 229) 60%, rgb(255, 255, 255) 100%)", // Green gradient
-      offers: "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)", // Brand red background
+      offers: "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
       dailyDeals:
         "linear-gradient(to bottom, rgb(234, 179, 8) 0%, rgb(250, 204, 21) 30%, rgb(254, 243, 199) 60%, rgb(255, 255, 255) 100%)", // Yellow gradient
       flashSale:
@@ -173,7 +173,7 @@ const MobileHeader = () => {
       vendor:
         "linear-gradient(to bottom, rgb(185, 28, 28) 0%, rgb(239, 68, 68) 30%, rgb(254, 226, 226) 60%, rgb(255, 255, 255) 100%)", // Premium brand red gradient
       default:
-        "linear-gradient(to bottom, #7B0A0A 0%, #7B0A0A 100%)", // Brand red background
+        "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
     };
 
     return pageGradients[currentPage] || pageGradients.default;

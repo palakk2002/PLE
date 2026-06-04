@@ -264,7 +264,7 @@ const SearchBar = () => {
             onFocus={handleInputFocus}
             onBlur={handleInputBlur}
             onKeyDown={handleKeyDown}
-            className="w-full pl-12 pr-4 md:pl-12 md:pr-12 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400 md:text-center"
+            className="w-full pl-12 pr-4 md:pl-12 md:pr-4 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:shadow-glow transition-all duration-300 text-gray-700 placeholder:text-gray-400"
           />
           {/* Animated placeholder overlay */}
           <motion.span
@@ -279,7 +279,7 @@ const SearchBar = () => {
                 ? { repeat: Infinity, repeatType: "loop", duration: 4, ease: "linear" } 
                 : { duration: 0 }
             }}
-            className="absolute inset-y-0 left-12 md:left-12 md:right-12 flex items-center justify-start md:justify-center text-gray-400 pointer-events-none z-10 whitespace-nowrap overflow-hidden text-ellipsis text-left md:text-center"
+            className="absolute inset-y-0 left-12 md:left-12 md:right-12 flex items-center justify-start text-gray-400 pointer-events-none z-10 whitespace-nowrap overflow-hidden text-ellipsis text-left"
           >
             {displayedPlaceholder}
           </motion.span>

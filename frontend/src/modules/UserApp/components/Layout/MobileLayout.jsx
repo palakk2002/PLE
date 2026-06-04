@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import MobileHeader from './MobileHeader';
 import DesktopHeader from './DesktopHeader';
+import DesktopFooter from './DesktopFooter';
 import MobileBottomNav from './MobileBottomNav';
 import MobileCartBar from './MobileCartBar';
 import CartDrawer from '../../../../shared/components/Cart/CartDrawer';
@@ -46,6 +47,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
       >
         {children}
       </main>
+      {!isAuthPage && !isCheckoutPage && <DesktopFooter />}
       {showCartBar && <MobileCartBar />}
       {shouldShowBottomNav && <MobileBottomNav />}
       <CartDrawer />
@@ -54,4 +56,5 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
 };
 
 export default MobileLayout;
+
 

@@ -13,13 +13,15 @@ const Reviews = () => {
   const { reviews, isLoading, fetchReviews, updateReviewStatus, deleteReview, pagination } = useReviewStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedReviewerType, setSelectedReviewerType] = useState('all');
 
   useEffect(() => {
     fetchReviews({
       search: searchQuery,
-      status: selectedStatus === 'all' ? undefined : selectedStatus
+      status: selectedStatus === 'all' ? undefined : selectedStatus,
+      reviewerType: selectedReviewerType === 'all' ? undefined : selectedReviewerType
     });
-  }, [searchQuery, selectedStatus, fetchReviews]);
+  }, [searchQuery, selectedStatus, selectedReviewerType, fetchReviews]);
 
   const handleApprove = async (id) => {
     await updateReviewStatus(id, 'approved');
@@ -43,13 +45,45 @@ const Reviews = () => {
     },
     {
       key: 'customerName',
-      label: 'Customer',
+      label: 'Customer / Business',
       sortable: true,
       render: (value, row) => (
         <div>
           <p className="font-semibold text-gray-800">{value}</p>
           <p className="text-xs text-gray-500">{row.customerEmail}</p>
+          {row.reviewerType === 'B2B' && row.companyName && (
+            <p className="text-xs font-bold text-blue-600 mt-1 flex items-center gap-1">
+              🏢 {row.companyName}
+              {row.verificationStatus === 'Approved' && (
+                <span className="text-[9px] font-extrabold bg-indigo-50 text-indigo-700 px-1 rounded">✓ Verified</span>
+              )}
+            </p>
+          )}
         </div>
+      ),
+    },
+    {
+      key: 'reviewerType',
+      label: 'Review Type',
+      sortable: true,
+      render: (value) => (
+        <span className="text-xs font-semibold text-gray-700">
+          {value === 'B2B' ? 'Business Buyer Review' : 'Customer Review'}
+        </span>
+      ),
+    },
+    {
+      key: 'buyerType',
+      label: 'Buyer Type',
+      sortable: true,
+      render: (_, row) => (
+        <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase ${
+          row.reviewerType === 'B2B'
+            ? 'bg-blue-50 text-blue-700 border border-blue-100'
+            : 'bg-green-50 text-green-700 border border-green-100'
+        }`}>
+          {row.reviewerType === 'B2B' ? 'B2B' : 'B2C'}
+        </span>
       ),
     },
     {
@@ -68,7 +102,7 @@ const Reviews = () => {
     },
     {
       key: 'comment',
-      label: 'Comment',
+      label: 'Review Content',
       sortable: false,
       render: (value) => <p className="max-w-xs truncate text-sm">{value}</p>,
     },
@@ -155,12 +189,25 @@ const Reviews = () => {
             ]}
             className="min-w-[140px]"
           />
+          <AnimatedSelect
+            value={selectedReviewerType}
+            onChange={(e) => setSelectedReviewerType(e.target.value)}
+            options={[
+              { value: 'all', label: 'All Reviews' },
+              { value: 'B2C', label: 'B2C Reviews' },
+              { value: 'B2B', label: 'B2B Reviews' },
+            ]}
+            className="min-w-[140px]"
+          />
           <ExportButton
             data={reviews}
             headers={[
               { label: 'ID', accessor: (row) => row.id },
               { label: 'Product', accessor: (row) => row.productName },
               { label: 'Customer', accessor: (row) => row.customerName },
+              { label: 'Review Type', accessor: (row) => row.reviewerType === 'B2B' ? 'Business Buyer Review' : 'Customer Review' },
+              { label: 'Buyer Type', accessor: (row) => row.reviewerType === 'B2B' ? 'B2B' : 'B2C' },
+              { label: 'Company', accessor: (row) => row.companyName || '' },
               { label: 'Rating', accessor: (row) => row.rating },
               { label: 'Comment', accessor: (row) => row.comment },
               { label: 'Status', accessor: (row) => row.status },

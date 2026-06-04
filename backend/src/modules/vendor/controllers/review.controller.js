@@ -17,12 +17,15 @@ const normalizeReview = (reviewDoc) => {
         customerName: review.userId?.name ?? 'Unknown',
         customerEmail: review.userId?.email ?? 'N/A',
         status,
+        reviewerType: review.reviewerType ?? 'B2C',
+        companyName: review.companyName,
+        verificationStatus: review.verificationStatus,
     };
 };
 
 // GET /api/vendor/reviews
 export const getVendorReviews = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20, rating, productId } = req.query;
+    const { page = 1, limit = 20, rating, productId, reviewerType } = req.query;
     const numericPage = Math.max(1, Number(page) || 1);
     const numericLimit = Math.max(1, Number(limit) || 20);
 
@@ -50,6 +53,9 @@ export const getVendorReviews = asyncHandler(async (req, res) => {
     }
     if (productId) {
         filter.productId = { $in: vendorProductIds.filter((id) => String(id) === String(productId)) };
+    }
+    if (reviewerType === 'B2C' || reviewerType === 'B2B') {
+        filter.reviewerType = reviewerType;
     }
 
     const [reviews, total] = await Promise.all([
