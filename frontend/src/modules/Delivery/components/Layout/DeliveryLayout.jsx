@@ -31,6 +31,7 @@ const DeliveryLayout = () => {
   const menuItems = [
     { icon: FiHome, label: "Dashboard", path: "/delivery/dashboard" },
     { icon: FiPackage, label: "Orders", path: "/delivery/orders" },
+    { icon: FiTruck, label: "Return Pickups", path: "/delivery/pickups" },
     { icon: FiBell, label: "Notifications", path: "/delivery/notifications" },
     { icon: FiUser, label: "Profile", path: "/delivery/profile" },
   ];

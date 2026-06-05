@@ -28,11 +28,18 @@ const ReturnRequestDetail = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [status, setStatus] = useState('');
   const statusTransitions = {
-    pending: ['approved', 'rejected'],
-    approved: ['processing', 'completed'],
-    processing: ['completed'],
-    rejected: [],
-    completed: [],
+    'Request Submitted': ['Under Review', 'Approved', 'Rejected'],
+    'Under Review': ['Approved', 'Rejected'],
+    'Approved': ['Pickup Scheduled', 'Rejected'],
+    'Pickup Scheduled': ['Picked Up'],
+    'Picked Up': ['Refund Initiated'],
+    'Refund Initiated': ['Refund Completed'],
+    'Rejected': [],
+    'Refund Completed': [],
+    pending: ['Under Review', 'Approved', 'Rejected'],
+    approved: ['Pickup Scheduled', 'Rejected'],
+    processing: ['Picked Up'],
+    completed: ['Refund Completed'],
   };
 
   useEffect(() => {
@@ -391,49 +398,37 @@ const ReturnRequestDetail = () => {
               <FiCalendar className="text-primary-600 text-base" />
               Status Timeline
             </h2>
-            <div className="space-y-2">
-              <div className="flex items-start gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-semibold text-gray-800">Request Submitted</p>
-                  <p className="text-xs text-gray-500">{formatDateTime(returnRequest.requestDate)}</p>
-                </div>
-              </div>
-              {returnRequest.status === 'approved' && (
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-800">Approved</p>
-                    <p className="text-xs text-gray-500">{formatDateTime(returnRequest.updatedAt)}</p>
+            <div className="space-y-4">
+              {returnRequest.timeline && returnRequest.timeline.length > 0 ? (
+                returnRequest.timeline.map((event, idx) => (
+                  <div key={idx} className="flex items-start gap-3">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-800">{event.status}</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">{event.note || `Return request transitioned to ${event.status}`}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5">{formatDateTime(event.date)}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-              {returnRequest.status === 'processing' && (
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 mt-1.5 flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-800">Processing</p>
-                    <p className="text-xs text-gray-500">{formatDateTime(returnRequest.updatedAt)}</p>
+                ))
+              ) : (
+                <>
+                  <div className="flex items-start gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-semibold text-gray-800">Request Submitted</p>
+                      <p className="text-xs text-gray-500">{formatDateTime(returnRequest.requestDate)}</p>
+                    </div>
                   </div>
-                </div>
-              )}
-              {returnRequest.status === 'completed' && (
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-800">Completed</p>
-                    <p className="text-xs text-gray-500">{formatDateTime(returnRequest.updatedAt)}</p>
-                  </div>
-                </div>
-              )}
-              {returnRequest.status === 'rejected' && (
-                <div className="flex items-start gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-gray-800">Rejected</p>
-                    <p className="text-xs text-gray-500">{formatDateTime(returnRequest.updatedAt)}</p>
-                  </div>
-                </div>
+                  {returnRequest.status !== 'Request Submitted' && (
+                    <div className="flex items-start gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 flex-shrink-0"></div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-semibold text-gray-800">{returnRequest.status}</p>
+                        <p className="text-xs text-gray-500">{formatDateTime(returnRequest.updatedAt)}</p>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

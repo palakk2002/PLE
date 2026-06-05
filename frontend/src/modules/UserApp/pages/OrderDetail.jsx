@@ -1,9 +1,10 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FiPackage, FiTruck, FiMapPin, FiCreditCard, FiRotateCw, FiArrowLeft, FiShoppingBag, FiX } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import MobileLayout from "../components/Layout/MobileLayout";
 import { useOrderStore } from '../../../shared/store/orderStore';
+import { useReturnStore } from '../../../shared/store/returnStore';
 import { useCartStore } from '../../../shared/store/useStore';
 import { formatPrice } from '../../../shared/utils/helpers';
 import { formatVariantLabel, getVariantSignature } from '../../../shared/utils/variant';
@@ -16,13 +17,20 @@ const MobileOrderDetail = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
   const { getOrder, cancelOrder, fetchOrderById, requestReturn } = useOrderStore();
+  const { returnRequests, fetchReturnRequests } = useReturnStore();
   const { addItem } = useCartStore();
   const [isResolving, setIsResolving] = useState(true);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnReason, setReturnReason] = useState('Product issue');
   const [returnVendorId, setReturnVendorId] = useState('');
   const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
+
+  useEffect(() => {
+    fetchReturnRequests().catch(() => null);
+  }, [fetchReturnRequests]);
+
   const order = getOrder(orderId);
+  const existingReturn = returnRequests.find(r => String(r.orderId) === String(orderId));
   const shippingAddress = order?.shippingAddress || {};
   const orderItems = Array.isArray(order?.items) ? order.items : [];
   const vendorOptions = Array.isArray(order?.vendorItems)
@@ -362,13 +370,23 @@ const MobileOrderDetail = () => {
                   Reorder
                 </button>
                 {order.status === 'delivered' && (
-                  <button
-                    onClick={openReturnModal}
-                    className="w-full py-3 bg-amber-50 text-amber-700 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-amber-100 transition-colors"
-                  >
-                    <FiPackage className="text-lg" />
-                    Request Return
-                  </button>
+                  existingReturn ? (
+                    <button
+                      onClick={() => navigate(`/returns/${existingReturn.id}`)}
+                      className="w-full py-3 bg-blue-50 text-blue-700 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-blue-100 transition-colors"
+                    >
+                      <FiPackage className="text-lg" />
+                      View Return Request ({existingReturn.status})
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => navigate(`/returns/request/${order.id}`)}
+                      className="w-full py-3 bg-amber-50 text-amber-700 rounded-xl font-semibold flex items-center justify-center gap-2 hover:bg-amber-100 transition-colors"
+                    >
+                      <FiPackage className="text-lg" />
+                      Return Item
+                    </button>
+                  )
                 )}
                 <button
                   onClick={() => navigate(`/track-order/${order.id}`)}

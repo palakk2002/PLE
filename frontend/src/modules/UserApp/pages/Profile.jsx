@@ -259,6 +259,14 @@ const MobileProfile = () => {
       link: "/orders",
     },
     {
+      id: "returns",
+      label: "My Returns",
+      icon: FiPackage,
+      color: "text-amber-600",
+      bg: "bg-amber-50",
+      link: "/returns",
+    },
+    {
       id: "addresses",
       label: "My Addresses",
       icon: FiMapPin,

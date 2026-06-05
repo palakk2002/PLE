@@ -268,6 +268,28 @@ const DeliveryDashboard = () => {
             );
           })}
         </div>
+        
+        {/* Return Collections Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          onClick={() => navigate('/delivery/pickups')}
+          className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:shadow-md transition-all shadow-sm"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center text-white">
+              <FiPackage className="text-xl" />
+            </div>
+            <div>
+              <h3 className="font-bold text-amber-900 text-sm">Return Pickups</h3>
+              <p className="text-[11px] text-amber-700 font-medium">Verify customer returns & pick up packages</p>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-amber-700 bg-white border border-amber-200 px-3 py-1.5 rounded-xl">
+            View collection list →
+          </span>
+        </motion.div>
 
         {/* Recent Orders Section with Logistics Segmented Tabs */}
         <motion.div

@@ -152,6 +152,9 @@ const UserTermsConditions = lazy(() => import("./modules/UserApp/pages/TermsCond
 const UserAgreement = lazy(() => import("./modules/UserApp/pages/UserAgreement"));
 const UserReturnPolicy = lazy(() => import("./modules/UserApp/pages/ReturnPolicy"));
 const AboutUs = lazy(() => import("./modules/UserApp/pages/AboutUs"));
+const Returns = lazy(() => import("./modules/UserApp/pages/Returns"));
+const ReturnRequestForm = lazy(() => import("./modules/UserApp/pages/ReturnRequestForm"));
+const ReturnDetail = lazy(() => import("./modules/UserApp/pages/ReturnDetail"));
 
 // Delivery Routes (Lazy Loaded)
 const DeliveryLogin = lazy(() => import("./modules/Delivery/pages/Login"));
@@ -165,6 +168,7 @@ const DeliveryOrders = lazy(() => import("./modules/Delivery/pages/Orders"));
 const DeliveryOrderDetail = lazy(() => import("./modules/Delivery/pages/OrderDetail"));
 const DeliveryProfile = lazy(() => import("./modules/Delivery/pages/Profile"));
 const DeliveryNotifications = lazy(() => import("./modules/Delivery/pages/Notifications"));
+const ReturnPickups = lazy(() => import("./modules/Delivery/pages/ReturnPickups"));
 
 // Vendor Routes (Lazy Loaded)
 const VendorLogin = lazy(() => import("./modules/Vendor/pages/Login"));
@@ -528,6 +532,36 @@ const AppRoutes = () => {
           </RouteWrapper>
         }
       />
+      <Route
+        path="/returns"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <Returns />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/returns/request/:orderId"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <ReturnRequestForm />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/returns/:id"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <ReturnDetail />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
       {/* Admin Routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route
@@ -693,6 +727,7 @@ const AppRoutes = () => {
         <Route path="orders/:id" element={<DeliveryOrderDetail />} />
         <Route path="notifications" element={<DeliveryNotifications />} />
         <Route path="profile" element={<DeliveryProfile />} />
+        <Route path="pickups" element={<ReturnPickups />} />
       </Route>
       {/* Vendor Routes */}
       <Route path="/vendor/login" element={<VendorLogin />} />

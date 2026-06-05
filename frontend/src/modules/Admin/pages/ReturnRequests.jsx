@@ -146,9 +146,19 @@ const ReturnRequests = () => {
     },
     {
       key: 'status',
-      label: 'Status',
+      label: 'Return Status',
       sortable: true,
       render: (value) => <Badge variant={getStatusVariant(value)}>{value}</Badge>,
+    },
+    {
+      key: 'refundStatus',
+      label: 'Refund Status',
+      sortable: true,
+      render: (value) => (
+        <Badge variant={['Completed', 'processed', 'completed'].includes(value) ? 'completed' : 'pending'}>
+          {value || 'Pending'}
+        </Badge>
+      ),
     },
     {
       key: 'actions',
@@ -209,15 +219,22 @@ const ReturnRequests = () => {
 
   // Get status counts for stats
   const statusCounts = useMemo(() => {
+    const all = returnRequests.length;
+    const pending = returnRequests.filter((r) => ['Request Submitted', 'Under Review', 'pending'].includes(r.status)).length;
+    const approved = returnRequests.filter((r) => ['Approved', 'Pickup Scheduled', 'Picked Up', 'Refund Initiated', 'approved'].includes(r.status)).length;
+    const rejected = returnRequests.filter((r) => ['Rejected', 'rejected'].includes(r.status)).length;
+    const refundPending = returnRequests.filter((r) => ['Pending', 'Processing', 'pending'].includes(r.refundStatus)).length;
+    const refundCompleted = returnRequests.filter((r) => ['Completed', 'processed', 'completed'].includes(r.refundStatus)).length;
+
     return {
-      all: filteredRequests.length,
-      pending: filteredRequests.filter((r) => r.status === 'pending').length,
-      approved: filteredRequests.filter((r) => r.status === 'approved').length,
-      processing: filteredRequests.filter((r) => r.status === 'processing').length,
-      completed: filteredRequests.filter((r) => r.status === 'completed').length,
-      rejected: filteredRequests.filter((r) => r.status === 'rejected').length,
+      all,
+      pending,
+      approved,
+      rejected,
+      refundPending,
+      refundCompleted,
     };
-  }, [filteredRequests]);
+  }, [returnRequests]);
 
   return (
     <motion.div
@@ -236,28 +253,28 @@ const ReturnRequests = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">Total</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">Total Returns</p>
           <p className="text-lg sm:text-2xl font-bold text-gray-800">{statusCounts.all}</p>
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">Pending</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">Pending Returns</p>
           <p className="text-lg sm:text-2xl font-bold text-yellow-600">{statusCounts.pending}</p>
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">Approved</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">Approved Returns</p>
           <p className="text-lg sm:text-2xl font-bold text-green-600">{statusCounts.approved}</p>
         </div>
         <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">Processing</p>
-          <p className="text-lg sm:text-2xl font-bold text-blue-600">{statusCounts.processing}</p>
-        </div>
-        <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">Completed</p>
-          <p className="text-lg sm:text-2xl font-bold text-green-600">{statusCounts.completed}</p>
-        </div>
-        <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">Rejected</p>
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">Rejected Returns</p>
           <p className="text-lg sm:text-2xl font-bold text-red-600">{statusCounts.rejected}</p>
+        </div>
+        <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">Refund Pending</p>
+          <p className="text-lg sm:text-2xl font-bold text-orange-600">{statusCounts.refundPending}</p>
+        </div>
+        <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200">
+          <p className="text-xs sm:text-sm text-gray-600 mb-1">Refund Completed</p>
+          <p className="text-lg sm:text-2xl font-bold text-emerald-600">{statusCounts.refundCompleted}</p>
         </div>
       </div>
 
