@@ -113,6 +113,10 @@ const UserProductRequestDetail = lazy(() => import("./modules/UserApp/pages/Prod
 const VendorProductRequests = lazy(() => import("./modules/Vendor/pages/ProductRequests"));
 const AdminProductRequestsDashboard = lazy(() => import("./modules/Admin/pages/ProductRequestsDashboard"));
 
+// Product Enquiries System Pages
+const VendorProductEnquiries = lazy(() => import("./modules/Vendor/pages/ProductEnquiries"));
+const AdminProductEnquiries = lazy(() => import("./modules/Admin/pages/AdminProductEnquiries"));
+
 
 // Offers & Promotion Management System Pages
 const OfferDashboard = lazy(() => import("./modules/offers/pages/OfferDashboard"));
@@ -134,6 +138,8 @@ const MobileBrand = lazy(() => import("./modules/UserApp/pages/Brand"));
 const MobileCheckout = lazy(() => import("./modules/UserApp/pages/Checkout"));
 const MobileLogin = lazy(() => import("./modules/UserApp/pages/Login"));
 const MobileHelpSupport = lazy(() => import("./modules/UserApp/pages/HelpSupport"));
+const MySupportTickets = lazy(() => import("./modules/UserApp/pages/MySupportTickets"));
+const SupportChat = lazy(() => import("./modules/UserApp/pages/SupportChat"));
 const MobileRegister = lazy(() => import("./modules/UserApp/pages/Register"));
 const MobileVerification = lazy(() => import("./modules/UserApp/pages/Verification"));
 const MobileForgotPassword = lazy(() => import("./modules/UserApp/pages/ForgotPassword"));
@@ -177,6 +183,7 @@ const DeliveryOrderDetail = lazy(() => import("./modules/Delivery/pages/OrderDet
 const DeliveryProfile = lazy(() => import("./modules/Delivery/pages/Profile"));
 const DeliveryNotifications = lazy(() => import("./modules/Delivery/pages/Notifications"));
 const ReturnPickups = lazy(() => import("./modules/Delivery/pages/ReturnPickups"));
+const DeliverySupport = lazy(() => import("./modules/Delivery/pages/DeliverySupport"));
 
 // Vendor Routes (Lazy Loaded)
 const VendorLogin = lazy(() => import("./modules/Vendor/pages/Login"));
@@ -212,6 +219,7 @@ const VendorPerformanceMetrics = lazy(() => import("./modules/Vendor/pages/Perfo
 const VendorDocuments = lazy(() => import("./modules/Vendor/pages/Documents"));
 const VendorNotifications = lazy(() => import("./modules/Vendor/pages/Notifications"));
 const VendorSupportTickets = lazy(() => import("./modules/Vendor/pages/SupportTickets"));
+const VendorSupportEscalations = lazy(() => import("./modules/Vendor/pages/SupportEscalations"));
 const VendorPickupLocations = lazy(() => import("./modules/Vendor/pages/PickupLocations"));
 const VendorReports = lazy(() => import("./modules/Vendor/pages/Reports"));
 const VendorLanguageSettings = lazy(() => import("./modules/Vendor/pages/LanguageSettings"));
@@ -466,6 +474,26 @@ const AppRoutes = () => {
           <RouteWrapper>
             <ProtectedRoute>
               <MobileHelpSupport />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/support-tickets"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <MySupportTickets />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/support-chat/:id"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <SupportChat />
             </ProtectedRoute>
           </RouteWrapper>
         }
@@ -741,6 +769,7 @@ const AppRoutes = () => {
         <Route path="reviews" element={<Reviews />} />
         <Route path="content" element={<Content />} />
         <Route path="product-requests" element={<AdminProductRequestsDashboard />} />
+        <Route path="product-enquiries" element={<AdminProductEnquiries />} />
       </Route>
       {/* Delivery Routes */}
       <Route path="/delivery/login" element={<DeliveryLogin />} />
@@ -767,6 +796,7 @@ const AppRoutes = () => {
         <Route path="notifications" element={<DeliveryNotifications />} />
         <Route path="profile" element={<DeliveryProfile />} />
         <Route path="pickups" element={<ReturnPickups />} />
+        <Route path="support" element={<DeliverySupport />} />
       </Route>
       {/* Vendor Routes */}
       <Route path="/vendor/login" element={<VendorLogin />} />
@@ -827,6 +857,7 @@ const AppRoutes = () => {
         <Route path="customers/:id" element={<VendorCustomerDetail />} />
         <Route path="customers" element={<VendorCustomers />} />
         <Route path="support-tickets" element={<VendorSupportTickets />} />
+        <Route path="support-escalations" element={<VendorSupportEscalations />} />
         <Route path="inventory-reports" element={<VendorInventoryReports />} />
         <Route
           path="performance-metrics"
@@ -858,6 +889,7 @@ const AppRoutes = () => {
 
         <Route path="delivery-settings" element={<VendorDeliverySettings />} />
         <Route path="product-requests" element={<VendorProductRequests />} />
+        <Route path="product-enquiries" element={<VendorProductEnquiries />} />
         <Route path="profile" element={<VendorSettings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

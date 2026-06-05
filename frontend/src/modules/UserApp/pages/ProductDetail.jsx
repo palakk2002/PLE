@@ -47,6 +47,7 @@ import {
   B2BStockAvailability,
 } from "../components/B2B";
 import { estimateDeliveryETA } from "../../../shared/data/deliveryMockData";
+import { ProductEnquiryModal } from "../components/Enquiry/ProductEnquiryModal";
 
 // Offers System Imports
 import { useOffers } from "../../offers/hooks/useOffers";
@@ -214,6 +215,7 @@ const MobileProductDetail = () => {
     useBusinessBuyer();
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [isStockRequestModalOpen, setIsStockRequestModalOpen] = useState(false);
+  const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
 
   // Smart Delivery State Hooks
   const [pincode, setPincode] = useState("");
@@ -602,7 +604,8 @@ const MobileProductDetail = () => {
   };
 
   return (
-    <PageTransition>
+    <>
+      <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={true}>
         <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto">
           {/* Back Button */}
@@ -1077,7 +1080,7 @@ const MobileProductDetail = () => {
                         className={`col-span-2 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
                           product.stock === "out_of_stock"
                             ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                            : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow hover:-translate-y-0.5"
+                            : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow hover:-translate-y-0.5"
                         }`}
                       >
                         <FiShoppingBag className="text-xl" />
@@ -1120,7 +1123,7 @@ const MobileProductDetail = () => {
                       className={`col-span-4 py-4 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center gap-3 ${
                         product.stock === "out_of_stock"
                           ? "bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200"
-                          : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow hover:-translate-y-0.5"
+                          : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow hover:-translate-y-0.5"
                       }`}
                     >
                       <FiShoppingBag className="text-xl" />
@@ -1133,6 +1136,13 @@ const MobileProductDetail = () => {
                   )}
 
                   <div className="col-span-6 flex gap-4 mt-2">
+                    <button
+                      onClick={() => setIsEnquiryModalOpen(true)}
+                      className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <FiFileText className="text-xl" />
+                      <span>Enquire Now</span>
+                    </button>
                     <button
                       onClick={handleFavorite}
                       className={`flex-1 py-4 rounded-xl font-semibold transition-all duration-300 border-2 flex items-center justify-center ${
@@ -1323,121 +1333,138 @@ const MobileProductDetail = () => {
           )}
         </div>
 
-        {/* Sticky Bottom Action Bar (Mobile Only) */}
-        <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40 safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleFavorite}
-              className={`p-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center ${
-                isFavorite
-                  ? "bg-red-50 text-red-600 border-2 border-red-200"
-                  : "bg-gray-100 text-gray-700"
-              }`}
-            >
-              <FiHeart
-                className={`text-xl ${isFavorite ? "fill-red-600" : ""}`}
-              />
-            </button>
-            <button
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: product.name,
-                    text: `Check out ${product.name}`,
-                    url: window.location.href,
-                  });
-                } else {
-                  navigator.clipboard.writeText(window.location.href);
-                  toast.success("Link copied to clipboard");
-                }
-              }}
-              className="p-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition-all duration-300"
-            >
-              <FiShare2 className="text-xl" />
-            </button>
-            {isBusiness ? (
-              <div className="flex-1 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={product.stock === "out_of_stock"}
-                  className={`flex-none px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap ${
-                    product.stock === "out_of_stock"
-                      ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                      : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow"
-                  }`}
-                >
-                  <FiShoppingBag className="text-lg" />
-                  <span>Request Bulk</span>
-                </button>
+      </MobileLayout>
+      </PageTransition>
 
-                <button
-                  type="button"
-                  onClick={() => setIsQuoteModalOpen(true)}
-                  className="flex-none px-4 py-4 bg-white text-primary-600 border border-primary-200 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap"
-                >
-                  <FiFileText className="text-lg" />
-                  <span>Request Quote</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsStockRequestModalOpen(true)}
-                  className={`flex-none px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap ${
-                    product.stock === "out_of_stock" ||
-                    product.stock === "low_stock"
-                      ? "bg-orange-50 text-orange-600 border border-orange-200"
-                      : "bg-gray-100 text-gray-400 border border-gray-200"
-                  }`}
-                >
-                  <FiPackage className="text-lg" />
-                  <span>Request Stock</span>
-                </button>
-              </div>
-            ) : isInCart ? (
-              <button
-                onClick={handleRemoveFromCart}
-                className="flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100"
-              >
-                <FiTrash2 className="text-xl" />
-                <span>Remove</span>
-              </button>
-            ) : (
+      {/* Sticky Bottom Action Bar (Mobile Only) */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-[9999] safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleFavorite}
+            className={`p-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center ${
+              isFavorite
+                ? "bg-red-50 text-red-600 border-2 border-red-200"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            <FiHeart
+              className={`text-xl ${isFavorite ? "fill-red-600" : ""}`}
+            />
+          </button>
+          <button
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: product.name,
+                  text: `Check out ${product.name}`,
+                  url: window.location.href,
+                });
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                toast.success("Link copied to clipboard");
+              }
+            }}
+            className="p-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition-all duration-300"
+          >
+            <FiShare2 className="text-xl" />
+          </button>
+          <button
+            onClick={() => setIsEnquiryModalOpen(true)}
+            className="p-3 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 rounded-xl font-semibold transition-all duration-300"
+            title="Enquire Now"
+          >
+            <FiFileText className="text-xl" />
+          </button>
+          {isBusiness ? (
+            <div className="flex-1 flex gap-2 overflow-x-auto pb-1 no-scrollbar">
               <button
                 onClick={handleAddToCart}
                 disabled={product.stock === "out_of_stock"}
-                className={`flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
+                className={`flex-none px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap ${
                   product.stock === "out_of_stock"
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-[#7B0A0A] hover:bg-[#AE020B] text-white hover:shadow-glow"
+                    : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow"
                 }`}
               >
-                <FiShoppingBag className="text-xl" />
-                <span>
-                  {product.stock === "out_of_stock"
-                    ? "Out of Stock"
-                    : "Add to Cart"}
-                </span>
+                <FiShoppingBag className="text-lg" />
+                <span>Request Bulk</span>
               </button>
-            )}
-          </div>
-        </div>
 
-        {/* B2B Quotation (RFQ) Modal */}
-        {product && (
-          <B2BRequestQuoteModal
-            isOpen={isQuoteModalOpen}
-            onClose={() => setIsQuoteModalOpen(false)}
-            product={product}
-          />
-        )}
-        {/* Offer Details Modal */}
-        <OfferModal
-          isOpen={!!selectedOffer}
-          onClose={() => setSelectedOffer(null)}
-          offer={selectedOffer}
+              <button
+                type="button"
+                onClick={() => setIsQuoteModalOpen(true)}
+                className="flex-none px-4 py-4 bg-white text-primary-600 border border-primary-200 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap"
+              >
+                <FiFileText className="text-lg" />
+                <span>Request Quote</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsStockRequestModalOpen(true)}
+                className={`flex-none px-4 py-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 whitespace-nowrap ${
+                  product.stock === "out_of_stock" ||
+                  product.stock === "low_stock"
+                    ? "bg-orange-50 text-orange-600 border border-orange-200"
+                    : "bg-gray-100 text-gray-400 border border-gray-200"
+                }`}
+              >
+                <FiPackage className="text-lg" />
+                <span>Request Stock</span>
+              </button>
+            </div>
+          ) : isInCart ? (
+            <button
+              onClick={handleRemoveFromCart}
+              className="flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100"
+            >
+              <FiTrash2 className="text-xl" />
+              <span>Remove</span>
+            </button>
+          ) : (
+            <button
+              onClick={handleAddToCart}
+              disabled={product.stock === "out_of_stock"}
+              className={`flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
+                product.stock === "out_of_stock"
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow"
+              }`}
+            >
+              <FiShoppingBag className="text-xl" />
+              <span>
+                {product.stock === "out_of_stock"
+                  ? "Out of Stock"
+                  : "Add to Cart"}
+              </span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* B2B Quotation (RFQ) Modal */}
+      {product && (
+        <B2BRequestQuoteModal
+          isOpen={isQuoteModalOpen}
+          onClose={() => setIsQuoteModalOpen(false)}
+          product={product}
         />
-      </MobileLayout>
-    </PageTransition>
+      )}
+      {/* Product Enquiry Modal */}
+      {product && (
+        <ProductEnquiryModal
+          isOpen={isEnquiryModalOpen}
+          onClose={() => setIsEnquiryModalOpen(false)}
+          product={product}
+        />
+      )}
+      {/* Offer Details Modal */}
+      <OfferModal
+        isOpen={!!selectedOffer}
+        onClose={() => setSelectedOffer(null)}
+        offer={selectedOffer}
+      />
+    </>
   );
 };
 

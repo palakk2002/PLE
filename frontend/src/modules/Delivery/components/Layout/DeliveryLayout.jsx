@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, useNavigate, useLocation, Link } from "react-router-dom";
-import { FiLogOut, FiTruck, FiPackage, FiHome, FiUser, FiMenu, FiBell } from "react-icons/fi";
+import { FiLogOut, FiTruck, FiPackage, FiHome, FiUser, FiMenu, FiBell, FiMessageSquare } from "react-icons/fi";
 import { useDeliveryAuthStore } from "../../store/deliveryStore";
 import { useDeliveryNotificationStore } from "../../store/deliveryNotificationStore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +33,7 @@ const DeliveryLayout = () => {
     { icon: FiPackage, label: "Orders", path: "/delivery/orders" },
     { icon: FiTruck, label: "Return Pickups", path: "/delivery/pickups" },
     { icon: FiBell, label: "Notifications", path: "/delivery/notifications" },
+    { icon: FiMessageSquare, label: "Delivery Support", path: "/delivery/support" },
     { icon: FiUser, label: "Profile", path: "/delivery/profile" },
   ];
 

@@ -46,6 +46,7 @@ import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 import { B2BBusinessBadge } from "../components/B2B/B2BBusinessBadge";
 import { B2BBusinessDashboard } from "../components/B2B/B2BBusinessDashboard";
 import { B2BMyEnquiries } from "../components/B2B/B2BMyEnquiries";
+import { MyProductEnquiries } from "../components/Enquiry/MyProductEnquiries";
 
 const MobileProfile = () => {
   const navigate = useNavigate();
@@ -239,11 +240,18 @@ const MobileProfile = () => {
       color: "text-blue-600",
       bg: "bg-blue-50",
     },
+    {
+      id: "product-enquiries",
+      label: "My Enquiries",
+      icon: FiMessageSquare,
+      color: "text-[#3D6FC0]",
+      bg: "bg-[#3D6FC0]/10",
+    },
     ...(isBusiness
       ? [
           {
-            id: "enquiries",
-            label: "My Enquiries",
+            id: "b2b-requests",
+            label: "B2B RFQs & Stock Requests",
             icon: FiFileText,
             color: "text-primary-600",
             bg: "bg-primary-50",
@@ -322,6 +330,14 @@ const MobileProfile = () => {
       icon: FiLock,
       color: "text-purple-600",
       bg: "bg-purple-50",
+    },
+    {
+      id: "support-tickets",
+      label: "My Support Tickets",
+      icon: FiMessageSquare,
+      color: "text-rose-600",
+      bg: "bg-rose-50",
+      link: "/support-tickets",
     },
     {
       id: "help",
@@ -426,7 +442,11 @@ const MobileProfile = () => {
                         ? "My Offers"
                         : activeTab === "feedback"
                           ? "Give Feedback"
-                          : "My Account"}
+                          : activeTab === "product-enquiries"
+                            ? "My Enquiries"
+                            : activeTab === "b2b-requests"
+                              ? "B2B Requests"
+                              : "My Account"}
               </h1>
             </div>
           </div>
@@ -950,14 +970,25 @@ const MobileProfile = () => {
                 </motion.div>
               )}
 
-              {/* My Enquiries Tab */}
-              {isBusiness && activeTab === "enquiries" && (
+              {/* B2B Requests Tab */}
+              {isBusiness && activeTab === "b2b-requests" && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   className="glass-card rounded-2xl p-4 lg:p-8"
                 >
                   <B2BMyEnquiries />
+                </motion.div>
+              )}
+
+              {/* Product Enquiries Tab */}
+              {activeTab === "product-enquiries" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-card rounded-2xl p-4 lg:p-8"
+                >
+                  <MyProductEnquiries />
                 </motion.div>
               )}
 

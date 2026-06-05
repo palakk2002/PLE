@@ -143,8 +143,18 @@
                      ]
     },
     {
+        "title": "Product Enquiries",
+        "route": "/vendor/product-enquiries",
+        "children": []
+    },
+    {
         "title": "Product Requests",
         "route": "/vendor/product-requests",
+        "children": []
+    },
+    {
+        "title": "Support Escalations",
+        "route": "/vendor/support-escalations",
         "children": []
     }
 ]

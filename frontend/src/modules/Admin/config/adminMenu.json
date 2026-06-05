@@ -196,6 +196,11 @@
     ]
   },
   {
+    "title": "Product Enquiries",
+    "route": "/admin/product-enquiries",
+    "children": []
+  },
+  {
     "title": "Product Requests",
     "route": "/admin/product-requests",
     "children": []
