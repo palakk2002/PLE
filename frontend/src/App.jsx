@@ -106,6 +106,14 @@ const PushConfig = lazy(() => import("./modules/Admin/pages/firebase/PushConfig"
 const Authentication = lazy(() => import("./modules/Admin/pages/firebase/Authentication"));
 const AdminDeliveryManager = lazy(() => import("./modules/Admin/pages/AdminDeliveryManager"));
 
+// Product Requests System Pages
+const UserProductRequestForm = lazy(() => import("./modules/UserApp/pages/ProductRequestForm"));
+const UserProductRequestHistory = lazy(() => import("./modules/UserApp/pages/ProductRequestHistory"));
+const UserProductRequestDetail = lazy(() => import("./modules/UserApp/pages/ProductRequestDetail"));
+const VendorProductRequests = lazy(() => import("./modules/Vendor/pages/ProductRequests"));
+const AdminProductRequestsDashboard = lazy(() => import("./modules/Admin/pages/ProductRequestsDashboard"));
+
+
 // Offers & Promotion Management System Pages
 const OfferDashboard = lazy(() => import("./modules/offers/pages/OfferDashboard"));
 const OfferList = lazy(() => import("./modules/offers/pages/OfferList"));
@@ -562,6 +570,36 @@ const AppRoutes = () => {
           </RouteWrapper>
         }
       />
+      <Route
+        path="/product-request/new"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <UserProductRequestForm />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/product-requests"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <UserProductRequestHistory />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/product-requests/:id"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <UserProductRequestDetail />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
       {/* Admin Routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route
@@ -702,6 +740,7 @@ const AppRoutes = () => {
         <Route path="banners" element={<Banners />} />
         <Route path="reviews" element={<Reviews />} />
         <Route path="content" element={<Content />} />
+        <Route path="product-requests" element={<AdminProductRequestsDashboard />} />
       </Route>
       {/* Delivery Routes */}
       <Route path="/delivery/login" element={<DeliveryLogin />} />
@@ -818,6 +857,7 @@ const AppRoutes = () => {
         <Route path="my-offers/details/:id" element={<OfferDetails />} />
 
         <Route path="delivery-settings" element={<VendorDeliverySettings />} />
+        <Route path="product-requests" element={<VendorProductRequests />} />
         <Route path="profile" element={<VendorSettings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -957,10 +957,6 @@ const MobileHome = () => {
                   ))}
                 </div>
               </div>
-
-              {/* Recommended for You */}
-              <RecommendedSection products={computedRecommended} />
-
               {/* Tagline Section */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

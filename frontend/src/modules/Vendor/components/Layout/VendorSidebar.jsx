@@ -36,6 +36,7 @@ const iconMap = {
   Products: FiPackage,
   Orders: FiShoppingBag,
   "B2B Enquiries": FiInbox,
+  "Product Requests": FiInbox,
   "Return Requests": FiRefreshCw,
   "Product Reviews": FiStar,
   "Stock Management": FiTrendingDown,

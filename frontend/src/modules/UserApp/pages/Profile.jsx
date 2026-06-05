@@ -267,6 +267,14 @@ const MobileProfile = () => {
       link: "/returns",
     },
     {
+      id: "product-requests",
+      label: "My Product Requests",
+      icon: FiFileText,
+      color: "text-indigo-650",
+      bg: "bg-indigo-50",
+      link: "/product-requests",
+    },
+    {
       id: "addresses",
       label: "My Addresses",
       icon: FiMapPin,
@@ -625,28 +633,6 @@ const MobileProfile = () => {
                     </div>
                   </div>
 
-                  {/* B2B / B2C Toggle Option */}
-                  <div className="pt-2">
-                    <button
-                      onClick={() => {
-                        const nextRole = isBusiness
-                          ? "customer"
-                          : "business_buyer";
-                        setUserRole(nextRole);
-                        toast.success(
-                          `Switched to ${nextRole === "business_buyer" ? "Business (B2B)" : "Individual (B2C)"} mode!`,
-                        );
-                      }}
-                      className="w-full flex items-center justify-center gap-3 p-4 glass-card rounded-2xl text-primary-600 font-bold text-sm shadow-sm border border-primary-50 hover:bg-primary-50 transition-colors bg-white mb-3"
-                    >
-                      <FiBriefcase className="text-lg animate-bounce" />
-                      <span>
-                        Switch to{" "}
-                        {isBusiness ? "Individual (B2C)" : "Business (B2B)"}{" "}
-                        Mode
-                      </span>
-                    </button>
-                  </div>
 
                   {/* Logout Option */}
                   <div className="pt-2">

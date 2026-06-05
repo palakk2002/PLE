@@ -1,11 +1,13 @@
-import { FiFileText, FiArrowLeft } from "react-icons/fi";
+import { FiFileText, FiArrowLeft, FiDownload } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
+import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 
 const TermsConditions = () => {
   const navigate = useNavigate();
+  const { isBusiness } = useBusinessBuyer();
 
   const sections = [
     {
@@ -35,24 +37,52 @@ const TermsConditions = () => {
     },
   ];
 
+  const handleDownload = () => {
+    const title = "Terms & Conditions";
+    const date = "Last updated: June 2026";
+    const intro = "Please read these Terms and Conditions carefully before utilizing our applications or placing orders on our store.";
+    const content = sections.map((s) => `${s.title}\n${s.content}`).join("\n\n");
+    const footer = "If you have questions about these Terms, please reach out to our legal desk at legal@ple.com.";
+    const fullText = `${title}\n${date}\n\n${intro}\n\n${content}\n\n${footer}`;
+
+    const blob = new Blob([fullText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "Terms_Conditions.txt";
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
         <div className="max-w-3xl mx-auto px-4 py-6 pb-24 min-h-screen">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
-            >
-              <FiArrowLeft className="text-xl text-gray-700" />
-            </button>
-            <div>
-              <h1 className="text-xl md:text-2xl font-extrabold text-gray-800 flex items-center gap-2">
-                <FiFileText className="text-[#7B0A0A]" /> Terms & Conditions
-              </h1>
-              <p className="text-xs text-gray-500 font-medium">Last updated: June 2026</p>
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
+              >
+                <FiArrowLeft className="text-xl text-gray-700" />
+              </button>
+              <div>
+                <h1 className="text-xl md:text-2xl font-extrabold text-gray-800 flex items-center gap-2">
+                  <FiFileText className="text-[#7B0A0A]" /> Terms & Conditions
+                </h1>
+                <p className="text-xs text-gray-500 font-medium">Last updated: June 2026</p>
+              </div>
             </div>
+            {isBusiness && (
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-primary-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-primary-700 transition-colors"
+              >
+                <FiDownload className="text-sm" />
+                <span>Download</span>
+              </button>
+            )}
           </div>
 
           {/* Content Card */}

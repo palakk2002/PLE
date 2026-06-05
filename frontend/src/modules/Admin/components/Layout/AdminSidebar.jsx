@@ -41,6 +41,7 @@ const iconMap = {
   Customers: FiUsers,
   "B2B Marketplace": FiBriefcase,
   "B2B Enquiries": FiInbox,
+  "Product Requests": FiInbox,
   "Refurbished Mkt": FiRefreshCw,
   "Delivery Management": FiTruck,
   "Offers & Sliders": FiImage,

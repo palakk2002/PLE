@@ -141,5 +141,10 @@
         "children":  [
 
                      ]
+    },
+    {
+        "title": "Product Requests",
+        "route": "/vendor/product-requests",
+        "children": []
     }
 ]

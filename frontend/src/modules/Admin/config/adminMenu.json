@@ -194,5 +194,10 @@
       "Push Config",
       "Authentication"
     ]
+  },
+  {
+    "title": "Product Requests",
+    "route": "/admin/product-requests",
+    "children": []
   }
 ]
