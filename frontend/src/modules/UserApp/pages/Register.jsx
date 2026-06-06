@@ -80,18 +80,18 @@ const MobileRegister = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8">
+        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <div className="bg-white rounded-2xl p-6 shadow-sm relative">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm relative border dark:border-zinc-800 transition-colors duration-500">
               {/* Back Button */}
               <button
                 onClick={() => navigate(-1)}
-                className="absolute left-6 top-6 text-gray-500 hover:text-gray-900 transition-colors p-1 hover:bg-gray-100 rounded-full"
+                className="absolute left-6 top-6 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full"
                 title="Go Back"
               >
                 <FiArrowLeft className="text-xl" />
@@ -99,16 +99,14 @@ const MobileRegister = () => {
 
               {/* Header */}
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Get Started Now</h1>
-                <p className="text-sm text-gray-600">Create an account or log in to explore about our app</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-2">Get Started Now</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Create an account or log in to explore about our app</p>
               </div>
-
-
 
               {/* B2B Info Message */}
               {isBusiness && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center">
-                  <p className="text-xs text-[#AE020B] font-bold">
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-xl text-center">
+                  <p className="text-xs text-[#AE020B] dark:text-red-400 font-bold">
                     ✨ Business mode: unlock wholesale prices, tier discounts, MOQ, GST credit, and credit terms.
                   </p>
                 </div>
@@ -118,11 +116,11 @@ const MobileRegister = () => {
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 {/* First Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                     First Name
                   </label>
                   <div className="relative">
-                    <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                     <input
                       type="text"
                       {...register('firstName', {
@@ -132,25 +130,25 @@ const MobileRegister = () => {
                           message: 'First name must be at least 2 characters',
                         },
                       })}
-                      className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.firstName
+                      className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.firstName
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-[#AE020B]'
+                          : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="Raj"
                     />
                   </div>
                   {errors.firstName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.firstName.message}</p>
                   )}
                 </div>
 
                 {/* Last Name */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                     Last Name
                   </label>
                   <div className="relative">
-                    <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiUser className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                     <input
                       type="text"
                       {...register('lastName', {
@@ -160,25 +158,25 @@ const MobileRegister = () => {
                           message: 'Last name must be at least 2 characters',
                         },
                       })}
-                      className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.lastName
+                      className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.lastName
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-[#AE020B]'
+                          : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="Sarkar"
                     />
                   </div>
                   {errors.lastName && (
-                    <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.lastName.message}</p>
                   )}
                 </div>
 
                 {/* Email */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                     Email
                   </label>
                   <div className="relative">
-                    <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                     <input
                       type="email"
                       {...register('email', {
@@ -186,27 +184,27 @@ const MobileRegister = () => {
                         validate: (value) =>
                           isValidEmail(value) || 'Please enter a valid email',
                       })}
-                      className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.email
+                      className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.email
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-[#AE020B]'
+                          : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="sarkarraj0766@gmail.com"
                     />
                   </div>
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
                   )}
                 </div>
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                     Phone Number
                   </label>
                   <div className="flex gap-2">
                     <select
                       {...register('countryCode', { required: true })}
-                      className="w-24 px-3 py-3 rounded-xl border-2 border-gray-200 focus:border-[#AE020B] focus:outline-none text-sm"
+                      className="w-24 px-3 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B] focus:outline-none text-sm bg-white dark:bg-zinc-950 text-gray-900 dark:text-white"
                     >
                       <option value="+880">+880</option>
                       <option value="+1">+1</option>
@@ -214,7 +212,7 @@ const MobileRegister = () => {
                       <option value="+44">+44</option>
                     </select>
                     <div className="relative flex-1">
-                      <FiPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <FiPhone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                       <input
                         type="tel"
                         {...register('phone', {
@@ -222,16 +220,16 @@ const MobileRegister = () => {
                           validate: (value) =>
                             isValidPhone(value) || 'Please enter a valid phone number',
                         })}
-                        className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.phone
+                        className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.phone
                             ? 'border-red-300 focus:border-red-500'
-                            : 'border-gray-200 focus:border-[#AE020B]'
+                            : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'
                           } focus:outline-none transition-colors text-base`}
                         placeholder="4547260592"
                       />
                     </div>
                   </div>
                   {errors.phone && (
-                    <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.phone.message}</p>
                   )}
                 </div>
 
@@ -242,29 +240,29 @@ const MobileRegister = () => {
                     animate={{ opacity: 1, height: 'auto' }}
                     className="space-y-5"
                   >
-                    <div className="border-t border-gray-100 my-6 pt-4">
-                      <h3 className="text-sm font-extrabold text-[#AE020B] uppercase tracking-wider mb-2">Business Information</h3>
-                      <p className="text-xs text-gray-500">Provide registration details to verify your wholesale buyer status.</p>
+                    <div className="border-t border-gray-100 dark:border-zinc-800 my-6 pt-4">
+                      <h3 className="text-sm font-extrabold text-[#AE020B] dark:text-red-400 uppercase tracking-wider mb-2">Business Information</h3>
+                      <p className="text-xs text-gray-500 dark:text-zinc-400">Provide registration details to verify your wholesale buyer status.</p>
                     </div>
 
                     {/* Company Name */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Company Name *</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Company Name *</label>
                       <input
                         type="text"
                         {...register('companyName', { required: isBusiness ? 'Company name is required' : false })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.companyName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.companyName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                         placeholder="Apex General Enterprises"
                       />
-                      {errors.companyName && <p className="mt-1 text-sm text-red-600">{errors.companyName.message}</p>}
+                      {errors.companyName && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.companyName.message}</p>}
                     </div>
 
                     {/* Business Type */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Business Type *</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Business Type *</label>
                       <select
                         {...register('businessType', { required: isBusiness ? 'Business type is required' : false })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.businessType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base bg-white`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.businessType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                       >
                         <option value="">Select Business Type</option>
                         <option value="Retailer">Retailer</option>
@@ -275,12 +273,12 @@ const MobileRegister = () => {
                         <option value="Importer">Importer</option>
                         <option value="Exporter">Exporter</option>
                       </select>
-                      {errors.businessType && <p className="mt-1 text-sm text-red-600">{errors.businessType.message}</p>}
+                      {errors.businessType && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.businessType.message}</p>}
                     </div>
 
                     {/* GST Number */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">GST Number *</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">GST Number *</label>
                       <input
                         type="text"
                         {...register('gstNumber', {
@@ -290,92 +288,92 @@ const MobileRegister = () => {
                             message: 'Please enter a valid Indian GSTIN format'
                           }
                         })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.gstNumber ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base font-mono uppercase`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.gstNumber ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base font-mono uppercase`}
                         placeholder="27AAPCG9838F1Z1"
                       />
-                      {errors.gstNumber && <p className="mt-1 text-sm text-red-600">{errors.gstNumber.message}</p>}
+                      {errors.gstNumber && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.gstNumber.message}</p>}
                     </div>
 
                     {/* GST Certificate Upload */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">GST Certificate * (PDF, JPG, PNG)</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">GST Certificate * (PDF, JPG, PNG)</label>
                       <input
                         type="file"
                         accept="application/pdf,image/jpeg,image/png"
                         {...register('gstCertificate', { required: isBusiness ? 'GST Certificate is required' : false })}
-                        className={`w-full px-4 py-2.5 rounded-xl border-2 ${errors.gstCertificate ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-sm`}
+                        className={`w-full px-4 py-2.5 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.gstCertificate ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-sm`}
                       />
-                      {errors.gstCertificate && <p className="mt-1 text-sm text-red-600">{errors.gstCertificate.message}</p>}
+                      {errors.gstCertificate && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.gstCertificate.message}</p>}
                     </div>
 
                     {/* Business Address */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Business Address *</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Business Address *</label>
                       <textarea
                         rows={2}
                         {...register('businessAddress', { required: isBusiness ? 'Business address is required' : false })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.businessAddress ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.businessAddress ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                         placeholder="404 Business Hub, BKC"
                       />
-                      {errors.businessAddress && <p className="mt-1 text-sm text-red-600">{errors.businessAddress.message}</p>}
+                      {errors.businessAddress && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.businessAddress.message}</p>}
                     </div>
 
                     {/* City, State, Pincode in a grid */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">City *</label>
                         <input
                           type="text"
                           {...register('city', { required: isBusiness ? 'City is required' : false })}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.city ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                          className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.city ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                           placeholder="Mumbai"
                         />
-                        {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>}
+                        {errors.city && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.city.message}</p>}
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">State *</label>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">State *</label>
                         <input
                           type="text"
                           {...register('state', { required: isBusiness ? 'State is required' : false })}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.state ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                          className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.state ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                           placeholder="Maharashtra"
                         />
-                        {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>}
+                        {errors.state && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.state.message}</p>}
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">Pincode *</label>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Pincode *</label>
                       <input
                         type="text"
                         {...register('pincode', {
                           required: isBusiness ? 'Pincode is required' : false,
                           pattern: { value: /^[0-9]{6}$/, message: 'Pincode must be 6 digits' }
                         })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.pincode ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.pincode ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                         placeholder="400051"
                       />
-                      {errors.pincode && <p className="mt-1 text-sm text-red-600">{errors.pincode.message}</p>}
+                      {errors.pincode && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.pincode.message}</p>}
                     </div>
 
                     {/* Years in Business & Monthly Purchase Volume */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Years In Business</label>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Years In Business</label>
                         <input
                           type="number"
                           {...register('yearsInBusiness', { min: { value: 0, message: 'Invalid value' } })}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.yearsInBusiness ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                          className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.yearsInBusiness ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                           placeholder="5"
                         />
-                        {errors.yearsInBusiness && <p className="mt-1 text-sm text-red-600">{errors.yearsInBusiness.message}</p>}
+                        {errors.yearsInBusiness && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.yearsInBusiness.message}</p>}
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Monthly Purchase Vol.</label>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Monthly Purchase Vol.</label>
                         <input
                           type="text"
                           {...register('monthlyPurchaseVolume')}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.monthlyPurchaseVolume ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
+                          className={`w-full px-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.monthlyPurchaseVolume ? 'border-red-300 focus:border-red-500' : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                           placeholder="₹2,00,000"
                         />
                       </div>
@@ -385,11 +383,11 @@ const MobileRegister = () => {
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                     Set Password
                   </label>
                   <div className="relative">
-                    <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       {...register('password', {
@@ -399,22 +397,22 @@ const MobileRegister = () => {
                           message: 'Password must be at least 6 characters',
                         },
                       })}
-                      className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${errors.password
+                      className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.password
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-[#AE020B]'
+                          : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="Create a password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
                     >
                       {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>
                   )}
                 </div>
 
@@ -430,11 +428,11 @@ const MobileRegister = () => {
 
               {/* Sign In Link */}
               <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Already have an account?{' '}
                   <Link
                     to="/login"
-                    className="text-[#AE020B] hover:text-[#8d0208] font-semibold"
+                    className="text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-semibold"
                   >
                     Sign In
                   </Link>
@@ -442,18 +440,18 @@ const MobileRegister = () => {
               </div>
 
               {/* Legal Disclosure */}
-              <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed px-4">
+              <div className="mt-6 text-center text-xs text-gray-500 dark:text-zinc-500 leading-relaxed px-4">
                 By creating an account, you agree to our{' '}
                 <Link
                   to="/terms-and-conditions"
-                  className="text-[#7B0A0A] hover:text-[#AE020B] font-bold underline transition-colors"
+                  className="text-[#7B0A0A] dark:text-red-400 hover:text-[#AE020B] font-bold underline transition-colors"
                 >
                   Terms & Conditions
                 </Link>{' '}
                 and{' '}
                 <Link
                   to="/privacy-policy"
-                  className="text-[#7B0A0A] hover:text-[#AE020B] font-bold underline transition-colors"
+                  className="text-[#7B0A0A] dark:text-red-400 hover:text-[#AE020B] font-bold underline transition-colors"
                 >
                   Privacy Policy
                 </Link>

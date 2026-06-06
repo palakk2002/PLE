@@ -96,17 +96,17 @@ const MobileForgotPassword = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8">
+        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border dark:border-zinc-800 transition-colors duration-500">
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Forgot Password</h1>
-                <p className="text-sm text-gray-600">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-2">Forgot Password</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">
                   {step === 'request'
                     ? 'Enter your account email to receive OTP.'
                     : `Enter the OTP sent to ${email}`}
@@ -116,15 +116,15 @@ const MobileForgotPassword = () => {
               {step === 'request' ? (
                 <form onSubmit={handleRequestOtp} className="space-y-5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">Email Address</label>
                     <div className="relative">
-                      <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="your.email@example.com"
-                        className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:outline-none transition-colors text-base"
+                        className="w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B] focus:outline-none transition-colors text-base"
                         required
                       />
                     </div>
@@ -132,7 +132,7 @@ const MobileForgotPassword = () => {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isLoading ? 'Sending OTP...' : 'Send OTP'}
                   </button>
@@ -151,7 +151,7 @@ const MobileForgotPassword = () => {
                         onChange={(e) => handleCodeChange(index, e.target.value)}
                         onKeyDown={(e) => handleKeyDown(index, e)}
                         onPaste={index === 0 ? handlePaste : undefined}
-                        className="w-11 h-11 text-center text-lg font-bold bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 text-gray-800"
+                        className="w-11 h-11 text-center text-lg font-bold bg-white dark:bg-zinc-950 border-2 border-gray-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-[#AE020B] dark:focus:border-[#AE020B] text-gray-800 dark:text-white"
                       />
                     ))}
                   </div>
@@ -161,7 +161,7 @@ const MobileForgotPassword = () => {
                       type="button"
                       onClick={handleRequestOtp}
                       disabled={isLoading}
-                      className="text-sm text-primary-600 hover:text-primary-700 font-medium disabled:text-gray-400 inline-flex items-center gap-2"
+                      className="text-sm text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-medium disabled:text-gray-400 inline-flex items-center gap-2"
                     >
                       <FiRefreshCw />
                       Resend OTP
@@ -169,7 +169,7 @@ const MobileForgotPassword = () => {
                     <button
                       type="button"
                       onClick={() => setStep('request')}
-                      className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+                      className="text-sm text-gray-600 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-white font-medium"
                     >
                       Change Email
                     </button>
@@ -178,7 +178,7 @@ const MobileForgotPassword = () => {
                   <button
                     type="submit"
                     disabled={isLoading || codes.some((c) => !c)}
-                    className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isLoading ? 'Verifying...' : <><FiCheck /> Verify OTP</>}
                   </button>
@@ -186,7 +186,7 @@ const MobileForgotPassword = () => {
               )}
 
               <div className="text-center pt-6">
-                <Link to="/login" className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 font-medium">
+                <Link to="/login" className="inline-flex items-center gap-2 text-sm text-gray-600 dark:text-zinc-400 hover:text-gray-800 dark:hover:text-white font-medium">
                   <FiArrowLeft />
                   Back to Login
                 </Link>

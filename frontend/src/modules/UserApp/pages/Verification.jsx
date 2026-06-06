@@ -93,18 +93,18 @@ const MobileVerification = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8">
+        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm border dark:border-zinc-800 transition-colors duration-500">
               {/* Back Button */}
               <button
                 onClick={() => navigate(-1)}
-                className="mb-6 flex items-center text-gray-600 hover:text-gray-900 transition-colors"
+                className="mb-6 flex items-center text-gray-600 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 <FiArrowLeft className="mr-2" size={20} />
                 <span className="text-sm font-medium">Back</span>
@@ -112,13 +112,13 @@ const MobileVerification = () => {
 
               {/* Header */}
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900 mb-6">Verification</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-6">Verification</h1>
 
                 {/* Verification Icon */}
                 <div className="flex justify-center mb-6">
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-purple-200 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full bg-purple-100 dark:bg-purple-950/40 flex items-center justify-center">
+                      <div className="w-16 h-16 rounded-full bg-purple-200 dark:bg-purple-900/30 flex items-center justify-center">
                         <div className="w-12 h-12 rounded-full bg-purple-500 flex items-center justify-center">
                           <FiCheck className="text-white" size={24} />
                         </div>
@@ -127,10 +127,10 @@ const MobileVerification = () => {
                   </div>
                 </div>
 
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">Verification code</h2>
-                <p className="text-sm text-gray-600">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-zinc-200 mb-2">Verification code</h2>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Enter the verification code we've sent to your{' '}
-                  <span className="font-medium text-gray-900">{email || 'email'}</span>
+                  <span className="font-medium text-gray-900 dark:text-zinc-100">{email || 'email'}</span>
                 </p>
               </div>
 
@@ -149,8 +149,8 @@ const MobileVerification = () => {
                       onKeyDown={(e) => handleKeyDown(index, e)}
                       onPaste={index === 0 ? handlePaste : undefined}
                       className={`w-14 h-14 rounded-full border-2 text-center text-xl font-semibold focus:outline-none transition-all ${code
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-gray-200 focus:border-purple-500 text-gray-900'
+                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20 text-purple-700 dark:text-purple-300'
+                          : 'border-gray-200 dark:border-zinc-800 focus:border-purple-500 text-gray-900 dark:text-white bg-white dark:bg-zinc-950'
                         }`}
                     />
                   ))}
@@ -168,11 +168,11 @@ const MobileVerification = () => {
 
               {/* Resend Link */}
               <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Didn't receive the code?{' '}
                   <button
                     onClick={handleResend}
-                    className="text-primary-600 hover:text-primary-700 font-semibold"
+                    className="text-primary-600 dark:text-primary-400 hover:text-primary-700 font-semibold"
                   >
                     Resend
                   </button>

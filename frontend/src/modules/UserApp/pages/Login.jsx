@@ -91,18 +91,18 @@ const MobileLogin = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8">
+        <div className="w-full min-h-screen flex items-start justify-center px-4 pt-6 pb-8 bg-gray-50 dark:bg-zinc-950 transition-colors duration-500">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="w-full max-w-md"
           >
-            <div className="bg-white rounded-2xl p-6 shadow-sm relative">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm relative border dark:border-zinc-800 transition-colors duration-500">
               {/* Back Button */}
               <button
                 onClick={() => navigate(-1)}
-                className="absolute left-6 top-6 text-gray-500 hover:text-gray-900 transition-colors p-1 hover:bg-gray-100 rounded-full"
+                className="absolute left-6 top-6 text-gray-500 dark:text-zinc-400 hover:text-gray-900 dark:hover:text-white transition-colors p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full"
                 title="Go Back"
               >
                 <FiArrowLeft className="text-xl" />
@@ -110,14 +110,14 @@ const MobileLogin = () => {
 
               {/* Header */}
               <div className="text-center mb-8">
-                <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-                <p className="text-sm text-gray-600">Login to access your account</p>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-zinc-50 mb-2">Welcome Back</h1>
+                <p className="text-sm text-gray-600 dark:text-zinc-400">Login to access your account</p>
               </div>
 
               {/* B2B Info Message */}
               {isBusiness && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center">
-                  <p className="text-xs text-[#AE020B] font-bold">
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-xl text-center">
+                  <p className="text-xs text-[#AE020B] dark:text-red-400 font-bold">
                     ✨ Business mode: unlock wholesale prices, tier discounts, MOQ, GST credit, and credit terms.
                   </p>
                 </div>
@@ -126,11 +126,11 @@ const MobileLogin = () => {
               {/* Login Form */}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                     Email Address
                   </label>
                   <div className="relative">
-                    <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                     <input
                       type="email"
                       {...register('email', {
@@ -138,25 +138,25 @@ const MobileLogin = () => {
                         validate: (value) =>
                           !value || isValidEmail(value) || 'Please enter a valid email',
                       })}
-                      className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.email
+                      className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.email
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-[#AE020B]'
+                          : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="your.email@example.com"
                     />
                   </div>
                   {errors.email && (
-                    <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email.message}</p>
                   )}
                 </div>
 
                 {/* Password */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">
                     Password
                   </label>
                   <div className="relative">
-                    <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                    <FiLock className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-zinc-500" />
                     <input
                       type={showPassword ? 'text' : 'password'}
                       {...register('password', {
@@ -166,22 +166,22 @@ const MobileLogin = () => {
                           message: 'Password must be at least 6 characters',
                         },
                       })}
-                      className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${errors.password
+                      className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 bg-white dark:bg-zinc-950 text-gray-900 dark:text-white ${errors.password
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-[#AE020B]'
+                          : 'border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] dark:focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="Enter your password"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-zinc-500 dark:hover:text-zinc-300 transition-colors"
                     >
                       {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
                     </button>
                   </div>
                   {errors.password && (
-                    <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
+                    <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password.message}</p>
                   )}
                 </div>
 
@@ -192,13 +192,13 @@ const MobileLogin = () => {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 text-[#AE020B] border-gray-300 rounded focus:ring-[#AE020B]"
+                      className="w-4 h-4 text-[#AE020B] dark:text-[#AE020B] bg-white dark:bg-zinc-950 border-gray-300 dark:border-zinc-800 rounded focus:ring-[#AE020B] dark:focus:ring-offset-zinc-900"
                     />
-                    <span className="ml-2 text-sm text-gray-700">Remember me</span>
+                    <span className="ml-2 text-sm text-gray-700 dark:text-zinc-300">Remember me</span>
                   </label>
                   <Link
                     to="/forgot-password"
-                    className="text-sm text-[#AE020B] hover:text-[#8d0208] font-medium"
+                    className="text-sm text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-medium"
                   >
                     Forget password?
                   </Link>
@@ -216,11 +216,11 @@ const MobileLogin = () => {
 
               {/* Sign Up Link */}
               <div className="mt-6 text-center">
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Don't have an account?{' '}
                   <Link
                     to="/register"
-                    className="text-[#AE020B] hover:text-[#8d0208] font-semibold"
+                    className="text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-semibold"
                   >
                     Sign Up
                   </Link>
@@ -228,18 +228,18 @@ const MobileLogin = () => {
               </div>
 
               {/* Legal Disclosure */}
-              <div className="mt-6 text-center text-xs text-gray-500 leading-relaxed px-4">
+              <div className="mt-6 text-center text-xs text-gray-500 dark:text-zinc-500 leading-relaxed px-4">
                 By continuing, you agree to our{' '}
                 <Link
                   to="/terms-and-conditions"
-                  className="text-[#7B0A0A] hover:text-[#AE020B] font-bold underline transition-colors"
+                  className="text-[#7B0A0A] dark:text-red-400 hover:text-[#AE020B] font-bold underline transition-colors"
                 >
                   Terms & Conditions
                 </Link>{' '}
                 and{' '}
                 <Link
                   to="/privacy-policy"
-                  className="text-[#7B0A0A] hover:text-[#AE020B] font-bold underline transition-colors"
+                  className="text-[#7B0A0A] dark:text-red-400 hover:text-[#AE020B] font-bold underline transition-colors"
                 >
                   Privacy Policy
                 </Link>
