@@ -25,6 +25,8 @@ import {
   FiHeart,
   FiUsers,
   FiCreditCard,
+  FiAward,
+  FiSettings,
 } from "react-icons/fi";
 
 // Offers System Imports
@@ -36,6 +38,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import MobileLayout from "../components/Layout/MobileLayout";
 import { useAuthStore } from "../../../shared/store/authStore";
+import { useLoyaltyStore } from "../../../shared/store/loyaltyStore";
 import { isValidEmail, isValidPhone } from "../../../shared/utils/helpers";
 import toast from "react-hot-toast";
 import PageTransition from "../../../shared/components/PageTransition";
@@ -72,6 +75,7 @@ const MobileProfile = () => {
   );
   const wishlistCount = useWishlistStore((state) => state.getItemCount());
   const walletBalance = parseFloat(localStorage.getItem(`wallet_balance_${user?.id || "guest"}`) || "1500");
+  const { availablePoints, totalEarned, totalRedeemed, pendingPoints, history: loyaltyHistory } = useLoyaltyStore();
   const ensureNotificationHydrated = useUserNotificationStore(
     (state) => state.ensureHydrated,
   );
@@ -318,6 +322,14 @@ const MobileProfile = () => {
       badge: `₹${walletBalance.toFixed(0)}`,
     },
     {
+      id: "loyalty",
+      label: "My Loyalty Points",
+      icon: FiAward,
+      color: "text-amber-500",
+      bg: "bg-amber-50",
+      badge: `${availablePoints} Pts`,
+    },
+    {
       id: "offers",
       label: "My Offers",
       icon: FiTag,
@@ -353,6 +365,14 @@ const MobileProfile = () => {
       icon: FiMessageSquare,
       color: "text-teal-600",
       bg: "bg-teal-50",
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: FiSettings,
+      color: "text-gray-600",
+      bg: "bg-gray-100",
+      link: "/settings",
     },
   ];
 
@@ -440,6 +460,8 @@ const MobileProfile = () => {
                       ? "Security"
                       : activeTab === "offers"
                         ? "My Offers"
+                      : activeTab === "loyalty"
+                        ? "My Loyalty Points"
                         : activeTab === "feedback"
                           ? "Give Feedback"
                           : activeTab === "product-enquiries"
@@ -1252,6 +1274,131 @@ const MobileProfile = () => {
                       <FiSave />
                       Submit Feedback
                     </button>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* My Loyalty Points Tab */}
+              {activeTab === "loyalty" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-6"
+                >
+                  {/* Loyalty Points Overview Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Available Points */}
+                    <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[140px]">
+                      <div className="absolute right-2 top-2 opacity-15">
+                        <FiAward className="text-8xl -mr-6 -mt-6" />
+                      </div>
+                      <div>
+                        <span className="text-amber-100 text-xs font-bold uppercase tracking-wider">Available Points</span>
+                        <p className="text-3xl font-black mt-1">{availablePoints}</p>
+                      </div>
+                      <span className="text-[10px] text-amber-100 font-semibold mt-4">Redeemable on next checkout</span>
+                    </div>
+
+                    {/* Total Earned Points */}
+                    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[140px]">
+                      <div>
+                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Earned</span>
+                        <p className="text-3xl font-black text-gray-800 mt-1">{totalEarned}</p>
+                      </div>
+                      <span className="text-[10px] text-emerald-600 font-bold mt-4 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Lifetime Rewards
+                      </span>
+                    </div>
+
+                    {/* Total Redeemed Points */}
+                    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[140px]">
+                      <div>
+                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Redeemed</span>
+                        <p className="text-3xl font-black text-gray-800 mt-1">{totalRedeemed}</p>
+                      </div>
+                      <span className="text-[10px] text-amber-600 font-bold mt-4 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Saved Money
+                      </span>
+                    </div>
+
+                    {/* Pending Points */}
+                    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[140px]">
+                      <div>
+                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Pending Points</span>
+                        <p className="text-3xl font-black text-gray-800 mt-1">{pendingPoints}</p>
+                      </div>
+                      <span className="text-[10px] text-gray-500 font-semibold mt-4">Calculated in transit</span>
+                    </div>
+                  </div>
+
+                  {/* Points History Table */}
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div className="p-4 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
+                      <div>
+                        <h3 className="font-extrabold text-gray-800 text-base">Points Transaction History</h3>
+                        <p className="text-xs text-gray-500 mt-0.5">Track your points lifecycle updates</p>
+                      </div>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-sm">
+                        <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-black tracking-wider border-b border-gray-150">
+                          <tr>
+                            <th className="py-3.5 px-4">Transaction Date</th>
+                            <th className="py-3.5 px-4">Order Reference</th>
+                            <th className="py-3.5 px-4 text-center">Earned Points</th>
+                            <th className="py-3.5 px-4 text-center">Redeemed Points</th>
+                            <th className="py-3.5 px-4 text-right">Balance</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 text-gray-700">
+                          {loyaltyHistory.map((item, index) => (
+                            <tr key={index} className="hover:bg-gray-50/70 transition-colors">
+                              <td className="py-3 px-4 font-medium">
+                                {new Date(item.date).toLocaleDateString("en-IN", {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </td>
+                              <td className="py-3 px-4 font-mono font-bold text-xs text-primary-650">
+                                {item.orderRef}
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                {item.earnedPoints > 0 ? (
+                                  <span className="inline-flex items-center text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                                    +{item.earnedPoints}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400 font-bold">—</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 text-center">
+                                {item.redeemedPoints > 0 ? (
+                                  <span className="inline-flex items-center text-xs font-black text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full">
+                                    -{item.redeemedPoints}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-400 font-bold">—</span>
+                                )}
+                              </td>
+                              <td className="py-3 px-4 text-right font-black text-gray-800">
+                                {item.balance}
+                              </td>
+                            </tr>
+                          ))}
+                          {loyaltyHistory.length === 0 && (
+                            <tr>
+                              <td colSpan={5} className="py-8 text-center text-gray-500 font-medium">
+                                No point transactions recorded.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </motion.div>
               )}

@@ -17,6 +17,7 @@ const MobileOrderConfirmation = () => {
   const order = getOrder(orderId);
   const orderItems = Array.isArray(order?.items) ? order.items : [];
   const displayOrderId = order?.id || order?.orderId || orderId;
+  const earnedPoints = parseInt(localStorage.getItem(`earned_points_${order?.id}`) || "0", 10);
 
   useEffect(() => {
     let mounted = true;
@@ -103,6 +104,23 @@ const MobileOrderConfirmation = () => {
                 Thank you for your purchase. Your order has been received and is being processed.
               </p>
             </motion.div>
+
+            {/* Earned Loyalty Points Message Banner */}
+            {earnedPoints > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl p-5 mb-4 shadow-md flex items-center gap-4 relative overflow-hidden"
+              >
+                <div className="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center text-2xl flex-shrink-0">
+                  🎉
+                </div>
+                <div>
+                  <h3 className="font-extrabold text-base">You earned {earnedPoints} Loyalty Points!</h3>
+                  <p className="text-xs text-amber-100 mt-0.5">Use these points on your next checkout to save money.</p>
+                </div>
+              </motion.div>
+            )}
 
             {/* Order Details */}
             <div className="glass-card rounded-2xl p-6 mb-4">

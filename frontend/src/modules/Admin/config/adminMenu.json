@@ -204,5 +204,14 @@
     "title": "Product Requests",
     "route": "/admin/product-requests",
     "children": []
+  },
+  {
+    "title": "Loyalty Program",
+    "route": "/admin/loyalty",
+    "children": [
+      "Dashboard",
+      "Loyalty Rules",
+      "User Points"
+    ]
   }
 ]

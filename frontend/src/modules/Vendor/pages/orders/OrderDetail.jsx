@@ -106,6 +106,9 @@ const OrderDetail = () => {
         allowedStatuses.includes(option.value)
     );
 
+    const earnedPoints = order ? parseInt(localStorage.getItem(`earned_points_${order.orderId || order._id || id}`) || "0", 10) : 0;
+    const redeemedPoints = order ? parseInt(localStorage.getItem(`applied_points_${order.orderId || order._id || id}`) || "0", 10) : 0;
+
     // Items this vendor sold in this order
     const vendorItems = vendorItem?.items ?? [];
     const vendorSubtotal = vendorItem?.subtotal ?? 0;
@@ -268,6 +271,14 @@ const OrderDetail = () => {
                             >
                                 {currentStatus.toUpperCase()}
                             </Badge>
+                        </div>
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                            <span className="text-gray-600">Loyalty Points Earned</span>
+                            <span className="font-bold text-emerald-600">+{earnedPoints} Pts</span>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                            <span className="text-gray-600">Loyalty Points Redeemed</span>
+                            <span className="font-bold text-rose-600">-{redeemedPoints} Pts</span>
                         </div>
                     </div>
                 </div>

@@ -26,6 +26,7 @@ import {
   FiBriefcase,
   FiRefreshCw,
   FiInbox,
+  FiAward,
 } from "react-icons/fi";
 import { useAdminAuthStore } from "../../store/adminStore";
 import adminMenu from "../../config/adminMenu.json";
@@ -56,6 +57,7 @@ const iconMap = {
   Settings: FiSettings,
   Policies: FiShield,
   Firebase: FiDatabase,
+  "Loyalty Program": FiAward,
 };
 
 // Helper function to convert child name to route path
@@ -155,6 +157,11 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/firebase": {
       "Push Config": "/admin/firebase/push-config",
       Authentication: "/admin/firebase/authentication",
+    },
+    "/admin/loyalty": {
+      "Dashboard": "/admin/loyalty/dashboard",
+      "Loyalty Rules": "/admin/loyalty/rules",
+      "User Points": "/admin/loyalty/users",
     },
   };
 

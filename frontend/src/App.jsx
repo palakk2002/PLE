@@ -106,6 +106,11 @@ const PushConfig = lazy(() => import("./modules/Admin/pages/firebase/PushConfig"
 const Authentication = lazy(() => import("./modules/Admin/pages/firebase/Authentication"));
 const AdminDeliveryManager = lazy(() => import("./modules/Admin/pages/AdminDeliveryManager"));
 
+// Admin Loyalty Program Pages
+const AdminLoyaltyDashboard = lazy(() => import("./modules/Admin/pages/loyalty/Dashboard"));
+const AdminLoyaltyRules = lazy(() => import("./modules/Admin/pages/loyalty/Rules"));
+const AdminLoyaltyUsers = lazy(() => import("./modules/Admin/pages/loyalty/Users"));
+
 // Product Requests System Pages
 const UserProductRequestForm = lazy(() => import("./modules/UserApp/pages/ProductRequestForm"));
 const UserProductRequestHistory = lazy(() => import("./modules/UserApp/pages/ProductRequestHistory"));
@@ -770,6 +775,12 @@ const AppRoutes = () => {
         <Route path="content" element={<Content />} />
         <Route path="product-requests" element={<AdminProductRequestsDashboard />} />
         <Route path="product-enquiries" element={<AdminProductEnquiries />} />
+
+        {/* Loyalty Program Admin Routes */}
+        <Route path="loyalty" element={<Navigate to="dashboard" replace />} />
+        <Route path="loyalty/dashboard" element={<AdminLoyaltyDashboard />} />
+        <Route path="loyalty/rules" element={<AdminLoyaltyRules />} />
+        <Route path="loyalty/users" element={<AdminLoyaltyUsers />} />
       </Route>
       {/* Delivery Routes */}
       <Route path="/delivery/login" element={<DeliveryLogin />} />

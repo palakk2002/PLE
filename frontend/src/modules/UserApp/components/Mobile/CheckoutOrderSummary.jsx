@@ -2,7 +2,7 @@ import { FiShoppingBag } from "react-icons/fi";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import { formatVariantLabel, getVariantSignature } from "../../../../shared/utils/variant";
 
-const OrderSummary = ({ itemsByVendor, total, discount, shipping, tax, finalTotal }) => {
+const OrderSummary = ({ itemsByVendor, total, discount, shipping, tax, finalTotal, pointsDiscount = 0 }) => {
   return (
     <div className="glass-card rounded-xl p-4">
       <h3 className="text-base font-bold text-gray-800 mb-3">Order Summary</h3>
@@ -46,10 +46,16 @@ const OrderSummary = ({ itemsByVendor, total, discount, shipping, tax, finalTota
           <span>Subtotal</span>
           <span>{formatPrice(total)}</span>
         </div>
-        {discount > 0 && (
+        {discount - pointsDiscount > 0 && (
           <div className="flex justify-between text-green-600">
-            <span>Discount</span>
-            <span>-{formatPrice(discount)}</span>
+            <span>Coupon Discount</span>
+            <span>-{formatPrice(discount - pointsDiscount)}</span>
+          </div>
+        )}
+        {pointsDiscount > 0 && (
+          <div className="flex justify-between text-amber-600">
+            <span>Points Discount</span>
+            <span>-{formatPrice(pointsDiscount)}</span>
           </div>
         )}
         <div className="flex justify-between text-gray-600">

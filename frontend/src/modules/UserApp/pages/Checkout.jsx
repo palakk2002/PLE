@@ -10,6 +10,7 @@ import {
   FiArrowLeft,
   FiShoppingBag,
   FiTag,
+  FiAward,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiLock } from "react-icons/fi";
@@ -17,6 +18,7 @@ import { useCartStore } from "../../../shared/store/useStore";
 import { useAuthStore } from "../../../shared/store/authStore";
 import { useAddressStore } from "../../../shared/store/addressStore";
 import { useOrderStore } from "../../../shared/store/orderStore";
+import { useLoyaltyStore } from "../../../shared/store/loyaltyStore";
 import { formatPrice } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
 import toast from "react-hot-toast";
@@ -33,6 +35,10 @@ const MobileCheckout = () => {
   const { user, isAuthenticated } = useAuthStore();
   const { addresses, getDefaultAddress, addAddress, fetchAddresses } = useAddressStore();
   const { createOrder } = useOrderStore();
+  
+  const { availablePoints, rules, earnPoints, redeemPoints } = useLoyaltyStore();
+  const [pointsToApply, setPointsToApply] = useState("");
+  const [appliedPoints, setAppliedPoints] = useState(0);
   
   const { isBusiness } = useBusinessBuyer();
 
@@ -151,10 +157,18 @@ const MobileCheckout = () => {
 
   const total = getTotal();
   const shipping = calculateShippingFallback();
-  const discount = appliedCoupon ? appliedDiscount : 0;
-  const taxableAmount = Math.max(0, total - discount);
+  const couponDiscount = appliedCoupon ? appliedDiscount : 0;
+  const prePointsTotal = total + shipping + taxAmount(total, couponDiscount);
+  const maxRedeemableCash = Math.min(prePointsTotal, appliedPoints * rules.redemptionRatio);
+  const pointsDiscount = maxRedeemableCash;
+  const discount = couponDiscount + pointsDiscount;
+  const taxableAmount = Math.max(0, total - couponDiscount);
   const tax = taxableAmount * 0.18;
-  const finalTotal = Math.max(0, total + shipping + tax - discount);
+  const finalTotal = Math.max(0, prePointsTotal - pointsDiscount);
+
+  function taxAmount(tot, coupDisc) {
+    return Math.max(0, tot - coupDisc) * 0.18;
+  }
 
   useEffect(() => {
     if (appliedCoupon) {
@@ -243,6 +257,27 @@ const MobileCheckout = () => {
     } finally {
       setIsApplyingCoupon(false);
     }
+  };
+
+  const handleApplyPoints = (e) => {
+    e?.preventDefault();
+    const pts = parseInt(pointsToApply, 10);
+    if (Number.isNaN(pts) || pts <= 0) {
+      toast.error("Please enter a valid number of points to redeem");
+      return;
+    }
+    if (pts > availablePoints) {
+      toast.error(`You only have ${availablePoints} points available`);
+      return;
+    }
+    setAppliedPoints(pts);
+    toast.success(`Successfully applied ${pts} points!`);
+  };
+
+  const handleRemovePoints = () => {
+    setAppliedPoints(0);
+    setPointsToApply("");
+    toast.success("Loyalty points removed");
   };
 
   const handleSelectAddress = (address) => {
@@ -353,6 +388,13 @@ const MobileCheckout = () => {
           shippingOption,
         });
 
+        if (appliedPoints > 0) {
+          redeemPoints(appliedPoints, order.id);
+        }
+        const ptsEarned = earnPoints(finalTotal, order.id);
+        localStorage.setItem(`earned_points_${order.id}`, ptsEarned.toString());
+        localStorage.setItem(`applied_points_${order.id}`, appliedPoints.toString());
+
         clearCart();
         toast.success("Order placed successfully!");
         navigate(`/order-confirmation/${order.id}`);
@@ -381,6 +423,13 @@ const MobileCheckout = () => {
         couponCode: appliedCoupon ? (appliedCoupon.code || couponCode.trim().toUpperCase()) : null,
         shippingOption,
       });
+
+      if (appliedPoints > 0) {
+        redeemPoints(appliedPoints, order.id);
+      }
+      const ptsEarned = earnPoints(finalTotal, order.id);
+      localStorage.setItem(`earned_points_${order.id}`, ptsEarned.toString());
+      localStorage.setItem(`applied_points_${order.id}`, appliedPoints.toString());
 
       clearCart();
       toast.success("Order placed successfully!");
@@ -779,6 +828,56 @@ const MobileCheckout = () => {
                       </p>
                     </div>
 
+                    {/* Loyalty Points Redemption */}
+                    <div className="mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                      <div className="flex items-center gap-2 text-amber-600">
+                        <FiAward className="text-lg" />
+                        <h3 className="text-base font-bold text-gray-800">
+                          Redeem Loyalty Points
+                        </h3>
+                      </div>
+                      
+                      {appliedPoints === 0 ? (
+                        <div className="space-y-3">
+                          <p className="text-xs text-gray-500">
+                            Available Points: <span className="font-extrabold text-amber-600">{availablePoints}</span> (worth {formatPrice(availablePoints * rules.redemptionRatio)})
+                          </p>
+                          <div className="flex gap-2">
+                            <input
+                              type="number"
+                              value={pointsToApply}
+                              onChange={(e) => setPointsToApply(e.target.value)}
+                              placeholder={`Enter points (Max ${availablePoints})`}
+                              className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleApplyPoints}
+                              className="px-4 py-3 bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-600 transition-colors shadow-sm">
+                              Apply
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-xl">
+                          <div>
+                            <p className="text-sm font-semibold text-amber-800">
+                              Applied {appliedPoints} Loyalty Points
+                            </p>
+                            <p className="text-xs text-amber-600">
+                              Saved {formatPrice(pointsDiscount)}
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleRemovePoints}
+                            className="text-red-600 hover:text-red-700 font-semibold text-sm">
+                            Remove
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Coupon Code */}
                     <div className="mb-6">
                       <h3 className="text-base font-semibold text-gray-800 mb-3">
@@ -909,6 +1008,7 @@ const MobileCheckout = () => {
                         tax={tax}
                         finalTotal={finalTotal}
                         formatPrice={formatPrice}
+                        pointsDiscount={pointsDiscount}
                       />
                     </div>
                   </motion.div>
@@ -927,6 +1027,7 @@ const MobileCheckout = () => {
                       tax={tax}
                       finalTotal={finalTotal}
                       formatPrice={formatPrice}
+                      pointsDiscount={pointsDiscount}
                     />
                     <div className="p-4 border-t border-gray-100 bg-gray-50">
                       <button
