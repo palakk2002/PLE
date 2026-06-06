@@ -103,34 +103,16 @@ const MobileRegister = () => {
                 <p className="text-sm text-gray-600">Create an account or log in to explore about our app</p>
               </div>
 
-              {/* Sign Up / Log In Toggle */}
-              <div className="mb-6">
-                <div className="flex bg-gray-100 rounded-lg p-1">
-                  <button
-                    type="button"
-                    onClick={() => handleModeChange('signup')}
-                    className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200 ${formMode === 'signup'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                  >
-                    Sign Up
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleModeChange('login')}
-                    className={`flex-1 py-2.5 px-4 rounded-md text-sm font-medium transition-all duration-200 ${formMode === 'login'
-                        ? 'bg-primary-500 text-white shadow-sm'
-                        : 'text-gray-600 hover:text-gray-900'
-                      }`}
-                  >
-                    Log In
-                  </button>
-                </div>
-              </div>
 
-              {/* B2B Role Switcher */}
-              <B2BAccountTypeSwitcher />
+
+              {/* B2B Info Message */}
+              {isBusiness && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center">
+                  <p className="text-xs text-[#AE020B] font-bold">
+                    ✨ Business mode: unlock wholesale prices, tier discounts, MOQ, GST credit, and credit terms.
+                  </p>
+                </div>
+              )}
 
               {/* Register Form */}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -152,7 +134,7 @@ const MobileRegister = () => {
                       })}
                       className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.firstName
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-primary-500'
+                          : 'border-gray-200 focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="Raj"
                     />
@@ -180,7 +162,7 @@ const MobileRegister = () => {
                       })}
                       className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.lastName
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-primary-500'
+                          : 'border-gray-200 focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="Sarkar"
                     />
@@ -206,7 +188,7 @@ const MobileRegister = () => {
                       })}
                       className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.email
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-primary-500'
+                          : 'border-gray-200 focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="sarkarraj0766@gmail.com"
                     />
@@ -224,7 +206,7 @@ const MobileRegister = () => {
                   <div className="flex gap-2">
                     <select
                       {...register('countryCode', { required: true })}
-                      className="w-24 px-3 py-3 rounded-xl border-2 border-gray-200 focus:border-primary-500 focus:outline-none text-sm"
+                      className="w-24 px-3 py-3 rounded-xl border-2 border-gray-200 focus:border-[#AE020B] focus:outline-none text-sm"
                     >
                       <option value="+880">+880</option>
                       <option value="+1">+1</option>
@@ -242,7 +224,7 @@ const MobileRegister = () => {
                         })}
                         className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.phone
                             ? 'border-red-300 focus:border-red-500'
-                            : 'border-gray-200 focus:border-primary-500'
+                            : 'border-gray-200 focus:border-[#AE020B]'
                           } focus:outline-none transition-colors text-base`}
                         placeholder="4547260592"
                       />
@@ -261,7 +243,7 @@ const MobileRegister = () => {
                     className="space-y-5"
                   >
                     <div className="border-t border-gray-100 my-6 pt-4">
-                      <h3 className="text-sm font-extrabold text-primary-600 uppercase tracking-wider mb-2">Business Information</h3>
+                      <h3 className="text-sm font-extrabold text-[#AE020B] uppercase tracking-wider mb-2">Business Information</h3>
                       <p className="text-xs text-gray-500">Provide registration details to verify your wholesale buyer status.</p>
                     </div>
 
@@ -271,7 +253,7 @@ const MobileRegister = () => {
                       <input
                         type="text"
                         {...register('companyName', { required: isBusiness ? 'Company name is required' : false })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.companyName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.companyName ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                         placeholder="Apex General Enterprises"
                       />
                       {errors.companyName && <p className="mt-1 text-sm text-red-600">{errors.companyName.message}</p>}
@@ -282,7 +264,7 @@ const MobileRegister = () => {
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Business Type *</label>
                       <select
                         {...register('businessType', { required: isBusiness ? 'Business type is required' : false })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.businessType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base bg-white`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.businessType ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base bg-white`}
                       >
                         <option value="">Select Business Type</option>
                         <option value="Retailer">Retailer</option>
@@ -308,7 +290,7 @@ const MobileRegister = () => {
                             message: 'Please enter a valid Indian GSTIN format'
                           }
                         })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.gstNumber ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base font-mono uppercase`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.gstNumber ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base font-mono uppercase`}
                         placeholder="27AAPCG9838F1Z1"
                       />
                       {errors.gstNumber && <p className="mt-1 text-sm text-red-600">{errors.gstNumber.message}</p>}
@@ -321,7 +303,7 @@ const MobileRegister = () => {
                         type="file"
                         accept="application/pdf,image/jpeg,image/png"
                         {...register('gstCertificate', { required: isBusiness ? 'GST Certificate is required' : false })}
-                        className={`w-full px-4 py-2.5 rounded-xl border-2 ${errors.gstCertificate ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-sm`}
+                        className={`w-full px-4 py-2.5 rounded-xl border-2 ${errors.gstCertificate ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-sm`}
                       />
                       {errors.gstCertificate && <p className="mt-1 text-sm text-red-600">{errors.gstCertificate.message}</p>}
                     </div>
@@ -332,7 +314,7 @@ const MobileRegister = () => {
                       <textarea
                         rows={2}
                         {...register('businessAddress', { required: isBusiness ? 'Business address is required' : false })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.businessAddress ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.businessAddress ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                         placeholder="404 Business Hub, BKC"
                       />
                       {errors.businessAddress && <p className="mt-1 text-sm text-red-600">{errors.businessAddress.message}</p>}
@@ -345,7 +327,7 @@ const MobileRegister = () => {
                         <input
                           type="text"
                           {...register('city', { required: isBusiness ? 'City is required' : false })}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.city ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base`}
+                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.city ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                           placeholder="Mumbai"
                         />
                         {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>}
@@ -355,7 +337,7 @@ const MobileRegister = () => {
                         <input
                           type="text"
                           {...register('state', { required: isBusiness ? 'State is required' : false })}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.state ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base`}
+                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.state ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                           placeholder="Maharashtra"
                         />
                         {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>}
@@ -370,7 +352,7 @@ const MobileRegister = () => {
                           required: isBusiness ? 'Pincode is required' : false,
                           pattern: { value: /^[0-9]{6}$/, message: 'Pincode must be 6 digits' }
                         })}
-                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.pincode ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base`}
+                        className={`w-full px-4 py-3 rounded-xl border-2 ${errors.pincode ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                         placeholder="400051"
                       />
                       {errors.pincode && <p className="mt-1 text-sm text-red-600">{errors.pincode.message}</p>}
@@ -383,7 +365,7 @@ const MobileRegister = () => {
                         <input
                           type="number"
                           {...register('yearsInBusiness', { min: { value: 0, message: 'Invalid value' } })}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.yearsInBusiness ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base`}
+                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.yearsInBusiness ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                           placeholder="5"
                         />
                         {errors.yearsInBusiness && <p className="mt-1 text-sm text-red-600">{errors.yearsInBusiness.message}</p>}
@@ -393,7 +375,7 @@ const MobileRegister = () => {
                         <input
                           type="text"
                           {...register('monthlyPurchaseVolume')}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.monthlyPurchaseVolume ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-primary-500'} focus:outline-none transition-colors text-base`}
+                          className={`w-full px-4 py-3 rounded-xl border-2 ${errors.monthlyPurchaseVolume ? 'border-red-300 focus:border-red-500' : 'border-gray-200 focus:border-[#AE020B]'} focus:outline-none transition-colors text-base`}
                           placeholder="₹2,00,000"
                         />
                       </div>
@@ -419,7 +401,7 @@ const MobileRegister = () => {
                       })}
                       className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${errors.password
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-primary-500'
+                          : 'border-gray-200 focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="Create a password"
                     />
@@ -440,7 +422,7 @@ const MobileRegister = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Creating Account...' : 'Sign Up'}
                 </button>
@@ -452,7 +434,7 @@ const MobileRegister = () => {
                   Already have an account?{' '}
                   <Link
                     to="/login"
-                    className="text-primary-600 hover:text-primary-700 font-semibold"
+                    className="text-[#AE020B] hover:text-[#8d0208] font-semibold"
                   >
                     Sign In
                   </Link>

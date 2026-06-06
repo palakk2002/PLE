@@ -167,6 +167,7 @@ const MobileCampaignSale = lazy(() => import("./modules/UserApp/pages/CampaignSa
 const MobileTrackOrder = lazy(() => import("./modules/UserApp/pages/TrackOrder"));
 const MobileOrderConfirmation = lazy(() => import("./modules/UserApp/pages/OrderConfirmation"));
 const ComingSoon = lazy(() => import("./modules/UserApp/pages/ComingSoon"));
+const PortalSelection = lazy(() => import("./modules/UserApp/pages/PortalSelection"));
 const UserPrivacyPolicy = lazy(() => import("./modules/UserApp/pages/PrivacyPolicy"));
 const UserTermsConditions = lazy(() => import("./modules/UserApp/pages/TermsConditions"));
 const UserAgreement = lazy(() => import("./modules/UserApp/pages/UserAgreement"));
@@ -246,7 +247,7 @@ const AppRoutes = () => {
         path="/"
         element={
           <RouteWrapper>
-            <MobileHome />
+            <PortalSelection />
           </RouteWrapper>
         }
       />

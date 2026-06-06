@@ -16,11 +16,13 @@ import toast from 'react-hot-toast';
 import MobileLayout from '../components/Layout/MobileLayout';
 import PageTransition from '../../../shared/components/PageTransition';
 import { B2BAccountTypeSwitcher } from '../components/B2B/B2BAccountTypeSwitcher';
+import { useBusinessBuyer } from '../hooks/useBusinessBuyer';
 
 const MobileLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, isAuthenticated } = useAuthStore();
+  const { isBusiness } = useBusinessBuyer();
 
   // Auto-redirect when authentication state changes
   useEffect(() => {
@@ -112,8 +114,14 @@ const MobileLogin = () => {
                 <p className="text-sm text-gray-600">Login to access your account</p>
               </div>
 
-              {/* B2B Role Switcher */}
-              <B2BAccountTypeSwitcher />
+              {/* B2B Info Message */}
+              {isBusiness && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl text-center">
+                  <p className="text-xs text-[#AE020B] font-bold">
+                    ✨ Business mode: unlock wholesale prices, tier discounts, MOQ, GST credit, and credit terms.
+                  </p>
+                </div>
+              )}
 
               {/* Login Form */}
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -132,7 +140,7 @@ const MobileLogin = () => {
                       })}
                       className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${errors.email
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-primary-500'
+                          : 'border-gray-200 focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="your.email@example.com"
                     />
@@ -160,7 +168,7 @@ const MobileLogin = () => {
                       })}
                       className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${errors.password
                           ? 'border-red-300 focus:border-red-500'
-                          : 'border-gray-200 focus:border-primary-500'
+                          : 'border-gray-200 focus:border-[#AE020B]'
                         } focus:outline-none transition-colors text-base`}
                       placeholder="Enter your password"
                     />
@@ -184,13 +192,13 @@ const MobileLogin = () => {
                       type="checkbox"
                       checked={rememberMe}
                       onChange={(e) => setRememberMe(e.target.checked)}
-                      className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                      className="w-4 h-4 text-[#AE020B] border-gray-300 rounded focus:ring-[#AE020B]"
                     />
                     <span className="ml-2 text-sm text-gray-700">Remember me</span>
                   </label>
                   <Link
                     to="/forgot-password"
-                    className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    className="text-sm text-[#AE020B] hover:text-[#8d0208] font-medium"
                   >
                     Forget password?
                   </Link>
@@ -200,7 +208,7 @@ const MobileLogin = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-primary-500 hover:bg-primary-600 text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? 'Logging in...' : 'Log In'}
                 </button>
@@ -212,7 +220,7 @@ const MobileLogin = () => {
                   Don't have an account?{' '}
                   <Link
                     to="/register"
-                    className="text-primary-600 hover:text-primary-700 font-semibold"
+                    className="text-[#AE020B] hover:text-[#8d0208] font-semibold"
                   >
                     Sign Up
                   </Link>
