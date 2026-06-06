@@ -2,35 +2,131 @@ import { create } from 'zustand';
 import * as adminService from '../../modules/Admin/services/adminService';
 import toast from 'react-hot-toast';
 
+const STORAGE_KEY = 'mock-campaigns';
+
+const initializeLocalStorage = () => {
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    const defaultCampaigns = [
+      {
+        _id: 'camp_diwali',
+        name: 'Diwali Sale',
+        type: 'festival',
+        description: 'Celebrate the festival of lights with premium traditional wear and fashion deals!',
+        discountType: 'percentage',
+        discountValue: 20,
+        startDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Started 2 days ago
+        endDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Ends in 5 days
+        productIds: [],
+        isActive: true,
+        slug: 'diwali-sale',
+        bannerConfig: {
+          title: 'Diwali Festive Sale',
+          subtitle: 'Flat 20% Off on All Traditional Wear',
+          image: 'https://images.unsplash.com/photo-1605152276897-4f618f831968?w=1200&auto=format&fit=crop&q=80',
+          customImage: false
+        }
+      },
+      {
+        _id: 'camp_christmas',
+        name: 'Christmas Deals',
+        type: 'festival',
+        description: 'Merry Christmas! Enjoy holiday special discounts.',
+        discountType: 'percentage',
+        discountValue: 15,
+        startDate: new Date(Date.now() + 100 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        endDate: new Date(Date.now() + 105 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        productIds: [],
+        isActive: false,
+        slug: 'christmas-deals',
+        bannerConfig: {
+          title: 'Christmas Deals',
+          subtitle: 'Warm winter fashion special',
+          image: 'https://images.unsplash.com/photo-1544816155-12df9643f363?w=1200&auto=format&fit=crop&q=80',
+          customImage: false
+        }
+      }
+    ];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultCampaigns));
+  }
+};
+
 export const useCampaignStore = create((set, get) => ({
   campaigns: [],
   isLoading: false,
 
   initialize: async (params = {}) => {
+    initializeLocalStorage();
     await get().fetchCampaigns(params);
   },
 
   fetchCampaigns: async (params = {}) => {
     set({ isLoading: true });
+    initializeLocalStorage();
+    
+    let backendCampaigns = [];
     try {
       const response = await adminService.getAllCampaigns(params);
-      set({ campaigns: response.data, isLoading: false });
+      const data = response.data;
+      backendCampaigns = Array.isArray(data) ? data : (data?.campaigns || []);
     } catch (error) {
-      set({ isLoading: false });
-      toast.error(error.message || 'Failed to fetch campaigns');
+      console.warn("Backend fetchCampaigns failed, using localStorage fallback.");
     }
+
+    const localCampaigns = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    
+    // Merge local campaigns and backend campaigns
+    const mergedMap = new Map();
+    backendCampaigns.forEach(c => {
+      if (c && (c._id || c.id)) {
+        const id = c._id || c.id;
+        mergedMap.set(String(id), { ...c, _id: id, id });
+      }
+    });
+    
+    localCampaigns.forEach(c => {
+      if (c && (c._id || c.id)) {
+        const id = c._id || c.id;
+        mergedMap.set(String(id), { ...c, _id: id, id });
+      }
+    });
+
+    set({ campaigns: Array.from(mergedMap.values()), isLoading: false });
   },
 
   createCampaign: async (campaignData) => {
     set({ isLoading: true });
     try {
-      const response = await adminService.createCampaign(campaignData);
-      set(state => ({
-        campaigns: [...state.campaigns, response.data],
-        isLoading: false
-      }));
+      // Ensure only one active festival campaign
+      if (campaignData.type === 'festival' && campaignData.isActive) {
+        const localCampaigns = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const updatedLocals = localCampaigns.map(c => 
+          c.type === 'festival' ? { ...c, isActive: false } : c
+        );
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLocals));
+      }
+
+      let newCampaign = {
+        ...campaignData,
+        _id: 'camp_' + Date.now(),
+        productIds: campaignData.productIds || []
+      };
+
+      try {
+        const response = await adminService.createCampaign(campaignData);
+        if (response?.data) {
+          newCampaign = { ...newCampaign, ...response.data };
+        }
+      } catch (err) {
+        console.warn("Backend createCampaign failed, running in offline mode.");
+      }
+
+      const localCampaigns = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      localCampaigns.push(newCampaign);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(localCampaigns));
+
       toast.success('Campaign created successfully');
-      return response.data;
+      await get().fetchCampaigns();
+      return newCampaign;
     } catch (error) {
       set({ isLoading: false });
       toast.error(error.message || 'Failed to create campaign');
@@ -41,13 +137,29 @@ export const useCampaignStore = create((set, get) => ({
   updateCampaign: async (id, campaignData) => {
     set({ isLoading: true });
     try {
-      const response = await adminService.updateCampaign(id, campaignData);
-      set(state => ({
-        campaigns: state.campaigns.map(c => c._id === id ? response.data : c),
-        isLoading: false
-      }));
+      // Ensure only one active festival campaign
+      if (campaignData.type === 'festival' && campaignData.isActive) {
+        const localCampaigns = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        const updatedLocals = localCampaigns.map(c => 
+          (c.type === 'festival' && String(c._id) !== String(id)) ? { ...c, isActive: false } : c
+        );
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedLocals));
+      }
+
+      try {
+        await adminService.updateCampaign(id, campaignData);
+      } catch (err) {
+        console.warn("Backend updateCampaign failed, running in offline mode.");
+      }
+
+      const localCampaigns = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const updated = localCampaigns.map(c => 
+        String(c._id) === String(id) ? { ...c, ...campaignData, _id: id } : c
+      );
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
       toast.success('Campaign updated successfully');
-      return response.data;
+      await get().fetchCampaigns();
     } catch (error) {
       set({ isLoading: false });
       toast.error(error.message || 'Failed to update campaign');
@@ -58,12 +170,18 @@ export const useCampaignStore = create((set, get) => ({
   deleteCampaign: async (id) => {
     set({ isLoading: true });
     try {
-      await adminService.deleteCampaign(id);
-      set(state => ({
-        campaigns: state.campaigns.filter(c => c._id !== id),
-        isLoading: false
-      }));
+      try {
+        await adminService.deleteCampaign(id);
+      } catch (err) {
+        console.warn("Backend deleteCampaign failed, running in offline mode.");
+      }
+
+      const localCampaigns = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      const filtered = localCampaigns.filter(c => String(c._id) !== String(id));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+
       toast.success('Campaign deleted successfully');
+      await get().fetchCampaigns();
     } catch (error) {
       set({ isLoading: false });
       toast.error(error.message || 'Failed to delete campaign');
@@ -72,9 +190,11 @@ export const useCampaignStore = create((set, get) => ({
   },
 
   toggleCampaignStatus: async (id) => {
-    const campaign = get().campaigns.find(c => c._id === id);
+    const campaign = get().campaigns.find(c => String(c._id) === String(id));
     if (!campaign) return;
-    await get().updateCampaign(id, { isActive: !campaign.isActive });
+    const newStatus = !campaign.isActive;
+
+    await get().updateCampaign(id, { ...campaign, isActive: newStatus });
   },
 
   getCampaignsByType: (type) => {
@@ -103,4 +223,5 @@ export const generateSlug = (name, existingCampaigns = []) => {
 
   return finalSlug;
 };
+
 

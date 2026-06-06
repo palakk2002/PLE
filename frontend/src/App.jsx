@@ -159,6 +159,7 @@ const MobileRFQDetail = lazy(() => import("./modules/UserApp/pages/RFQDetail"));
 const MobileAddresses = lazy(() => import("./modules/UserApp/pages/Addresses"));
 const MobileWishlist = lazy(() => import("./modules/UserApp/pages/Wishlist"));
 const MobileOffers = lazy(() => import("./modules/UserApp/pages/Offers"));
+const FestivalLandingPage = lazy(() => import("./modules/UserApp/pages/FestivalLandingPage"));
 const MobileDailyDeals = lazy(() => import("./modules/UserApp/pages/DailyDeals"));
 const MobileFlashSale = lazy(() => import("./modules/UserApp/pages/FlashSale"));
 const MobileNewArrivals = lazy(() => import("./modules/UserApp/pages/NewArrivals"));
@@ -235,6 +236,7 @@ const VendorB2BQuoteDetail = lazy(() => import("./modules/Vendor/pages/b2b/B2BQu
 const VendorB2BAnalytics = lazy(() => import("./modules/Vendor/pages/b2b/B2BAnalytics"));
 const VendorB2BSettings = lazy(() => import("./modules/Vendor/pages/b2b/B2BSettings"));
 const VendorDeliverySettings = lazy(() => import("./modules/Vendor/pages/VendorDeliverySettings"));
+const VendorFestivalCampaigns = lazy(() => import("./modules/Vendor/pages/FestivalCampaigns"));
 
 // Inner component that has access to useLocation
 const AppRoutes = () => {
@@ -370,6 +372,14 @@ const AppRoutes = () => {
         element={
           <RouteWrapper>
             <MobileOffers />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/festival-campaign"
+        element={
+          <RouteWrapper>
+            <FestivalLandingPage />
           </RouteWrapper>
         }
       />
@@ -899,6 +909,7 @@ const AppRoutes = () => {
         <Route path="my-offers/details/:id" element={<OfferDetails />} />
 
         <Route path="delivery-settings" element={<VendorDeliverySettings />} />
+        <Route path="festival-campaigns" element={<VendorFestivalCampaigns />} />
         <Route path="product-requests" element={<VendorProductRequests />} />
         <Route path="product-enquiries" element={<VendorProductEnquiries />} />
         <Route path="profile" element={<VendorSettings />} />

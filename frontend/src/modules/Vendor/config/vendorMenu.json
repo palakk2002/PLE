@@ -127,6 +127,11 @@
                      ]
     },
     {
+        "title": "Festival Campaigns",
+        "route": "/vendor/festival-campaigns",
+        "children": []
+    },
+    {
         "title":  "Settings",
         "route":  "/vendor/settings",
         "children":  [

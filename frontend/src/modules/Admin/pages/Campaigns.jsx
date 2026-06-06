@@ -156,6 +156,7 @@ const Campaigns = () => {
               { value: 'flash_sale', label: 'Flash Sale' },
               { value: 'daily_deal', label: 'Daily Deal' },
               { value: 'special_offer', label: 'Special Offer' },
+              { value: 'festival', label: 'Festival Offer' },
             ]}
             className="min-w-[140px]"
           />

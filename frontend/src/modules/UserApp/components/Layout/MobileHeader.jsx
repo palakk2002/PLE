@@ -23,6 +23,7 @@ import MobileCategoryIcons from "../Mobile/MobileCategoryIcons";
 import Sidebar from "../../../../shared/components/Sidebar";
 import { useBusinessBuyer } from "../../hooks/useBusinessBuyer";
 import { B2BBusinessBadge } from "../B2B/B2BBusinessBadge";
+import { useCampaignStore } from "../../../../shared/store/campaignStore";
 
 // Category gradient mapping - Very subtle pastel colors
 const categoryGradients = {
@@ -69,6 +70,21 @@ const MobileHeader = () => {
     (state) => state.cartAnimationTrigger
   );
   const { user, isAuthenticated, logout } = useAuthStore();
+  
+  const { campaigns, initialize } = useCampaignStore();
+  useEffect(() => {
+    initialize();
+  }, [initialize]);
+
+  const activeFestivalCampaign = useMemo(() => {
+    return campaigns.find(c => {
+      if (c.type !== 'festival' || !c.isActive) return false;
+      const now = new Date();
+      const start = new Date(c.startDate);
+      const end = new Date(c.endDate);
+      return start <= now && end >= now;
+    });
+  }, [campaigns]);
 
   // Get current category from URL (supports both /category/:id and legacy /app/category/:id)
   const getCurrentCategoryId = () => {
@@ -471,66 +487,84 @@ const MobileHeader = () => {
         </motion.div>
 
         {/* Second Row: 3 Premium Navigation Capsule Tabs (Zepto-style) */}
-        <div className="flex items-center justify-between gap-2.5 mt-2 w-full relative z-[10006]">
-          {[
-            {
-              label: "PLE",
-              path: "/home",
-              active:
-                location.pathname === "/" ||
-                location.pathname === "/home" ||
-                location.pathname.startsWith("/product/") ||
-                location.pathname.startsWith("/brand/") ||
-                location.pathname.startsWith("/seller/"),
-              style: {
-                activeLight: "bg-white border border-[#AE020B] text-[#AE020B] font-extrabold text-sm tracking-tight uppercase shadow-sm",
-                activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-extrabold text-sm tracking-tight uppercase shadow-sm",
-                inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-sm tracking-tight uppercase",
-                inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-sm tracking-tight uppercase",
+        <div className="flex items-center justify-between gap-1.5 mt-2 w-full relative z-[10006]">
+          {(() => {
+            const tabs = [
+              {
+                label: "PLE",
+                path: "/home",
+                active:
+                  location.pathname === "/" ||
+                  location.pathname === "/home" ||
+                  location.pathname.startsWith("/product/") ||
+                  location.pathname.startsWith("/brand/") ||
+                  location.pathname.startsWith("/seller/"),
+                style: {
+                  activeLight: "bg-white border border-[#AE020B] text-[#AE020B] font-extrabold text-xs tracking-tight uppercase shadow-sm",
+                  activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-extrabold text-xs tracking-tight uppercase shadow-sm",
+                  inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-xs tracking-tight uppercase",
+                  inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-xs tracking-tight uppercase",
+                }
+              },
+              {
+                label: "Categories",
+                path: "/categories",
+                active: location.pathname === "/categories" || location.pathname.startsWith("/category/"),
+                style: {
+                  activeLight: "bg-white border border-[#2563EB] text-[#2563EB] font-bold text-[10px] sm:text-xs tracking-tight shadow-sm",
+                  activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-bold text-[10px] sm:text-xs tracking-tight shadow-sm",
+                  inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-[10px] sm:text-xs tracking-tight",
+                  inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-[10px] sm:text-xs tracking-tight",
+                }
+              },
+              {
+                label: "Offer",
+                path: "/offers",
+                active: location.pathname === "/offers",
+                style: {
+                  activeLight: "bg-[#FCD34D] border border-[#FBBF24] text-[#064E3B] font-serif font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm",
+                  activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm",
+                  inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-[10px] sm:text-xs uppercase tracking-wider",
+                  inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-[10px] sm:text-xs uppercase tracking-wider",
+                }
               }
-            },
-            {
-              label: "Categories",
-              path: "/categories",
-              active: location.pathname === "/categories" || location.pathname.startsWith("/category/"),
-              style: {
-                activeLight: "bg-white border border-[#2563EB] text-[#2563EB] font-bold text-xs tracking-tight shadow-sm",
-                activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-bold text-xs tracking-tight shadow-sm",
-                inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-xs tracking-tight",
-                inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-xs tracking-tight",
-              }
-            },
-            {
-              label: "Offer",
-              path: "/offers",
-              active: location.pathname === "/offers",
-              style: {
-                activeLight: "bg-[#FCD34D] border border-[#FBBF24] text-[#064E3B] font-serif font-black text-xs uppercase tracking-wider shadow-sm",
-                activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-black text-xs uppercase tracking-wider shadow-sm",
-                inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-xs uppercase tracking-wider",
-                inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-xs uppercase tracking-wider",
-              }
-            },
-          ].map((tab) => {
-            return (
-              <Link
-                key={tab.label}
-                to={tab.path}
-                className={`flex-1 text-center py-2 px-3 rounded-full transition-all duration-300 cursor-pointer select-none
-                  ${theme === "dark" 
-                    ? (tab.active ? tab.style.activeDark : tab.style.inactiveDark) 
-                    : (tab.active ? tab.style.activeLight : tab.style.inactiveLight)
-                  }
-                  ${tab.active ? "opacity-100 scale-100" : "opacity-75 hover:opacity-100 scale-100"}
-                `}
-                style={{
-                  willChange: "transform",
-                }}
-              >
-                {tab.label}
-              </Link>
-            );
-          })}
+            ];
+
+            if (activeFestivalCampaign) {
+              tabs.push({
+                label: activeFestivalCampaign.name,
+                path: "/festival-campaign",
+                active: location.pathname === "/festival-campaign",
+                style: {
+                  activeLight: "bg-red-600 border border-red-700 text-white font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm",
+                  activeDark: "bg-red-800 border border-red-900 text-white font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm",
+                  inactiveLight: "bg-red-50 border border-red-200 text-red-600 font-semibold text-[10px] sm:text-xs uppercase tracking-wider",
+                  inactiveDark: "bg-red-950/40 border border-red-900 text-red-300 font-semibold text-[10px] sm:text-xs uppercase tracking-wider",
+                }
+              });
+            }
+
+            return tabs.map((tab) => {
+              return (
+                <Link
+                  key={tab.label}
+                  to={tab.path}
+                  className={`flex-1 text-center py-2 px-1.5 rounded-full transition-all duration-300 cursor-pointer select-none truncate
+                    ${theme === "dark" 
+                      ? (tab.active ? tab.style.activeDark : tab.style.inactiveDark) 
+                      : (tab.active ? tab.style.activeLight : tab.style.inactiveLight)
+                    }
+                    ${tab.active ? "opacity-100 scale-100" : "opacity-75 hover:opacity-100 scale-100"}
+                  `}
+                  style={{
+                    willChange: "transform",
+                  }}
+                >
+                  {tab.label}
+                </Link>
+              );
+            });
+          })()}
         </div>
 
         {/* Third Row: Single Integrated Search & Offers Bar (Zepto-style) */}

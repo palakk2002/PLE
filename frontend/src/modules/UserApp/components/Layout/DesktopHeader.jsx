@@ -15,6 +15,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserNotificationStore } from "../../store/userNotificationStore";
 import { useThemeStore } from "../../../../shared/store/themeStore"; // needed for conditional logo
 
+import { useCampaignStore } from "../../../../shared/store/campaignStore";
+
 const DesktopHeader = () => {
     const { theme, toggleTheme } = useThemeStore();
     const appLogo = {
@@ -28,6 +30,19 @@ const DesktopHeader = () => {
     const unreadCount = useUserNotificationStore((state) => state.unreadCount);
     const ensureHydrated = useUserNotificationStore((state) => state.ensureHydrated);
     const toggleCart = useUIStore((state) => state.toggleCart);
+
+    const { campaigns, initialize } = useCampaignStore();
+    useEffect(() => {
+        initialize();
+    }, [initialize]);
+
+    const activeFestivalCampaign = campaigns.find(c => {
+        if (c.type !== 'festival' || !c.isActive) return false;
+        const now = new Date();
+        const start = new Date(c.startDate);
+        const end = new Date(c.endDate);
+        return start <= now && end >= now;
+    });
 
     const [showUserMenu, setShowUserMenu] = useState(false);
   const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -87,6 +102,11 @@ const DesktopHeader = () => {
                         <FiGrid /> Categories
                     </Link>
                     <Link to="/offers" className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium text-sm lg:text-base">Offers</Link>
+                    {activeFestivalCampaign && (
+                        <Link to="/festival-campaign" className="text-red-600 dark:text-red-400 hover:text-red-700 font-bold text-sm lg:text-base transition-all animate-pulse flex items-center gap-1">
+                            ✨ {activeFestivalCampaign.name}
+                        </Link>
+                    )}
                     <Link to="/search?condition=refurbished" className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium text-sm lg:text-base">Refurbished</Link>
                 </nav>
 

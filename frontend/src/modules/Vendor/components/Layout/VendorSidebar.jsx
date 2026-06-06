@@ -46,6 +46,7 @@ const iconMap = {
   Chat: FiMessageCircle,
   Promotions: FiTag,
   "My Offers": FiTag,
+  "Festival Campaigns": FiTag,
   Notifications: FiBell,
   "Shipping Management": FiTruck,
   Customers: FiUsers,
