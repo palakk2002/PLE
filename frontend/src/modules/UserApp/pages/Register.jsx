@@ -473,9 +473,16 @@ const MobileRegister = () => {
                         </div>
                       )}
 
-                      <div className="flex gap-3 pt-2">
-                        <button type="button" onClick={() => setB2bStep(2)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-750 py-3 rounded-xl font-bold text-sm">Back</button>
-                        <button type="submit" disabled={isLoading} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-3 rounded-xl font-bold text-sm">{isLoading ? 'Creating...' : 'Register Company'}</button>
+                      <div className="flex flex-col gap-3 pt-2">
+                        <div className="flex gap-3">
+                          <button type="button" onClick={() => setB2bStep(2)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-750 py-3 rounded-xl font-bold text-sm">Back</button>
+                          <button type="submit" disabled={isLoading} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-3 rounded-xl font-bold text-sm">{isLoading ? 'Creating...' : 'Register Company'}</button>
+                        </div>
+                        {employees.length === 0 && (
+                          <button type="submit" disabled={isLoading} className="w-full border-2 border-dashed border-[#AE020B] text-[#AE020B] hover:bg-red-50/50 dark:hover:bg-red-950/10 py-3 rounded-xl font-bold text-xs transition-colors">
+                            Skip Employee Setup & Register Company
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
