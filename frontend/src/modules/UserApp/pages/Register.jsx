@@ -149,6 +149,7 @@ const MobileRegister = () => {
         name: b2bData.adminName,
         email: b2bData.adminEmail,
         phone: b2bData.adminPhone,
+        password: b2bData.password,
       };
 
       registerCompany(companyData, adminData, employees);
@@ -161,6 +162,8 @@ const MobileRegister = () => {
       toast.error(error.message || 'Registration failed. Please try again.');
     }
   };
+
+  const [empConfirmPassword, setEmpConfirmPassword] = useState('');
 
   return (
     <PageTransition>
@@ -258,7 +261,7 @@ const MobileRegister = () => {
                         placeholder="sarkarraj0766@gmail.com"
                       />
                     </div>
-                    {b2cErrors.email && <p className="mt-1 text-sm text-red-650">{b2cErrors.email.message}</p>}
+                    {b2cErrors.email && <p className="mt-1 text-sm text-red-655">{b2cErrors.email.message}</p>}
                   </div>
 
                   <div>
@@ -275,7 +278,7 @@ const MobileRegister = () => {
                         placeholder="9876543210"
                       />
                     </div>
-                    {b2cErrors.phone && <p className="mt-1 text-sm text-red-650">{b2cErrors.phone.message}</p>}
+                    {b2cErrors.phone && <p className="mt-1 text-sm text-red-655">{b2cErrors.phone.message}</p>}
                   </div>
 
                   <div>
@@ -397,35 +400,73 @@ const MobileRegister = () => {
                       <div className="border border-gray-150 p-4 rounded-xl bg-gray-50 dark:bg-zinc-900 space-y-3">
                         <h3 className="font-bold text-sm text-gray-800 dark:text-zinc-100 flex items-center gap-1.5">Add Employee</h3>
                         <div>
-                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Name</label>
+                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Name *</label>
                           <input type="text" name="name" value={empInput.name} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="John Doe" />
                         </div>
                         <div>
-                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Email</label>
+                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Email *</label>
                           <input type="email" name="email" value={empInput.email} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="john@apexenterprises.in" />
                         </div>
                         <div>
-                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Phone</label>
+                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Employee Phone *</label>
                           <input type="tel" name="phone" value={empInput.phone} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="9876500003" />
                         </div>
                         <div>
-                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Designation</label>
+                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Designation *</label>
                           <input type="text" name="designation" value={empInput.designation} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Purchase Manager" />
                         </div>
-                        <button type="button" onClick={handleAddEmployee} className="w-full py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg font-bold">Add to Team</button>
+                        <div>
+                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Password *</label>
+                          <input type="password" name="password" value={empInput.password || ''} onChange={(e) => setEmpInput(prev => ({ ...prev, password: e.target.value }))} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Employee password" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Confirm Password *</label>
+                          <input type="password" value={empConfirmPassword} onChange={(e) => setEmpConfirmPassword(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Confirm password" />
+                        </div>
+                        <button type="button" onClick={() => {
+                          if (!empInput.name || !empInput.email || !empInput.phone || !empInput.designation || !empInput.password) {
+                            toast.error('All employee fields including password are required.');
+                            return;
+                          }
+                          if (empInput.password !== empConfirmPassword) {
+                            toast.error('Employee passwords do not match.');
+                            return;
+                          }
+                          handleAddEmployee();
+                          setEmpConfirmPassword('');
+                        }} className="w-full py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg font-bold">Add to Team</button>
                       </div>
 
                       {employees.length > 0 && (
                         <div className="space-y-2">
                           <h4 className="font-bold text-gray-800 dark:text-zinc-150">Added Team Members ({employees.length})</h4>
-                          <div className="divide-y divide-gray-100 max-h-48 overflow-y-auto border border-gray-100 rounded-xl bg-white dark:bg-zinc-950">
+                          <div className="divide-y divide-gray-100 max-h-64 overflow-y-auto border border-gray-100 rounded-xl bg-white dark:bg-zinc-950">
                             {employees.map((emp, index) => (
-                              <div key={index} className="p-3 flex justify-between items-center text-xs">
-                                <div>
-                                  <p className="font-bold text-gray-800 dark:text-zinc-100">{emp.name}</p>
-                                  <p className="text-gray-500 font-semibold">{emp.email} • {emp.designation}</p>
+                              <div key={index} className="p-3 space-y-2 text-xs border-b last:border-b-0 dark:border-zinc-800">
+                                <div className="flex justify-between items-center">
+                                  <div>
+                                    <p className="font-bold text-gray-800 dark:text-zinc-105">{emp.name}</p>
+                                    <p className="text-gray-500 font-semibold">{emp.email} • {emp.designation}</p>
+                                  </div>
+                                  <button type="button" onClick={() => handleRemoveEmployee(index)} className="text-red-650 font-bold hover:underline">Remove</button>
                                 </div>
-                                <button type="button" onClick={() => handleRemoveEmployee(index)} className="text-red-650 font-bold hover:underline">Remove</button>
+                                <div className="bg-gray-50 dark:bg-zinc-900 p-2 rounded-lg space-y-1 border dark:border-zinc-800">
+                                  <p className="text-[10px] text-gray-400 font-bold">Credentials & Login Details:</p>
+                                  <div className="flex flex-wrap gap-2 text-[10px]">
+                                    <button type="button" onClick={() => {
+                                      navigator.clipboard.writeText(`Email: ${emp.email}\nPassword: ${emp.password || 'Employee@123'}`);
+                                      toast.success('Credentials copied to clipboard!');
+                                    }} className="text-blue-500 hover:underline">Copy Credentials</button>
+                                    <button type="button" onClick={() => {
+                                      const loginLink = `${window.location.origin}/login`;
+                                      navigator.clipboard.writeText(loginLink);
+                                      toast.success('Login link copied to clipboard!');
+                                    }} className="text-emerald-500 hover:underline">Copy Login Link</button>
+                                    <button type="button" onClick={() => {
+                                      toast.success(`Invitation resending simulated to ${emp.email}`);
+                                    }} className="text-purple-550 hover:underline">Resend Invitation</button>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>

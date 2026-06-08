@@ -199,6 +199,10 @@ const CompanyManagement = () => {
                 <span className="text-gray-400 block mb-0.5">Website</span>
                 <span className="text-gray-800 dark:text-zinc-150">{selectedCompany.website || 'N/A'}</span>
               </div>
+              <div>
+                <span className="text-gray-400 block mb-0.5">Employee Count</span>
+                <span className="text-gray-800 dark:text-zinc-150 font-bold">{selectedCompany.employees?.length || 0}</span>
+              </div>
               <div className="sm:col-span-2">
                 <span className="text-gray-400 block mb-0.5">Business Address</span>
                 <span className="text-gray-800 dark:text-zinc-150">{selectedCompany.businessAddress}</span>

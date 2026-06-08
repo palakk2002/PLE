@@ -81,15 +81,19 @@ export const useAuthStore = create(
 
           for (const company of companies || []) {
             if (company.admin?.email?.toLowerCase() === normalizedEmail) {
-              matchedCompany = company;
-              isCompanyAdmin = true;
-              break;
+              if (company.admin?.password === password || (!company.admin?.password && password === "Sarkar@123")) {
+                matchedCompany = company;
+                isCompanyAdmin = true;
+                break;
+              }
             }
             const emp = company.employees?.find(e => e.email?.toLowerCase() === normalizedEmail);
             if (emp) {
-              matchedCompany = company;
-              matchedEmployee = emp;
-              break;
+              if (emp.password === password || (!emp.password && password === "Employee@123")) {
+                matchedCompany = company;
+                matchedEmployee = emp;
+                break;
+              }
             }
           }
 

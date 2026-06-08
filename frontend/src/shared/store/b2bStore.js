@@ -173,6 +173,7 @@ export const useB2bStore = create(
             name: adminData.name,
             email: adminData.email,
             phone: adminData.phone,
+            password: adminData.password,
           },
           employees: employeesList.map(emp => ({
             ...emp,

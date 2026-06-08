@@ -1264,7 +1264,28 @@ const MobileProfile = () => {
                   {showAddEmpModal && (
                     <div className="p-4 border rounded-xl bg-gray-50 space-y-4 text-xs font-semibold">
                       <h3 className="font-bold text-sm text-gray-800">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
-                      <form onSubmit={handleAddEmpSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <form onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!company) return;
+                        if (!empForm.name || !empForm.email || !empForm.phone || !empForm.designation) {
+                          toast.error('All fields are required.');
+                          return;
+                        }
+                        if (!editingEmployee && (!empForm.password || empForm.password !== empForm.confirmPassword)) {
+                          toast.error('Passwords do not match or are empty.');
+                          return;
+                        }
+                        if (editingEmployee) {
+                          updateEmployee(company.id, editingEmployee.email, empForm);
+                          toast.success('Employee details updated!');
+                        } else {
+                          addEmployee(company.id, empForm);
+                          toast.success('Employee added successfully!');
+                        }
+                        setShowAddEmpModal(false);
+                        setEditingEmployee(null);
+                        setEmpForm({ name: '', email: '', phone: '', designation: '', password: '', confirmPassword: '' });
+                      }} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-gray-650 mb-1">Employee Name *</label>
                           <input
@@ -1306,6 +1327,30 @@ const MobileProfile = () => {
                             placeholder="Purchase Executive"
                           />
                         </div>
+                        {!editingEmployee && (
+                          <>
+                            <div>
+                              <label className="block text-gray-650 mb-1">Password *</label>
+                              <input
+                                type="password"
+                                value={empForm.password || ''}
+                                onChange={(e) => setEmpForm({ ...empForm, password: e.target.value })}
+                                className="w-full px-3 py-2 border rounded-lg bg-white"
+                                placeholder="Employee password"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-gray-650 mb-1">Confirm Password *</label>
+                              <input
+                                type="password"
+                                value={empForm.confirmPassword || ''}
+                                onChange={(e) => setEmpForm({ ...empForm, confirmPassword: e.target.value })}
+                                className="w-full px-3 py-2 border rounded-lg bg-white"
+                                placeholder="Confirm password"
+                              />
+                            </div>
+                          </>
+                        )}
                         <div className="sm:col-span-2 flex gap-2 pt-2">
                           <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">
                             {editingEmployee ? 'Update' : 'Add'}
@@ -1331,7 +1376,7 @@ const MobileProfile = () => {
                         <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
                           <tr>
                             <th className="py-3 px-4">Name</th>
-                            <th className="py-3 px-4">Email</th>
+                            <th className="py-3 px-4">Email / Info</th>
                             <th className="py-3 px-4">Phone</th>
                             <th className="py-3 px-4">Designation</th>
                             <th className="py-3 px-4 text-center">Status</th>
@@ -1342,7 +1387,25 @@ const MobileProfile = () => {
                           {company.employees.map((emp) => (
                             <tr key={emp.email} className="hover:bg-gray-50">
                               <td className="py-3.5 px-4 font-bold text-gray-900">{emp.name}</td>
-                              <td className="py-3.5 px-4 font-medium">{emp.email}</td>
+                              <td className="py-3.5 px-4 font-medium">
+                                <p>{emp.email}</p>
+                                <div className="flex gap-2 text-[9px] mt-1 text-gray-400 font-bold">
+                                  <button onClick={() => {
+                                    navigator.clipboard.writeText(`Email: ${emp.email}\nPassword: ${emp.password || 'Employee@123'}`);
+                                    toast.success('Credentials copied!');
+                                  }} className="text-blue-500 hover:underline">Copy Credentials</button>
+                                  <span>•</span>
+                                  <button onClick={() => {
+                                    const loginLink = `${window.location.origin}/login`;
+                                    navigator.clipboard.writeText(loginLink);
+                                    toast.success('Login link copied!');
+                                  }} className="text-emerald-500 hover:underline">Copy Login Link</button>
+                                  <span>•</span>
+                                  <button onClick={() => {
+                                    toast.success(`Invitation resending simulated to ${emp.email}`);
+                                  }} className="text-purple-550 hover:underline">Resend Invitation</button>
+                                </div>
+                              </td>
                               <td className="py-3.5 px-4 font-mono font-bold">{emp.phone}</td>
                               <td className="py-3.5 px-4 font-semibold text-gray-650">{emp.designation}</td>
                               <td className="py-3.5 px-4 text-center">
