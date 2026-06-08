@@ -1,4 +1,3 @@
-export { B2BAccountTypeSwitcher } from './B2BAccountTypeSwitcher.jsx';
 export { B2BWholesaleBadge } from './B2BWholesaleBadge.jsx';
 export { B2BProductCardOverlay } from './B2BProductCardOverlay.jsx';
 export { B2BBulkQuantitySelector } from './B2BBulkQuantitySelector.jsx';

@@ -283,17 +283,24 @@ const B2BEnquiryDetail = () => {
             </h2>
             <div className="space-y-4 text-sm">
               <div>
-                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Contact Person</p>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Company Name</p>
+                <p className="font-semibold text-gray-800 flex items-center gap-1.5 mt-0.5">
+                  <FiBriefcase className="text-gray-400" />
+                  {enquiry.buyer.company}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Requested By</p>
                 <p className="font-semibold text-gray-800 flex items-center gap-1.5 mt-0.5">
                   <FiUser className="text-gray-400" />
                   {enquiry.buyer.name}
                 </p>
               </div>
               <div>
-                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Company</p>
+                <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">Employee Name</p>
                 <p className="font-semibold text-gray-800 flex items-center gap-1.5 mt-0.5">
-                  <FiBriefcase className="text-gray-400" />
-                  {enquiry.buyer.company}
+                  <FiUser className="text-gray-400" />
+                  {enquiry.buyer.name}
                 </p>
               </div>
               <div>

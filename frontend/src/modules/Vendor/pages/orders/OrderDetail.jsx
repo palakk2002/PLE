@@ -292,10 +292,27 @@ const OrderDetail = () => {
                             Customer Details
                         </h2>
                         <div className="space-y-3">
-                            <div>
-                                <p className="text-sm text-gray-500">Name</p>
-                                <p className="font-medium">{customerName}</p>
-                            </div>
+                            {(order.isB2b || order.orderType === 'b2b') ? (
+                                <>
+                                    <div>
+                                        <p className="text-xs text-gray-400 font-bold uppercase">Company Name</p>
+                                        <p className="font-semibold text-gray-800">{order.companyName || order.customer?.companyName || 'Apex General Enterprises'}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 font-bold uppercase">Requested By</p>
+                                        <p className="font-semibold text-gray-800">{customerName}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-400 font-bold uppercase">Employee Name</p>
+                                        <p className="font-semibold text-gray-800">{customerName}</p>
+                                    </div>
+                                </>
+                            ) : (
+                                <div>
+                                    <p className="text-sm text-gray-500">Name</p>
+                                    <p className="font-medium">{customerName}</p>
+                                </div>
+                            )}
                             <div>
                                 <p className="text-sm text-gray-500">Email</p>
                                 <p className="font-medium">{customerEmail}</p>

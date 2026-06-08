@@ -34,7 +34,7 @@ const ProtectedRoute = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (resolvedRole && resolvedRole !== 'customer') {
+  if (resolvedRole && resolvedRole !== 'customer' && resolvedRole !== 'business_buyer') {
     localStorage.removeItem('token');
     localStorage.removeItem('refresh-token');
     localStorage.removeItem('auth-storage');

@@ -86,6 +86,7 @@ const getChildRoute = (parentRoute, childName) => {
     },
     "/admin/b2b": {
       "Business Users": "/admin/b2b/business-users",
+      "Company Management": "/admin/b2b/companies",
       "B2B Products": "/admin/b2b/b2b-products",
       "B2B Orders": "/admin/b2b/b2b-orders",
       "B2B Settings": "/admin/b2b/b2b-settings",

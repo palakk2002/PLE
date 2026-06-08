@@ -55,6 +55,7 @@
     "route": "/admin/b2b",
     "children": [
       "Business Users",
+      "Company Management",
       "B2B Products",
       "B2B Orders",
       "B2B Settings"

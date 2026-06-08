@@ -66,6 +66,7 @@ const BusinessUsers = lazy(() => import("./modules/Admin/pages/b2b/BusinessUsers
 const B2BProducts = lazy(() => import("./modules/Admin/pages/b2b/B2BProducts"));
 const B2BOrders = lazy(() => import("./modules/Admin/pages/b2b/B2BOrders"));
 const B2BSettings = lazy(() => import("./modules/Admin/pages/b2b/B2BSettings"));
+const CompanyManagement = lazy(() => import("./modules/Admin/pages/b2b/CompanyManagement"));
 const AdminB2BEnquiries = lazy(() => import("./modules/Admin/pages/b2b-enquiries/AdminB2BEnquiries"));
 const AdminRFQDetail = lazy(() => import("./modules/Admin/pages/b2b-enquiries/AdminRFQDetail"));
 const AdminSellerResponses = lazy(() => import("./modules/Admin/pages/b2b-enquiries/AdminSellerResponses"));
@@ -706,6 +707,7 @@ const AppRoutes = () => {
         <Route path="b2b/b2b-products" element={<B2BProducts />} />
         <Route path="b2b/b2b-orders" element={<B2BOrders />} />
         <Route path="b2b/b2b-settings" element={<B2BSettings />} />
+        <Route path="b2b/companies" element={<CompanyManagement />} />
 
         {/* Admin B2B Enquiry/RFQ Routes */}
         <Route path="b2b-enquiries" element={<AdminB2BEnquiries />} />

@@ -263,12 +263,32 @@ const ProductEnquiries = () => {
               {/* Scroll Content */}
               <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* User Info */}
-                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-150">
+                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-150 space-y-2">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
                     Buyer Contact Details
                   </span>
-                  <p className="font-bold text-gray-800">{selectedEnquiry.userName}</p>
-                  <p className="text-xs text-gray-500 font-semibold">{selectedEnquiry.userEmail}</p>
+                  {selectedEnquiry.id.includes('b2b') || selectedEnquiry.userId?.includes('b2b') || selectedEnquiry.companyName ? (
+                    <>
+                      <div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase">Company Name</p>
+                        <p className="font-bold text-gray-800">{selectedEnquiry.companyName || 'Apex General Enterprises'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase">Requested By</p>
+                        <p className="font-bold text-gray-800">{selectedEnquiry.userName}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] text-gray-400 font-bold uppercase">Employee Name</p>
+                        <p className="font-bold text-gray-800">{selectedEnquiry.userName}</p>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="font-bold text-gray-800">{selectedEnquiry.userName}</p>
+                  )}
+                  <div>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase">Email</p>
+                    <p className="text-xs text-gray-500 font-semibold">{selectedEnquiry.userEmail}</p>
+                  </div>
                 </div>
 
                 {/* Question Details */}

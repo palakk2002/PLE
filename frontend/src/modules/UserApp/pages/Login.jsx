@@ -15,7 +15,6 @@ import { isValidEmail } from '../../../shared/utils/helpers';
 import toast from 'react-hot-toast';
 import MobileLayout from '../components/Layout/MobileLayout';
 import PageTransition from '../../../shared/components/PageTransition';
-import { B2BAccountTypeSwitcher } from '../components/B2B/B2BAccountTypeSwitcher';
 import { useBusinessBuyer } from '../hooks/useBusinessBuyer';
 
 const MobileLogin = () => {

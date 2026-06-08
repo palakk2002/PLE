@@ -23,7 +23,7 @@ const userSchema = new mongoose.Schema(
         
         // B2B business verification fields
         companyName: { type: String, trim: true },
-        businessType: { type: String, enum: ['Retailer', 'Distributor', 'Wholesaler', 'Manufacturer', 'Reseller', 'Importer', 'Exporter'], trim: true },
+        businessType: { type: String, enum: ['Retailer', 'Distributor', 'Wholesaler', 'Manufacturer', 'Reseller', 'Importer', 'Exporter', 'Proprietorship', 'Partnership Firm', 'LLP (Limited Liability Partnership)', 'Private Limited Company', 'Public Limited Company', 'One Person Company (OPC)', 'Other'], trim: true },
         gstNumber: { type: String, trim: true },
         gstCertificate: { type: String }, // Cloudinary URL
         businessAddress: { type: String, trim: true },

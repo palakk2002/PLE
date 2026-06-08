@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import api from '../utils/api';
 
+import { useB2bStore } from './b2bStore';
+
 // Helper for API race timeout
 const withTimeout = (promise, ms = 2000) => {
   return Promise.race([
@@ -70,6 +72,85 @@ export const useAuthStore = create(
           }
           
           console.warn("Buyer API login failed, falling back to mock authentication:", error);
+          
+          // Company admin / Employee custom lookup
+          const { companies } = useB2bStore.getState();
+          let matchedCompany = null;
+          let matchedEmployee = null;
+          let isCompanyAdmin = false;
+
+          for (const company of companies || []) {
+            if (company.admin?.email?.toLowerCase() === normalizedEmail) {
+              matchedCompany = company;
+              isCompanyAdmin = true;
+              break;
+            }
+            const emp = company.employees?.find(e => e.email?.toLowerCase() === normalizedEmail);
+            if (emp) {
+              matchedCompany = company;
+              matchedEmployee = emp;
+              break;
+            }
+          }
+
+          if (matchedCompany) {
+            if (matchedCompany.status === 'Deactivated') {
+              set({ isLoading: false });
+              throw new Error('Your company account has been deactivated. Please contact support.');
+            }
+            if (!isCompanyAdmin && matchedEmployee) {
+              if (matchedEmployee.status === 'Deactivated') {
+                set({ isLoading: false });
+                throw new Error('Your employee account has been deactivated. Please contact your Company Admin.');
+              }
+            }
+
+            const mockUser = {
+              id: isCompanyAdmin ? `admin_${matchedCompany.id}` : `emp_${matchedEmployee.email}`,
+              _id: isCompanyAdmin ? `admin_${matchedCompany.id}` : `emp_${matchedEmployee.email}`,
+              name: isCompanyAdmin ? matchedCompany.admin.name : matchedEmployee.name,
+              email: normalizedEmail,
+              phone: isCompanyAdmin ? matchedCompany.admin.phone : matchedEmployee.phone,
+              role: "business_buyer",
+              accountType: "business",
+              isVerified: true,
+              isCompanyAdmin,
+              companyId: matchedCompany.id,
+              companyName: matchedCompany.companyName,
+              designation: isCompanyAdmin ? "Company Admin" : matchedEmployee.designation,
+            };
+
+            const accessToken = "mock.eyJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
+            const refreshToken = "mock.eyJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
+
+            // Automatically switch role state in B2B store
+            useB2bStore.getState().setUserRole('business_buyer');
+            useB2bStore.getState().updateBusinessProfile({
+              companyName: matchedCompany.companyName,
+              gstNumber: matchedCompany.gstNumber,
+              businessAddress: matchedCompany.businessAddress,
+              businessEmail: matchedCompany.businessEmail,
+              businessPhone: matchedCompany.businessPhone,
+              businessType: matchedCompany.businessType,
+              website: matchedCompany.website,
+            });
+
+            set({
+              user: mockUser,
+              token: accessToken,
+              refreshToken,
+              isAuthenticated: true,
+              pendingEmail: null,
+              isLoading: false,
+            });
+
+            localStorage.setItem('token', accessToken);
+            localStorage.setItem('refresh-token', refreshToken);
+
+            return { success: true, user: mockUser };
+          }
+
+          // Default fallback mock
           const mockUser = {
             id: "buyer_mock_12345",
             _id: "buyer_mock_12345",

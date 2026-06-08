@@ -46,6 +46,7 @@ import PasswordStrengthMeter from "../components/Mobile/PasswordStrengthMeter";
 import { useUserNotificationStore } from "../store/userNotificationStore";
 import { useWishlistStore } from "../../../shared/store/wishlistStore";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
+import { useB2bStore } from "../../../shared/store/b2bStore";
 import { B2BBusinessBadge } from "../components/B2B/B2BBusinessBadge";
 import { B2BBusinessDashboard } from "../components/B2B/B2BBusinessDashboard";
 import { B2BMyEnquiries } from "../components/B2B/B2BMyEnquiries";
@@ -74,6 +75,71 @@ const MobileProfile = () => {
     (state) => state.unreadCount,
   );
   const wishlistCount = useWishlistStore((state) => state.getItemCount());
+
+  // Company / Employee CRUD States
+  const { companies, updateCompanyDetails, addEmployee, updateEmployee, toggleEmployeeStatus, removeEmployee } = useB2bStore();
+  const company = companies?.find(c => c.id === user?.companyId || c.companyName === user?.companyName || c.admin?.email?.toLowerCase() === user?.email?.toLowerCase());
+
+  const [isEditingCompany, setIsEditingCompany] = useState(false);
+  const [companyForm, setCompanyForm] = useState({
+    companyName: '',
+    gstNumber: '',
+    businessEmail: '',
+    businessPhone: '',
+    businessAddress: '',
+    businessType: '',
+    website: '',
+  });
+
+  useEffect(() => {
+    if (company) {
+      setCompanyForm({
+        companyName: company.companyName || '',
+        gstNumber: company.gstNumber || '',
+        businessEmail: company.businessEmail || '',
+        businessPhone: company.businessPhone || '',
+        businessAddress: company.businessAddress || '',
+        businessType: company.businessType || '',
+        website: company.website || '',
+      });
+    }
+  }, [company, activeTab]);
+
+  const [showAddEmpModal, setShowAddEmpModal] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState(null);
+  const [empForm, setEmpForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    designation: '',
+  });
+
+  const handleCompanySave = (e) => {
+    e.preventDefault();
+    if (!company) return;
+    updateCompanyDetails(company.id, companyForm);
+    setIsEditingCompany(false);
+    toast.success('Company details updated successfully!');
+  };
+
+  const handleAddEmpSubmit = (e) => {
+    e.preventDefault();
+    if (!company) return;
+    if (!empForm.name || !empForm.email || !empForm.phone || !empForm.designation) {
+      toast.error('All fields are required.');
+      return;
+    }
+    if (editingEmployee) {
+      updateEmployee(company.id, editingEmployee.email, empForm);
+      toast.success('Employee details updated!');
+    } else {
+      addEmployee(company.id, empForm);
+      toast.success('Employee added successfully!');
+    }
+    setShowAddEmpModal(false);
+    setEditingEmployee(null);
+    setEmpForm({ name: '', email: '', phone: '', designation: '' });
+  };
   const walletBalance = parseFloat(localStorage.getItem(`wallet_balance_${user?.id || "guest"}`) || "1500");
   const { availablePoints, totalEarned, totalRedeemed, pendingPoints, history: loyaltyHistory } = useLoyaltyStore();
   const ensureNotificationHydrated = useUserNotificationStore(
@@ -259,6 +325,24 @@ const MobileProfile = () => {
             icon: FiFileText,
             color: "text-primary-600",
             bg: "bg-primary-50",
+          },
+          {
+            id: "company-profile",
+            label: "Company Profile",
+            icon: FiBriefcase,
+            color: "text-purple-650",
+            bg: "bg-purple-50",
+          },
+        ]
+      : []),
+    ...(isBusiness && user?.isCompanyAdmin
+      ? [
+          {
+            id: "team-management",
+            label: "Team Management",
+            icon: FiUsers,
+            color: "text-teal-650",
+            bg: "bg-teal-50",
           },
         ]
       : []),
@@ -468,7 +552,11 @@ const MobileProfile = () => {
                             ? "My Enquiries"
                             : activeTab === "b2b-requests"
                               ? "B2B Requests"
-                              : "My Account"}
+                              : activeTab === "company-profile"
+                                ? "Company Profile"
+                              : activeTab === "team-management"
+                                ? "Team Management"
+                                : "My Account"}
               </h1>
             </div>
           </div>
@@ -935,7 +1023,7 @@ const MobileProfile = () => {
                           <span className="font-bold text-gray-800">{user?.companyName || 'Not Set'}</span>
                         </div>
                         <div>
-                          <span className="text-gray-400 block font-medium text-xs">Business Type</span>
+                          <span className="text-gray-400 block font-medium text-xs">Company Type</span>
                           <span className="font-bold text-gray-800">{user?.businessType || 'Not Set'}</span>
                         </div>
                         <div>
@@ -1000,6 +1088,315 @@ const MobileProfile = () => {
                   className="glass-card rounded-2xl p-4 lg:p-8"
                 >
                   <B2BMyEnquiries />
+                </motion.div>
+              )}
+
+              {/* Company Profile Tab */}
+              {isBusiness && activeTab === "company-profile" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-card rounded-2xl p-4 lg:p-8 space-y-6 bg-white border border-gray-200 shadow-sm"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800">Company Profile</h2>
+                      <p className="text-xs text-gray-500 mt-1">View or manage details of your business account</p>
+                    </div>
+                    {user?.isCompanyAdmin && !isEditingCompany && (
+                      <button
+                        onClick={() => setIsEditingCompany(true)}
+                        className="px-4 py-2 bg-[#AE020B] hover:bg-[#8d0208] text-white font-bold rounded-xl text-xs transition-colors"
+                      >
+                        Edit Details
+                      </button>
+                    )}
+                  </div>
+
+                  {company ? (
+                    <form onSubmit={handleCompanySave} className="space-y-4 text-xs font-semibold">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-gray-650 mb-1.5">Company Name</label>
+                          <input
+                            type="text"
+                            value={companyForm.companyName}
+                            onChange={(e) => setCompanyForm({ ...companyForm, companyName: e.target.value })}
+                            disabled={!isEditingCompany}
+                            className="w-full px-4 py-2.5 border rounded-xl bg-white disabled:bg-gray-50 disabled:text-gray-500 font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-650 mb-1.5">GST Number</label>
+                          <input
+                            type="text"
+                            value={companyForm.gstNumber}
+                            onChange={(e) => setCompanyForm({ ...companyForm, gstNumber: e.target.value })}
+                            disabled={!isEditingCompany}
+                            className="w-full px-4 py-2.5 border rounded-xl bg-white disabled:bg-gray-50 disabled:text-gray-500 font-bold font-mono uppercase"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-650 mb-1.5">Business Email</label>
+                          <input
+                            type="email"
+                            value={companyForm.businessEmail}
+                            onChange={(e) => setCompanyForm({ ...companyForm, businessEmail: e.target.value })}
+                            disabled={!isEditingCompany}
+                            className="w-full px-4 py-2.5 border rounded-xl bg-white disabled:bg-gray-50 disabled:text-gray-500 font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-650 mb-1.5">Business Phone</label>
+                          <input
+                            type="text"
+                            value={companyForm.businessPhone}
+                            onChange={(e) => setCompanyForm({ ...companyForm, businessPhone: e.target.value })}
+                            disabled={!isEditingCompany}
+                            className="w-full px-4 py-2.5 border rounded-xl bg-white disabled:bg-gray-50 disabled:text-gray-500 font-bold"
+                          />
+                        </div>
+                        <div className="md:col-span-2">
+                          <label className="block text-gray-650 mb-1.5">Business Address</label>
+                          <textarea
+                            value={companyForm.businessAddress}
+                            onChange={(e) => setCompanyForm({ ...companyForm, businessAddress: e.target.value })}
+                            disabled={!isEditingCompany}
+                            rows={2}
+                            className="w-full px-4 py-2.5 border rounded-xl bg-white disabled:bg-gray-50 disabled:text-gray-500 font-bold"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-650 mb-1.5">Company Type</label>
+                          <select
+                            value={companyForm.businessType}
+                            onChange={(e) => setCompanyForm({ ...companyForm, businessType: e.target.value })}
+                            disabled={!isEditingCompany}
+                            className="w-full px-4 py-2.5 border rounded-xl bg-white disabled:bg-gray-50 disabled:text-gray-500 font-bold"
+                          >
+                            <option value="Proprietorship">Proprietorship</option>
+                            <option value="Partnership Firm">Partnership Firm</option>
+                            <option value="LLP (Limited Liability Partnership)">LLP (Limited Liability Partnership)</option>
+                            <option value="Private Limited Company">Private Limited Company</option>
+                            <option value="Public Limited Company">Public Limited Company</option>
+                            <option value="One Person Company (OPC)">One Person Company (OPC)</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-gray-650 mb-1.5">Website</label>
+                          <input
+                            type="text"
+                            value={companyForm.website}
+                            onChange={(e) => setCompanyForm({ ...companyForm, website: e.target.value })}
+                            disabled={!isEditingCompany}
+                            className="w-full px-4 py-2.5 border rounded-xl bg-white disabled:bg-gray-50 disabled:text-gray-500 font-bold"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="bg-gray-50 p-4 rounded-xl border space-y-2">
+                        <h4 className="font-bold text-gray-700">Company Administrator</h4>
+                        <p className="text-gray-600">Name: <span className="font-bold text-gray-850">{company.admin?.name}</span></p>
+                        <p className="text-gray-600">Email: <span className="font-bold text-gray-850">{company.admin?.email}</span></p>
+                        <p className="text-gray-600">Phone: <span className="font-bold text-gray-850">{company.admin?.phone}</span></p>
+                      </div>
+
+                      {isEditingCompany && (
+                        <div className="flex gap-2">
+                          <button
+                            type="submit"
+                            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl"
+                          >
+                            Save Details
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsEditingCompany(false);
+                              setCompanyForm({
+                                companyName: company.companyName || '',
+                                gstNumber: company.gstNumber || '',
+                                businessEmail: company.businessEmail || '',
+                                businessPhone: company.businessPhone || '',
+                                businessAddress: company.businessAddress || '',
+                                businessType: company.businessType || '',
+                                website: company.website || '',
+                              });
+                            }}
+                            className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-750 font-bold rounded-xl"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </form>
+                  ) : (
+                    <div className="p-8 text-center text-gray-500">No company details linked to this account.</div>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Team Management Tab */}
+              {isBusiness && user?.isCompanyAdmin && activeTab === "team-management" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="glass-card rounded-2xl p-4 lg:p-8 space-y-6 bg-white border border-gray-200 shadow-sm"
+                >
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-800">Team Management</h2>
+                      <p className="text-xs text-gray-500 mt-1">Manage your company employees under this B2B account</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setEditingEmployee(null);
+                        setEmpForm({ name: '', email: '', phone: '', designation: '' });
+                        setShowAddEmpModal(true);
+                      }}
+                      className="px-4 py-2 bg-[#AE020B] hover:bg-[#8d0208] text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1"
+                    >
+                      + Add Employee
+                    </button>
+                  </div>
+
+                  {showAddEmpModal && (
+                    <div className="p-4 border rounded-xl bg-gray-50 space-y-4 text-xs font-semibold">
+                      <h3 className="font-bold text-sm text-gray-800">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
+                      <form onSubmit={handleAddEmpSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-gray-650 mb-1">Employee Name *</label>
+                          <input
+                            type="text"
+                            value={empForm.name}
+                            onChange={(e) => setEmpForm({ ...empForm, name: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg bg-white"
+                            placeholder="John Doe"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-650 mb-1">Employee Email *</label>
+                          <input
+                            type="email"
+                            value={empForm.email}
+                            onChange={(e) => setEmpForm({ ...empForm, email: e.target.value })}
+                            disabled={!!editingEmployee}
+                            className="w-full px-3 py-2 border rounded-lg bg-white disabled:bg-gray-150 disabled:text-gray-500"
+                            placeholder="john@apexenterprises.in"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-650 mb-1">Employee Phone *</label>
+                          <input
+                            type="text"
+                            value={empForm.phone}
+                            onChange={(e) => setEmpForm({ ...empForm, phone: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg bg-white"
+                            placeholder="9876500003"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-gray-650 mb-1">Designation *</label>
+                          <input
+                            type="text"
+                            value={empForm.designation}
+                            onChange={(e) => setEmpForm({ ...empForm, designation: e.target.value })}
+                            className="w-full px-3 py-2 border rounded-lg bg-white"
+                            placeholder="Purchase Executive"
+                          />
+                        </div>
+                        <div className="sm:col-span-2 flex gap-2 pt-2">
+                          <button type="submit" className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">
+                            {editingEmployee ? 'Update' : 'Add'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowAddEmpModal(false);
+                              setEditingEmployee(null);
+                            }}
+                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-750 rounded-lg font-bold"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  )}
+
+                  {company?.employees && company.employees.length > 0 ? (
+                    <div className="overflow-x-auto rounded-xl border border-gray-150">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
+                          <tr>
+                            <th className="py-3 px-4">Name</th>
+                            <th className="py-3 px-4">Email</th>
+                            <th className="py-3 px-4">Phone</th>
+                            <th className="py-3 px-4">Designation</th>
+                            <th className="py-3 px-4 text-center">Status</th>
+                            <th className="py-3 px-4 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 text-gray-755">
+                          {company.employees.map((emp) => (
+                            <tr key={emp.email} className="hover:bg-gray-50">
+                              <td className="py-3.5 px-4 font-bold text-gray-900">{emp.name}</td>
+                              <td className="py-3.5 px-4 font-medium">{emp.email}</td>
+                              <td className="py-3.5 px-4 font-mono font-bold">{emp.phone}</td>
+                              <td className="py-3.5 px-4 font-semibold text-gray-650">{emp.designation}</td>
+                              <td className="py-3.5 px-4 text-center">
+                                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
+                                  emp.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+                                }`}>
+                                  {emp.status}
+                                </span>
+                              </td>
+                              <td className="py-3.5 px-4 text-right space-x-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingEmployee(emp);
+                                    setEmpForm({
+                                      name: emp.name,
+                                      email: emp.email,
+                                      phone: emp.phone,
+                                      designation: emp.designation,
+                                    });
+                                    setShowAddEmpModal(true);
+                                  }}
+                                  className="text-[#AE020B] hover:underline font-bold"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    toggleEmployeeStatus(company.id, emp.email);
+                                    toast.success(`Employee status toggled!`);
+                                  }}
+                                  className="text-amber-800 hover:underline font-bold"
+                                >
+                                  {emp.status === 'Active' ? 'Deactivate' : 'Activate'}
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    if (window.confirm('Are you sure you want to remove this employee?')) {
+                                      removeEmployee(company.id, emp.email);
+                                      toast.success('Employee removed successfully.');
+                                    }
+                                  }}
+                                  className="text-gray-500 hover:text-red-700 font-bold hover:underline"
+                                >
+                                  Remove
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center text-gray-500 border rounded-xl">No employees added under this company yet. Click + Add Employee to setup your team.</div>
+                  )}
                 </motion.div>
               )}
 
