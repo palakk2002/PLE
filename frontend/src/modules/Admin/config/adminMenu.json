@@ -214,5 +214,27 @@
       "Loyalty Rules",
       "User Points"
     ]
+  },
+  {
+    "title": "Landing Page",
+    "route": "/admin/landing-page",
+    "children": [
+      "Dashboard",
+      "Hero Section",
+      "Services / Categories",
+      "Features",
+      "Comparison Table",
+      "Stats Counter",
+      "Testimonials",
+      "Product Showcase",
+      "Deals & Rewards",
+      "FAQ Section",
+      "Gallery",
+      "Contact & Social",
+      "Footer",
+      "SEO Settings",
+      "Blogs",
+      "Ad Landing Pages"
+    ]
   }
 ]

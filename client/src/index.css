@@ -1,0 +1,310 @@
+@import "tailwindcss";
+
+:root {
+  --app-bg: #FFFFFF;
+  --app-card: #DADDE2;
+  --app-text: #111111;
+  --app-text-muted: #5F6368;
+  --app-border: #EAEAEA;
+  --app-glass-bg: rgba(243, 244, 246, 0.9);
+  --app-glass-border: #EAEAEA;
+  --app-soft-orange: #FFF0F1;
+  --gradient-start: #1A1A2E;
+  --scrollbar-track: #F1F5F9;
+  --scrollbar-thumb: #CBD5E1;
+  --mesh-opacity: radial-gradient(rgba(215,25,32, 0.05) 1.5px, transparent 1.5px);
+}
+
+.dark {
+  --app-bg: #0B0B14;
+  --app-card: #1A1A2E;
+  --app-text: #FFFFFF;
+  --app-text-muted: #9CA3AF;
+  --app-border: rgba(255, 255, 255, 0.08);
+  --app-glass-bg: rgba(26, 26, 46, 0.6);
+  --app-glass-border: rgba(255, 255, 255, 0.06);
+  --gradient-start: #FFFFFF;
+  --scrollbar-track: #0B0B14;
+  --scrollbar-thumb: #1A1A2E;
+  --mesh-opacity: radial-gradient(rgba(215,25,32, 0.04) 1px, transparent 1px);
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-primary: #D71920;
+  --color-primary-hover: #B51218;
+  
+  --color-brand-orange: #D71920;
+  --color-brand-navy: #1A1A2E;
+  --color-brand-lightOrange: #FFF0F1;
+  --color-brand-grey: #5F6368;
+  --color-brand-success: #006600;
+  --color-brand-error: #CC0000;
+
+  /* Admin Panel Theme Colors (AgencyOS) */
+  --color-admin-bg: #0F0F12;
+  --color-surface: #141313;
+  --color-surface-container-low: #1c1b1b;
+  --color-surface-container-high: #2b2a2a;
+  --color-surface-variant: #353434;
+  --color-on-surface: #e5e2e1;
+  --color-on-surface-variant: #c4c7c7;
+  --color-outline-variant: #444748;
+  --color-secondary: #FF6B00;
+  --color-secondary-container: #FF6B00;
+  --color-on-primary-container: #848282;
+  --color-admin-glass: #16161A;
+
+  --color-app-bg: var(--app-bg);
+  --color-app-card: var(--app-card);
+  --color-app-text: var(--app-text);
+  --color-app-text-muted: var(--app-text-muted);
+  --color-app-border: var(--app-border);
+  --color-app-glass: var(--app-glass-bg);
+  --color-app-glass-border: var(--app-glass-border);
+
+  --font-sans: 'Inter', 'Poppins', sans-serif;
+  --font-heading: 'Outfit', 'Inter', sans-serif;
+
+  --animate-spotlight: spotlight 2s ease .75s 1 normal forwards;
+  --animate-orbit: orbit calc(var(--duration)*1s) linear infinite;
+
+  @keyframes spotlight {
+    0% {
+      opacity: 0;
+      transform: translate(-3%, -62%) scale(0.5);
+    }
+    100% {
+      opacity: 1;
+      transform: translate(-25%, -40%) scale(1);
+    }
+  }
+
+  @keyframes orbit {
+    0% {
+      transform: rotate(0deg) translateY(calc(var(--radius) * 1px)) rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg) translateY(calc(var(--radius) * 1px)) rotate(-360deg);
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth !important;
+    background-color: var(--app-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--app-bg);
+    color: var(--app-text-muted);
+    font-family: 'Inter', 'Poppins', sans-serif;
+    overflow-x: hidden;
+  }
+  
+  main, .page-container {
+    min-height: 90vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 4px;
+    border: 2px solid var(--scrollbar-track);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #D71920;
+  }
+}
+
+/* Global utility for dark overlay on background graphic containers */
+.bg-graphic-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(26, 26, 46, 0.4); /* brand-navy dark overlay */
+  pointer-events: none;
+  z-index: 0;
+  mix-blend-mode: multiply;
+}
+
+.dark .bg-graphic-overlay {
+  background-color: rgba(11, 11, 20, 0.6);
+}
+
+/* Performance-optimized glass panel - reduced backdrop blur */
+.glass-panel {
+  background: var(--app-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--app-glass-border);
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--gradient-start) 30%, #D71920 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-orange {
+  background: linear-gradient(135deg, #A80F14 0%, #D71920 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.orange-glow {
+  box-shadow: 0 0 50px -10px rgba(215,25,32, 0.12);
+}
+
+.orange-glow-hover:hover {
+  box-shadow: 0 0 30px -5px rgba(215,25,32, 0.25);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translateY(0px) scale(1); }
+  50% { transform: translateY(10px) scale(1.02); }
+}
+
+.animate-float-delayed {
+  animation: float-delayed 8s ease-in-out infinite;
+  will-change: transform;
+}
+
+.mesh-grid {
+  background-image: var(--mesh-opacity);
+  background-size: 32px 32px;
+}
+
+/* Reduced theme transition for performance */
+.theme-transition,
+.theme-transition * {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
+}
+
+.loader {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #D71920;
+  border-bottom-color: transparent;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.font-signature {
+  font-family: 'Alex Brush', cursive;
+}
+
+/* Performance: content-visibility for below-fold sections */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 500px;
+}
+
+/* GPU acceleration for animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Optimized spotlight - reduced filter complexity */
+.optimized-spotlight {
+  will-change: opacity, transform;
+  transform: translateZ(0);
+}
+
+/* Lazy image container */
+.lazy-image-container {
+  transform: translateZ(0);
+  will-change: opacity;
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Premium 3D Flip Card System - Slow & Majestic Custom Bezier Turning */
+.flip-card-perspective {
+  perspective: 1200px;
+}
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 1.8s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+.flip-card-perspective:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(1px);
+}
+
+.flip-card-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg) translateZ(1px);
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+

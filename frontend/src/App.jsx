@@ -131,6 +131,24 @@ const CreateOffer = lazy(() => import("./modules/offers/pages/CreateOffer"));
 const EditOffer = lazy(() => import("./modules/offers/pages/EditOffer"));
 const OfferDetails = lazy(() => import("./modules/offers/pages/OfferDetails"));
 
+// Landing Page CMS Pages
+const LandingPageDashboard = lazy(() => import("./modules/Admin/pages/landing-page/LandingPageDashboard"));
+const HeroEditor = lazy(() => import("./modules/Admin/pages/landing-page/HeroEditor"));
+const ServicesEditor = lazy(() => import("./modules/Admin/pages/landing-page/ServicesEditor"));
+const FeaturesEditor = lazy(() => import("./modules/Admin/pages/landing-page/FeaturesEditor"));
+const ComparisonEditor = lazy(() => import("./modules/Admin/pages/landing-page/ComparisonEditor"));
+const StatsEditor = lazy(() => import("./modules/Admin/pages/landing-page/StatsEditor"));
+const TestimonialsEditor = lazy(() => import("./modules/Admin/pages/landing-page/TestimonialsEditor"));
+const ProductShowcaseEditor = lazy(() => import("./modules/Admin/pages/landing-page/ProductShowcaseEditor"));
+const PricingEditor = lazy(() => import("./modules/Admin/pages/landing-page/PricingEditor"));
+const FAQEditor = lazy(() => import("./modules/Admin/pages/landing-page/FAQEditor"));
+const GalleryEditor = lazy(() => import("./modules/Admin/pages/landing-page/GalleryEditor"));
+const ContactEditor = lazy(() => import("./modules/Admin/pages/landing-page/ContactEditor"));
+const FooterEditor = lazy(() => import("./modules/Admin/pages/landing-page/FooterEditor"));
+const SEOSettingsEditor = lazy(() => import("./modules/Admin/pages/landing-page/SEOSettingsEditor"));
+const BlogEditor = lazy(() => import("./modules/Admin/pages/landing-page/BlogEditor"));
+const AdLandingPagesEditor = lazy(() => import("./modules/Admin/pages/landing-page/AdLandingPagesEditor"));
+
 // Core Mobile/UserApp Pages (Statically Imported for Quick Opening)
 import MobileHome from "./modules/UserApp/pages/Home";
 import MobileProductDetail from "./modules/UserApp/pages/ProductDetail";
@@ -794,6 +812,24 @@ const AppRoutes = () => {
         <Route path="loyalty/dashboard" element={<AdminLoyaltyDashboard />} />
         <Route path="loyalty/rules" element={<AdminLoyaltyRules />} />
         <Route path="loyalty/users" element={<AdminLoyaltyUsers />} />
+
+        {/* Landing Page CMS Routes */}
+        <Route path="landing-page" element={<LandingPageDashboard />} />
+        <Route path="landing-page/hero" element={<HeroEditor />} />
+        <Route path="landing-page/services" element={<ServicesEditor />} />
+        <Route path="landing-page/features" element={<FeaturesEditor />} />
+        <Route path="landing-page/comparison" element={<ComparisonEditor />} />
+        <Route path="landing-page/stats" element={<StatsEditor />} />
+        <Route path="landing-page/testimonials" element={<TestimonialsEditor />} />
+        <Route path="landing-page/products" element={<ProductShowcaseEditor />} />
+        <Route path="landing-page/pricing" element={<PricingEditor />} />
+        <Route path="landing-page/faq" element={<FAQEditor />} />
+        <Route path="landing-page/gallery" element={<GalleryEditor />} />
+        <Route path="landing-page/contact" element={<ContactEditor />} />
+        <Route path="landing-page/footer" element={<FooterEditor />} />
+        <Route path="landing-page/seo" element={<SEOSettingsEditor />} />
+        <Route path="landing-page/blogs" element={<BlogEditor />} />
+        <Route path="landing-page/ad-landing-pages" element={<AdLandingPagesEditor />} />
       </Route>
       {/* Delivery Routes */}
       <Route path="/delivery/login" element={<DeliveryLogin />} />

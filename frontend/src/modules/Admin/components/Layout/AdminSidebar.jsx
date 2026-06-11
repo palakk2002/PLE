@@ -58,6 +58,7 @@ const iconMap = {
   Policies: FiShield,
   Firebase: FiDatabase,
   "Loyalty Program": FiAward,
+  "Landing Page": FiGlobe,
 };
 
 // Helper function to convert child name to route path
@@ -163,6 +164,24 @@ const getChildRoute = (parentRoute, childName) => {
       "Dashboard": "/admin/loyalty/dashboard",
       "Loyalty Rules": "/admin/loyalty/rules",
       "User Points": "/admin/loyalty/users",
+    },
+    "/admin/landing-page": {
+      "Dashboard": "/admin/landing-page",
+      "Hero Section": "/admin/landing-page/hero",
+      "Services / Categories": "/admin/landing-page/services",
+      "Features": "/admin/landing-page/features",
+      "Comparison Table": "/admin/landing-page/comparison",
+      "Stats Counter": "/admin/landing-page/stats",
+      "Testimonials": "/admin/landing-page/testimonials",
+      "Product Showcase": "/admin/landing-page/products",
+      "Deals & Rewards": "/admin/landing-page/pricing",
+      "FAQ Section": "/admin/landing-page/faq",
+      "Gallery": "/admin/landing-page/gallery",
+      "Contact & Social": "/admin/landing-page/contact",
+      "Footer": "/admin/landing-page/footer",
+      "SEO Settings": "/admin/landing-page/seo",
+      "Blogs": "/admin/landing-page/blogs",
+      "Ad Landing Pages": "/admin/landing-page/ad-landing-pages",
     },
   };
 
