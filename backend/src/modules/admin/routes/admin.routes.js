@@ -17,7 +17,7 @@ import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
 import { validate } from '../../../middlewares/validate.js';
-import { uploadSingle } from '../../../middlewares/upload.js';
+import { uploadSingle, uploadMediaSingle } from '../../../middlewares/upload.js';
 import { refreshTokenSchema, logoutSchema } from '../validators/auth.validator.js';
 import {
     createProductSchema,
@@ -162,6 +162,7 @@ router.get('/reviews', ...adminAuth, reviewController.getAllReviews);
 router.patch('/reviews/:id/status', ...adminAuth, reviewController.updateReviewStatus);
 router.delete('/reviews/:id', ...adminAuth, reviewController.deleteReview);
 router.post('/uploads/image', ...adminAuth, uploadSingle('image'), uploadController.uploadImage);
+router.post('/uploads/media', ...adminAuth, uploadMediaSingle('media'), uploadController.uploadMedia);
 
 // ─── Marketing & Promotions ──────────────────────────────────────────────────
 // Coupons

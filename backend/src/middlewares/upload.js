@@ -120,3 +120,34 @@ export const uploadCSV = multer({
     },
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for CSV
 }).single('file');
+
+// Media upload supporting both image and video
+export const uploadMediaSingle = (fieldName) =>
+    multer({
+        storage: imageDiskStorage,
+        fileFilter: (req, file, cb) => {
+            const allowedMimes = [
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+                'image/gif',
+                'video/mp4',
+                'video/webm',
+                'video/ogg',
+                'video/quicktime',
+            ];
+            if (allowedMimes.includes(file.mimetype)) {
+                cb(null, true);
+            } else {
+                cb(
+                    new ApiError(
+                        400,
+                        'Invalid file type. Only images and MP4, WebM, OGG, or QuickTime videos are allowed.'
+                    ),
+                    false
+                );
+            }
+        },
+        limits: { fileSize: 50 * 1024 * 1024 }, // 50MB for video
+    }).single(fieldName);
+

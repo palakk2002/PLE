@@ -3,6 +3,7 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import {
     uploadLocalFileToCloudinaryAndCleanup,
+    uploadLocalFileToCloudinaryAndCleanupWithType,
     cleanupLocalFiles,
 } from '../../../services/upload.service.js';
 
@@ -29,3 +30,33 @@ export const uploadImage = asyncHandler(async (req, res) => {
         throw error;
     }
 });
+
+/**
+ * @desc    Upload single media file (image/video) to Cloudinary via temp local file
+ * @route   POST /api/admin/uploads/media
+ * @access  Private (Admin)
+ */
+export const uploadMedia = asyncHandler(async (req, res) => {
+    if (!req.file?.path) {
+        throw new ApiError(400, 'File is required');
+    }
+
+    const folder = (req.body?.folder || 'general').toString().trim() || 'general';
+    const publicId = req.body?.publicId ? String(req.body.publicId).trim() : undefined;
+
+    try {
+        const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+            req.file.path,
+            folder,
+            'auto',
+            publicId
+        );
+        return res.status(201).json(
+            new ApiResponse(201, uploaded, 'Media uploaded successfully')
+        );
+    } catch (error) {
+        await cleanupLocalFiles([req.file.path]);
+        throw error;
+    }
+});
+

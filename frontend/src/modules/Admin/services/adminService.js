@@ -279,6 +279,20 @@ export const uploadAdminImage = (file, folder = 'general', publicId) => {
     });
 };
 
+// Media Uploads (Image and Video)
+export const uploadAdminMedia = (file, folder = 'general', publicId) => {
+    const formData = new FormData();
+    formData.append('media', file);
+    formData.append('folder', folder);
+    if (publicId) {
+        formData.append('publicId', publicId);
+    }
+    return api.post('/admin/uploads/media', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
+};
+
+
 // ─── Notifications ────────────────────────────────────────────────────────────
 export const sendPushNotification = (data) =>
     api.post('/admin/notifications/push', data);
