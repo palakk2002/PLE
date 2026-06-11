@@ -257,7 +257,7 @@ const ProductRequestForm = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+                className="w-full py-3.5 bg-[#AE020B] hover:bg-[#8d0208] text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
               >
                 <FiFileText />
                 <span>Submit Request</span>

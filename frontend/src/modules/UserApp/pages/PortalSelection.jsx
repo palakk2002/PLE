@@ -5,7 +5,7 @@ import { FiUser, FiGlobe, FiCheckCircle, FiSun, FiMoon } from 'react-icons/fi';
 import { useB2bStore } from '../../../shared/store/b2bStore';
 import { useThemeStore } from '../../../shared/store/themeStore';
 import pleLogo from '../../../assets/PLEwhite.png';
-import splashVideo from '../../../assets/WhatsApp Video 2026-06-06 at 3.32.55 PM.mp4';
+import splashVideo from '../../../assets/change_the_video_background_i.mp4';
 
 const PortalSelection = () => {
   const navigate = useNavigate();

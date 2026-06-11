@@ -88,24 +88,23 @@ export default function Hero() {
         style={{ scale: backgroundScale }}
         className="absolute inset-0 z-0 w-full h-full"
       >
-        {cmsHero?.imageFallback ? (
-          <img
-            src={cmsHero.imageFallback}
-            alt="Hero Background"
-            className="absolute inset-0 w-full h-full object-cover"
+        <video
+          ref={videoRef}
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster={cmsHero?.imageFallback || heroImage}
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source 
+            src={cmsHero?.videoBackground && cmsHero.videoBackground !== '/hero-video.mp4' 
+              ? cmsHero.videoBackground 
+              : backgroundVideo
+            } 
+            type="video/mp4" 
           />
-        ) : (
-          <video
-            ref={videoRef}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-          >
-            <source src={cmsHero?.videoBackground || backgroundVideo} type="video/mp4" />
-          </video>
-        )}
+        </video>
         {/* Advanced Overlay System */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/5 to-black/30 z-1" />
         <div className="absolute inset-0 bg-black/5 z-1" />
