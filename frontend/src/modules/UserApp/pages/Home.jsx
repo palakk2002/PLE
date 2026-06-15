@@ -678,7 +678,7 @@ const MobileHome = () => {
 
               {/* Subcategories Circles Grid */}
               <div className="px-4 py-6">
-                <div className="grid grid-cols-4 gap-4 bg-white p-4 rounded-2xl shadow-sm">
+                <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-4 bg-white p-4 rounded-2xl shadow-sm">
                   {((subcategories.length > 0 ? subcategories : fallbackSubcategories[activeCategoryKey]) || []).map((sub) => (
                     <Link
                       key={sub.id}
@@ -712,7 +712,7 @@ const MobileHome = () => {
                     <p className="text-xs text-gray-500 mt-1">We couldn't find any items in this category.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                     {activeCategoryProducts.slice(0, 10).map((product) => (
                       <ProductCard key={product.id} product={product} />
                     ))}

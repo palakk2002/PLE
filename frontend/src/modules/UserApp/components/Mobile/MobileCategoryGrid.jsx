@@ -36,7 +36,7 @@ const MobileCategoryGrid = () => {
     <div 
       className="bg-transparent pt-3 pb-3 px-4 overflow-visible relative z-20 select-none mt-2"
     >
-      <div className="flex gap-3.5 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+      <div className="flex gap-3.5 overflow-x-auto md:flex-wrap md:justify-center scrollbar-hide pb-2 -mx-4 px-4">
         {displayCategories.map((category, index) => (
           <motion.div
             key={category.id}

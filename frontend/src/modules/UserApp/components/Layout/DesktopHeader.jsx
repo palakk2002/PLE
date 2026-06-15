@@ -96,7 +96,7 @@ const DesktopHeader = () => {
                 </button>
 
                 {/* Navigation Links */}
-                <nav className="flex items-center gap-6">
+                <nav className="hidden xl:flex items-center gap-6">
                     <Link to="/home" className="text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-medium text-sm lg:text-base">Home</Link>
                     <Link to="/categories" className="text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-medium text-sm lg:text-base flex items-center gap-1">
                         <FiGrid /> Categories
