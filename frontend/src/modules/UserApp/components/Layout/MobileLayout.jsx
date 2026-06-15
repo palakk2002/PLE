@@ -21,17 +21,19 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
     location.pathname === '/verification';
 
   const isCheckoutPage = location.pathname === '/checkout';
+  const isReturnsPage = location.pathname === '/returns';
   const isLocationSelectorOpen = useUIStore((state) => state.isLocationSelectorOpen);
   
   // Respect the showBottomNav prop and hide on auth pages or when location selector is open
   const shouldShowBottomNav = showBottomNav && !isAuthPage && !isLocationSelectorOpen;
-  // Hide header on categories, search, wishlist, profile, and auth pages
+  // Hide header on categories, search, wishlist, profile, returns, and auth pages
   const shouldShowHeader = !isAuthPage &&
     location.pathname !== '/categories' &&
     location.pathname !== '/search' &&
     location.pathname !== '/wishlist' &&
     location.pathname !== '/profile' &&
     location.pathname !== '/orders' &&
+    !isReturnsPage &&
     !isCheckoutPage;
 
   // Ensure body scroll is restored when component mounts
@@ -44,7 +46,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
 
   return (
     <>
-      {!isAuthPage && !isCheckoutPage && <DesktopHeader />}
+      {!isAuthPage && !isCheckoutPage && !isReturnsPage && <DesktopHeader />}
       {shouldShowHeader && <MobileHeader />}
       <main
         className={`min-h-screen w-full overflow-x-hidden md:container md:mx-auto md:px-12 lg:px-24 xl:px-40 ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}

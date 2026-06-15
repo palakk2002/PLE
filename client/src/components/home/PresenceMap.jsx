@@ -2,12 +2,12 @@ import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
 
 const locations = [
-  { name: 'Karnataka', top: '72%', left: '41%', delay: 0 },
+  { name: 'Karnataka', top: '64%', left: '29%', delay: 0 },
 ];
 
 export default function PresenceMap() {
   return (
-    <section className="py-24 relative overflow-hidden bg-app-bg text-app-text">
+    <section className="py-24 relative overflow-hidden bg-app-bg dark:bg-[#0d1117] text-app-text">
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
@@ -36,18 +36,43 @@ export default function PresenceMap() {
 
         {/* Right Side: Map */}
         <div className="relative w-full aspect-square flex items-center justify-center">
+          
+          {/* Dark Mode Background Grid & Glow to highlight map */}
+          <div className="absolute inset-0 z-0 hidden dark:block pointer-events-none">
+            <div 
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: 'linear-gradient(#3a4b6b 1px, transparent 1px), linear-gradient(90deg, #3a4b6b 1px, transparent 1px)',
+                backgroundSize: '50px 50px',
+                backgroundPosition: 'center center'
+              }}
+            />
+            {/* Center subtle glow behind the map */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-[#4facfe]/10 blur-[80px] rounded-full" />
+            
+            {/* Decorative connection lines */}
+            <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
+              <line x1="20%" y1="30%" x2="45%" y2="50%" stroke="#4facfe" strokeWidth="1" />
+              <line x1="80%" y1="20%" x2="55%" y2="40%" stroke="#4facfe" strokeWidth="1" />
+              <line x1="15%" y1="70%" x2="40%" y2="60%" stroke="#4facfe" strokeWidth="1" />
+              <circle cx="20%" cy="30%" r="3" fill="#4facfe" />
+              <circle cx="80%" cy="20%" r="3" fill="#4facfe" />
+              <circle cx="15%" cy="70%" r="3" fill="#4facfe" />
+            </svg>
+          </div>
+
           {/* India Map Image */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8, x: 50 }}
             whileInView={{ opacity: 1, scale: 1, x: 0 }}
             viewport={{ once: true, amount: 0.3 }}
             transition={{ duration: 0.8 }}
-            className="relative w-full h-full flex justify-center items-center opacity-40 dark:opacity-20"
+            className="relative w-full h-full flex justify-center items-center opacity-40 dark:opacity-100 z-10"
           >
             <img 
-              src="/india.jpg" 
+              src="/india-removebg-preview.png" 
               alt="India Map" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain dark:mix-blend-multiply"
             />
           </motion.div>
 
@@ -55,7 +80,7 @@ export default function PresenceMap() {
           {locations.map((loc, idx) => (
             <motion.div
               key={idx}
-              className="absolute flex flex-col items-center justify-center pointer-events-none"
+              className="absolute flex flex-col items-center justify-center pointer-events-none z-20"
               style={{ top: loc.top, left: loc.left }}
               initial={{ opacity: 0, scale: 0, y: 20 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
