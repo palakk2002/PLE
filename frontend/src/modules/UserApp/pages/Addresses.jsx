@@ -87,7 +87,7 @@ const MobileAddresses = () => {
                 <h1 className="text-xl font-bold text-gray-800 flex-1">Saved Addresses</h1>
                 <button
                   onClick={() => setIsFormOpen(true)}
-                  className="p-2 gradient-green text-white rounded-xl hover:shadow-glow-green transition-all"
+                  className="p-2 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl transition-colors"
                 >
                   <FiPlus className="text-xl" />
                 </button>
@@ -107,7 +107,7 @@ const MobileAddresses = () => {
                   <p className="text-gray-600 mb-6">Add your first address to get started</p>
                   <button
                     onClick={() => setIsFormOpen(true)}
-                    className="gradient-green text-white px-6 py-3 rounded-xl font-semibold"
+                    className="bg-[#7B0A0A] hover:bg-[#AE020B] text-white px-6 py-3 rounded-xl font-semibold transition-colors"
                   >
                     Add Address
                   </button>
@@ -123,12 +123,12 @@ const MobileAddresses = () => {
                     >
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-start gap-3 flex-1">
-                          <FiMapPin className="text-primary-600 text-xl mt-0.5 flex-shrink-0" />
+                          <FiMapPin className="text-[#7B0A0A] text-xl mt-0.5 flex-shrink-0" />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
                               <h3 className="font-bold text-gray-800 text-base">{address.name}</h3>
                               {address.isDefault && (
-                                <span className="px-2 py-0.5 bg-primary-100 text-primary-700 rounded text-xs font-semibold">
+                                <span className="px-2 py-0.5 bg-red-50 text-[#7B0A0A] rounded text-xs font-semibold">
                                   Default
                                 </span>
                               )}
@@ -161,7 +161,7 @@ const MobileAddresses = () => {
                         )}
                         <button
                           onClick={() => handleEdit(address)}
-                          className="p-2 bg-primary-50 text-primary-600 rounded-xl hover:bg-primary-100 transition-colors"
+                          className="p-2 bg-red-50 text-[#7B0A0A] rounded-xl hover:bg-red-100 transition-colors"
                         >
                           <FiEdit className="text-base" />
                         </button>
@@ -212,7 +212,7 @@ const AddressFormModal = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 z-50 flex items-end"
+      className="fixed inset-0 bg-black/50 z-[10000] flex items-end"
       onClick={onCancel}
     >
       <motion.div
@@ -237,7 +237,7 @@ const AddressFormModal = ({
               type="text"
               {...register('name', { required: 'Address label is required' })}
               className={`w-full px-4 py-3 rounded-xl border-2 ${errors.name ? 'border-red-300' : 'border-gray-200'
-                } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
+                } focus:outline-none focus:ring-2 focus:ring-red-500 text-base`}
               placeholder="Home, Work, etc."
             />
             {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
@@ -248,7 +248,7 @@ const AddressFormModal = ({
               type="text"
               {...register('fullName', { required: 'Full name is required' })}
               className={`w-full px-4 py-3 rounded-xl border-2 ${errors.fullName ? 'border-red-300' : 'border-gray-200'
-                } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
+                } focus:outline-none focus:ring-2 focus:ring-red-500 text-base`}
             />
             {errors.fullName && (
               <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
@@ -260,7 +260,7 @@ const AddressFormModal = ({
               type="tel"
               {...register('phone', { required: 'Phone number is required' })}
               className={`w-full px-4 py-3 rounded-xl border-2 ${errors.phone ? 'border-red-300' : 'border-gray-200'
-                } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
+                } focus:outline-none focus:ring-2 focus:ring-red-500 text-base`}
             />
             {errors.phone && <p className="mt-1 text-sm text-red-600">{errors.phone.message}</p>}
           </div>
@@ -270,7 +270,7 @@ const AddressFormModal = ({
               type="text"
               {...register('address', { required: 'Address is required' })}
               className={`w-full px-4 py-3 rounded-xl border-2 ${errors.address ? 'border-red-300' : 'border-gray-200'
-                } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
+                } focus:outline-none focus:ring-2 focus:ring-red-500 text-base`}
             />
             {errors.address && (
               <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>
@@ -283,7 +283,7 @@ const AddressFormModal = ({
                 type="text"
                 {...register('city', { required: 'City is required' })}
                 className={`w-full px-4 py-3 rounded-xl border-2 ${errors.city ? 'border-red-300' : 'border-gray-200'
-                  } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 text-base`}
               />
             </div>
             <div>
@@ -292,7 +292,7 @@ const AddressFormModal = ({
                 type="text"
                 {...register('state', { required: 'State is required' })}
                 className={`w-full px-4 py-3 rounded-xl border-2 ${errors.state ? 'border-red-300' : 'border-gray-200'
-                  } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 text-base`}
               />
             </div>
             <div>
@@ -301,7 +301,7 @@ const AddressFormModal = ({
                 type="text"
                 {...register('zipCode', { required: 'Zip code is required' })}
                 className={`w-full px-4 py-3 rounded-xl border-2 ${errors.zipCode ? 'border-red-300' : 'border-gray-200'
-                  } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
+                  } focus:outline-none focus:ring-2 focus:ring-red-500 text-base`}
               />
             </div>
           </div>
@@ -311,13 +311,13 @@ const AddressFormModal = ({
               type="text"
               {...register('country', { required: 'Country is required' })}
               className={`w-full px-4 py-3 rounded-xl border-2 ${errors.country ? 'border-red-300' : 'border-gray-200'
-                } focus:outline-none focus:ring-2 focus:ring-primary-500 text-base`}
+                } focus:outline-none focus:ring-2 focus:ring-red-500 text-base`}
             />
           </div>
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              className="flex-1 gradient-green text-white py-3 rounded-xl font-semibold hover:shadow-glow-green transition-all"
+              className="flex-1 bg-[#7B0A0A] hover:bg-[#AE020B] text-white py-3 rounded-xl font-semibold transition-colors"
             >
               {editingAddress ? 'Update Address' : 'Add Address'}
             </button>

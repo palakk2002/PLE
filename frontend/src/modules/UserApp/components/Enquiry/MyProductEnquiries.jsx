@@ -60,7 +60,7 @@ export const MyProductEnquiries = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <FiMessageSquare className="text-primary-600 text-xl" />
+          <FiMessageSquare className="text-[#7B0A0A] text-xl" />
           <h3 className="font-extrabold text-gray-800 text-base">My Product Enquiries</h3>
         </div>
         <span className="text-[10px] text-gray-400 font-bold">
@@ -136,14 +136,14 @@ export const MyProductEnquiries = () => {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative z-10 border border-gray-150"
             >
-              <div className="bg-primary-600 px-6 py-4 flex items-center justify-between text-white">
+              <div className="bg-[#7B0A0A] px-6 py-4 flex items-center justify-between text-white">
                 <div>
                   <h3 className="font-extrabold text-lg">Enquiry Details</h3>
-                  <span className="font-mono text-xs text-primary-100">{selectedEnquiry.id}</span>
+                  <span className="font-mono text-xs text-red-100">{selectedEnquiry.id}</span>
                 </div>
                 <button
                   onClick={() => setSelectedEnquiry(null)}
-                  className="text-primary-100 hover:text-white hover:bg-primary-700/50 p-1.5 rounded-lg transition-colors"
+                  className="text-red-100 hover:text-white hover:bg-[#AE020B]/50 p-1.5 rounded-lg transition-colors"
                 >
                   <FiX className="w-5 h-5" />
                 </button>
@@ -174,7 +174,7 @@ export const MyProductEnquiries = () => {
                     <h5 className="font-extrabold text-gray-900">Subject: {selectedEnquiry.subject}</h5>
                     <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedEnquiry.question}</p>
                     {selectedEnquiry.attachment && (
-                      <div className="text-xs font-bold text-primary-600 bg-primary-50 px-3 py-1 rounded-xl inline-block mt-2">
+                      <div className="text-xs font-bold text-[#7B0A0A] bg-red-50 px-3 py-1 rounded-xl inline-block mt-2">
                         📎 Attachment: {selectedEnquiry.attachment}
                       </div>
                     )}
@@ -204,7 +204,7 @@ export const MyProductEnquiries = () => {
                     {selectedEnquiry.timeline.map((item, index) => (
                       <div key={index} className="flex gap-3 text-xs">
                         <div className="flex flex-col items-center shrink-0">
-                          <div className="w-2.5 h-2.5 rounded-full bg-primary-500 ring-4 ring-primary-50" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#7B0A0A] ring-4 ring-red-100" />
                           {index < selectedEnquiry.timeline.length - 1 && (
                             <div className="w-0.5 h-10 bg-gray-200 mt-1" />
                           )}

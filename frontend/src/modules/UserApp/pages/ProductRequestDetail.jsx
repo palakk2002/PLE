@@ -24,7 +24,7 @@ const ProductRequestDetail = () => {
             <h2 className="text-xl font-bold text-gray-800">Request not found</h2>
             <button
               onClick={() => navigate("/product-requests")}
-              className="mt-4 px-6 py-2 bg-indigo-600 text-white rounded-xl font-bold text-sm"
+              className="mt-4 px-6 py-2 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-bold text-sm transition-colors"
             >
               Back to Requests
             </button>
@@ -64,9 +64,9 @@ const ProductRequestDetail = () => {
 
   const getStatusStyle = (status) => {
     const map = {
-      Submitted: "bg-blue-50 text-blue-700 border-blue-200",
+      Submitted: "bg-red-50 text-[#7B0A0A] border-red-200",
       "Under Review": "bg-yellow-50 text-yellow-750 border-yellow-200",
-      "Seller Responded": "bg-purple-50 text-purple-700 border-purple-200",
+      "Seller Responded": "bg-red-50 text-[#7B0A0A] border-red-200",
       Accepted: "bg-green-50 text-green-700 border-green-200",
       Rejected: "bg-red-50 text-red-700 border-red-200",
       "Product Added": "bg-emerald-50 text-emerald-700 border-emerald-200 animate-pulse",
@@ -188,7 +188,7 @@ const ProductRequestDetail = () => {
                       <div key={idx} className="relative flex items-start gap-4">
                         {/* Bullet circle */}
                         <div className={`absolute -left-6 w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 z-10 ${
-                          state === "completed" ? "bg-indigo-600 border-indigo-600 text-white" :
+                          state === "completed" ? "bg-[#7B0A0A] border-[#7B0A0A] text-white" :
                           state === "rejected" ? "bg-red-650 border-red-650 text-white" :
                           "bg-white border-gray-300"
                         }`}>

@@ -269,9 +269,11 @@ export const useUIStore = create((set) => ({
   isMenuOpen: false,
   isCartOpen: false,
   isLoading: false,
+  isLocationSelectorOpen: false,
   cartAnimationTrigger: 0,
   toggleMenu: () => set((state) => ({ isMenuOpen: !state.isMenuOpen })),
   toggleCart: () => set((state) => ({ isCartOpen: !state.isCartOpen })),
+  setLocationSelectorOpen: (isOpen) => set({ isLocationSelectorOpen: isOpen }),
   setLoading: (loading) => set({ isLoading: loading }),
   triggerCartAnimation: () =>
     set((state) => ({ cartAnimationTrigger: state.cartAnimationTrigger + 1 })),

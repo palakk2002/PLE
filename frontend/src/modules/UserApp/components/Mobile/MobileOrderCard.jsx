@@ -40,7 +40,7 @@ const MobileOrderCard = ({ order }) => {
       <Link to={`/orders/${order.id}`}>
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl gradient-green flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#AE020B] to-[#7B0A0A] flex items-center justify-center flex-shrink-0">
               <FiPackage className="text-white text-xl" />
             </div>
             <div>
@@ -57,9 +57,9 @@ const MobileOrderCard = ({ order }) => {
         <div className="space-y-2 mb-3">
           {/* Vendor Count */}
           {order.vendorItems && order.vendorItems.length > 0 && (
-            <div className="flex items-center gap-2 px-2 py-1 bg-primary-50 rounded-lg mb-2">
-              <FiShoppingBag className="text-primary-600 text-xs" />
-              <span className="text-xs font-semibold text-primary-700">
+            <div className="flex items-center gap-2 px-2 py-1 bg-red-50 rounded-lg mb-2">
+              <FiShoppingBag className="text-[#7B0A0A] text-xs" />
+              <span className="text-xs font-semibold text-red-700">
                 {order.vendorItems.length} {order.vendorItems.length === 1 ? 'Vendor' : 'Vendors'}
               </span>
             </div>
@@ -83,7 +83,7 @@ const MobileOrderCard = ({ order }) => {
               <FiDollarSign className="text-xs" />
               Total
             </span>
-            <span className="text-base font-bold text-primary-600">
+            <span className="text-base font-bold text-[#7B0A0A]">
               {formatPrice(order.total || order.amount || 0)}
             </span>
           </div>

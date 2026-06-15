@@ -23,7 +23,7 @@ const FeaturedVendorsSection = ({ vendors = null }) => {
         </div>
         <Link
           to="/search"
-          className="flex items-center gap-1 text-sm text-primary-600 dark:text-[#7B0A0A] font-semibold hover:text-primary-700 dark:hover:text-[#FF3333] transition-colors"
+          className="flex items-center gap-1 text-sm text-[#7B0A0A] dark:text-[#7B0A0A] font-semibold hover:text-[#AE020B] dark:hover:text-[#FF3333] transition-colors"
         >
           <span>See All</span>
           <FiArrowRight className="text-sm" />

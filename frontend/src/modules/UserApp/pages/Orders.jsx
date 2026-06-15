@@ -109,7 +109,7 @@ const MobileOrders = () => {
                         setShowFilter(false);
                       }}
                       className={`px-4 py-2 rounded-xl font-semibold text-sm whitespace-nowrap transition-all ${selectedStatus === option.value
-                        ? 'gradient-green text-white'
+                        ? 'bg-[#7B0A0A] text-white'
                         : 'bg-gray-100 text-gray-700'
                         }`}
                     >
@@ -147,7 +147,7 @@ const MobileOrders = () => {
                   </p>
                   <button
                     onClick={() => navigate('/home')}
-                    className="gradient-green text-white px-6 py-3 rounded-xl font-semibold"
+                    className="bg-[#7B0A0A] hover:bg-[#AE020B] text-white px-6 py-3 rounded-xl font-semibold transition-colors"
                   >
                     Start Shopping
                   </button>

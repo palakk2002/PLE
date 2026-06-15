@@ -9,6 +9,7 @@ import MobileBottomNav from './MobileBottomNav';
 import MobileCartBar from './MobileCartBar';
 import CartDrawer from '../../../../shared/components/Cart/CartDrawer';
 import useMobileHeaderHeight from '../../hooks/useMobileHeaderHeight';
+import { useUIStore } from '../../../../shared/store/useStore';
 
 const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) => {
   const location = useLocation();
@@ -20,9 +21,10 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
     location.pathname === '/verification';
 
   const isCheckoutPage = location.pathname === '/checkout';
-
-  // Respect the showBottomNav prop and hide on auth pages
-  const shouldShowBottomNav = showBottomNav && !isAuthPage;
+  const isLocationSelectorOpen = useUIStore((state) => state.isLocationSelectorOpen);
+  
+  // Respect the showBottomNav prop and hide on auth pages or when location selector is open
+  const shouldShowBottomNav = showBottomNav && !isAuthPage && !isLocationSelectorOpen;
   // Hide header on categories, search, wishlist, profile, and auth pages
   const shouldShowHeader = !isAuthPage &&
     location.pathname !== '/categories' &&

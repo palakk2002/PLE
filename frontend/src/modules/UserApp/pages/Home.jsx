@@ -628,8 +628,7 @@ const MobileHome = () => {
             transform: `translateY(${Math.min(pullDistance, 80)}px)`,
             transition: isPulling ? "none" : "transform 0.3s ease-out",
           }}>
-          {/* Top Category Quick Nav Bar */}
-          <MobileCategoryQuickNav />
+
 
           {/* Slim RFQ Strip for B2B Users */}
           {isBusiness && (
@@ -879,13 +878,13 @@ const MobileHome = () => {
                   <div className="flex items-center justify-between mb-4">
                     <div>
                       <h2 className="text-xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-                        <span className="bg-gradient-to-r from-cyan-500 to-blue-600 text-transparent bg-clip-text">Refurbished & Renewed Deals</span>
+                        <span className="bg-gradient-to-r from-red-600 to-[#7B0A0A] text-transparent bg-clip-text">Refurbished & Renewed Deals</span>
                       </h2>
                       <p className="text-xs text-gray-500 dark:text-gray-400">Certified products in like-new condition with full warranty</p>
                     </div>
                     <Link
                       to="/search?condition=refurbished"
-                      className="text-sm text-primary-600 dark:text-primary-400 font-bold hover:underline">
+                      className="text-sm text-[#7B0A0A] dark:text-[#FF4D4D] font-bold hover:underline">
                       View All
                     </Link>
                   </div>
@@ -980,8 +979,8 @@ const MobileHome = () => {
                       repeat: Infinity,
                       repeatDelay: 2,
                     }}
-                    className="text-primary-500 inline-block">
-                    <FiHeart className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl fill-primary-500" />
+                    className="text-[#7B0A0A] inline-block">
+                    <FiHeart className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl fill-[#7B0A0A]" />
                   </motion.span>
                 </motion.h2>
               </motion.div>

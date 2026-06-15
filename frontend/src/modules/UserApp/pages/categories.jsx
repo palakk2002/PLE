@@ -382,7 +382,7 @@ const MobileCategories = () => {
                       className={`p-2 hover:bg-gray-100 rounded-full transition-colors ${showFilters ? "bg-gray-100" : ""
                         }`}>
                       <FiFilter
-                        className={`text-xl transition-colors ${hasActiveFilters ? "text-blue-600" : "text-gray-700"
+                        className={`text-xl transition-colors ${hasActiveFilters ? "text-[#7B0A0A]" : "text-gray-700"
                           }`}
                       />
                     </button>
@@ -444,7 +444,7 @@ const MobileCategories = () => {
                                           e.target.value
                                         )
                                       }
-                                      className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
+                                      className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] text-xs"
                                     />
                                     <input
                                       type="number"
@@ -456,7 +456,7 @@ const MobileCategories = () => {
                                           e.target.value
                                         )
                                       }
-                                      className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
+                                      className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] text-xs"
                                     />
                                   </div>
                                 </div>
@@ -485,12 +485,12 @@ const MobileCategories = () => {
                                               e.target.value
                                             )
                                           }
-                                          className="w-3 h-3 appearance-none rounded-full border-2 border-gray-300 bg-white checked:bg-white checked:border-primary-500 relative cursor-pointer"
+                                          className="w-3 h-3 appearance-none rounded-full border-2 border-gray-300 bg-white checked:bg-white checked:border-[#7B0A0A] relative cursor-pointer"
                                           style={{
                                             backgroundImage:
                                               filters.minRating ===
                                                 rating.toString()
-                                                ? "radial-gradient(circle, #10b981 40%, transparent 40%)"
+                                                ? "radial-gradient(circle, #7B0A0A 40%, transparent 40%)"
                                                 : "none",
                                           }}
                                         />
@@ -513,7 +513,7 @@ const MobileCategories = () => {
                               </button>
                               <button
                                 onClick={() => setShowFilters(false)}
-                                className="w-full py-1.5 gradient-green text-white rounded-md font-semibold text-xs hover:shadow-glow-green transition-all">
+                                className="w-full py-1.5 bg-[#7B0A0A] text-white rounded-md font-semibold text-xs hover:bg-[#AE020B] transition-all">
                                 Apply Filters
                               </button>
                             </div>
@@ -533,7 +533,7 @@ const MobileCategories = () => {
                   placeholder="Search in category..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-2.5 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-primary-500 shadow-inner placeholder:text-gray-400"
+                  className="w-full pl-10 pr-10 py-2.5 bg-gray-100 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] shadow-inner placeholder:text-gray-400"
                 />
                 {searchQuery && (
                   <button
@@ -584,7 +584,7 @@ const MobileCategories = () => {
                         <div className="flex flex-col items-center gap-1.5">
                           <div
                             className={`w-12 h-12 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 transition-all duration-200 ${isActive
-                              ? "ring-2 ring-primary-500 ring-offset-1 scale-105"
+                              ? "ring-2 ring-[#7B0A0A] ring-offset-1 scale-105"
                               : ""
                               }`}
                             style={{
@@ -600,8 +600,8 @@ const MobileCategories = () => {
                             />
                           </div>
                           <span
-                            className={`text-[10px] font-semibold text-center leading-tight transition-colors ${isActive ? "text-primary-600" : "text-gray-700"
-                              }`}>
+                            className={`text-[10px] font-semibold text-center leading-tight transition-colors ${isActive ? "text-[#7B0A0A]" : "text-gray-700"
+                                }`}>
                             {category.name}
                           </span>
                         </div>
@@ -641,7 +641,7 @@ const MobileCategories = () => {
                               }
                               whileTap={{ scale: 0.97 }}
                               className={`flex-shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap border ${isActive
-                                ? "bg-white text-primary-600 border-primary-200 shadow-sm"
+                                ? "bg-white text-[#7B0A0A] border-red-200 shadow-sm"
                                 : "bg-gray-50 text-gray-600 border-gray-200 active:bg-gray-100"
                                 }`}
                               style={{ willChange: "transform" }}>

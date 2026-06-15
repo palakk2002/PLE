@@ -2,8 +2,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
 import { useWishlistStore } from "../../../../shared/store/wishlistStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
-import appLogoBlack from "../../../../assets/PLELOGOBLACK.jpg";
-import appLogoWhite from "../../../../assets/PLEwhite.png";
+import appLogoBlack from "../../../../assets/PLELOGOBLACK-removebg-preview (1).png";
+import appLogoWhite from "../../../../assets/PLEwhite-removebg-preview (3).png";
 
 import SearchBar from "../../../../shared/components/SearchBar";
 import { FiHeart, FiShoppingBag, FiUser, FiLogOut, FiGrid, FiBell, FiSun, FiMoon, FiMenu } from "react-icons/fi";
@@ -66,7 +66,7 @@ const DesktopHeader = () => {
     const handleLogout = () => {
         logout();
         setShowUserMenu(false);
-        navigate("/home");
+        navigate("/");
     };
 
     return (
@@ -79,17 +79,17 @@ const DesktopHeader = () => {
                             src={appLogo.src}
                             alt={appLogo.alt}
                             className="h-14 w-auto object-contain"
-                            style={{ filter: "none" }}
+                            style={{ mixBlendMode: theme === "dark" ? "screen" : "multiply" }}
                         />
                     ) : (
-                        <span className="text-2xl font-bold text-primary-600">PLE</span>
+                        <span className="text-2xl font-bold text-[#7B0A0A]">PLE</span>
                     )}
                 </Link>
 
                 {/* Hamburger Menu */}
                 <button
                   onClick={() => setSidebarOpen(true)}
-                  className="hidden md:block p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                  className="hidden md:block p-2 text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] transition-colors"
                   aria-label="Menu"
                 >
                   <FiMenu className="text-2xl" />
@@ -97,17 +97,17 @@ const DesktopHeader = () => {
 
                 {/* Navigation Links */}
                 <nav className="flex items-center gap-6">
-                    <Link to="/home" className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium text-sm lg:text-base">Home</Link>
-                    <Link to="/categories" className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium text-sm lg:text-base flex items-center gap-1">
+                    <Link to="/home" className="text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-medium text-sm lg:text-base">Home</Link>
+                    <Link to="/categories" className="text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-medium text-sm lg:text-base flex items-center gap-1">
                         <FiGrid /> Categories
                     </Link>
-                    <Link to="/offers" className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium text-sm lg:text-base">Offers</Link>
+                    <Link to="/offers" className="text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-medium text-sm lg:text-base">Offers</Link>
                     {activeFestivalCampaign && (
                         <Link to="/festival-campaign" className="text-red-600 dark:text-red-400 hover:text-red-700 font-bold text-sm lg:text-base transition-all animate-pulse flex items-center gap-1">
                             ✨ {activeFestivalCampaign.name}
                         </Link>
                     )}
-                    <Link to="/search?condition=refurbished" className="text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 font-medium text-sm lg:text-base">Refurbished</Link>
+                    <Link to="/search?condition=refurbished" className="text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-medium text-sm lg:text-base">Refurbished</Link>
                 </nav>
 
                 {/* Search Bar */}
@@ -120,11 +120,11 @@ const DesktopHeader = () => {
                     {/* Cart */}
                     <button
                         onClick={toggleCart}
-                        className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                        className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] transition-colors"
                     >
                         <FiShoppingBag className="text-2xl" />
                         {itemCount > 0 && (
-                            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-primary-600 text-white text-xs font-bold flex items-center justify-center">
+                            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-[#7B0A0A] text-white text-xs font-bold flex items-center justify-center">
                                 {itemCount > 9 ? "9+" : itemCount}
                             </span>
                         )}
@@ -135,7 +135,7 @@ const DesktopHeader = () => {
                     {/* Theme Toggle */}
                     <button
                         onClick={toggleTheme}
-                        className="relative p-2 text-gray-600 dark:text-[#C8B3A3] hover:text-primary-600 dark:hover:text-[#D18B4A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-[#2A1F1A] focus:outline-none"
+                        className="relative p-2 text-gray-600 dark:text-[#C8B3A3] hover:text-[#7B0A0A] dark:hover:text-[#D18B4A] transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-[#2A1F1A] focus:outline-none"
                         title={theme === "light" ? "Switch to Dark Mode" : "Switch to Light Mode"}
                     >
                         <motion.div
@@ -217,7 +217,7 @@ const DesktopHeader = () => {
                             </AnimatePresence>
                         </div>
                     ) : (
-                        <Link to="/login" className="px-5 py-2.5 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors shadow-sm shadow-primary-200">
+                        <Link to="/login" className="px-5 py-2.5 bg-[#7B0A0A] text-white rounded-lg font-medium hover:bg-[#AE020B] transition-colors shadow-sm shadow-red-200">
                             Login
                         </Link>
                     )}

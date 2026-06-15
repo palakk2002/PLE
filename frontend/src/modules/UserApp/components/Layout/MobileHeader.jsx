@@ -13,17 +13,20 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
 import { useThemeStore } from "../../../../shared/store/themeStore";
-import appLogoBlack from "../../../../assets/PLELOGOBLACK.jpg";
-import appLogoWhite from "../../../../assets/PLEwhite.png";
+import appLogoBlack from "../../../../assets/PLELOGOBLACK-removebg-preview (1).png";
+import appLogoWhite from "../../../../assets/PLEwhite-removebg-preview (3).png";
 
 import { motion } from "framer-motion";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import SearchBar from "../../../../shared/components/SearchBar";
 import MobileCategoryIcons from "../Mobile/MobileCategoryIcons";
+import MobileCategoryQuickNav from "../Mobile/MobileCategoryQuickNav";
 import Sidebar from "../../../../shared/components/Sidebar";
 import { useBusinessBuyer } from "../../hooks/useBusinessBuyer";
 import { B2BBusinessBadge } from "../B2B/B2BBusinessBadge";
 import { useCampaignStore } from "../../../../shared/store/campaignStore";
+import { useAddressStore } from "../../../../shared/store/addressStore";
+import AddressBottomSheet from "../Mobile/AddressBottomSheet";
 
 // Category gradient mapping - Very subtle pastel colors
 const categoryGradients = {
@@ -70,6 +73,19 @@ const MobileHeader = () => {
     (state) => state.cartAnimationTrigger
   );
   const { user, isAuthenticated, logout } = useAuthStore();
+  const { addresses, fetchAddresses } = useAddressStore();
+  const isAddressSheetOpen = useUIStore((state) => state.isLocationSelectorOpen);
+  const setIsAddressSheetOpen = useUIStore((state) => state.setLocationSelectorOpen);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchAddresses().catch(() => null);
+    }
+  }, [isAuthenticated, fetchAddresses]);
+
+  const defaultAddress = useMemo(() => {
+    return addresses.find((addr) => addr.isDefault) || addresses[0] || null;
+  }, [addresses]);
   
   const { campaigns, initialize } = useCampaignStore();
   useEffect(() => {
@@ -86,10 +102,13 @@ const MobileHeader = () => {
     });
   }, [campaigns]);
 
-  // Get current category from URL (supports both /category/:id and legacy /app/category/:id)
+  // Get current category from URL (supports both /category/:id and query ?category=id)
   const getCurrentCategoryId = () => {
     const match = location.pathname.match(/\/(?:app\/)?category\/([^/]+)/);
-    return match ? String(match[1]) : null;
+    if (match) return String(match[1]);
+    
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get("category") || null;
   };
 
   const currentCategoryId = getCurrentCategoryId();
@@ -136,8 +155,8 @@ const MobileHeader = () => {
         search: "linear-gradient(to bottom, #1A0A0A 0%, #110606 50%, #0D0D0D 100%)",
         wishlist: "linear-gradient(to bottom, #200808 0%, #160404 50%, #0D0D0D 100%)",
         profile: "linear-gradient(to bottom, #0A1A0E 0%, #060B09 50%, #0D0D0D 100%)",
-        orders: "linear-gradient(to bottom, #0A0E1A 0%, #060911 50%, #0D0D0D 100%)",
-        orderDetail: "linear-gradient(to bottom, #0A0E1A 0%, #060911 50%, #0D0D0D 100%)",
+        orders: "linear-gradient(to bottom, #1A0A0A 0%, #0C0404 50%, #0D0D0D 100%)",
+        orderDetail: "linear-gradient(to bottom, #1A0A0A 0%, #0C0404 50%, #0D0D0D 100%)",
         checkout: "linear-gradient(to bottom, #0A1A0E 0%, #060B09 50%, #0D0D0D 100%)",
         offers: "linear-gradient(to bottom, #1A0A0A 0%, #110606 50%, #0D0D0D 100%)",
         dailyDeals: "linear-gradient(to bottom, #1A1200 0%, #110C00 50%, #0D0D0D 100%)",
@@ -176,9 +195,9 @@ const MobileHeader = () => {
       profile:
         "linear-gradient(to bottom, rgb(16, 185, 129) 0%, rgb(52, 211, 153) 30%, rgb(209, 250, 229) 60%, rgb(255, 255, 255) 100%)", // Green gradient
       orders:
-        "linear-gradient(to bottom, rgb(59, 130, 246) 0%, rgb(96, 165, 250) 30%, rgb(219, 234, 254) 60%, rgb(255, 255, 255) 100%)", // Blue gradient
+        "linear-gradient(to bottom, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
       orderDetail:
-        "linear-gradient(to bottom, rgb(59, 130, 246) 0%, rgb(96, 165, 250) 30%, rgb(219, 234, 254) 60%, rgb(255, 255, 255) 100%)", // Blue gradient
+        "linear-gradient(to bottom, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
       checkout:
         "linear-gradient(to bottom, rgb(16, 185, 129) 0%, rgb(52, 211, 153) 30%, rgb(209, 250, 229) 60%, rgb(255, 255, 255) 100%)", // Green gradient
       offers: "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
@@ -393,34 +412,30 @@ const MobileHeader = () => {
           style={{
             pointerEvents: isTopRowVisible ? "auto" : "none",
           }}>
-          {/* Left Brand Area: Hamburger & Logo */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          {/* Left Group: Hamburger + Location Bar (shifted slightly right) */}
+          <div className="flex items-center gap-1.5 min-w-0 flex-1 pl-3">
             {/* Hamburger Menu Icon */}
             <button
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 hover:bg-white/10 rounded-lg transition-all duration-300 text-white flex items-center justify-center"
+              className="p-2 hover:bg-white/10 rounded-lg transition-all duration-300 text-white flex items-center justify-center flex-shrink-0"
               title="Menu">
               <FiMenu className="text-2xl" />
             </button>
 
-            {/* App Logo */}
-            <img 
-              src={appLogo.src} 
-              alt="PLE Logo" 
-              className="h-8 w-auto object-contain select-none" 
-            />
-          </div>
-
-          {/* Static Location Time and Address */}
-          <div className="flex items-center gap-2 flex-shrink-0 overflow-visible relative z-[10001] max-w-[50%]">
-            <div className="flex flex-col text-left">
-              <span className="font-black text-white text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none">
-                Home
-              </span>
-              <span className="text-[10px] sm:text-xs font-semibold text-white/95 flex items-center gap-0.5 truncate cursor-pointer mt-0.5">
-                Police Quarters, Belgaum
-                <FiChevronDown className="text-xs text-white/80 mt-0.5 flex-shrink-0" />
-              </span>
+            {/* Dynamic Location Selection Bar */}
+            <div 
+              onClick={() => setIsAddressSheetOpen(true)}
+              className="flex items-center gap-2 overflow-visible relative z-[10001] cursor-pointer min-w-0 flex-1 pr-2"
+            >
+              <div className="flex flex-col text-left min-w-0">
+                <span className="font-black text-white text-sm sm:text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none truncate">
+                  {defaultAddress ? defaultAddress.name : "Select Location"}
+                </span>
+                <span className="text-[10px] sm:text-xs font-semibold text-white/95 flex items-center gap-0.5 truncate mt-0.5">
+                  {defaultAddress ? `${defaultAddress.address}, ${defaultAddress.city}` : "Click to select"}
+                  <FiChevronDown className="text-xs text-white/80 mt-0.5 flex-shrink-0" />
+                </span>
+              </div>
             </div>
           </div>
 
@@ -511,7 +526,7 @@ const MobileHeader = () => {
                 path: "/categories",
                 active: location.pathname === "/categories" || location.pathname.startsWith("/category/"),
                 style: {
-                  activeLight: "bg-white border border-[#2563EB] text-[#2563EB] font-bold text-[10px] sm:text-xs tracking-tight shadow-sm",
+                  activeLight: "bg-white border border-[#AE020B] text-[#AE020B] font-bold text-[10px] sm:text-xs tracking-tight shadow-sm",
                   activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-bold text-[10px] sm:text-xs tracking-tight shadow-sm",
                   inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-[10px] sm:text-xs tracking-tight",
                   inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-[10px] sm:text-xs tracking-tight",
@@ -522,7 +537,7 @@ const MobileHeader = () => {
                 path: "/offers",
                 active: location.pathname === "/offers",
                 style: {
-                  activeLight: "bg-[#FCD34D] border border-[#FBBF24] text-[#064E3B] font-serif font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm",
+                  activeLight: "bg-white border border-[#AE020B] text-[#AE020B] font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm",
                   activeDark: "bg-[#7B0A0A] border border-[#7B0A0A] text-white font-black text-[10px] sm:text-xs uppercase tracking-wider shadow-sm",
                   inactiveLight: "bg-white border border-gray-200 text-gray-400 font-semibold text-[10px] sm:text-xs uppercase tracking-wider",
                   inactiveDark: "bg-[#1A1A1A] border border-[#7B0A0A] text-white font-semibold text-[10px] sm:text-xs uppercase tracking-wider",
@@ -567,41 +582,41 @@ const MobileHeader = () => {
           })()}
         </div>
 
-        {/* Third Row: Single Integrated Search & Offers Bar (Zepto-style) */}
-        <div className="flex items-center justify-between w-full bg-white dark:bg-[#1A1A1A] rounded-full border border-gray-200 dark:border-white/5 pl-4 pr-3.5 py-2 mt-2 relative z-[10007] shadow-sm select-none">
-          {/* Left Side: Search trigger */}
+        {/* Third Row: Single Integrated Search Bar with Left Logo & Right Search Icon */}
+        <div className="flex items-center justify-between w-full bg-white dark:bg-[#1A1A1A] rounded-full border border-gray-200 dark:border-white/5 pl-4 pr-3 py-2 mt-2 relative z-[10007] shadow-sm select-none">
+          {/* Left Side: Logo & Search placeholder trigger */}
           <div
             onClick={() => navigate("/search")}
             className="flex-grow flex items-center gap-2 cursor-pointer min-w-0"
           >
-            <FiSearch className="text-gray-400 text-base flex-shrink-0" />
-            <span className="text-xs text-gray-400 font-semibold truncate">
+            <img 
+              src={appLogo.src} 
+              alt="PLE Logo" 
+              className="h-5 w-auto object-contain select-none bg-transparent" 
+              style={{ mixBlendMode: theme === "dark" ? "screen" : "multiply" }}
+            />
+            <span className="text-xs text-gray-400 font-semibold truncate pl-1 border-l border-gray-200 dark:border-white/10">
               Search for "Earphones"
             </span>
           </div>
 
-          {/* Vertical Divider */}
-          <div className="w-[1px] h-6 bg-gray-200 dark:bg-white/10 mx-3 flex-shrink-0" />
-
-          {/* Right Side: Get Offers Action */}
-          <div 
-            onClick={() => navigate("/offers")}
-            className="flex-shrink-0 flex items-center gap-1.5 cursor-pointer"
+          {/* Right Side: Search Icon */}
+          <div
+            onClick={() => navigate("/search")}
+            className="flex-shrink-0 flex items-center justify-center p-1 cursor-pointer"
           >
-            <span className="text-xl select-none">🎁</span>
-            <div className="flex flex-col text-left leading-none">
-              <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tight">
-                Get
-              </span>
-              <span className="text-[10px] font-black text-[#AE020B] dark:text-[#7B0A0A] tracking-tight">
-                Offers
-              </span>
-            </div>
+            <FiSearch className="text-gray-500 dark:text-gray-300 text-base" />
           </div>
         </div>
 
-
       </div>
+
+      {/* Fourth Row: Category Quick Nav Bar (Home/Category Pages Only) */}
+      {(currentPage === "home" || currentPage === "category") && (
+        <div className="w-full">
+          <MobileCategoryQuickNav />
+        </div>
+      )}
     </motion.header>
   );
 
@@ -617,6 +632,10 @@ const MobileHeader = () => {
         onClose={() => setIsSidebarOpen(false)}
         user={user}
         onLogout={handleLogout}
+      />
+      <AddressBottomSheet
+        isOpen={isAddressSheetOpen}
+        onClose={() => setIsAddressSheetOpen(false)}
       />
     </>
   );

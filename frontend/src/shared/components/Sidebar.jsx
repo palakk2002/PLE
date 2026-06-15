@@ -2,23 +2,10 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiUser, FiShoppingBag, FiSettings, FiLogOut, FiChevronDown } from 'react-icons/fi';
+import { FiX, FiUser, FiShoppingBag, FiSettings, FiLogOut, FiChevronDown, FiHeart, FiCreditCard, FiMapPin, FiMessageSquare, FiRefreshCw, FiFileText, FiBell, FiTag, FiHelpCircle } from 'react-icons/fi';
 import { useCategoryStore } from '../store/categoryStore';
 import { categories as fallbackCategories } from '../../data/categories';
-import { IoShirtOutline } from "react-icons/io5";
-import { LuFootprints } from "react-icons/lu";
-import { IoBagHandleOutline } from "react-icons/io5";
-import { FiStar, FiTag, FiZap, FiPackage } from "react-icons/fi";
-
-// Map category names to icons
-const categoryIcons = {
-  Clothing: IoShirtOutline,
-  Footwear: LuFootprints,
-  Bags: IoBagHandleOutline,
-  Jewelry: FiStar,
-  Accessories: FiTag,
-  Athletic: FiZap,
-};
+import LucideIcon from './LucideIcon';
 
 /**
  * Reusable slide‑in sidebar with categories support.
@@ -120,6 +107,78 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
                 <FiShoppingBag />
                 Orders
               </Link>
+              <Link
+                to="/wishlist"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiHeart />
+                Wishlist
+              </Link>
+              <Link
+                to="/wallet"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiCreditCard />
+                Wallet
+              </Link>
+              <Link
+                to="/addresses"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiMapPin />
+                Addresses
+              </Link>
+              <Link
+                to="/support-tickets"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiMessageSquare />
+                Support Tickets
+              </Link>
+              <Link
+                to="/returns"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiRefreshCw />
+                My Returns
+              </Link>
+              <Link
+                to="/product-requests"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiFileText />
+                Product Requests
+              </Link>
+              <Link
+                to="/notifications"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiBell />
+                Notifications
+              </Link>
+              <Link
+                to="/offers"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiTag />
+                My Offers
+              </Link>
+              <Link
+                to="/help-support"
+                onClick={onClose}
+                className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <FiHelpCircle />
+                Help & Support
+              </Link>
 
               {/* Categories Section */}
               <div className="my-4 pt-4 border-t border-gray-200 dark:border-white/10">
@@ -148,7 +207,6 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
                     >
                       <div className="mt-2 space-y-1">
                         {categories.map((category) => {
-                          const IconComponent = categoryIcons[category.name] || FiPackage;
                           return (
                             <Link
                               key={category.id}
@@ -156,7 +214,7 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
                               onClick={onClose}
                               className="flex items-center gap-3 px-5 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors text-sm"
                             >
-                              <IconComponent className="text-lg flex-shrink-0" />
+                              <LucideIcon name={category.icon} className="text-lg flex-shrink-0" />
                               <span>{category.name}</span>
                             </Link>
                           );

@@ -49,7 +49,7 @@ const ReturnDetail = () => {
             <h3 className="text-lg font-bold text-gray-800 mb-2">Return Request Not Found</h3>
             <button
               onClick={() => navigate('/orders')}
-              className="gradient-green text-white px-6 py-2 rounded-xl font-semibold"
+              className="bg-[#7B0A0A] hover:bg-[#AE020B] text-white px-6 py-2 rounded-xl font-semibold transition-colors"
             >
               Go to My Orders
             </button>
@@ -107,8 +107,8 @@ const ReturnDetail = () => {
             </div>
             <span className={`px-3 py-1 rounded-full text-xs font-bold ${
               isRejected ? 'bg-red-50 text-red-700 border border-red-200' :
-              request.status === 'Refund Completed' ? 'bg-green-50 text-green-700 border border-green-200' :
-              'bg-blue-50 text-blue-700 border border-blue-200'
+               request.status === 'Refund Completed' ? 'bg-green-50 text-green-700' :
+              'bg-red-50 text-[#7B0A0A] border border-red-200'
             }`}>
               {request.status}
             </span>
@@ -119,7 +119,7 @@ const ReturnDetail = () => {
             <div className="glass-card rounded-2xl p-4 bg-white shadow-sm border border-gray-100">
               <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-3">
                 <span className="text-xs font-semibold text-gray-500">Order ID:</span>
-                <span className="text-xs font-bold text-blue-600 hover:underline cursor-pointer" onClick={() => navigate(`/orders/${request.orderId}`)}>
+                <span className="text-xs font-bold text-[#7B0A0A] hover:underline cursor-pointer" onClick={() => navigate(`/orders/${request.orderId}`)}>
                   #{request.orderId}
                 </span>
               </div>
@@ -146,13 +146,13 @@ const ReturnDetail = () => {
             {/* Refund Status Page / Card */}
             <div className="glass-card rounded-2xl p-4 bg-white shadow-sm border border-gray-100">
               <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-1.5">
-                <FiDollarSign className="text-primary-600 text-base" />
+                <FiDollarSign className="text-[#7B0A0A] text-base" />
                 Refund Information
               </h3>
               <div className="grid grid-cols-2 gap-4 bg-gray-50 rounded-xl p-3 border border-gray-200/50 mb-3">
                 <div>
                   <span className="text-[10px] text-gray-500 block uppercase tracking-wider font-semibold">Refund Amount</span>
-                  <span className="text-lg font-extrabold text-primary-600">{formatPrice(request.refundAmount || 0)}</span>
+                  <span className="text-lg font-extrabold text-[#7B0A0A]">{formatPrice(request.refundAmount || 0)}</span>
                 </div>
                 <div>
                   <span className="text-[10px] text-gray-500 block uppercase tracking-wider font-semibold">Refund Status</span>
@@ -229,7 +229,7 @@ const ReturnDetail = () => {
             {/* Return Timeline Tracking */}
             <div className="glass-card rounded-2xl p-4 bg-white shadow-sm border border-gray-100">
               <h3 className="text-sm font-bold text-gray-800 mb-4 flex items-center gap-1.5">
-                <FiTruck className="text-primary-600 text-base" />
+                <FiTruck className="text-[#7B0A0A] text-base" />
                 Return Status Timeline
               </h3>
               
@@ -252,10 +252,10 @@ const ReturnDetail = () => {
                   let icon = <FiClock className="text-xs" />;
                   
                   if (stageStatus === 'completed') {
-                    nodeColor = 'bg-primary-600 text-white';
+                    nodeColor = 'bg-red-600 text-white';
                     icon = <FiCheckCircle className="text-xs" />;
                   } else if (stageStatus === 'active') {
-                    nodeColor = 'bg-blue-600 text-white ring-4 ring-blue-100';
+                    nodeColor = 'bg-red-600 text-white ring-4 ring-red-100';
                     icon = <FiClock className="text-xs" />;
                   } else if (stageStatus === 'rejected') {
                     nodeColor = 'bg-red-600 text-white ring-4 ring-red-100';
@@ -275,7 +275,7 @@ const ReturnDetail = () => {
                       <div className="flex justify-between items-start gap-4">
                         <div>
                           <h4 className={`text-xs font-bold ${
-                            stageStatus === 'active' ? 'text-blue-600' :
+                            stageStatus === 'active' ? 'text-[#7B0A0A]' :
                             stageStatus === 'rejected' ? 'text-red-600' :
                             stageStatus === 'completed' ? 'text-gray-800' : 'text-gray-400'
                           }`}>

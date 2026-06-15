@@ -79,7 +79,7 @@ const HelpSupport = () => {
               <FiArrowLeft className="text-xl text-gray-700" />
             </button>
             <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-              <FiHelpCircle className="text-primary-600" /> Help & Support
+              <FiHelpCircle className="text-[#7B0A0A]" /> Help & Support
             </h1>
           </div>
 
@@ -95,7 +95,7 @@ const HelpSupport = () => {
                 <input
                   type="text"
                   {...register("subject", { required: "Subject is required" })}
-                  className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
+                  className={`w-full px-4 py-2.5 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 transition-all ${
                     errors.subject ? "border-red-500" : "border-gray-200"
                   }`}
                   placeholder="Summarize your issue..."
@@ -110,7 +110,7 @@ const HelpSupport = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Issue Category *</label>
                   <select
                     {...register("category", { required: "Category is required" })}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                     disabled={isSubmitting}
                   >
                     <option value="Order Issue">Order Issue</option>
@@ -129,7 +129,7 @@ const HelpSupport = () => {
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Urgency *</label>
                   <select
                     {...register("priority")}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all"
+                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 transition-all"
                     disabled={isSubmitting}
                   >
                     <option value="low">Low - General Question</option>
@@ -144,7 +144,7 @@ const HelpSupport = () => {
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description *</label>
                 <textarea
                   {...register("description", { required: "Description cannot be empty" })}
-                  className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all ${
+                  className={`w-full px-4 py-3 bg-gray-50 border rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 transition-all ${
                     errors.description ? "border-red-500" : "border-gray-200"
                   }`}
                   rows={5}
@@ -198,7 +198,7 @@ const HelpSupport = () => {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 bg-primary-600 text-white py-3 rounded-xl hover:bg-primary-700 transition-all font-bold disabled:opacity-50"
+                  className="flex-1 bg-[#7B0A0A] text-white py-3 rounded-xl hover:bg-[#AE020B] transition-all font-bold disabled:opacity-50"
                 >
                   {isSubmitting ? "Submitting..." : "Submit Ticket"}
                 </button>

@@ -126,7 +126,7 @@ const MobileSettings = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/home");
+    navigate("/");
     toast.success("Logged out successfully");
   };
 
@@ -176,7 +176,7 @@ const MobileSettings = () => {
                 >
                   {/* Account Summary Widget */}
                   <div className="bg-white dark:bg-[#1A1A1A] p-5 rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-primary-500 to-emerald-400 flex items-center justify-center text-white text-xl font-extrabold shadow-md">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#AE020B] to-red-400 flex items-center justify-center text-white text-xl font-extrabold shadow-md">
                       {user?.avatar ? (
                         <img
                           src={user.avatar}
@@ -197,7 +197,7 @@ const MobileSettings = () => {
                     </div>
                     <button
                       onClick={() => setActiveSection("profile")}
-                      className="px-4 py-1.5 bg-primary-50 dark:bg-primary-950/30 text-primary-600 dark:text-primary-400 hover:bg-primary-100 dark:hover:bg-primary-900/40 text-xs font-bold rounded-lg border border-primary-100 dark:border-primary-900/30 transition-colors"
+                      className="px-4 py-1.5 bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 text-xs font-bold rounded-lg border border-red-100 dark:border-red-900/30 transition-colors"
                     >
                       Edit Profile
                     </button>
@@ -213,7 +213,7 @@ const MobileSettings = () => {
                       {/* Theme Settings */}
                       <div className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
                             {theme === "dark" ? <FiMoon className="text-lg" /> : <FiSun className="text-lg" />}
                           </div>
                           <div>
@@ -223,7 +223,7 @@ const MobileSettings = () => {
                         </div>
                         <button
                           onClick={toggleTheme}
-                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none bg-gray-200 dark:bg-primary-600"
+                          className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none bg-gray-200 dark:bg-red-600"
                         >
                           <span
                             className={`${
@@ -236,7 +236,7 @@ const MobileSettings = () => {
                       {/* Language Selection */}
                       <div className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
                             <FiGlobe className="text-lg" />
                           </div>
                           <div>
@@ -250,7 +250,7 @@ const MobileSettings = () => {
                             setLanguage(e.target.value);
                             toast.success(`Language set to ${e.target.value === "en" ? "English" : "Hindi"}`);
                           }}
-                          className="px-3 py-1.5 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#222] text-gray-700 dark:text-gray-200 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-primary-500"
+                          className="px-3 py-1.5 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50 dark:bg-[#222] text-gray-700 dark:text-gray-200 text-sm font-semibold focus:outline-none focus:ring-1 focus:ring-red-500"
                         >
                           <option value="en">English</option>
                           <option value="hi">हिन्दी (Hindi)</option>
@@ -263,7 +263,7 @@ const MobileSettings = () => {
                         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-pink-50 dark:bg-pink-950/30 text-pink-600 dark:text-pink-400 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
                             <FiBell className="text-lg" />
                           </div>
                           <div>
@@ -289,7 +289,7 @@ const MobileSettings = () => {
                         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
                             <FiLock className="text-lg" />
                           </div>
                           <div>
@@ -306,7 +306,7 @@ const MobileSettings = () => {
                         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
                             <FiCreditCard className="text-lg" />
                           </div>
                           <div>
@@ -323,7 +323,7 @@ const MobileSettings = () => {
                         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
                             <FiMapPin className="text-lg" />
                           </div>
                           <div>
@@ -340,7 +340,7 @@ const MobileSettings = () => {
                         className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-cyan-50 dark:bg-cyan-950/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
                             <FiHelpCircle className="text-lg" />
                           </div>
                           <div>
@@ -393,7 +393,7 @@ const MobileSettings = () => {
                           className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${
                             profileErrors.name
                               ? "border-red-300 focus:border-red-500"
-                              : "border-gray-200 dark:border-white/10 focus:border-primary-500"
+                              : "border-gray-200 dark:border-white/10 focus:border-red-500"
                           } focus:outline-none dark:bg-[#222] dark:text-white transition-colors text-base`}
                           placeholder="Your name"
                         />
@@ -418,7 +418,7 @@ const MobileSettings = () => {
                           className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${
                             profileErrors.phone
                               ? "border-red-300 focus:border-red-500"
-                              : "border-gray-200 dark:border-white/10 focus:border-primary-500"
+                              : "border-gray-200 dark:border-white/10 focus:border-red-500"
                           } focus:outline-none dark:bg-[#222] dark:text-white transition-colors text-base`}
                           placeholder="Your phone number"
                         />
@@ -454,7 +454,7 @@ const MobileSettings = () => {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-60"
+                        className="flex-1 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-60"
                       >
                         <FiSave />
                         Save Changes
@@ -486,7 +486,7 @@ const MobileSettings = () => {
                           className={`w-full px-4 py-3 rounded-xl border-2 ${
                             passwordErrors.currentPassword
                               ? "border-red-300 focus:border-red-500"
-                              : "border-gray-200 dark:border-white/10 focus:border-primary-500"
+                              : "border-gray-200 dark:border-white/10 focus:border-red-500"
                           } focus:outline-none dark:bg-[#222] dark:text-white transition-colors text-base`}
                           placeholder="Current password"
                         />
@@ -517,7 +517,7 @@ const MobileSettings = () => {
                           className={`w-full px-4 py-3 rounded-xl border-2 ${
                             passwordErrors.newPassword
                               ? "border-red-300 focus:border-red-500"
-                              : "border-gray-200 dark:border-white/10 focus:border-primary-500"
+                              : "border-gray-200 dark:border-white/10 focus:border-red-500"
                           } focus:outline-none dark:bg-[#222] dark:text-white transition-colors text-base`}
                           placeholder="New password"
                         />
@@ -548,7 +548,7 @@ const MobileSettings = () => {
                           className={`w-full px-4 py-3 rounded-xl border-2 ${
                             passwordErrors.confirmPassword
                               ? "border-red-300 focus:border-red-500"
-                              : "border-gray-200 dark:border-white/10 focus:border-primary-500"
+                              : "border-gray-200 dark:border-white/10 focus:border-red-500"
                           } focus:outline-none dark:bg-[#222] dark:text-white transition-colors text-base`}
                           placeholder="Confirm new password"
                         />
@@ -576,7 +576,7 @@ const MobileSettings = () => {
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-60"
+                        className="flex-1 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl transition-colors flex items-center justify-center gap-2 text-sm shadow-md disabled:opacity-60"
                       >
                         <FiSave />
                         Update Password
@@ -602,7 +602,7 @@ const MobileSettings = () => {
                     <button
                       onClick={() => handleTogglePref("orderUpdates")}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                        notificationPrefs.orderUpdates ? "bg-primary-600" : "bg-gray-200"
+                        notificationPrefs.orderUpdates ? "bg-[#7B0A0A]" : "bg-gray-200"
                       }`}
                     >
                       <span
@@ -621,7 +621,7 @@ const MobileSettings = () => {
                     <button
                       onClick={() => handleTogglePref("promotions")}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                        notificationPrefs.promotions ? "bg-primary-600" : "bg-gray-200"
+                        notificationPrefs.promotions ? "bg-[#7B0A0A]" : "bg-gray-200"
                       }`}
                     >
                       <span
@@ -640,7 +640,7 @@ const MobileSettings = () => {
                     <button
                       onClick={() => handleTogglePref("newsletter")}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                        notificationPrefs.newsletter ? "bg-primary-600" : "bg-gray-200"
+                        notificationPrefs.newsletter ? "bg-[#7B0A0A]" : "bg-gray-200"
                       }`}
                     >
                       <span
@@ -659,7 +659,7 @@ const MobileSettings = () => {
                     <button
                       onClick={() => handleTogglePref("smsAlerts")}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                        notificationPrefs.smsAlerts ? "bg-primary-600" : "bg-gray-200"
+                        notificationPrefs.smsAlerts ? "bg-[#7B0A0A]" : "bg-gray-200"
                       }`}
                     >
                       <span
@@ -673,7 +673,7 @@ const MobileSettings = () => {
                   <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-b-2xl">
                     <button
                       onClick={() => setActiveSection("general")}
-                      className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-colors text-center text-sm"
+                      className="w-full py-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl transition-colors text-center text-sm"
                     >
                       Back to Settings
                     </button>

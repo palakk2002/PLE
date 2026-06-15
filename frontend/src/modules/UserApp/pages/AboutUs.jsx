@@ -9,22 +9,22 @@ const AboutUs = () => {
 
   const values = [
     {
-      icon: <FiHeart className="text-2xl text-[#7B0A0A] dark:text-primary-400" />,
+      icon: <FiHeart className="text-2xl text-[#7B0A0A] dark:text-red-400" />,
       title: "Customer First",
       description: "Everything we do is designed to create a seamless, satisfying shopping experience for our customers.",
     },
     {
-      icon: <FiAward className="text-2xl text-[#7B0A0A] dark:text-primary-400" />,
+      icon: <FiAward className="text-2xl text-[#7B0A0A] dark:text-red-400" />,
       title: "Premium Quality",
       description: "We partner exclusively with verified suppliers and top brands to ensure only authentic products reach you.",
     },
     {
-      icon: <FiTarget className="text-2xl text-[#7B0A0A] dark:text-primary-400" />,
+      icon: <FiTarget className="text-2xl text-[#7B0A0A] dark:text-red-400" />,
       title: "Innovation",
       description: "We constantly evolve our technology platform to offer state-of-the-art features and personalization.",
     },
     {
-      icon: <FiUsers className="text-2xl text-[#7B0A0A] dark:text-primary-400" />,
+      icon: <FiUsers className="text-2xl text-[#7B0A0A] dark:text-red-400" />,
       title: "Community & Trust",
       description: "We build secure relationships with our sellers, buyers, and delivery team to foster community trust.",
     },
@@ -44,7 +44,7 @@ const AboutUs = () => {
             </button>
             <div>
               <h1 className="text-xl md:text-2xl font-extrabold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                <FiUsers className="text-primary-600 dark:text-primary-400" /> About Us
+                <FiUsers className="text-[#7B0A0A] dark:text-red-400" /> About Us
               </h1>
               <p className="text-xs text-gray-500 font-medium">Discover who we are and what we stand for</p>
             </div>
@@ -59,7 +59,7 @@ const AboutUs = () => {
           >
             <div className="absolute inset-0 bg-cover bg-center opacity-10" />
             <div className="relative z-10 max-w-2xl">
-              <span className="text-xs font-semibold uppercase tracking-wider text-[#7B0A0A] dark:text-primary-400">Our Mission</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#7B0A0A] dark:text-red-400">Our Mission</span>
               <h2 className="text-2xl md:text-4xl font-extrabold mt-2 mb-4 leading-tight text-[#7B0A0A] dark:text-white">
                 Redefining the Future of Smart Commerce.
               </h2>
@@ -81,11 +81,11 @@ const AboutUs = () => {
               </p>
             </div>
             <div className="bg-red-50/25 dark:bg-neutral-900 border border-red-100/50 dark:border-neutral-800 rounded-2xl p-6 flex flex-col justify-center">
-              <h4 className="text-3xl font-extrabold text-[#7B0A0A] dark:text-primary-400 mb-1">5M+</h4>
+              <h4 className="text-3xl font-extrabold text-[#7B0A0A] dark:text-red-400 mb-1">5M+</h4>
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-4">Happy Customers Globally</p>
-              <h4 className="text-3xl font-extrabold text-[#7B0A0A] dark:text-primary-400 mb-1">99.8%</h4>
+              <h4 className="text-3xl font-extrabold text-[#7B0A0A] dark:text-red-400 mb-1">99.8%</h4>
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-4">Verified Safe Deliveries</p>
-              <h4 className="text-3xl font-extrabold text-[#7B0A0A] dark:text-primary-400 mb-1">200+</h4>
+              <h4 className="text-3xl font-extrabold text-[#7B0A0A] dark:text-red-400 mb-1">200+</h4>
               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">Premium Curated Partners</p>
             </div>
           </div>

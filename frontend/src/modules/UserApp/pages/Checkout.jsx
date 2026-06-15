@@ -685,18 +685,18 @@ const MobileCheckout = () => {
                     </div>
 
                     {formData.paymentMethod === "upi" && (
-                      <div className="bg-teal-50 border border-teal-150 rounded-2xl p-5 mb-6 space-y-4">
-                        <div className="flex items-center gap-2 text-teal-800">
+                      <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-6 space-y-4">
+                        <div className="flex items-center gap-2 text-[#7B0A0A]">
                           <span className="text-sm font-black uppercase tracking-wider">📱 Choose UPI Application</span>
                         </div>
-                        <p className="text-xs text-teal-700 font-medium">
+                        <p className="text-xs text-[#7B0A0A] font-medium">
                           Select one of the supported UPI apps. You will be redirected to authorize the payment securely.
                         </p>
                         <div className="grid grid-cols-3 gap-3">
                           {[
-                            { id: "gpay", label: "Google Pay", color: "border-blue-400 bg-blue-50/50 text-blue-900", icon: "🟢" },
-                            { id: "phonepe", label: "PhonePe", color: "border-purple-400 bg-purple-50/50 text-purple-900", icon: "🟣" },
-                            { id: "paytm", label: "Paytm", color: "border-cyan-400 bg-cyan-50/50 text-cyan-900", icon: "🔵" },
+                            { id: "gpay", label: "Google Pay", color: "border-red-400 bg-red-50/50 text-[#7B0A0A]", icon: "🟢" },
+                            { id: "phonepe", label: "PhonePe", color: "border-red-400 bg-red-50/50 text-[#7B0A0A]", icon: "🟣" },
+                            { id: "paytm", label: "Paytm", color: "border-red-400 bg-red-50/50 text-[#7B0A0A]", icon: "🔵" },
                           ].map((app) => (
                             <button
                               key={app.id}
@@ -704,7 +704,7 @@ const MobileCheckout = () => {
                               onClick={() => setSelectedUpiApp(app.id)}
                               className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
                                 selectedUpiApp === app.id
-                                  ? `${app.color} ring-2 ring-teal-500 ring-offset-2`
+                                  ? `${app.color} ring-2 ring-red-500 ring-offset-2`
                                   : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
                               }`}
                             >
@@ -713,7 +713,7 @@ const MobileCheckout = () => {
                             </button>
                           ))}
                         </div>
-                        <p className="text-[11px] text-teal-700 text-center font-medium mt-1">
+                        <p className="text-[11px] text-[#7B0A0A] text-center font-medium mt-1">
                           Payment app: <strong className="capitalize">{selectedUpiApp === "gpay" ? "Google Pay" : selectedUpiApp}</strong> will be launched upon clicking "Place Order".
                         </p>
                       </div>
@@ -725,7 +725,7 @@ const MobileCheckout = () => {
                         Shipping & Logistics Options
                       </h3>
                       {isBusiness ? (
-                        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 space-y-3">
+                        <div className="bg-red-50 border border-red-200 rounded-2xl p-5 space-y-3">
                           <div className="flex items-start gap-3">
                             <input
                               type="radio"
@@ -736,20 +736,20 @@ const MobileCheckout = () => {
                               className="w-5 h-5 text-primary-500 mt-1"
                             />
                             <div className="flex-1">
-                              <span className="font-extrabold text-blue-900 text-base flex items-center gap-1.5">
+                              <span className="font-extrabold text-[#7B0A0A] text-base flex items-center gap-1.5">
                                 <span>📦 B2B Bulk Pallet Dispatch</span>
-                                <span className="bg-blue-100 text-blue-700 text-[9px] uppercase font-black px-2 py-0.5 rounded-full border border-blue-200">
+                                <span className="bg-red-100 text-[#7B0A0A] text-[9px] uppercase font-black px-2 py-0.5 rounded-full border border-red-200">
                                   Enterprise SLA
                                 </span>
                               </span>
-                              <p className="text-xs text-blue-750 font-bold mt-1">
+                              <p className="text-xs text-[#7B0A0A] font-bold mt-1">
                                 Estimated Handover: 3–5 Business Days
                               </p>
-                              <p className="text-[10px] text-blue-700 leading-normal mt-1">
+                              <p className="text-[10px] text-[#7B0A0A]/80 leading-normal mt-1">
                                 High-volume pallet security dispatch with priority freight logistics. Delivery is fully vetted and audited for business invoice clearance.
                               </p>
                             </div>
-                            <span className="font-black text-blue-900 shrink-0 text-sm">
+                            <span className="font-black text-[#7B0A0A] shrink-0 text-sm">
                               {formatPrice(1500)}
                             </span>
                           </div>

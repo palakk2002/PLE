@@ -3,18 +3,9 @@ import { useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useCategoryStore } from "../../../../shared/store/categoryStore";
 import { categories as fallbackCategories } from "../../../../data/categories";
+import LucideIcon from "../../../../shared/components/LucideIcon";
 
 const normalizeId = (value) => String(value ?? "").trim();
-
-// Map category names to emojis to match the screenshot illustrations style
-const categoryEmojis = {
-  Clothing: "👕",
-  Footwear: "👟",
-  Bags: "👜",
-  Jewelry: "💍",
-  Accessories: "🕶️",
-  Athletic: "🏃",
-};
 
 const MobileCategoryQuickNav = () => {
   const { categories, initialize, getRootCategories } = useCategoryStore();
@@ -52,9 +43,17 @@ const MobileCategoryQuickNav = () => {
         {/* "All" Category */}
         <Link
           to="/home"
-          className="flex flex-col items-center gap-1 min-w-[56px] relative pb-1.5 cursor-pointer flex-shrink-0"
+          className="flex flex-col items-center gap-1.5 min-w-[56px] relative pb-1.5 cursor-pointer flex-shrink-0"
         >
-          <span className="text-xl select-none">🛍️</span>
+          <LucideIcon
+            name="ShoppingBag"
+            size={20}
+            className={`transition-colors duration-200 ${
+              isAllActive 
+                ? "text-white dark:text-white md:text-primary-600 md:dark:text-white" 
+                : "text-white/70 dark:text-white/60 md:text-gray-500 md:dark:text-gray-400"
+            }`}
+          />
           <span className={`text-[11px] font-bold text-center transition-colors duration-200 ${
             isAllActive 
               ? "text-white dark:text-white md:text-primary-600 md:dark:text-white" 
@@ -74,15 +73,21 @@ const MobileCategoryQuickNav = () => {
         {/* Dynamic Categories */}
         {displayCategories.map((category) => {
           const isActive = activeQueryId === String(category.id);
-          const emoji = categoryEmojis[category.name] || "📦";
+          const iconColorClass = isActive 
+            ? "text-white dark:text-white md:text-primary-600 md:dark:text-white" 
+            : "text-white/70 dark:text-white/60 md:text-gray-500 md:dark:text-gray-400";
 
           return (
             <Link
               key={category.id}
               to={`/home?category=${category.id}`}
-              className="flex flex-col items-center gap-1 min-w-[56px] relative pb-1.5 cursor-pointer flex-shrink-0"
+              className="flex flex-col items-center gap-1.5 min-w-[56px] relative pb-1.5 cursor-pointer flex-shrink-0"
             >
-              <span className="text-xl select-none">{emoji}</span>
+              <LucideIcon
+                name={category.icon}
+                size={20}
+                className={`transition-colors duration-200 ${iconColorClass}`}
+              />
               <span className={`text-[11px] font-bold text-center transition-colors duration-200 ${
                 isActive 
                   ? "text-white dark:text-white md:text-primary-600 md:dark:text-white" 

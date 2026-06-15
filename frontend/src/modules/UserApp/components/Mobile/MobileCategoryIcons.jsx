@@ -2,20 +2,8 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { categories as fallbackCategories } from "../../../../data/categories";
-import { FiPackage, FiShoppingBag, FiStar, FiTag, FiZap } from "react-icons/fi";
-import { IoShirtOutline, IoBagHandleOutline } from "react-icons/io5";
-import { LuFootprints } from "react-icons/lu";
+import LucideIcon from "../../../../shared/components/LucideIcon";
 import { useCategoryStore } from "../../../../shared/store/categoryStore";
-
-// Map category names to icons
-const categoryIcons = {
-  Clothing: IoShirtOutline,
-  Footwear: LuFootprints,
-  Bags: IoBagHandleOutline,
-  Jewelry: FiStar,
-  Accessories: FiTag,
-  Athletic: FiZap,
-};
 
 const MobileCategoryIcons = () => {
   const { categories: apiCategories, getRootCategories, initialize } = useCategoryStore();
@@ -65,10 +53,13 @@ const MobileCategoryIcons = () => {
     };
   }, []);
 
-  // Get current category from URL
+  // Get current category from URL (supports both /category/:id and query ?category=id)
   const getCurrentCategoryId = () => {
     const match = location.pathname.match(/\/(?:app\/)?category\/([^/]+)/);
-    return match ? String(match[1]) : null;
+    if (match) return String(match[1]);
+
+    const searchParams = new URLSearchParams(location.search);
+    return searchParams.get("category") || null;
   };
 
   const currentCategoryId = getCurrentCategoryId();
@@ -258,7 +249,6 @@ const MobileCategoryIcons = () => {
           WebkitOverflowScrolling: "touch",
         }}>
         {categories.map((category, index) => {
-          const IconComponent = categoryIcons[category.name] || IoShirtOutline;
           const isActive = isActiveCategory(category.id);
           const activeColors =
             currentCategoryId && String(currentCategoryId) === String(category.id)
@@ -276,20 +266,16 @@ const MobileCategoryIcons = () => {
                 className="flex flex-col items-center gap-1.5 w-16 relative">
                 {!isScrolling && (
                   <div>
-                    <IconComponent
+                    <LucideIcon
+                      name={category.icon}
                       className={`text-lg transition-colors duration-300 ${isActive && activeColors
                         ? activeColors.icon
                         : isActive
                           ? "text-primary-500"
                           : "text-gray-700 hover:text-primary-600"
                         }`}
-                      style={{
-                        strokeWidth:
-                          category.name === "Clothing" ||
-                            category.name === "Bags"
-                            ? 5.5
-                            : 2,
-                      }}
+                      size={18}
+                      strokeWidth={2}
                     />
                   </div>
                 )}

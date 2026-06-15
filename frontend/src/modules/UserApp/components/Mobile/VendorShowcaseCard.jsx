@@ -18,7 +18,7 @@ const VendorShowcaseCard = ({ vendor, index = 0 }) => {
       >
         {/* Vendor Logo/Avatar */}
         <div className="relative mb-3">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 dark:from-[#7B0A0A] dark:to-[#AA1010] flex items-center justify-center overflow-hidden shadow-lg">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-[#7B0A0A] dark:from-[#7B0A0A] dark:to-[#AA1010] flex items-center justify-center overflow-hidden shadow-lg">
             {vendor.storeLogo ? (
               <LazyImage
                 src={vendor.storeLogo}
@@ -68,13 +68,13 @@ const VendorShowcaseCard = ({ vendor, index = 0 }) => {
 
         {/* Product Count */}
         <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-[#888888] mb-3">
-          <FiShoppingBag className="text-primary-500 dark:text-[#7B0A0A]" />
+          <FiShoppingBag className="text-[#7B0A0A] dark:text-[#7B0A0A]" />
           <span>{vendor.totalProducts || 0} products</span>
         </div>
 
         {/* Visit Store Button */}
         <div className="mt-auto w-full">
-          <div className="flex items-center justify-center gap-1 text-primary-600 dark:text-[#7B0A0A] text-xs font-semibold">
+          <div className="flex items-center justify-center gap-1 text-[#7B0A0A] dark:text-[#7B0A0A] text-xs font-semibold">
             <span>Visit Store</span>
             <FiArrowRight className="text-xs" />
           </div>

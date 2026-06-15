@@ -254,7 +254,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false, showCon
         {/* Product Info */}
         <div className="p-1.5 md:p-4 lg:p-3 flex-1 flex flex-col product-info-bg">
           <Link to={productLink} className="block lg:h-6">
-            <h3 className="font-bold text-gray-800 mb-0 md:mb-1 lg:mb-0.5 line-clamp-2 md:line-clamp-1 text-[11px] md:text-sm transition-colors group-hover:text-primary-600 leading-tight">
+            <h3 className="font-bold text-gray-800 mb-0 md:mb-1 lg:mb-0.5 line-clamp-2 md:line-clamp-1 text-[11px] md:text-sm transition-colors group-hover:text-[#7B0A0A] leading-tight">
               {product.name}
             </h3>
           </Link>
@@ -268,7 +268,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false, showCon
                 Grade {product.refurbishedGrade}
               </span>
               {product.refurbishedWarrantyDuration && (
-                <span className="px-1.5 py-0.5 bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-300 rounded text-[8px] md:text-[9px] font-medium">
+                <span className="px-1.5 py-0.5 bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-300 rounded text-[8px] md:text-[9px] font-medium">
                   {product.refurbishedWarrantyDuration} Warranty
                 </span>
               )}
@@ -347,7 +347,7 @@ const ProductCard = ({ product, hideRating = false, isFlashSale = false, showCon
               type="button"
               onClick={() => navigate(productLink)}
               whileTap={{ scale: 0.95 }}
-              className="w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-xs md:text-sm gradient-green text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-1.5"
+              className="w-full py-2 md:py-2.5 lg:py-2 rounded-full font-bold text-xs md:text-sm bg-[#7B0A0A] hover:bg-[#AE020B] text-white shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-1.5"
             >
               <span>Order Bulk</span>
               <FiArrowRight className="text-xs md:text-base" />

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { useCategoryStore } from '../../../../shared/store/categoryStore';
 import CategoryForm from '../../components/Categories/CategoryForm';
 import CategoryTree from '../../components/Categories/CategoryTree';
+import LucideIcon from '../../../../shared/components/LucideIcon';
 import ExportButton from '../../components/ExportButton';
 import Pagination from '../../components/Pagination';
 import AnimatedSelect from '../../components/AnimatedSelect';
@@ -194,15 +195,22 @@ const ManageCategories = () => {
                   key={category.id}
                   className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  {category.image && (
+                  {category.image ? (
                     <img
                       src={category.image}
                       alt={category.name}
-                      className="w-10 h-10 object-cover rounded-lg"
+                      className="w-10 h-10 object-cover rounded-lg flex-shrink-0"
                     />
+                  ) : (
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200 text-gray-500 flex-shrink-0">
+                      <LucideIcon name={category.icon || 'Package'} size={20} />
+                    </div>
                   )}
                   <div className="flex-1">
-                    <p className="font-semibold text-gray-800">{category.name}</p>
+                    <p className="font-semibold text-gray-800 flex items-center gap-2">
+                      <LucideIcon name={category.icon || 'Package'} size={16} className="text-gray-500 flex-shrink-0" />
+                      {category.name}
+                    </p>
                     {category.description && (
                       <p className="text-xs text-gray-500">{category.description}</p>
                     )}

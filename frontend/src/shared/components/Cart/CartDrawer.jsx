@@ -7,6 +7,7 @@ import {
   FiShoppingBag,
   FiHeart,
   FiAlertCircle,
+  FiArrowLeft,
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCartStore, useUIStore } from "../../store/useStore";
@@ -16,6 +17,8 @@ import { Link } from "react-router-dom";
 import SwipeableCartItem from "./SwipeableCartItem";
 import { useBusinessBuyer } from "../../../modules/UserApp/hooks/useBusinessBuyer";
 import { B2BCartSummary } from "../../../modules/UserApp/components/B2B/B2BCartSummary";
+import { useCategoryStore } from "../../store/categoryStore";
+import LucideIcon from "../LucideIcon";
 
 const CartDrawer = () => {
   const checkoutLink = "/checkout";
@@ -27,8 +30,17 @@ const CartDrawer = () => {
     clearCart,
     getItemsByVendor,
   } = useCartStore();
+  const { categories, getRootCategories, initialize: initializeCategories } = useCategoryStore();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const total = getTotal();
+
+  useEffect(() => {
+    initializeCategories();
+  }, [initializeCategories]);
+
+  const rootCategories = useMemo(() => {
+    return getRootCategories().filter(cat => cat.isActive !== false).slice(0, 4);
+  }, [categories, getRootCategories]);
 
   // Group items by vendor
   const itemsByVendor = useMemo(
@@ -84,26 +96,113 @@ const CartDrawer = () => {
             style={{ willChange: "transform", transform: "translateZ(0)" }}
             className="fixed right-0 top-0 h-full w-full sm:w-96 bg-white shadow-2xl z-[10000] flex flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-800">Shopping Cart</h2>
+            <div className="flex items-center gap-3 p-4 sm:p-5 bg-[#7B0A0A] text-white shadow-sm">
               <button
                 onClick={toggleCart}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                <FiX className="text-xl text-gray-600" />
+                className="p-1.5 hover:bg-white/10 rounded-full transition-colors flex items-center justify-center"
+              >
+                <FiArrowLeft className="text-xl text-white" />
               </button>
+              <h2 className="text-lg font-bold tracking-wide">My Cart</h2>
             </div>
 
-            {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+            <div className="flex-1 overflow-y-auto">
               {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <FiShoppingBag className="text-6xl text-gray-300 mb-4" />
-                  <p className="text-gray-500 font-medium mb-2">
-                    Your cart is empty
+                <div className="flex flex-col items-center justify-center h-full text-center px-6 py-8">
+                  {/* Sad Bag SVG Illustration */}
+                  <div className="relative w-56 h-56 mb-6 flex items-center justify-center select-none">
+                    {/* Background circle and shadow */}
+                    <div className="absolute w-40 h-40 rounded-full bg-red-50/70 dark:bg-red-950/10 top-4 right-4 -z-10" />
+                    
+                    {/* Soft Shadow below bag */}
+                    <div className="absolute bottom-6 w-32 h-3 bg-gray-250/30 dark:bg-black/20 rounded-full blur-sm -z-10" />
+                    
+                    <svg
+                      width="160"
+                      height="160"
+                      viewBox="0 0 160 160"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="drop-shadow-sm"
+                    >
+                      {/* Background decorative circular arc */}
+                      <circle
+                        cx="90"
+                        cy="60"
+                        r="35"
+                        stroke="#9CA3AF"
+                        strokeWidth="1.5"
+                        strokeDasharray="4 4"
+                        opacity="0.5"
+                      />
+
+                      {/* Bag Side crease shadow */}
+                      <path
+                        d="M98 60H110V110C110 112.209 108.209 114 106 114H98V60Z"
+                        fill="#FECACA"
+                        stroke="#1F2937"
+                        strokeWidth="3.5"
+                        strokeLinejoin="round"
+                      />
+                      {/* Bag Body */}
+                      <path
+                        d="M50 60H98V114H54C51.7909 114 50 112.209 50 110V60Z"
+                        fill="white"
+                        stroke="#1F2937"
+                        strokeWidth="3.5"
+                        strokeLinejoin="round"
+                      />
+                      {/* Handles */}
+                      <path
+                        d="M68 60C68 48 72 42 80 42C88 42 92 48 92 60"
+                        stroke="#1F2937"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                      />
+                      {/* Handle Attachments (Pink circles) */}
+                      <circle cx="68" cy="60" r="4.5" fill="#FDA4AF" stroke="#1F2937" strokeWidth="2.5" />
+                      <circle cx="92" cy="60" r="4.5" fill="#FDA4AF" stroke="#1F2937" strokeWidth="2.5" />
+                      
+                      {/* Sad Face Eyes */}
+                      <circle cx="69" cy="80" r="3.5" fill="#1F2937" />
+                      <circle cx="87" cy="80" r="3.5" fill="#1F2937" />
+                      
+                      {/* Sad Mouth */}
+                      <path
+                        d="M72 94C74 90 82 90 84 94"
+                        stroke="#1F2937"
+                        strokeWidth="3.5"
+                        strokeLinecap="round"
+                      />
+
+                      {/* Speed/Wind lines to the right */}
+                      <line x1="118" y1="78" x2="134" y2="78" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
+                      <line x1="124" y1="88" x2="140" y2="88" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
+                      <line x1="116" y1="98" x2="128" y2="98" stroke="#1F2937" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
+                    </svg>
+
+                    {/* Floating Plus Icons */}
+                    <span className="absolute text-gray-400 font-bold text-xl top-12 left-10 select-none">+</span>
+                    <span className="absolute text-gray-400 font-bold text-sm bottom-12 left-16 select-none">+</span>
+                    <span className="absolute text-gray-400 font-bold text-xl top-6 right-16 select-none">+</span>
+                    <span className="absolute text-gray-400 font-bold text-sm bottom-16 right-8 select-none">+</span>
+                  </div>
+
+                  <h3 className="text-lg font-bold text-gray-700 dark:text-white mb-1">
+                    Ohhh... Your cart is empty
+                  </h3>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mb-10">
+                    but it doesn't have to be.
                   </p>
-                  <p className="text-sm text-gray-400">
-                    Add some items to get started!
-                  </p>
+
+                  {/* Start Shopping CTA - Capsule style */}
+                  <Link
+                    to="/home"
+                    onClick={toggleCart}
+                    className="w-full max-w-[260px] bg-[#7B0A0A] hover:bg-[#AE020B] text-white py-3.5 rounded-full font-bold text-sm text-center shadow-md hover:shadow-lg transition-all duration-300 uppercase tracking-wider"
+                  >
+                    SHOP NOW
+                  </Link>
                 </div>
               ) : (
                 <AnimatePresence mode="popLayout">

@@ -185,7 +185,7 @@ const MobileProfile = () => {
       email: user?.email || "",
       phone: user?.phone || "",
       gender: user?.gender || "",
-      age: user?.age || "",
+      dob: user?.dob || "",
     },
   });
 
@@ -219,7 +219,7 @@ const MobileProfile = () => {
       email: user?.email || "",
       phone: user?.phone || "",
       gender: user?.gender || "",
-      age: user?.age || "",
+      dob: user?.dob || "",
     });
   }, [user, resetPersonal]);
 
@@ -233,7 +233,7 @@ const MobileProfile = () => {
         name: data?.name,
         phone: data?.phone,
         gender: data?.gender,
-        age: data?.age,
+        dob: data?.dob,
       });
       toast.success("Profile updated successfully!");
     } catch (error) {
@@ -253,7 +253,7 @@ const MobileProfile = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/home");
+    navigate("/");
     toast.success("Logged out successfully");
   };
 
@@ -307,15 +307,15 @@ const MobileProfile = () => {
       id: "personal",
       label: "Personal Information",
       icon: FiUser,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
     },
     {
       id: "product-enquiries",
       label: "My Enquiries",
       icon: FiMessageSquare,
-      color: "text-[#3D6FC0]",
-      bg: "bg-[#3D6FC0]/10",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
     },
     ...(isBusiness
       ? [
@@ -323,15 +323,15 @@ const MobileProfile = () => {
             id: "b2b-requests",
             label: "B2B RFQs & Stock Requests",
             icon: FiFileText,
-            color: "text-primary-600",
-            bg: "bg-primary-50",
+            color: "text-[#7B0A0A]",
+            bg: "bg-[#7B0A0A]/10",
           },
           {
             id: "company-profile",
             label: "Company Profile",
             icon: FiBriefcase,
-            color: "text-purple-650",
-            bg: "bg-purple-50",
+            color: "text-[#7B0A0A]",
+            bg: "bg-[#7B0A0A]/10",
           },
         ]
       : []),
@@ -341,8 +341,8 @@ const MobileProfile = () => {
             id: "team-management",
             label: "Team Management",
             icon: FiUsers,
-            color: "text-teal-650",
-            bg: "bg-teal-50",
+            color: "text-[#7B0A0A]",
+            bg: "bg-[#7B0A0A]/10",
           },
         ]
       : []),
@@ -350,40 +350,40 @@ const MobileProfile = () => {
       id: "orders",
       label: "My Orders",
       icon: FiPackage,
-      color: "text-orange-600",
-      bg: "bg-orange-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       link: "/orders",
     },
     {
       id: "returns",
       label: "My Returns",
       icon: FiPackage,
-      color: "text-amber-600",
-      bg: "bg-amber-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       link: "/returns",
     },
     {
       id: "product-requests",
       label: "My Product Requests",
       icon: FiFileText,
-      color: "text-indigo-650",
-      bg: "bg-indigo-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       link: "/product-requests",
     },
     {
       id: "addresses",
       label: "My Addresses",
       icon: FiMapPin,
-      color: "text-green-600",
-      bg: "bg-green-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       link: "/addresses",
     },
     {
       id: "notifications",
       label: "Notifications",
       icon: FiBell,
-      color: "text-indigo-600",
-      bg: "bg-indigo-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       link: "/notifications",
       badge: unreadNotificationCount > 0 ? unreadNotificationCount : null,
     },
@@ -400,8 +400,8 @@ const MobileProfile = () => {
       id: "wallet",
       label: "My Wallet",
       icon: FiCreditCard,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       link: "/wallet",
       badge: `₹${walletBalance.toFixed(0)}`,
     },
@@ -409,46 +409,46 @@ const MobileProfile = () => {
       id: "loyalty",
       label: "My Loyalty Points",
       icon: FiAward,
-      color: "text-amber-500",
-      bg: "bg-amber-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       badge: `${availablePoints} Pts`,
     },
     {
       id: "offers",
       label: "My Offers",
       icon: FiTag,
-      color: "text-[#C07A3D]",
-      bg: "bg-[#C07A3D]/10",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
     },
     {
       id: "password",
       label: "Change Password",
       icon: FiLock,
-      color: "text-purple-600",
-      bg: "bg-purple-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
     },
     {
       id: "support-tickets",
       label: "My Support Tickets",
       icon: FiMessageSquare,
-      color: "text-rose-600",
-      bg: "bg-rose-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       link: "/support-tickets",
     },
     {
       id: "help",
       label: "Help & Support",
       icon: FiHelpCircle,
-      color: "text-blue-600",
-      bg: "bg-blue-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
       link: "/help-support",
     },
     {
       id: "feedback",
       label: "Give Feedback",
       icon: FiMessageSquare,
-      color: "text-teal-600",
-      bg: "bg-teal-50",
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
     },
     {
       id: "settings",
@@ -571,20 +571,20 @@ const MobileProfile = () => {
                     const baseStyle = `w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all text-left font-medium text-sm`;
                     const activeStyle = option.id === "offers"
                       ? "bg-[#C07A3D]/10 text-[#C07A3D]"
-                      : "bg-primary-50 text-primary-700";
-                    const inactiveStyle = "text-gray-600 hover:bg-gray-50";
+                      : "bg-red-50 text-[#7B0A0A]";
+                    const inactiveStyle = "text-gray-600 hover:bg-red-50/50 hover:text-[#7B0A0A]";
                     const className = `${baseStyle} ${isActive ? activeStyle : inactiveStyle}`;
 
                     const content = (
-                      <div className="flex items-center gap-3">
-                        <option.icon className="text-lg" />
-                        <span>{option.label}</span>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <option.icon className="text-lg shrink-0" />
+                        <span className="truncate">{option.label}</span>
                       </div>
                     );
 
                     const rightElement = option.badge ? (
-                      <span className="min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                        {option.badge > 99 ? "99+" : option.badge}
+                      <span className="min-w-[20px] h-5 px-2 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center whitespace-nowrap shrink-0 ml-2">
+                        {option.badge}
                       </span>
                     ) : null;
 
@@ -617,7 +617,7 @@ const MobileProfile = () => {
                       <Link
                         key={option.id}
                         to={option.link}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-left font-semibold text-gray-600 hover:bg-gray-50 text-sm"
+                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-left font-semibold text-gray-600 hover:bg-red-50/50 hover:text-[#7B0A0A] text-sm"
                       >
                         <option.icon className="text-base text-gray-400" />
                         {option.label}
@@ -663,7 +663,7 @@ const MobileProfile = () => {
                     <div className="flex gap-2 w-full">
                       <button
                         onClick={() => setActiveTab("personal")}
-                        className="flex-1 py-3 rounded-xl bg-primary-50 text-primary-600 font-bold text-sm border border-primary-100"
+                        className="flex-1 py-3 rounded-xl bg-red-50 text-[#7B0A0A] font-bold text-sm border border-red-200 hover:bg-red-100 transition-colors"
                       >
                         View Profile
                       </button>
@@ -698,8 +698,8 @@ const MobileProfile = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               {option.badge ? (
-                                <span className="min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                                  {option.badge > 99 ? "99+" : option.badge}
+                                <span className="min-w-[20px] h-5 px-2 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center whitespace-nowrap shrink-0">
+                                  {option.badge}
                                 </span>
                               ) : null}
                               <FiChevronRight className="text-gray-400" />
@@ -723,8 +723,8 @@ const MobileProfile = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               {option.badge ? (
-                                <span className="min-w-[20px] h-5 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">
-                                  {option.badge > 99 ? "99+" : option.badge}
+                                <span className="min-w-[20px] h-5 px-2 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center whitespace-nowrap shrink-0">
+                                  {option.badge}
                                 </span>
                               ) : null}
                               <FiChevronRight className="text-gray-400" />
@@ -809,7 +809,7 @@ const MobileProfile = () => {
                         type="button"
                         onClick={handleAvatarPick}
                         disabled={isLoading}
-                        className="absolute bottom-0 right-0 w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center text-white hover:bg-primary-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="absolute bottom-0 right-0 w-8 h-8 bg-white border-2 border-[#7B0A0A] rounded-full flex items-center justify-center text-[#7B0A0A] hover:bg-red-50 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-sm"
                       >
                         <FiCamera className="text-sm" />
                       </button>
@@ -960,30 +960,27 @@ const MobileProfile = () => {
 
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
-                          Age
+                          Date of Birth
                         </label>
                         <input
-                          type="number"
-                          placeholder="Age"
-                          {...registerPersonal("age", {
-                            min: { value: 1, message: "Invalid age" },
-                            max: { value: 120, message: "Invalid age" },
-                          })}
+                          type="date"
+                          placeholder="Date of Birth"
+                          {...registerPersonal("dob")}
                           className={`w-full px-4 py-3 rounded-xl border-2 ${
-                            personalErrors.age
+                            personalErrors.dob
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
                           } focus:outline-none transition-colors text-base`}
                         />
                         <AnimatePresence>
-                          {personalErrors.age && (
+                          {personalErrors.dob && (
                             <motion.p
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
                               exit={{ opacity: 0 }}
                               className="mt-1 text-sm text-red-600"
                             >
-                              {personalErrors.age.message}
+                              {personalErrors.dob.message}
                             </motion.p>
                           )}
                         </AnimatePresence>
@@ -1748,15 +1745,15 @@ const MobileProfile = () => {
                   {/* Loyalty Points Overview Cards */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {/* Available Points */}
-                    <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[140px]">
+                    <div className="bg-gradient-to-br from-[#AE020B] to-[#7B0A0A] text-white rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[140px]">
                       <div className="absolute right-2 top-2 opacity-15">
                         <FiAward className="text-8xl -mr-6 -mt-6" />
                       </div>
                       <div>
-                        <span className="text-amber-100 text-xs font-bold uppercase tracking-wider">Available Points</span>
+                        <span className="text-red-100 text-xs font-bold uppercase tracking-wider">Available Points</span>
                         <p className="text-3xl font-black mt-1">{availablePoints}</p>
                       </div>
-                      <span className="text-[10px] text-amber-100 font-semibold mt-4">Redeemable on next checkout</span>
+                      <span className="text-[10px] text-red-100 font-semibold mt-4">Redeemable on next checkout</span>
                     </div>
 
                     {/* Total Earned Points */}
@@ -1776,8 +1773,8 @@ const MobileProfile = () => {
                         <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Redeemed</span>
                         <p className="text-3xl font-black text-gray-800 mt-1">{totalRedeemed}</p>
                       </div>
-                      <span className="text-[10px] text-amber-600 font-bold mt-4 flex items-center gap-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Saved Money
+                      <span className="text-[10px] text-[#7B0A0A] font-bold mt-4 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#7B0A0A]"></span> Saved Money
                       </span>
                     </div>
 
@@ -1823,7 +1820,7 @@ const MobileProfile = () => {
                                   minute: "2-digit",
                                 })}
                               </td>
-                              <td className="py-3 px-4 font-mono font-bold text-xs text-primary-650">
+                              <td className="py-3 px-4 font-mono font-bold text-xs text-[#7B0A0A]">
                                 {item.orderRef}
                               </td>
                               <td className="py-3 px-4 text-center">

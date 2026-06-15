@@ -254,7 +254,7 @@ const MobileCategory = () => {
               </h2>
               <button
                 onClick={() => navigate("/")}
-                className="gradient-green text-white px-6 py-3 rounded-xl font-semibold">
+                className="bg-[#7B0A0A] hover:bg-[#AE020B] text-white px-6 py-3 rounded-xl font-semibold transition-colors">
                 Go Back Home
               </button>
             </div>
@@ -297,7 +297,7 @@ const MobileCategory = () => {
                     placeholder="Search in category..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-8 pr-10 py-1.5 bg-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-primary-500"
+                    className="w-full pl-8 pr-10 py-1.5 bg-gray-100 rounded-xl text-xs focus:outline-none focus:ring-1 focus:ring-[#7B0A0A]"
                   />
                   {searchQuery && (
                     <button
@@ -319,7 +319,7 @@ const MobileCategory = () => {
                   <button
                     onClick={() => setViewMode("list")}
                     className={`p-1.5 rounded transition-colors ${viewMode === "list"
-                      ? "bg-white text-primary-600 shadow-sm"
+                      ? "bg-white text-[#7B0A0A] shadow-sm"
                       : "text-gray-600"
                       }`}>
                     <FiList className="text-lg" />
@@ -327,7 +327,7 @@ const MobileCategory = () => {
                   <button
                     onClick={() => setViewMode("grid")}
                     className={`p-1.5 rounded transition-colors ${viewMode === "grid"
-                      ? "bg-white text-primary-600 shadow-sm"
+                      ? "bg-white text-[#7B0A0A] shadow-sm"
                       : "text-gray-600"
                       }`}>
                     <FiGrid className="text-lg" />
@@ -339,7 +339,7 @@ const MobileCategory = () => {
                     className={`p-2.5 glass-card rounded-xl hover:bg-white/80 transition-colors ${showFilters ? "bg-white/80" : ""
                       }`}>
                     <FiFilter
-                      className={`text-lg transition-colors ${hasActiveFilters ? "text-blue-600" : "text-gray-600"
+                      className={`text-lg transition-colors ${hasActiveFilters ? "text-[#7B0A0A]" : "text-gray-600"
                         }`}
                     />
                   </button>
@@ -397,7 +397,7 @@ const MobileCategory = () => {
                                     if (newId) navigate(`/category/${newId}`);
                                     setShowFilters(false);
                                   }}
-                                  className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
+                                  className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] text-xs"
                                 >
                                   {rootCategories.map((cat) => (
                                     <option key={cat.id} value={normalizeId(cat.id)}>
@@ -423,7 +423,7 @@ const MobileCategory = () => {
                                         e.target.value
                                       )
                                     }
-                                    className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
+                                    className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] text-xs"
                                   />
                                   <input
                                     type="number"
@@ -435,7 +435,7 @@ const MobileCategory = () => {
                                         e.target.value
                                       )
                                     }
-                                    className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
+                                    className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] text-xs"
                                   />
                                 </div>
                               </div>
@@ -464,12 +464,12 @@ const MobileCategory = () => {
                                             e.target.value
                                           )
                                         }
-                                        className="w-3 h-3 appearance-none rounded-full border-2 border-gray-300 bg-white checked:bg-white checked:border-primary-500 relative cursor-pointer"
+                                        className="w-3 h-3 appearance-none rounded-full border-2 border-gray-300 bg-white checked:bg-white checked:border-[#7B0A0A] relative cursor-pointer"
                                         style={{
                                           backgroundImage:
                                             filters.minRating ===
                                               rating.toString()
-                                              ? "radial-gradient(circle, #10b981 40%, transparent 40%)"
+                                              ? "radial-gradient(circle, #7B0A0A 40%, transparent 40%)"
                                               : "none",
                                         }}
                                       />
@@ -492,7 +492,7 @@ const MobileCategory = () => {
                             </button>
                             <button
                               onClick={() => setShowFilters(false)}
-                              className="w-full py-1.5 gradient-green text-white rounded-md font-semibold text-xs hover:shadow-glow-green transition-all">
+                              className="w-full py-1.5 bg-[#7B0A0A] text-white rounded-md font-semibold text-xs hover:bg-[#AE020B] transition-all">
                               Apply Filters
                             </button>
                           </div>
@@ -560,7 +560,7 @@ const MobileCategory = () => {
                     <button
                       onClick={loadMore}
                       disabled={isLoading}
-                      className="px-6 py-3 gradient-green text-white rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="px-6 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                       {isLoading ? "Loading..." : "Load More"}
                     </button>
                   </div>
@@ -592,7 +592,7 @@ const MobileCategory = () => {
                     <button
                       onClick={loadMore}
                       disabled={isLoading}
-                      className="px-6 py-3 gradient-green text-white rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                      className="px-6 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-semibold transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed">
                       {isLoading ? "Loading..." : "Load More"}
                     </button>
                   </div>

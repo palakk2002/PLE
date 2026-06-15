@@ -23,7 +23,7 @@ const DesktopFooter = () => {
   };
 
   return (
-    <footer className="hidden md:block bg-[#f3f4f6] dark:bg-[#080808] border-t border-gray-200 dark:border-neutral-900 transition-colors duration-300">
+    <footer className="hidden md:block bg-[#f3f4f6] dark:bg-[#080808] border-t border-gray-200 dark:border-neutral-900">
       {/* Main Footer Content */}
       <div className="container mx-auto px-4 md:px-12 lg:px-24 xl:px-40 py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
@@ -37,7 +37,7 @@ const DesktopFooter = () => {
                   className="h-14 w-auto object-contain"
                 />
               ) : (
-                <span className="text-2xl font-bold text-primary-600">PLE</span>
+                <span className="text-2xl font-bold text-[#7B0A0A]">PLE</span>
               )}
             </Link>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
@@ -45,16 +45,16 @@ const DesktopFooter = () => {
             </p>
             {/* Social Icons */}
             <div className="flex items-center gap-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-primary-50 text-gray-600 hover:text-primary-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-primary-400 transition-all duration-300">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
                 <FiFacebook className="text-lg" />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-primary-50 text-gray-600 hover:text-primary-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-primary-400 transition-all duration-300">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
                 <FiInstagram className="text-lg" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-primary-50 text-gray-600 hover:text-primary-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-primary-400 transition-all duration-300">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
                 <FiTwitter className="text-lg" />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-primary-50 text-gray-600 hover:text-primary-600 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-primary-400 transition-all duration-300">
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
                 <FiLinkedin className="text-lg" />
               </a>
             </div>
@@ -67,32 +67,32 @@ const DesktopFooter = () => {
             </h3>
             <ul className="space-y-4">
               <li>
-                <Link to="/home" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/home" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/categories" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/categories" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Categories
                 </Link>
               </li>
               <li>
-                <Link to="/offers" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/offers" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Offers
                 </Link>
               </li>
               <li>
-                <Link to="/search?condition=refurbished" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/search?condition=refurbished" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Refurbished
                 </Link>
               </li>
               <li>
-                <Link to="/profile" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/profile" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   My Profile
                 </Link>
               </li>
               <li>
-                <Link to="/about-us" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/about-us" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   About Us
                 </Link>
               </li>
@@ -106,27 +106,27 @@ const DesktopFooter = () => {
             </h3>
             <ul className="space-y-4">
               <li>
-                <Link to="/help-support" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/help-support" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Help & Support
                 </Link>
               </li>
               <li>
-                <Link to="/privacy-policy" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/privacy-policy" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="/terms-conditions" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/terms-conditions" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Terms & Conditions
                 </Link>
               </li>
               <li>
-                <Link to="/return-policy" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/return-policy" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Return Policy
                 </Link>
               </li>
               <li>
-                <Link to="/user-agreement" className="text-sm text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 transition-colors duration-200">
+                <Link to="/user-agreement" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   User Agreement
                 </Link>
               </li>
@@ -148,12 +148,12 @@ const DesktopFooter = () => {
                   placeholder="Enter email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-1 px-4 py-2 text-sm bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary-500 dark:text-gray-300 placeholder-gray-400"
+                  className="flex-1 px-4 py-2 text-sm bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] dark:text-gray-300 placeholder-gray-400"
                   required
                 />
                 <button
                   type="submit"
-                  className="p-2.5 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors flex items-center justify-center"
+                  className="p-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-lg transition-colors flex items-center justify-center"
                 >
                   <FiSend />
                 </button>
@@ -180,13 +180,13 @@ const DesktopFooter = () => {
       </div>
 
       {/* Bottom Footer Credits */}
-      <div className="border-t border-gray-200 dark:border-neutral-900 py-6 transition-colors duration-300">
+      <div className="border-t border-gray-200 dark:border-neutral-900 py-6">
         <div className="container mx-auto px-4 md:px-12 lg:px-24 xl:px-40 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
           <span>&copy; {new Date().getFullYear()} PLE Inc. All rights reserved.</span>
           <div className="flex items-center gap-6">
-            <Link to="/privacy-policy" className="hover:text-primary-600 transition-colors">Privacy</Link>
-            <Link to="/terms-conditions" className="hover:text-primary-600 transition-colors">Terms</Link>
-            <Link to="/help-support" className="hover:text-primary-600 transition-colors">Sitemap</Link>
+            <Link to="/privacy-policy" className="hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] transition-colors">Privacy</Link>
+            <Link to="/terms-conditions" className="hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] transition-colors">Terms</Link>
+            <Link to="/help-support" className="hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] transition-colors">Sitemap</Link>
           </div>
         </div>
       </div>

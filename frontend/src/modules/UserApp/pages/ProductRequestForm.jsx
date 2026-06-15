@@ -151,7 +151,7 @@ const ProductRequestForm = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Enter the name of the product"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-indigo-500 transition-colors text-base"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
                 />
               </div>
 
@@ -162,7 +162,7 @@ const ProductRequestForm = () => {
                   required
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-indigo-500 transition-colors text-base bg-white"
+                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base bg-white"
                 >
                   <option value="">Select a category</option>
                   {categories.map((cat) => (
@@ -183,7 +183,7 @@ const ProductRequestForm = () => {
                     min="1"
                     value={formData.quantity}
                     onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-indigo-500 transition-colors text-base"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
                   />
                 </div>
 
@@ -197,7 +197,7 @@ const ProductRequestForm = () => {
                     placeholder="E.g. 1500"
                     value={formData.budget}
                     onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-indigo-500 transition-colors text-base"
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
                   />
                 </div>
               </div>
@@ -210,7 +210,7 @@ const ProductRequestForm = () => {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe specifications like size, color, brand preferences, or model number..."
-                  className="w-full p-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-indigo-500 transition-colors text-base"
+                  className="w-full p-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
                 />
               </div>
 
@@ -237,7 +237,7 @@ const ProductRequestForm = () => {
                     onDrop={handleDrop}
                     onClick={() => document.getElementById("img-upload").click()}
                     className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
-                      dragActive ? "border-indigo-500 bg-indigo-50/50" : "border-gray-300 hover:border-indigo-400"
+                      dragActive ? "border-red-500 bg-red-50/50" : "border-gray-300 hover:border-red-400"
                     }`}
                   >
                     <input

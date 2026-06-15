@@ -16,9 +16,9 @@ const ProductRequestHistory = () => {
 
   const getStatusStyle = (status) => {
     const map = {
-      Submitted: "bg-blue-50 text-blue-700 border-blue-200",
+      Submitted: "bg-red-50 text-[#7B0A0A] border-red-200",
       "Under Review": "bg-yellow-50 text-yellow-750 border-yellow-200",
-      "Seller Responded": "bg-purple-50 text-purple-700 border-purple-200",
+      "Seller Responded": "bg-red-50 text-[#7B0A0A] border-red-200",
       Accepted: "bg-green-50 text-green-700 border-green-200",
       Rejected: "bg-red-50 text-red-700 border-red-200",
       "Product Added": "bg-emerald-50 text-emerald-700 border-emerald-200 animate-pulse",
@@ -46,7 +46,7 @@ const ProductRequestHistory = () => {
             </div>
             <button
               onClick={() => navigate("/product-request/new")}
-              className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 font-bold text-xs"
+              className="p-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl shadow-md transition-all active:scale-95 flex items-center justify-center gap-1.5 font-bold text-xs"
             >
               <FiPlus />
               <span className="hidden sm:inline">New Request</span>
@@ -63,7 +63,7 @@ const ProductRequestHistory = () => {
               </p>
               <button
                 onClick={() => navigate("/product-request/new")}
-                className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm shadow-md transition-all"
+                 className="px-6 py-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl text-sm shadow-md transition-all"
               >
                 Create Request
               </button>
@@ -85,7 +85,7 @@ const ProductRequestHistory = () => {
                         <img src={req.image} alt={req.productName} className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className="w-16 h-16 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0 border border-indigo-100 text-indigo-500 font-bold text-lg">
+                      <div className="w-16 h-16 rounded-xl bg-red-50 flex items-center justify-center shrink-0 border border-red-100 text-[#7B0A0A] font-bold text-lg">
                         {req.productName?.charAt(0).toUpperCase() || "P"}
                       </div>
                     )}
@@ -96,7 +96,7 @@ const ProductRequestHistory = () => {
                           {req.status}
                         </span>
                       </div>
-                      <h3 className="font-extrabold text-gray-800 text-base truncate group-hover:text-indigo-650 transition-colors">
+                      <h3 className="font-extrabold text-gray-800 text-base truncate group-hover:text-[#AE020B] transition-colors">
                         {req.productName}
                       </h3>
                       <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">

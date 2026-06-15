@@ -24,21 +24,21 @@ const ProtectedRoute = ({ children }) => {
   const isExpired = tokenExpiryMs ? Date.now() >= tokenExpiryMs : false;
 
   if (!isAuthenticated || !accessToken) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (isExpired) {
     localStorage.removeItem('token');
     localStorage.removeItem('refresh-token');
     localStorage.removeItem('auth-storage');
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (resolvedRole && resolvedRole !== 'customer' && resolvedRole !== 'business_buyer') {
     localStorage.removeItem('token');
     localStorage.removeItem('refresh-token');
     localStorage.removeItem('auth-storage');
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   return children;

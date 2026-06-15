@@ -73,7 +73,7 @@ const Returns = () => {
                   }}
                   className={`px-3 py-1.5 rounded-xl font-semibold text-xs whitespace-nowrap transition-all ${
                     selectedStatus === option.value
-                      ? 'gradient-green text-white shadow-sm'
+                      ? 'bg-[#7B0A0A] text-white shadow-sm'
                       : 'bg-white border border-gray-200 text-gray-700 hover:bg-gray-100'
                   }`}
                 >
@@ -100,7 +100,7 @@ const Returns = () => {
                 </p>
                 <button
                   onClick={() => navigate('/orders')}
-                  className="gradient-green text-white px-5 py-2.5 rounded-xl font-semibold text-xs"
+                  className="bg-[#7B0A0A] hover:bg-[#AE020B] text-white px-5 py-2.5 rounded-xl font-semibold text-xs transition-colors"
                 >
                   View My Orders
                 </button>
@@ -114,7 +114,7 @@ const Returns = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
                     onClick={() => navigate(`/returns/${req.id}`)}
-                    className="glass-card rounded-2xl p-4 bg-white shadow-sm border border-gray-100 hover:border-primary-200 transition-all cursor-pointer space-y-3"
+                    className="glass-card rounded-2xl p-4 bg-white shadow-sm border border-gray-100 hover:border-red-200 transition-all cursor-pointer space-y-3"
                   >
                     <div className="flex justify-between items-center pb-2 border-b border-gray-50">
                       <div>
@@ -124,7 +124,7 @@ const Returns = () => {
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                         req.status === 'Rejected' ? 'bg-red-50 text-red-700' :
                         req.status === 'Refund Completed' ? 'bg-green-50 text-green-700' :
-                        'bg-blue-50 text-blue-700'
+                        'bg-red-50 text-[#7B0A0A]'
                       }`}>
                         {req.status}
                       </span>
@@ -154,7 +154,7 @@ const Returns = () => {
                         <FiDollarSign className="text-gray-400" />
                         Refund Amount:
                       </span>
-                      <span className="font-bold text-primary-600">{formatPrice(req.refundAmount || 0)}</span>
+                      <span className="font-bold text-[#7B0A0A]">{formatPrice(req.refundAmount || 0)}</span>
                     </div>
                   </motion.div>
                 ))}

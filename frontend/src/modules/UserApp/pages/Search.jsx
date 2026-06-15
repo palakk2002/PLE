@@ -399,7 +399,7 @@ const MobileSearch = () => {
                   }}
                   onFocus={() => setShowSuggestions(true)}
                   placeholder="Search products..."
-                  className="w-full pl-12 pr-20 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 text-gray-700 placeholder:text-gray-400 text-base"
+                  className="w-full pl-12 pr-20 py-3 glass-card rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-700 placeholder:text-gray-400 text-base"
                   autoFocus
                 />
                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
@@ -456,7 +456,7 @@ const MobileSearch = () => {
                 <select
                   value={sortBy}
                   onChange={(e) => handleSortChange(e.target.value)}
-                  className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                  className="px-2.5 py-1.5 text-xs rounded-lg border border-gray-200 bg-white text-gray-700 focus:outline-none focus:ring-1 focus:ring-red-500"
                 >
                   <option value="newest">Newest</option>
                   <option value="oldest">Oldest</option>
@@ -470,7 +470,7 @@ const MobileSearch = () => {
                   <button
                     onClick={() => setViewMode('list')}
                     className={`p-1.5 rounded transition-colors ${viewMode === 'list'
-                      ? 'bg-white text-primary-600 shadow-sm'
+                      ? 'bg-white text-[#7B0A0A] shadow-sm'
                       : 'text-gray-600'
                       }`}
                   >
@@ -479,7 +479,7 @@ const MobileSearch = () => {
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-1.5 rounded transition-colors ${viewMode === 'grid'
-                      ? 'bg-white text-primary-600 shadow-sm'
+                      ? 'bg-white text-[#7B0A0A] shadow-sm'
                       : 'text-gray-600'
                       }`}
                   >
@@ -552,7 +552,7 @@ const MobileSearch = () => {
                                       setShowCategoryDropdown(!showCategoryDropdown);
                                       setShowVendorDropdown(false);
                                     }}
-                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm flex items-center justify-between text-gray-700"
+                                    className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm flex items-center justify-between text-gray-700"
                                   >
                                     <span>{filters.category ? categories.find(c => normalizeId(c.id) === normalizeId(filters.category))?.name : "All Categories"}</span>
                                     <motion.div
@@ -576,7 +576,7 @@ const MobileSearch = () => {
                                             handleFilterChange("category", "");
                                             setShowCategoryDropdown(false);
                                           }}
-                                          className={`px-3 py-2 text-sm cursor-pointer hover:bg-white transition-colors ${!filters.category ? "bg-white text-primary-700 font-bold" : "text-gray-600"}`}
+                                          className={`px-3 py-2 text-sm cursor-pointer hover:bg-white transition-colors ${!filters.category ? "bg-white text-[#7B0A0A] font-bold" : "text-gray-600"}`}
                                         >
                                           All Categories
                                         </div>
@@ -587,7 +587,7 @@ const MobileSearch = () => {
                                               handleFilterChange("category", normalizeId(cat.id));
                                               setShowCategoryDropdown(false);
                                             }}
-                                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-white transition-colors ${normalizeId(filters.category) === normalizeId(cat.id) ? "bg-white text-primary-700 font-bold" : "text-gray-600"}`}
+                                            className={`px-3 py-2 text-sm cursor-pointer hover:bg-white transition-colors ${normalizeId(filters.category) === normalizeId(cat.id) ? "bg-white text-[#7B0A0A] font-bold" : "text-gray-600"}`}
                                           >
                                             {cat.name}
                                           </div>
@@ -611,7 +611,7 @@ const MobileSearch = () => {
                                     onChange={(e) =>
                                       handleFilterChange("minPrice", e.target.value)
                                     }
-                                    className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
+                                    className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-red-500 text-xs"
                                   />
                                   <input
                                     type="number"
@@ -620,7 +620,7 @@ const MobileSearch = () => {
                                     onChange={(e) =>
                                       handleFilterChange("maxPrice", e.target.value)
                                     }
-                                    className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs"
+                                    className="w-full px-2 py-1.5 rounded-md border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-red-500 text-xs"
                                   />
                                 </div>
                               </div>
@@ -629,10 +629,10 @@ const MobileSearch = () => {
                               <div>
                                 <div className="flex items-center justify-between mb-2">
                                   <h4 className="font-bold text-gray-800 text-sm flex items-center gap-1.5">
-                                    <FiShoppingBag className="text-primary-600" />
+                                    <FiShoppingBag className="text-[#7B0A0A]" />
                                     Vendor
                                   </h4>
-                                  <span className="text-xs text-primary-600 font-semibold bg-primary-50 px-2 py-0.5 rounded-full">
+                                  <span className="text-xs text-[#7B0A0A] font-semibold bg-red-50 px-2 py-0.5 rounded-full">
                                     {approvedVendors.length}+ Stores
                                   </span>
                                 </div>
@@ -643,7 +643,7 @@ const MobileSearch = () => {
                                       setShowVendorDropdown(!showVendorDropdown);
                                       setShowCategoryDropdown(false);
                                     }}
-                                    className="w-full px-3 py-2.5 rounded-xl border-2 border-primary-100 bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm font-bold flex items-center justify-between text-gray-800 shadow-sm"
+                                    className="w-full px-3 py-2.5 rounded-xl border-2 border-red-100 bg-white focus:outline-none focus:ring-2 focus:ring-red-500 text-sm font-bold flex items-center justify-between text-gray-800 shadow-sm"
                                   >
                                     <span className="truncate pr-2">
                                       {filters.vendor ? approvedVendors.find(v => normalizeId(v.id) === normalizeId(filters.vendor))?.storeName || approvedVendors.find(v => normalizeId(v.id) === normalizeId(filters.vendor))?.name : "All Vendors"}
@@ -652,7 +652,7 @@ const MobileSearch = () => {
                                       animate={{ rotate: showVendorDropdown ? 180 : 0 }}
                                       transition={{ duration: 0.2 }}
                                     >
-                                      <FiFilter className="text-primary-500" />
+                                      <FiFilter className="text-[#7B0A0A]" />
                                     </motion.div>
                                   </button>
 
@@ -662,17 +662,17 @@ const MobileSearch = () => {
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: "auto", opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
-                                        className="mt-2 bg-gray-50 border border-primary-50 rounded-2xl overflow-hidden"
+                                        className="mt-2 bg-gray-50 border border-red-50 rounded-2xl overflow-hidden"
                                       >
                                         <div
                                           onClick={() => {
                                             handleFilterChange("vendor", "");
                                             setShowVendorDropdown(false);
                                           }}
-                                          className={`p-3 text-sm cursor-pointer hover:bg-white transition-colors border-b border-gray-100 flex items-center justify-between ${!filters.vendor ? "bg-white text-primary-700 font-bold" : "text-gray-600"}`}
+                                          className={`p-3 text-sm cursor-pointer hover:bg-white transition-colors border-b border-gray-100 flex items-center justify-between ${!filters.vendor ? "bg-white text-[#7B0A0A] font-bold" : "text-gray-600"}`}
                                         >
                                           <span>All Vendors</span>
-                                          {!filters.vendor && <FiFilter className="text-primary-500" />}
+                                          {!filters.vendor && <FiFilter className="text-[#7B0A0A]" />}
                                         </div>
                                         {approvedVendors.map((vendor) => (
                                           <div
@@ -681,13 +681,13 @@ const MobileSearch = () => {
                                               handleFilterChange("vendor", normalizeId(vendor.id));
                                               setShowVendorDropdown(false);
                                             }}
-                                            className={`p-3 text-sm cursor-pointer hover:bg-white transition-colors border-b last:border-0 border-gray-100 flex items-center justify-between ${normalizeId(filters.vendor) === normalizeId(vendor.id) ? "bg-white text-primary-700 font-bold" : "text-gray-600"}`}
+                                            className={`p-3 text-sm cursor-pointer hover:bg-white transition-colors border-b last:border-0 border-gray-100 flex items-center justify-between ${normalizeId(filters.vendor) === normalizeId(vendor.id) ? "bg-white text-[#7B0A0A] font-bold" : "text-gray-600"}`}
                                           >
                                             <div className="flex items-center gap-2">
                                               <span>{vendor.storeName || vendor.name}</span>
                                               {vendor.isVerified && <span className="text-blue-500 text-xs">✓</span>}
                                             </div>
-                                            {normalizeId(filters.vendor) === normalizeId(vendor.id) && <FiFilter className="text-primary-500" />}
+                                            {normalizeId(filters.vendor) === normalizeId(vendor.id) && <FiFilter className="text-[#7B0A0A]" />}
                                           </div>
                                         ))}
                                       </motion.div>
@@ -704,7 +704,7 @@ const MobileSearch = () => {
                                 <select
                                   value={filters.condition}
                                   onChange={(e) => handleFilterChange("condition", e.target.value)}
-                                  className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-primary-500 text-xs text-gray-700 font-medium"
+                                  className="w-full px-3 py-2 rounded-lg border border-gray-200 bg-white focus:outline-none focus:ring-1 focus:ring-red-500 text-xs text-gray-700 font-medium"
                                 >
                                   <option value="">All Conditions</option>
                                   <option value="brand_new">Brand New</option>
@@ -737,11 +737,11 @@ const MobileSearch = () => {
                                             e.target.value
                                           )
                                         }
-                                        className="w-3 h-3 appearance-none rounded-full border-2 border-gray-300 bg-white checked:bg-white checked:border-primary-500 relative cursor-pointer"
+                                        className="w-3 h-3 appearance-none rounded-full border-2 border-gray-300 bg-white checked:bg-white checked:border-red-500 relative cursor-pointer"
                                         style={{
                                           backgroundImage:
                                             filters.minRating === rating.toString()
-                                              ? "radial-gradient(circle, #10b981 40%, transparent 40%)"
+                                              ? "radial-gradient(circle, #7B0A0A 40%, transparent 40%)"
                                               : "none",
                                         }}
                                       />
@@ -764,7 +764,7 @@ const MobileSearch = () => {
                             </button>
                             <button
                               onClick={() => setShowFilters(false)}
-                              className="w-full py-1.5 gradient-green text-white rounded-md font-semibold text-xs hover:shadow-glow-green transition-all">
+                              className="w-full py-1.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-md font-semibold text-xs transition-colors">
                               Apply Filters
                             </button>
                           </div>
@@ -785,14 +785,14 @@ const MobileSearch = () => {
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full"
+                    className="w-5 h-5 border-2 border-[#7B0A0A] border-t-transparent rounded-full"
                   />
                   <span className="text-sm">Loading products...</span>
                 </div>
               </div>
             ) : filteredProducts.length === 0 ? (
               <div className="text-center py-12 bg-white rounded-3xl p-8 border border-gray-100 shadow-sm max-w-md mx-auto my-8">
-                <FiSearch className="text-6xl text-indigo-300 mx-auto mb-4" />
+                <FiSearch className="text-6xl text-red-300 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Product not available.</h3>
                 <p className="text-sm text-gray-500 mb-6">We couldn't find any match for your search. You can submit a product request and we will source it for you!</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -801,7 +801,7 @@ const MobileSearch = () => {
                       const query = searchParams.get('q') || '';
                       window.location.href = `/product-request/new?name=${encodeURIComponent(query)}`;
                     }}
-                    className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95"
+                    className="px-6 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95"
                   >
                     Request This Product
                   </button>
@@ -835,7 +835,7 @@ const MobileSearch = () => {
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full"
+                          className="w-5 h-5 border-2 border-[#7B0A0A] border-t-transparent rounded-full"
                         />
                         <span className="text-sm">Loading more products...</span>
                       </div>
@@ -843,7 +843,7 @@ const MobileSearch = () => {
                     <button
                       onClick={loadMore}
                       disabled={isLoadingMore}
-                      className="px-6 py-3 gradient-green text-white rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-6 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-semibold transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoadingMore ? (
                         <span className="flex items-center gap-2">
@@ -878,7 +878,7 @@ const MobileSearch = () => {
                         <motion.div
                           animate={{ rotate: 360 }}
                           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                          className="w-5 h-5 border-2 border-primary-500 border-t-transparent rounded-full"
+                          className="w-5 h-5 border-2 border-[#7B0A0A] border-t-transparent rounded-full"
                         />
                         <span className="text-sm">Loading more products...</span>
                       </div>
@@ -886,7 +886,7 @@ const MobileSearch = () => {
                     <button
                       onClick={loadMore}
                       disabled={isLoadingMore}
-                      className="px-6 py-3 gradient-green text-white rounded-xl font-semibold hover:shadow-glow-green transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-6 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-semibold transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isLoadingMore ? (
                         <span className="flex items-center gap-2">

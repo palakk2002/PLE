@@ -4,6 +4,7 @@ import { useCategoryStore } from '../../../../shared/store/categoryStore';
 import Badge from '../../../../shared/components/Badge';
 import toast from 'react-hot-toast';
 import Button from '../Button';
+import LucideIcon from '../../../../shared/components/LucideIcon';
 
 const CategoryTree = ({ categories, onEdit, onDelete, onAddSubcategory, level = 0 }) => {
   const { toggleCategoryStatus } = useCategoryStore();
@@ -55,10 +56,8 @@ const CategoryTree = ({ categories, onEdit, onDelete, onAddSubcategory, level = 
                   }}
                 />
               ) : (
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0 border border-gray-100 flex items-center justify-center">
-                  <span className="text-gray-400 text-xs font-semibold">
-                    {category.name.charAt(0).toUpperCase()}
-                  </span>
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0 border border-gray-100 flex items-center justify-center text-gray-500">
+                  <LucideIcon name={category.icon || 'Package'} size={24} />
                 </div>
               )}
 
@@ -167,7 +166,10 @@ const CategoryTree = ({ categories, onEdit, onDelete, onAddSubcategory, level = 
             )}
             <div className="flex-1">
               <div className="flex items-center gap-2">
-              <p className="font-semibold text-gray-800">{category.name}</p>
+              <p className="font-semibold text-gray-800 flex items-center gap-2">
+                <LucideIcon name={category.icon || 'Package'} size={18} className="text-gray-500 flex-shrink-0" />
+                {category.name}
+              </p>
                 {hasChildren && (
                   <Badge variant="info" className="text-[10px] px-1.5 py-0.5">
                     {children.length}

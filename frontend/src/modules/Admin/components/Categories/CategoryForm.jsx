@@ -7,6 +7,7 @@ import AnimatedSelect from "../AnimatedSelect";
 import toast from "react-hot-toast";
 import Button from "../Button";
 import { uploadAdminImage } from "../../services/adminService";
+import LucideIcon from "../../../../shared/components/LucideIcon";
 
 const CategoryForm = ({ category, parentId, onClose, onSave }) => {
   const location = useLocation();
@@ -27,6 +28,7 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
     name: "",
     description: "",
     image: "",
+    icon: "Package",
     parentId: null,
     isActive: true,
     order: 0,
@@ -38,6 +40,7 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
         name: category.name || "",
         description: category.description || "",
         image: category.image || "",
+        icon: category.icon || "Package",
         parentId: category.parentId || null,
         isActive: category.isActive !== undefined ? category.isActive : true,
         order: category.order || 0,
@@ -47,6 +50,7 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
         name: "",
         description: "",
         image: "",
+        icon: "Package",
         parentId: parentId,
         isActive: true,
         order: 0,
@@ -302,6 +306,52 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
                         ]}
                       />
                     )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Category Icon
+                    </label>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-200 text-gray-600 flex-shrink-0">
+                        <LucideIcon name={formData.icon || 'Package'} size={24} />
+                      </div>
+                      <div className="flex-1">
+                        <AnimatedSelect
+                          name="icon"
+                          value={formData.icon || "Package"}
+                          onChange={handleChange}
+                          options={[
+                            { value: 'Shirt', label: 'Shirt (Clothing)' },
+                            { value: 'Footprints', label: 'Footprints (Footwear)' },
+                            { value: 'ShoppingBag', label: 'Shopping Bag (Bags)' },
+                            { value: 'Gem', label: 'Gem (Jewelry)' },
+                            { value: 'Sparkles', label: 'Sparkles (Accessories)' },
+                            { value: 'Flame', label: 'Flame (Athletic)' },
+                            { value: 'Package', label: 'Package (Default)' },
+                            { value: 'Smartphone', label: 'Smartphone' },
+                            { value: 'Laptop', label: 'Laptop' },
+                            { value: 'Home', label: 'Home' },
+                            { value: 'Tv', label: 'TV' },
+                            { value: 'BookOpen', label: 'Book' },
+                            { value: 'Camera', label: 'Camera' },
+                            { value: 'Gamepad2', label: 'Gamepad' },
+                            { value: 'Headphones', label: 'Headphones' },
+                            { value: 'Heart', label: 'Heart' },
+                            { value: 'Gift', label: 'Gift' },
+                            { value: 'Activity', label: 'Activity' },
+                            { value: 'Car', label: 'Car' },
+                            { value: 'Coffee', label: 'Coffee' },
+                            { value: 'Utensils', label: 'Utensils' },
+                            { value: 'Scissors', label: 'Scissors' },
+                            { value: 'Brush', label: 'Brush' },
+                            { value: 'Music', label: 'Music' },
+                            { value: 'Palette', label: 'Palette' },
+                            { value: 'Watch', label: 'Watch' }
+                          ]}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

@@ -18,8 +18,13 @@ const RouteWrapper = ({ children }) => {
   }, []);
   
   // Return children with location key to force remount on route change
-  // Using a div with no styling to avoid layout interference
-  return <div key={`${location.pathname}${location.search}:${catalogTick}`} style={{ width: '100%', height: '100%' }}>{children}</div>;
+  // For home page, we don't want search parameter changes to force a remount (this breaks tab animations)
+  const isHomePage = location.pathname === '/' || location.pathname === '/home';
+  const key = isHomePage 
+    ? location.pathname
+    : `${location.pathname}${location.search}`;
+
+  return <div key={key} style={{ width: '100%', height: '100%' }}>{children}</div>;
 };
 
 export default RouteWrapper;

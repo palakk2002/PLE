@@ -44,6 +44,55 @@ const autoSeedAdmin = async () => {
   }
 };
 
+const autoMigrateCategories = async () => {
+  try {
+    const { Category } = await import('../models/Category.model.js');
+    const oldCategoryIconMap = {
+      'Clothing': 'Shirt',
+      'Footwear': 'Footprints',
+      'Bags': 'ShoppingBag',
+      'Jewelry': 'Gem',
+      'Accessories': 'Sparkles',
+      'Athletic': 'Flame',
+      "Men's": 'Shirt',
+      'Women': 'Sparkles',
+      'Kids': 'Smile',
+      'Electronics': 'Smartphone'
+    };
+
+    const categories = await Category.find({ 
+      $or: [
+        { icon: { $exists: false } }, 
+        { icon: null }, 
+        { icon: '' },
+        { icon: 'Package' }
+      ] 
+    });
+
+    if (categories.length > 0) {
+      let migratedCount = 0;
+      for (const cat of categories) {
+        const iconName = oldCategoryIconMap[cat.name] || 'Package';
+        // Only update if it actually changes the icon from Package
+        if (cat.icon !== iconName) {
+          cat.icon = iconName;
+          await cat.save();
+          migratedCount++;
+        }
+      }
+      if (migratedCount > 0) {
+        console.log(`✅ DATABASE MIGRATION SUCCESS: Migrated ${migratedCount} categories to Lucide icons.`);
+      } else {
+        console.log('ℹ️ DATABASE MIGRATION: All categories already have correct icons.');
+      }
+    } else {
+      console.log('ℹ️ DATABASE MIGRATION: All categories already have icons.');
+    }
+  } catch (err) {
+    console.error('⚠️ DATABASE MIGRATION FAILED:', err.message);
+  }
+};
+
 const connectDB = async () => {
   try {
     // Set a lower connection timeout so it fails quickly and switches to fallback rather than waiting 30 seconds
@@ -52,6 +101,7 @@ const connectDB = async () => {
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     await autoSeedAdmin();
+    await autoMigrateCategories();
   } catch (error) {
     const publicIP = await getPublicIP();
     console.error(`
@@ -96,6 +146,7 @@ to switch back to your persistent remote cluster.
 ========================================================================
       `);
       await autoSeedAdmin();
+      await autoMigrateCategories();
     } catch (fallbackError) {
       console.error('❌ Failed to start in-memory MongoDB server:', fallbackError.message);
       process.exit(1);
