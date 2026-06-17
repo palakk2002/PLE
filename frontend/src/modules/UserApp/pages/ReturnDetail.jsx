@@ -7,6 +7,7 @@ import PageTransition from '../../../shared/components/PageTransition';
 import { useReturnStore } from '../../../shared/store/returnStore';
 import { formatPrice } from '../../../shared/utils/helpers';
 import LazyImage from '../../../shared/components/LazyImage';
+import RefundStatusBadge from '../components/Refund/RefundStatusBadge';
 
 const ReturnDetail = () => {
   const { id } = useParams();
@@ -165,6 +166,11 @@ const ReturnDetail = () => {
                   </span>
                 </div>
               </div>
+
+              {/* Refund Destination Badge */}
+              <div className="mb-4">
+                <RefundStatusBadge destination={request.refundDestination || "Original Payment Method"} />
+              </div>
               
               {/* Refund Timeline */}
               <div className="space-y-2 pt-2">
@@ -172,8 +178,10 @@ const ReturnDetail = () => {
                 <div className="flex gap-3 items-center text-xs">
                   <div className={`w-2 h-2 rounded-full ${request.refundStatus === 'Completed' || request.refundStatus === 'processed' ? 'bg-green-500' : 'bg-yellow-500'}`} />
                   <span className="text-gray-700 font-medium">
-                    {request.refundStatus === 'Completed' || request.refundStatus === 'processed' ? 'Refund Credited to original source' :
-                     request.refundStatus === 'Processing' ? 'Refund is being processed by bank partners' :
+                    {request.refundStatus === 'Completed' || request.refundStatus === 'processed' 
+                      ? (request.refundDestination === 'Wallet' ? 'Refund Credited to Wallet' : 'Refund Credited to original source') :
+                     request.refundStatus === 'Processing' 
+                      ? (request.refundDestination === 'Wallet' ? 'Refund is being processed to Wallet' : 'Refund is being processed by bank partners') :
                      'Awaiting product verification/approval for refund initiation'}
                   </span>
                 </div>

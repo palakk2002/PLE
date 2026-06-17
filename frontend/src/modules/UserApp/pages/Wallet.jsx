@@ -19,6 +19,8 @@ import { useAuthStore } from "../../../shared/store/authStore";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
 import toast from "react-hot-toast";
+import WalletBalanceCard from "../components/Wallet/WalletBalanceCard";
+import WalletTransactionCard from "../components/Wallet/WalletTransactionCard";
 
 const MobileWallet = () => {
   const navigate = useNavigate();
@@ -58,10 +60,26 @@ const MobileWallet = () => {
             date: "2026-06-04T09:12:00Z",
             description: "Promo campaign cashback reward",
           },
+          {
+            id: "TXN10026312",
+            type: "Refund Credit",
+            title: "Refund from Order #1234",
+            amount: 250.0,
+            date: "2026-06-05T14:20:00Z",
+            description: "Refund credited to wallet",
+          },
+          {
+            id: "TXN10027415",
+            type: "Refund Credit",
+            title: "Refund from Order #5678",
+            amount: 120.0,
+            date: "2026-06-06T11:15:00Z",
+            description: "Refund credited to wallet",
+          },
         ];
   });
 
-  const [activeTab, setActiveTab] = useState("all"); // 'all', 'credit', 'debit'
+  const [activeTab, setActiveTab] = useState("all"); // 'all', 'credit', 'debit', 'refunds'
   const [showAddMoney, setShowAddMoney] = useState(false);
   const [showSendMoney, setShowSendMoney] = useState(false);
   const [showWithdrawMoney, setShowWithdrawMoney] = useState(false);
@@ -203,6 +221,7 @@ const MobileWallet = () => {
   const filteredTransactions = transactions.filter((tx) => {
     if (activeTab === "credit") return tx.type === "credit";
     if (activeTab === "debit") return tx.type === "debit";
+    if (activeTab === "refunds") return tx.type === "Refund Credit" || tx.title.toLowerCase().includes("refund");
     return true;
   });
 
@@ -225,56 +244,19 @@ const MobileWallet = () => {
           <div className="p-4 space-y-6">
             
             {/* Visual Balance Card */}
-            <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#AE020B] to-[#7B0A0A] p-6 text-white shadow-xl">
-              <div className="absolute top-0 right-0 -mt-6 -mr-6 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-              <div className="absolute bottom-0 left-0 -mb-6 -ml-6 w-24 h-24 bg-black/10 rounded-full blur-xl pointer-events-none" />
-              
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-xs uppercase tracking-widest text-red-100 font-semibold mb-1">
-                    WALLET BALANCE
-                  </p>
-                  <h2 className="text-3xl font-extrabold tracking-tight">
-                    ₹{balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                  </h2>
-                </div>
-                <div className="w-12 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold text-xs tracking-wider border border-white/10 backdrop-blur-sm">
-                  PLE
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-between items-end">
-                <div className="text-xs text-red-100 font-mono">
-                  {user?.name || "Premium Customer"}
-                </div>
-                <div className="flex gap-1.5 flex-wrap">
-                  <button
-                    onClick={() => setShowAddMoney(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-white text-[#7B0A0A] text-[10px] sm:text-xs font-bold rounded-xl shadow-md hover:bg-red-50 transition-colors"
-                  >
-                    <FiPlus /> Add Money
-                  </button>
-                  <button
-                    onClick={() => setShowSendMoney(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-white/20 text-white text-[10px] sm:text-xs font-bold rounded-xl hover:bg-white/30 border border-white/20 backdrop-blur-sm transition-colors"
-                  >
-                    <FiSend /> Transfer
-                  </button>
-                  <button
-                    onClick={() => setShowWithdrawMoney(true)}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-white/20 text-white text-[10px] sm:text-xs font-bold rounded-xl hover:bg-white/30 border border-white/20 backdrop-blur-sm transition-colors"
-                  >
-                    <FiRotateCcw /> Withdraw
-                  </button>
-                </div>
-              </div>
-            </div>
+            <WalletBalanceCard
+              balance={balance}
+              userName={user?.name}
+              onAddMoney={() => setShowAddMoney(true)}
+              onTransfer={() => setShowSendMoney(true)}
+              onWithdraw={() => setShowWithdrawMoney(true)}
+            />
 
             {/* Quick Actions / Toggles */}
             <div className="flex justify-between items-center px-1">
               <h3 className="font-extrabold text-gray-800 dark:text-white text-base">Transactions</h3>
               <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl">
-                {["all", "credit", "debit"].map((tab) => (
+                {["all", "credit", "debit", "refunds"].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -284,7 +266,7 @@ const MobileWallet = () => {
                         : "text-gray-500 hover:text-gray-700"
                     }`}
                   >
-                    {tab}
+                    {tab === "refunds" ? "Refunds" : tab}
                   </button>
                 ))}
               </div>
@@ -295,54 +277,7 @@ const MobileWallet = () => {
               <AnimatePresence mode="popLayout">
                 {filteredTransactions.length > 0 ? (
                   filteredTransactions.map((tx) => (
-                    <motion.div
-                      key={tx.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="bg-white dark:bg-[#1A1A1A] border border-gray-100 dark:border-white/5 rounded-2xl p-4 flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-shadow"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                            tx.type === "credit"
-                              ? "bg-red-50 dark:bg-red-950/20 text-[#7B0A0A]"
-                              : "bg-red-50 dark:bg-red-950/20 text-red-600"
-                          }`}
-                        >
-                          {tx.type === "credit" ? (
-                            <FiTrendingUp className="text-lg" />
-                          ) : (
-                            <FiTrendingDown className="text-lg" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <h4 className="font-bold text-gray-800 dark:text-gray-200 text-sm truncate">
-                            {tx.title}
-                          </h4>
-                          <p className="text-gray-400 dark:text-gray-500 text-xs">
-                            {new Date(tx.date).toLocaleDateString("en-IN", {
-                              day: "numeric",
-                              month: "short",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right flex-shrink-0">
-                        <span
-                          className={`font-extrabold text-sm ${
-                            tx.type === "credit" ? "text-[#7B0A0A]" : "text-red-600"
-                          }`}
-                        >
-                          {tx.type === "credit" ? "+" : "-"} ₹{tx.amount.toFixed(2)}
-                        </span>
-                        <p className="text-[10px] text-gray-400 font-mono tracking-tighter">
-                          {tx.id}
-                        </p>
-                      </div>
-                    </motion.div>
+                    <WalletTransactionCard key={tx.id} tx={tx} />
                   ))
                 ) : (
                   <div className="text-center py-12 bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">

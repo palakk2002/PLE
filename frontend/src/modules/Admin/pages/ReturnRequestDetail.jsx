@@ -389,6 +389,16 @@ const ReturnRequestDetail = () => {
                   {returnRequest.refundStatus}
                 </Badge>
               </div>
+              <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center text-xs">
+                <span className="text-gray-500 font-semibold">Refund Destination</span>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                  returnRequest.refundDestination === 'Wallet' 
+                    ? 'bg-red-50 text-[#7B0A0A] border border-red-200/50' 
+                    : 'bg-blue-50 text-blue-700 border border-blue-200/50'
+                }`}>
+                  {returnRequest.refundDestination || 'Original Payment Method'}
+                </span>
+              </div>
             </div>
           </div>
 
