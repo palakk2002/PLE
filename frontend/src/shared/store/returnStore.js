@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import * as adminService from '../../modules/Admin/services/adminService';
 import toast from 'react-hot-toast';
 import { mockReturnRequests } from '../../data/adminMockData';
+import { useAuthStore } from './authStore';
 
 // Initialize returns from localStorage or mock data
 const getInitialReturns = () => {
@@ -209,6 +210,39 @@ export const useReturnStore = create((set, get) => ({
                             date: new Date().toISOString(),
                             note: statusData.adminNote || statusData.rejectionReason || `Status updated to ${newStatus}`
                         });
+                    }
+
+                    // Check and process auto-wallet credit if status is completed and destination is Wallet
+                    if (
+                        (newRefundStatus === 'processed' || newStatus === 'Refund Completed') &&
+                        req.refundDestination === 'Wallet' &&
+                        req.refundStatus !== 'processed' &&
+                        req.refundStatus !== 'Completed'
+                    ) {
+                        const user = useAuthStore.getState().user;
+                        const userId = user?.id || 'guest';
+                        
+                        // Credit wallet balance
+                        const savedBalance = localStorage.getItem(`wallet_balance_${userId}`);
+                        const currentBalance = savedBalance ? parseFloat(savedBalance) : 1500.0;
+                        const refundAmount = req.refundAmount || 0;
+                        const newBalance = currentBalance + refundAmount;
+                        localStorage.setItem(`wallet_balance_${userId}`, newBalance.toString());
+
+                        // Add transaction history
+                        const savedTransactions = localStorage.getItem(`wallet_txs_${userId}`);
+                        const txs = savedTransactions ? JSON.parse(savedTransactions) : [];
+                        const newTx = {
+                            id: `TXN${Math.floor(10000000 + Math.random() * 90000000)}`,
+                            type: "Refund Credit",
+                            title: `Refund from Order #${req.orderId}`,
+                            amount: refundAmount,
+                            date: new Date().toISOString(),
+                            description: `Refund credited to wallet for Return Request ${req.id}`,
+                        };
+                        localStorage.setItem(`wallet_txs_${userId}`, JSON.stringify([newTx, ...txs]));
+                        
+                        toast.success(`₹${refundAmount.toFixed(2)} credited to your wallet!`);
                     }
 
                     return {
