@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import api from '../utils/api';
 
 import { useB2bStore } from './b2bStore';
+import { useB2BAdminStore } from '../../modules/B2BAdmin/store/b2bAdminStore';
 
 // Helper for API race timeout
 const withTimeout = (promise, ms = 2000) => {
@@ -15,6 +16,36 @@ const withTimeout = (promise, ms = 2000) => {
 };
 
 
+const dynamicAuthStorage = {
+  getItem: (name) => {
+    if (typeof window === 'undefined') return null;
+    const local = localStorage.getItem(name);
+    if (local) return local;
+    return sessionStorage.getItem(name);
+  },
+  setItem: (name, value) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const parsed = JSON.parse(value);
+      const rememberMe = parsed?.state?.rememberMe;
+      if (rememberMe) {
+        localStorage.setItem(name, value);
+        sessionStorage.removeItem(name);
+      } else {
+        sessionStorage.setItem(name, value);
+        localStorage.removeItem(name);
+      }
+    } catch {
+      sessionStorage.setItem(name, value);
+    }
+  },
+  removeItem: (name) => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(name);
+    sessionStorage.removeItem(name);
+  }
+};
+
 export const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -24,17 +55,20 @@ export const useAuthStore = create(
       isAuthenticated: false,
       isLoading: false,
       pendingEmail: null,
+      rememberMe: false,
 
-      // Login action
       login: async (email, password, rememberMe = false) => {
         set({ isLoading: true });
         const normalizedEmail = String(email || '').trim().toLowerCase();
         try {
+          const endpoint = '/user/auth/login';
+          const payloadData = { email: normalizedEmail, password };
+          
           const response = await withTimeout(
-            api.post('/user/auth/login', { email: normalizedEmail, password }),
+            api.post(endpoint, payloadData),
             2000
           );
-          const payload = response?.data ?? response;
+          const payload = response?.data?.data || response?.data || response;
           const accessToken = payload?.accessToken;
           const refreshToken = payload?.refreshToken;
           const user = payload?.user;
@@ -44,18 +78,23 @@ export const useAuthStore = create(
           }
 
           set({
-            user,
+            user: user,
             token: accessToken,
             refreshToken,
             isAuthenticated: true,
             pendingEmail: null,
             isLoading: false,
+            rememberMe,
           });
 
-          localStorage.setItem('token', accessToken);
-          localStorage.setItem('refresh-token', refreshToken);
+          const storage = rememberMe ? localStorage : sessionStorage;
+          const otherStorage = rememberMe ? sessionStorage : localStorage;
+          storage.setItem('token', accessToken);
+          storage.setItem('refresh-token', refreshToken);
+          otherStorage.removeItem('token');
+          otherStorage.removeItem('refresh-token');
 
-          return { success: true, user };
+          return { success: true, user: user };
         } catch (error) {
           const backendMessage = String(
             error?.response?.data?.message ||
@@ -71,116 +110,8 @@ export const useAuthStore = create(
             throw error;
           }
           
-          console.warn("Buyer API login failed, falling back to mock authentication:", error);
-          
-          // Company admin / Employee custom lookup
-          const { companies } = useB2bStore.getState();
-          let matchedCompany = null;
-          let matchedEmployee = null;
-          let isCompanyAdmin = false;
-
-          for (const company of companies || []) {
-            if (company.admin?.email?.toLowerCase() === normalizedEmail) {
-              if (company.admin?.password === password || (!company.admin?.password && password === "Sarkar@123")) {
-                matchedCompany = company;
-                isCompanyAdmin = true;
-                break;
-              }
-            }
-            const emp = company.employees?.find(e => e.email?.toLowerCase() === normalizedEmail);
-            if (emp) {
-              if (emp.password === password || (!emp.password && password === "Employee@123")) {
-                matchedCompany = company;
-                matchedEmployee = emp;
-                break;
-              }
-            }
-          }
-
-          if (matchedCompany) {
-            if (matchedCompany.status === 'Deactivated') {
-              set({ isLoading: false });
-              throw new Error('Your company account has been deactivated. Please contact support.');
-            }
-            if (!isCompanyAdmin && matchedEmployee) {
-              if (matchedEmployee.status === 'Deactivated') {
-                set({ isLoading: false });
-                throw new Error('Your employee account has been deactivated. Please contact your Company Admin.');
-              }
-            }
-
-            const mockUser = {
-              id: isCompanyAdmin ? `admin_${matchedCompany.id}` : `emp_${matchedEmployee.email}`,
-              _id: isCompanyAdmin ? `admin_${matchedCompany.id}` : `emp_${matchedEmployee.email}`,
-              name: isCompanyAdmin ? matchedCompany.admin.name : matchedEmployee.name,
-              email: normalizedEmail,
-              phone: isCompanyAdmin ? matchedCompany.admin.phone : matchedEmployee.phone,
-              role: "business_buyer",
-              accountType: "business",
-              isVerified: true,
-              isCompanyAdmin,
-              companyId: matchedCompany.id,
-              companyName: matchedCompany.companyName,
-              designation: isCompanyAdmin ? "Company Admin" : matchedEmployee.designation,
-            };
-
-            const accessToken = "mock.eyJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-            const refreshToken = "mock.eyJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-
-            // Automatically switch role state in B2B store
-            useB2bStore.getState().setUserRole('business_buyer');
-            useB2bStore.getState().updateBusinessProfile({
-              companyName: matchedCompany.companyName,
-              gstNumber: matchedCompany.gstNumber,
-              businessAddress: matchedCompany.businessAddress,
-              businessEmail: matchedCompany.businessEmail,
-              businessPhone: matchedCompany.businessPhone,
-              businessType: matchedCompany.businessType,
-              website: matchedCompany.website,
-            });
-
-            set({
-              user: mockUser,
-              token: accessToken,
-              refreshToken,
-              isAuthenticated: true,
-              pendingEmail: null,
-              isLoading: false,
-            });
-
-            localStorage.setItem('token', accessToken);
-            localStorage.setItem('refresh-token', refreshToken);
-
-            return { success: true, user: mockUser };
-          }
-
-          // Default fallback mock
-          const mockUser = {
-            id: "buyer_mock_12345",
-            _id: "buyer_mock_12345",
-            name: "Sarkar Raj",
-            email: normalizedEmail || "sarkarraj0766@gmail.com",
-            phone: "+91 98765 43210",
-            role: "customer",
-            accountType: "business",
-            isVerified: true,
-          };
-          const accessToken = "mock.eyJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-          const refreshToken = "mock.eyJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-
-          set({
-            user: mockUser,
-            token: accessToken,
-            refreshToken,
-            isAuthenticated: true,
-            pendingEmail: null,
-            isLoading: false,
-          });
-
-          localStorage.setItem('token', accessToken);
-          localStorage.setItem('refresh-token', refreshToken);
-
-          return { success: true, user: mockUser };
+          set({ isLoading: false });
+          throw error;
         }
       },
 
@@ -205,10 +136,13 @@ export const useAuthStore = create(
             isAuthenticated: false,
             pendingEmail: email,
             isLoading: false,
+            rememberMe: false,
           });
 
           localStorage.removeItem('token');
           localStorage.removeItem('refresh-token');
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('refresh-token');
 
           return { success: true, email };
         } catch (error) {
@@ -221,36 +155,26 @@ export const useAuthStore = create(
             isAuthenticated: false,
             pendingEmail: email,
             isLoading: false,
+            rememberMe: false,
           });
 
           localStorage.removeItem('token');
           localStorage.removeItem('refresh-token');
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('refresh-token');
 
           return { success: true, email };
         }
       },
 
       // Register B2B action
-      registerB2B: async (formData) => {
+      registerB2B: async (payload) => {
         set({ isLoading: true });
         try {
-          await api.post('/user/auth/register-b2b', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-          });
+          await api.post('/b2b-user/auth/register', payload);
 
-          set({
-            user: null,
-            token: null,
-            refreshToken: null,
-            isAuthenticated: false,
-            pendingEmail: formData.get('email'),
-            isLoading: false,
-          });
-
-          localStorage.removeItem('token');
-          localStorage.removeItem('refresh-token');
-
-          return { success: true, email: formData.get('email') };
+          set({ isLoading: false });
+          return { success: true, email: payload.adminData?.adminEmail };
         } catch (error) {
           set({ isLoading: false });
           throw error;
@@ -275,6 +199,7 @@ export const useAuthStore = create(
             throw new Error('Invalid OTP verification response from server.');
           }
 
+          const rememberMe = get().rememberMe || false;
           set({
             user,
             token: accessToken,
@@ -282,41 +207,19 @@ export const useAuthStore = create(
             isAuthenticated: true,
             pendingEmail: null,
             isLoading: false,
+            rememberMe,
           });
 
-          localStorage.setItem('token', accessToken);
-          localStorage.setItem('refresh-token', refreshToken);
+          const storage = rememberMe ? localStorage : sessionStorage;
+          const otherStorage = rememberMe ? sessionStorage : localStorage;
+          storage.setItem('token', accessToken);
+          storage.setItem('refresh-token', refreshToken);
+          otherStorage.removeItem('token');
+          otherStorage.removeItem('refresh-token');
           return { success: true, user };
         } catch (error) {
-          console.warn("Buyer API OTP verification failed, falling back to mock authentication:", error);
-          
-          const normalizedEmail = String(email || '').trim().toLowerCase();
-          const mockUser = {
-            id: "buyer_mock_12345",
-            _id: "buyer_mock_12345",
-            name: "Sarkar Raj",
-            email: normalizedEmail || "sarkarraj0766@gmail.com",
-            phone: "+91 98765 43210",
-            role: "customer",
-            accountType: "business",
-            isVerified: true,
-          };
-          const accessToken = "mock.eyJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-          const refreshToken = "mock.eyJyb2xlIjoiY3VzdG9tZXIiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-
-          set({
-            user: mockUser,
-            token: accessToken,
-            refreshToken,
-            isAuthenticated: true,
-            pendingEmail: null,
-            isLoading: false,
-          });
-
-          localStorage.setItem('token', accessToken);
-          localStorage.setItem('refresh-token', refreshToken);
-
-          return { success: true, user: mockUser };
+          set({ isLoading: false });
+          throw error;
         }
       },
 
@@ -375,7 +278,7 @@ export const useAuthStore = create(
 
       // Logout action
       logout: () => {
-        const refreshToken = localStorage.getItem('refresh-token');
+        const refreshToken = localStorage.getItem('refresh-token') || sessionStorage.getItem('refresh-token');
         if (refreshToken) {
           api.post('/user/auth/logout', { refreshToken }).catch(() => {});
         }
@@ -386,12 +289,33 @@ export const useAuthStore = create(
           refreshToken: null,
           isAuthenticated: false,
           pendingEmail: null,
+          rememberMe: false,
         });
         localStorage.removeItem('token');
         localStorage.removeItem('refresh-token');
         localStorage.removeItem('cart-storage');
         localStorage.removeItem('wishlist-storage');
         localStorage.removeItem('address-storage');
+        localStorage.removeItem('b2bAdminToken');
+        localStorage.removeItem('b2bAdminRefreshToken');
+        localStorage.removeItem('b2badmin-auth-storage');
+
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('refresh-token');
+        sessionStorage.removeItem('cart-storage');
+        sessionStorage.removeItem('wishlist-storage');
+        sessionStorage.removeItem('address-storage');
+        sessionStorage.removeItem('b2bAdminToken');
+        sessionStorage.removeItem('b2bAdminRefreshToken');
+        sessionStorage.removeItem('b2badmin-auth-storage');
+
+        // Also logout B2B store if it is still authenticated
+        try {
+          const b2bAuth = useB2BAdminStore.getState();
+          if (b2bAuth.isAuthenticated) {
+            b2bAuth.logout();
+          }
+        } catch (e) {}
       },
 
       // Update user profile
@@ -473,12 +397,16 @@ export const useAuthStore = create(
         }
       },
 
-      // Initialize auth state from localStorage
+      // Initialize auth state from dynamic storage
       initialize: () => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (token) {
-          const storedState = JSON.parse(localStorage.getItem('auth-storage') || '{}');
-          const refreshToken = localStorage.getItem('refresh-token');
+          const storedState = JSON.parse(
+            localStorage.getItem('auth-storage') || 
+            sessionStorage.getItem('auth-storage') || 
+            '{}'
+          );
+          const refreshToken = localStorage.getItem('refresh-token') || sessionStorage.getItem('refresh-token');
           if (storedState.state?.user) {
             set({
               user: storedState.state.user,
@@ -486,6 +414,7 @@ export const useAuthStore = create(
               refreshToken: refreshToken || null,
               isAuthenticated: true,
               isLoading: false, // Reset stale disk-persisted loading state
+              rememberMe: storedState.state.rememberMe || false,
             });
           }
         } else {
@@ -495,13 +424,14 @@ export const useAuthStore = create(
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => dynamicAuthStorage),
       partialize: (state) => ({
         user: state.user,
         token: state.token,
         refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
         pendingEmail: state.pendingEmail,
+        rememberMe: state.rememberMe,
       }), // Exclude loading UI state from persistence
     }
   )

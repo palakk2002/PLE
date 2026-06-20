@@ -68,7 +68,7 @@ export const useUserNotificationStore = create((set, get) => ({
       }));
     } catch (error) {
       console.error("Failed to fetch user notifications:", error);
-      set({ isLoading: false });
+      set({ isLoading: false, hasFetched: true });
     }
   },
 

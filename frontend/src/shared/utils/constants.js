@@ -1,5 +1,7 @@
 // API Configuration
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+export const AUTH_REDIRECT_LOCK_KEY = import.meta.env.VITE_AUTH_REDIRECT_LOCK_KEY || 'auth-redirect-lock';
+export const AUTH_REDIRECT_LOCK_MS = Number(import.meta.env.VITE_AUTH_REDIRECT_LOCK_MS || 1500);
 
 // App Constants
 export const APP_NAME = 'Appzeto multi vendor E-commerce';

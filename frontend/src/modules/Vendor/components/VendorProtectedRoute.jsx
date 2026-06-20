@@ -28,16 +28,12 @@ const VendorProtectedRoute = ({ children }) => {
   }
 
   if (isExpired) {
-    localStorage.removeItem('vendor-token');
-    localStorage.removeItem('vendor-refresh-token');
-    localStorage.removeItem('vendor-auth-storage');
+    useVendorAuthStore.getState().logout();
     return <Navigate to="/vendor/login" state={{ from: location }} replace />;
   }
 
   if (role && role !== 'vendor') {
-    localStorage.removeItem('vendor-token');
-    localStorage.removeItem('vendor-refresh-token');
-    localStorage.removeItem('vendor-auth-storage');
+    useVendorAuthStore.getState().logout();
     return <Navigate to="/vendor/login" state={{ from: location }} replace />;
   }
 

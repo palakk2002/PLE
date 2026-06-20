@@ -7,12 +7,12 @@ import asyncHandler from '../utils/asyncHandler.js';
  * Optionally pass allowedRoles to restrict access
  */
 export const authenticate = asyncHandler(async (req, res, next) => {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const token = req.cookies?.accessToken || req.header('Authorization')?.replace('Bearer ', '');
+    
+    if (!token) {
         throw new ApiError(401, 'Authentication required. No token provided.');
     }
 
-    const token = authHeader.split(' ')[1];
     try {
         const decoded = verifyAccessToken(token);
         req.user = decoded; // { id, role, email }

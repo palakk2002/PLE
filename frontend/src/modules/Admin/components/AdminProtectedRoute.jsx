@@ -28,16 +28,12 @@ const AdminProtectedRoute = ({ children }) => {
   }
 
   if (isExpired) {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminRefreshToken');
-    localStorage.removeItem('admin-auth-storage');
+    useAdminAuthStore.getState().logout();
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 
   if (role && role !== 'admin' && role !== 'superadmin') {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminRefreshToken');
-    localStorage.removeItem('admin-auth-storage');
+    useAdminAuthStore.getState().logout();
     return <Navigate to="/admin/login" state={{ from: location }} replace />;
   }
 

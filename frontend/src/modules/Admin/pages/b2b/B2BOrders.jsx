@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   FiSearch,
   FiEye,
@@ -21,131 +21,56 @@ import Badge from "../../../../shared/components/Badge";
 import AnimatedSelect from "../../components/AnimatedSelect";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import toast from "react-hot-toast";
-
-const initialB2BOrders = [
-  {
-    id: "B2B-ORD-1001",
-    businessName: "Rajesh Wholesale Traders",
-    gstin: "27AABCR4821M1Z3",
-    date: "2026-05-20",
-    status: "Processing",
-    paymentTerms: "Net 30",
-    paymentStatus: "Unpaid",
-    totalAmount: 215500,
-    shippingAddress: "12, Crawford Market, Mumbai, Maharashtra - 400001",
-    items: [
-      { name: "Premium Leather Office Chair", qty: 10, price: 8000 },
-      { name: "Adjustable Standing Desk", qty: 5, price: 19500 },
-      { name: "A5 Hardcover Journal", qty: 100, price: 380 },
-    ],
-  },
-  {
-    id: "B2B-ORD-1002",
-    businessName: "Gupta Retail Mart",
-    gstin: "07AAACG9871A1Z9",
-    date: "2026-05-22",
-    status: "Pending",
-    paymentTerms: "Net 15",
-    paymentStatus: "Unpaid",
-    totalAmount: 77250,
-    shippingAddress: "45, Karol Bagh, New Delhi, Delhi - 110005",
-    items: [
-      { name: "Smart WiFi LED Bulb (Pack of 10)", qty: 25, price: 1650 },
-      { name: "Ergonomic Keyboard & Mouse Combo", qty: 15, price: 2400 },
-    ],
-  },
-  {
-    id: "B2B-ORD-1003",
-    businessName: "South India Distributors",
-    gstin: "33AAAAS1212B1Z7",
-    date: "2026-05-18",
-    status: "Shipped",
-    paymentTerms: "Net 45",
-    paymentStatus: "Paid",
-    totalAmount: 600000,
-    shippingAddress: "89, Mount Road, Chennai, Tamil Nadu - 600002",
-    items: [
-      { name: "Noise Cancelling Wireless Headphones", qty: 50, price: 5800 },
-      { name: "USB-C Multi-port Hub (8-in-1)", qty: 100, price: 3100 },
-    ],
-  },
-  {
-    id: "B2B-ORD-1004",
-    businessName: "Apex Global Sourcing",
-    gstin: "29AAACA9922P1Z6",
-    date: "2026-05-15",
-    status: "Delivered",
-    paymentTerms: "Net 45",
-    paymentStatus: "Paid",
-    totalAmount: 922000,
-    shippingAddress: "402, Outer Ring Road, Bangalore, Karnataka - 560103",
-    items: [
-      { name: "Premium Leather Office Chair", qty: 50, price: 7500 },
-      { name: "Adjustable Standing Desk", qty: 20, price: 18500 },
-      { name: "Double Walled Stainless Steel Bottle (1L)", qty: 200, price: 885 },
-    ],
-  },
-  {
-    id: "B2B-ORD-1005",
-    businessName: "Jaipur Fab House",
-    gstin: "08AAACJ4411C1ZY",
-    date: "2026-05-19",
-    status: "Delivered",
-    paymentTerms: "Net 30",
-    paymentStatus: "Paid",
-    totalAmount: 54000,
-    shippingAddress: "D-25, Johari Bazar, Jaipur, Rajasthan - 302003",
-    items: [
-      { name: "Waterproof Sports Backpack (35L)", qty: 30, price: 1800 },
-    ],
-  },
-  {
-    id: "B2B-ORD-1006",
-    businessName: "Rajesh Wholesale Traders",
-    gstin: "27AABCR4821M1Z3",
-    date: "2026-05-10",
-    status: "Delivered",
-    paymentTerms: "Net 30",
-    paymentStatus: "Paid",
-    totalAmount: 95000,
-    shippingAddress: "12, Crawford Market, Mumbai, Maharashtra - 400001",
-    items: [
-      { name: "Double Walled Stainless Steel Bottle (1L)", qty: 100, price: 950 },
-    ],
-  },
-  {
-    id: "B2B-ORD-1007",
-    businessName: "South India Distributors",
-    gstin: "33AAAAS1212B1Z7",
-    date: "2026-05-23",
-    status: "Pending",
-    paymentTerms: "Net 45",
-    paymentStatus: "Unpaid",
-    totalAmount: 176000,
-    shippingAddress: "89, Mount Road, Chennai, Tamil Nadu - 600002",
-    items: [
-      { name: "Ergonomic Keyboard & Mouse Combo", qty: 80, price: 2200 },
-    ],
-  },
-  {
-    id: "B2B-ORD-1008",
-    businessName: "Gupta Retail Mart",
-    gstin: "07AAACG9871A1Z9",
-    date: "2026-05-14",
-    status: "Delivered",
-    paymentTerms: "Net 15",
-    paymentStatus: "Paid",
-    totalAmount: 106500,
-    shippingAddress: "45, Karol Bagh, New Delhi, Delhi - 110005",
-    items: [
-      { name: "A5 Hardcover Journal", qty: 150, price: 380 },
-      { name: "Smart WiFi LED Bulb (Pack of 10)", qty: 30, price: 1650 },
-    ],
-  },
-];
+import api from "../../../../shared/utils/api";
 
 const B2BOrders = () => {
-  const [orders, setOrders] = useState(initialB2BOrders);
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get('/admin/purchase-orders');
+      if (res && res.data) {
+        const mappedOrders = res.data.map(po => ({
+          id: po.poNumber,
+          backendId: po._id,
+          businessName: po.companyDetails?.name || 'Unknown Company',
+          gstin: po.companyDetails?.gstin || 'N/A',
+          date: po.createdAt,
+          status: mapBackendStatusToFrontend(po.status),
+          paymentTerms: po.terms?.paymentTerms || 'NET 30 Days',
+          paymentStatus: po.paymentStatus || 'Unpaid',
+          totalAmount: po.pricing?.total || 0,
+          shippingAddress: po.deliveryInformation?.shippingAddress || po.companyDetails?.address || 'N/A',
+          items: [
+            { 
+              name: po.productDetails?.name || 'Product', 
+              qty: po.productDetails?.qty || 1, 
+              price: po.productDetails?.unitPrice || po.pricing?.subtotal || 0 
+            }
+          ],
+        }));
+        setOrders(mappedOrders);
+      }
+    } catch (err) {
+      toast.error('Failed to fetch B2B Orders');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const mapBackendStatusToFrontend = (status) => {
+    if (status === 'Sent') return 'Processing';
+    if (status === 'Approved') return 'Shipped';
+    if (status === 'Completed') return 'Delivered';
+    if (status === 'Cancelled') return 'Pending';
+    return status || 'Pending';
+  };
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedPaymentTerms, setSelectedPaymentTerms] = useState("all");
@@ -317,6 +242,11 @@ const B2BOrders = () => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
+      {loading && (
+        <div className="absolute inset-0 bg-white/50 z-10 flex items-center justify-center rounded-2xl">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+      )}
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1.5">

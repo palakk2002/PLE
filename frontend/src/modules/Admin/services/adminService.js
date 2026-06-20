@@ -311,3 +311,24 @@ export const updatePolicy = (type, content) =>
 export const getAdminNotifications = (params) => api.get('/admin/notifications', { params });
 export const markNotificationAsRead = (id) => api.put(`/admin/notifications/${id}/read`);
 export const markAllNotificationsAsRead = () => api.put('/admin/notifications/read-all');
+
+// ─── B2B Users ────────────────────────────────────────────────────────────────// B2B User Endpoints
+export const getAllB2BUsers = async (params) => {
+  const res = await api.get('/admin/b2b-users', { params });
+  return res.data;
+};
+
+export const getB2BUserById = async (id) => {
+  const res = await api.get(`/admin/b2b-users/${id}`);
+  return res.data;
+};
+
+export const updateB2BUserStatus = async (id, status, reason) => {
+  const res = await api.patch(`/admin/b2b-users/${id}/status`, { status, reason });
+  return res.data;
+};
+
+export const deleteB2BUser = async (id) => {
+  const res = await api.delete(`/admin/b2b-users/${id}`);
+  return res.data;
+};

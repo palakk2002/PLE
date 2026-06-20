@@ -20,14 +20,17 @@ import { b2bEnquiryStatuses, b2bPriorities } from "../../data/b2bEnquiryMockData
 import { formatPrice } from "../../../../shared/utils/helpers";
 import Badge from "../../../../shared/components/Badge";
 import toast from "react-hot-toast";
+import socketService from "../../../../shared/utils/socket";
 
 const B2BEnquiryDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { enquiries, getEnquiryById, updateEnquiryStatus } = useVendorB2BStore();
+  const { enquiries, getEnquiryById, updateEnquiryStatus, sendNegotiationMessage } = useVendorB2BStore();
 
   const [enquiry, setEnquiry] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [chatMessage, setChatMessage] = useState("");
+  const [sendingChat, setSendingChat] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -48,12 +51,52 @@ const B2BEnquiryDetail = () => {
     };
 
     fetchEnquiry();
+
+    // Setup Socket connection
+    const socket = socketService.getSocket();
+    if (socket && id) {
+      socket.emit("join_rfq_room", id);
+      
+      const handleNewMessage = (data) => {
+        if (String(data.rfqId) === String(id)) {
+          setEnquiry((prev) => {
+            if (!prev) return prev;
+            const updated = { ...prev };
+            // Append message to active quote
+            if (updated.quotes && updated.quotes.length > 0) {
+              const activeQuote = updated.quotes[0];
+              activeQuote.messages = [...(activeQuote.messages || []), data.message];
+            }
+            return updated;
+          });
+        }
+      };
+
+      // Depending on backend emits
+      socket.on("new_admin_message", handleNewMessage);
+      socket.on("new_message", handleNewMessage); // from directRfq
+    }
+
+    return () => {
+      if (socket && id) {
+        socket.emit("leave_rfq_room", id);
+        socket.off("new_admin_message");
+        socket.off("new_message");
+      }
+    };
   }, [id, getEnquiryById, updateEnquiryStatus, enquiries]);
 
-  const handleStatusChange = (newStatus) => {
+  const handleStatusChange = async (newStatus) => {
     if (!enquiry) return;
-    updateEnquiryStatus(enquiry.id, newStatus);
-    toast.success(`Enquiry status updated to ${newStatus}`);
+    if (newStatus === "rejected") {
+      const notes = prompt("Please enter a reason for declining this RFQ request:", "Capacity limits / Out of stock");
+      if (notes === null) return; // Vendor cancelled the prompt
+      await updateEnquiryStatus(enquiry.id, "rejected", notes);
+      toast.success("RFQ invitation declined successfully.");
+    } else {
+      await updateEnquiryStatus(enquiry.id, newStatus);
+      toast.success(`Enquiry status updated to ${newStatus}`);
+    }
   };
 
   const getStatusVariant = (status) => {
@@ -269,6 +312,95 @@ const B2BEnquiryDetail = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Negotiation Chat with Super Admin */}
+          {enquiry.quotes && enquiry.quotes.length > 0 && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+              <div className="p-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
+                <div>
+                  <h2 className="font-semibold text-gray-800 flex items-center gap-2 text-base">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    Direct Sourcing Negotiation (Super Admin)
+                  </h2>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Discuss pricing, warranty terms, and logistics directly. This chat is completely private from the B2B buyer.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="p-4 max-h-[350px] overflow-y-auto space-y-3 bg-gray-50/55 flex flex-col">
+                {(() => {
+                  const activeQuote = enquiry.quotes[0];
+                  const messages = activeQuote?.messages || [];
+                  if (messages.length === 0) {
+                    return (
+                      <div className="text-center py-8 text-gray-400 text-sm">
+                        No messages yet. Send a message to start negotiation or clarify quotation details with the Super Admin.
+                      </div>
+                    );
+                  }
+                  return messages.map((msg, index) => {
+                    const isMe = msg.senderType === 'Vendor';
+                    return (
+                      <div
+                        key={index}
+                        className={`flex flex-col max-w-[80%] ${
+                          isMe ? "self-end items-end" : "self-start items-start"
+                        }`}
+                      >
+                        <span className="text-[10px] text-gray-400 mb-0.5 px-1 font-semibold">
+                          {msg.senderName} • {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                        <div
+                          className={`p-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                            isMe
+                              ? "bg-amber-800 text-white rounded-tr-none"
+                              : "bg-white text-gray-800 border border-gray-200 rounded-tl-none"
+                          }`}
+                        >
+                          {msg.message}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  if (!chatMessage.trim()) return;
+                  setSendingChat(true);
+                  try {
+                    await sendNegotiationMessage(enquiry.id, chatMessage.trim());
+                    setChatMessage("");
+                    toast.success("Negotiation message sent.");
+                  } catch (err) {
+                    toast.error("Failed to send message.");
+                  } finally {
+                    setSendingChat(false);
+                  }
+                }}
+                className="p-3 border-t border-gray-200 bg-white flex gap-2"
+              >
+                <input
+                  type="text"
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  placeholder="Type your message to Super Admin..."
+                  disabled={sendingChat}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50"
+                />
+                <button
+                  type="submit"
+                  disabled={sendingChat || !chatMessage.trim()}
+                  className="px-4 py-2 bg-amber-800 text-white text-sm font-semibold rounded-lg hover:bg-amber-900 transition-all disabled:opacity-50 shadow-sm flex items-center justify-center min-w-[70px]"
+                >
+                  {sendingChat ? "Sending..." : "Send"}
+                </button>
+              </form>
             </div>
           )}
         </div>

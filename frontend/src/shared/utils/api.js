@@ -1,6 +1,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { API_BASE_URL } from './constants';
+import { API_BASE_URL, AUTH_REDIRECT_LOCK_KEY, AUTH_REDIRECT_LOCK_MS } from './constants';
 import { products as mockProductsList } from '../../data/products';
 
 
@@ -28,6 +28,14 @@ const AUTH_SCOPES = {
     persistKey: 'delivery-auth-storage',
     loginPath: '/delivery/login',
     areaPrefix: '/delivery',
+  },
+  b2bAdmin: {
+    prefix: '/b2b-user',
+    accessKey: 'b2bAdminToken',
+    refreshKey: 'b2bAdminRefreshToken', // Not implemented yet, but keeping for structure
+    persistKey: 'b2badmin-auth-storage', // Need to match exactly what is in b2bAdminStore.js
+    loginPath: '/login',
+    areaPrefix: '/b2b-dashboard',
   },
   user: {
     prefix: '/user',
@@ -65,8 +73,25 @@ const api = axios.create({
   },
 });
 
-const AUTH_REDIRECT_LOCK_KEY = 'auth-redirect-lock';
-const AUTH_REDIRECT_LOCK_MS = 1500;
+const getStorageItem = (key) => {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem(key) || sessionStorage.getItem(key);
+};
+
+const setStorageItem = (key, value) => {
+  if (typeof window === 'undefined') return;
+  if (localStorage.getItem(key) !== null) {
+    localStorage.setItem(key, value);
+  } else {
+    sessionStorage.setItem(key, value);
+  }
+};
+
+const removeStorageItem = (key) => {
+  if (typeof window === 'undefined') return;
+  localStorage.removeItem(key);
+  sessionStorage.removeItem(key);
+};
 
 const redirectTo = (path) => {
   if (typeof window === 'undefined') return;
@@ -85,6 +110,7 @@ const getScopeFromUrl = (url = '') => {
   if (url.startsWith('/admin')) return 'admin';
   if (url.startsWith('/vendor')) return 'vendor';
   if (url.startsWith('/delivery')) return 'delivery';
+  if (url.startsWith('/b2b-user')) return 'b2bAdmin';
   return 'user';
 };
 
@@ -92,6 +118,7 @@ const getScopeFromPath = (path = window.location.pathname) => {
   if (path.startsWith('/admin')) return 'admin';
   if (path.startsWith('/vendor')) return 'vendor';
   if (path.startsWith('/delivery')) return 'delivery';
+  if (path.startsWith('/b2b-dashboard')) return 'b2bAdmin';
   return 'user';
 };
 
@@ -100,18 +127,49 @@ const isExcludedAuthRequest = (scope, url = '') => {
   return EXCLUDED_AUTH_SUFFIXES.some((suffix) => url.startsWith(`${prefix}${suffix}`));
 };
 
-const clearScopeAuth = (scope) => {
+const clearScopeAuth = async (scope) => {
   const config = AUTH_SCOPES[scope];
-  localStorage.removeItem(config.accessKey);
-  localStorage.removeItem(config.refreshKey);
-  localStorage.removeItem(config.persistKey);
+  removeStorageItem(config.accessKey);
+  removeStorageItem(config.refreshKey);
+  removeStorageItem(config.persistKey);
+  
+  try {
+    if (scope === 'b2bAdmin') {
+      const { useB2BAdminStore } = await import('../../modules/B2BAdmin/store/b2bAdminStore');
+      if (useB2BAdminStore && useB2BAdminStore.getState) {
+        useB2BAdminStore.getState().logout();
+      }
+    } else if (scope === 'user') {
+      const { useAuthStore } = await import('../store/authStore');
+      if (useAuthStore && useAuthStore.getState) {
+        useAuthStore.getState().logout();
+      }
+    } else if (scope === 'admin') {
+      const { useAdminAuthStore } = await import('../../modules/Admin/store/adminStore');
+      if (useAdminAuthStore && useAdminAuthStore.getState) {
+        useAdminAuthStore.getState().logout();
+      }
+    } else if (scope === 'vendor') {
+      const { useVendorAuthStore } = await import('../../modules/Vendor/store/vendorAuthStore');
+      if (useVendorAuthStore && useVendorAuthStore.getState) {
+        useVendorAuthStore.getState().logout();
+      }
+    } else if (scope === 'delivery') {
+      const { useDeliveryAuthStore } = await import('../../modules/Delivery/store/deliveryStore');
+      if (useDeliveryAuthStore && useDeliveryAuthStore.getState) {
+        useDeliveryAuthStore.getState().logout();
+      }
+    }
+  } catch (err) {
+    console.error(`Failed to dynamically import and logout store for scope: ${scope}`, err);
+  }
 };
 
 const shouldAttemptRefresh = (error, scope) => {
   if (error?.response?.status !== 401) return false;
   if (!scope || !AUTH_SCOPES[scope]) return false;
 
-  const refreshToken = localStorage.getItem(AUTH_SCOPES[scope].refreshKey);
+  const refreshToken = getStorageItem(AUTH_SCOPES[scope].refreshKey);
   if (!refreshToken) return false;
 
   const originalRequest = error.config || {};
@@ -129,7 +187,7 @@ const runRefresh = async (scope) => {
   }
 
   const config = AUTH_SCOPES[scope];
-  const currentRefreshToken = localStorage.getItem(config.refreshKey);
+  const currentRefreshToken = getStorageItem(config.refreshKey);
   if (!currentRefreshToken) {
     throw new Error('No refresh token available.');
   }
@@ -146,8 +204,8 @@ const runRefresh = async (scope) => {
         throw new Error('Invalid refresh response from server.');
       }
 
-      localStorage.setItem(config.accessKey, nextAccessToken);
-      localStorage.setItem(config.refreshKey, nextRefreshToken);
+      setStorageItem(config.accessKey, nextAccessToken);
+      setStorageItem(config.refreshKey, nextRefreshToken);
 
       return nextAccessToken;
     })
@@ -192,7 +250,7 @@ const clearCacheByUrlMatch = (url = '') => {
 api.interceptors.request.use(
   (config) => {
     const scope = getScopeFromUrl(config.url || '');
-    const token = localStorage.getItem(AUTH_SCOPES[scope].accessKey);
+    const token = getStorageItem(AUTH_SCOPES[scope].accessKey);
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -375,7 +433,7 @@ api.interceptors.response.use(
     const pathScope = getScopeFromPath(currentPath);
 
     // Catch mock session calls immediately to bypass standard error toasts, redirects, and logouts
-    const activeToken = scope && AUTH_SCOPES[scope] ? localStorage.getItem(AUTH_SCOPES[scope].accessKey) : null;
+    const activeToken = scope && AUTH_SCOPES[scope] ? getStorageItem(AUTH_SCOPES[scope].accessKey) : null;
     if (activeToken && activeToken.startsWith('mock.')) {
       if (!originalRequest.url.includes('/vendors/all')) { console.warn("Mock session active, intercepting network failure for:", originalRequest.url); }
       const url = originalRequest.url || '';
@@ -527,7 +585,7 @@ api.interceptors.response.use(
 
     if (error.response?.status === 401) {
       const activeScope = pathScope;
-      clearScopeAuth(scope);
+      await clearScopeAuth(scope);
       if (scope !== activeScope) {
         return Promise.reject(error);
       }

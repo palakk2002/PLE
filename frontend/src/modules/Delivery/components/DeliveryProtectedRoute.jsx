@@ -28,16 +28,12 @@ const DeliveryProtectedRoute = ({ children }) => {
   }
 
   if (isExpired) {
-    localStorage.removeItem('delivery-token');
-    localStorage.removeItem('delivery-refresh-token');
-    localStorage.removeItem('delivery-auth-storage');
+    useDeliveryAuthStore.getState().logout();
     return <Navigate to="/delivery/login" state={{ from: location }} replace />;
   }
 
   if (role && role !== 'delivery') {
-    localStorage.removeItem('delivery-token');
-    localStorage.removeItem('delivery-refresh-token');
-    localStorage.removeItem('delivery-auth-storage');
+    useDeliveryAuthStore.getState().logout();
     return <Navigate to="/delivery/login" state={{ from: location }} replace />;
   }
 

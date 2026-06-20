@@ -8,7 +8,17 @@ const userSchema = new mongoose.Schema(
         password: { type: String, required: true, select: false },
         phone: { type: String, trim: true },
         avatar: { type: String }, // Cloudinary URL
-        role: { type: String, enum: ['customer', 'delivery'], default: 'customer' },
+        role: { type: String, enum: ['customer', 'delivery', 'b2bAdmin', 'b2bEmployee'], default: 'customer' },
+        
+        // B2B Specific Fields
+        companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'B2BCompany' },
+        b2bRole: { type: String, enum: ['Admin', 'Manager', 'Staff'], default: 'Staff' },
+        designation: { type: String, trim: true },
+        department: { type: String, trim: true },
+        address: { type: String, trim: true },
+        firstName: { type: String, trim: true },
+        lastName: { type: String, trim: true },
+
         isVerified: { type: Boolean, default: false },
         isActive: { type: Boolean, default: true },
         otp: { type: String, select: false },
@@ -20,19 +30,6 @@ const userSchema = new mongoose.Schema(
         refreshTokenExpiresAt: { type: Date, select: false },
         passwordResetToken: { type: String, select: false },
         passwordResetExpiry: { type: Date, select: false },
-        
-        // B2B business verification fields
-        companyName: { type: String, trim: true },
-        businessType: { type: String, enum: ['Retailer', 'Distributor', 'Wholesaler', 'Manufacturer', 'Reseller', 'Importer', 'Exporter', 'Proprietorship', 'Partnership Firm', 'LLP (Limited Liability Partnership)', 'Private Limited Company', 'Public Limited Company', 'One Person Company (OPC)', 'Other'], trim: true },
-        gstNumber: { type: String, trim: true },
-        gstCertificate: { type: String }, // Cloudinary URL
-        businessAddress: { type: String, trim: true },
-        city: { type: String, trim: true },
-        state: { type: String, trim: true },
-        pincode: { type: String, trim: true },
-        yearsInBusiness: { type: Number },
-        monthlyPurchaseVolume: { type: String },
-        verificationStatus: { type: String, enum: ['Pending Verification', 'Approved', 'Rejected'] },
     },
     { timestamps: true }
 );

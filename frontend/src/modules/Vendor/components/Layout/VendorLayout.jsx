@@ -19,16 +19,20 @@ const VendorLayout = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
-      <VendorSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="print:hidden">
+        <VendorSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:ml-64 min-w-0 max-w-full overflow-x-hidden">
+      <div className="flex-1 flex flex-col lg:ml-64 min-w-0 max-w-full overflow-x-hidden print:ml-0">
         {/* Header */}
-        <VendorHeader onMenuClick={() => setSidebarOpen(true)} />
+        <div className="print:hidden">
+          <VendorHeader onMenuClick={() => setSidebarOpen(true)} />
+        </div>
 
         {/* Page Content - with dynamic padding to account for fixed header and bottom nav */}
         <main
-          className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto overflow-x-hidden lg:pb-6 scrollbar-admin w-full min-w-0"
+          className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto overflow-x-hidden lg:pb-6 scrollbar-admin w-full min-w-0 print:p-0 print:m-0"
           style={{
             // Mobile: Use calculated heights with safe area support
             // Desktop: use the same computed top spacing for consistency
@@ -43,7 +47,9 @@ const VendorLayout = () => {
       </div>
 
       {/* Bottom Navigation - Mobile Only */}
-      <VendorBottomNav />
+      <div className="print:hidden">
+        <VendorBottomNav />
+      </div>
     </div>
   );
 };

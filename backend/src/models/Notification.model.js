@@ -2,7 +2,11 @@ import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema(
     {
-        recipientId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+        recipientId: { 
+            type: mongoose.Schema.Types.ObjectId, 
+            required: function() { return this.recipientType !== 'admin'; }, 
+            index: true 
+        },
         recipientType: { type: String, enum: ['user', 'vendor', 'delivery', 'admin'], required: true },
         title: { type: String, required: true },
         message: { type: String, required: true },

@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   FiSearch,
   FiEye,
@@ -28,37 +28,76 @@ import api from "../../../../shared/utils/api";
 
 const mapDbRfqToAdminEnquiry = (rfq) => {
   const latestSellerOffer = rfq.timeline && [...rfq.timeline].reverse().find(t => t.senderType === 'seller');
+  const selectedQuote = rfq.quotations && rfq.quotations.find(q => q.status === 'Selected');
 
   return {
     id: rfq._id,
     _id: rfq._id,
     enquiryNumber: rfq.rfqId,
     status: rfq.status,
-    priority: rfq.quantity > 500 ? "High" : rfq.quantity > 100 ? "Medium" : "Low",
+    priority: rfq.priority || (rfq.quantity > 500 ? "High" : rfq.quantity > 100 ? "Medium" : "Low"),
     createdAt: rfq.createdAt,
     totalEstimatedValue: rfq.targetPrice * rfq.quantity,
     buyerMessage: rfq.requirementDetails || "No buyer message provided.",
     flagged: rfq.status === "Rejected",
     riskScore: rfq.status === "Rejected" ? 85 : 10,
     buyer: {
-      name: rfq.buyerId?.name || "Business Buyer",
-      company: rfq.buyerId?.companyName || "Apex General Enterprises",
-      email: rfq.buyerId?.email || "buyer@apex.in",
-      phone: rfq.buyerId?.phone || "9876543210",
-      address: rfq.buyerId?.businessAddress || "BKC, Mumbai",
+      name: rfq.buyerId?.name || rfq.createdByAdminId?.adminName || "Business Admin",
+      company: rfq.buyerId?.companyName || rfq.companyName || "Apex General Enterprises",
+      email: rfq.buyerId?.email || rfq.createdByAdminId?.adminEmail || "admin@company.com",
+      phone: rfq.buyerId?.phone || rfq.createdByAdminId?.adminPhone || "9876543210",
+      address: rfq.buyerId?.businessAddress || "Default Company Address",
       gstin: rfq.buyerId?.gstNumber || "27AAPCG9838F1Z1"
     },
-    seller: {
-      id: rfq.sellerId?._id || "seller-1",
-      name: rfq.sellerId?.name || "Vendor Representative",
-      storeName: rfq.sellerId?.storeName || "Fashion Hub",
-      phone: rfq.sellerId?.phone || "9876543210",
-      email: rfq.sellerId?.email || "vendor@example.com"
-    },
+    seller: (() => {
+      let sellerId = "unassigned";
+      let sellerName = "Unassigned";
+      let storeName = "Unassigned";
+      let phone = "N/A";
+      let email = "N/A";
+      let sellerIds = [];
+      let vendors = [];
+
+      if (rfq.sellerId) {
+        sellerId = rfq.sellerId._id || rfq.sellerId;
+        sellerName = rfq.sellerId.name || "Vendor Rep";
+        storeName = rfq.sellerId.storeName || "Vendor Store";
+        phone = rfq.sellerId.phone || "N/A";
+        email = rfq.sellerId.email || "N/A";
+      } else if (selectedQuote) {
+        sellerId = selectedQuote.vendorId;
+        sellerName = selectedQuote.vendorName;
+        storeName = selectedQuote.vendorName;
+      } else if (rfq.assignedVendorIds && rfq.assignedVendorIds.length > 0) {
+        const populated = rfq.assignedVendorIds.map(v => typeof v === 'object' && v ? v : null).filter(Boolean);
+        if (populated.length > 0) {
+          sellerIds = populated.map(v => v._id);
+          vendors = populated.map(v => ({ id: v._id, storeName: v.storeName }));
+          storeName = populated.map(v => v.storeName).join(', ');
+          sellerName = populated.map(v => v.name).join(', ');
+          phone = populated.map(v => v.phone).filter(Boolean).join(', ');
+          email = populated.map(v => v.email).filter(Boolean).join(', ');
+        } else {
+          sellerIds = rfq.assignedVendorIds;
+          storeName = "Assigned Vendors";
+          sellerName = "Assigned Vendors";
+        }
+      }
+
+      return {
+        id: sellerId,
+        ids: sellerIds,
+        vendors: vendors,
+        name: sellerName,
+        storeName: storeName,
+        phone: phone,
+        email: email
+      };
+    })(),
     products: [
       {
         id: rfq.productId?._id || "prod-1",
-        name: rfq.productId?.name || "Product",
+        name: rfq.productId?.name || rfq.customProductName || "Product",
         qty: rfq.quantity,
         targetPrice: rfq.targetPrice,
         subtotal: rfq.targetPrice * rfq.quantity
@@ -77,7 +116,7 @@ const mapDbRfqToAdminEnquiry = (rfq) => {
       validUntil: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
       items: [
         {
-          name: rfq.productId?.name || "Product",
+          name: rfq.productId?.name || rfq.customProductName || "Product",
           qty: latestSellerOffer.quantity,
           quotedPrice: latestSellerOffer.price,
           subtotal: latestSellerOffer.price * latestSellerOffer.quantity
@@ -91,24 +130,53 @@ const mapDbRfqToAdminEnquiry = (rfq) => {
 
 const AdminB2BEnquiries = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const statusParam = searchParams.get("status");
+
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState(statusParam || "all");
   const [selectedPriority, setSelectedPriority] = useState("all");
   const [selectedSeller, setSelectedSeller] = useState("all");
+  const [selectedCompany, setSelectedCompany] = useState("all");
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+
+  useEffect(() => {
+    if (statusParam) {
+      setSelectedStatus(statusParam);
+    } else {
+      setSelectedStatus("all");
+    }
+  }, [statusParam]);
 
   const fetchEnquiries = async () => {
     try {
       setLoading(true);
       const res = await api.get("/admin/rfq");
-      if (res && res.data) {
-        setEnquiries(res.data.map(mapDbRfqToAdminEnquiry));
+      
+      let dataToMap = [];
+      if (Array.isArray(res)) {
+        dataToMap = res;
+      } else if (res && Array.isArray(res.data)) {
+        dataToMap = res.data;
+      } else if (res && res.data && Array.isArray(res.data.data)) {
+        dataToMap = res.data.data;
       }
+      
+      const mapped = dataToMap.map(rfq => {
+        try {
+          return mapDbRfqToAdminEnquiry(rfq);
+        } catch (err) {
+          console.error("Error mapping RFQ:", rfq._id, err);
+          return null;
+        }
+      }).filter(Boolean);
+      
+      setEnquiries(mapped);
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to fetch Admin RFQs");
+      console.error("fetchEnquiries error:", error);
+      toast.error(error?.response?.data?.message || error.message || "Failed to fetch Admin RFQs");
     } finally {
       setLoading(false);
     }
@@ -122,35 +190,63 @@ const AdminB2BEnquiries = () => {
   const sellerList = useMemo(() => {
     const sellersMap = {};
     enquiries.forEach((e) => {
-      sellersMap[e.seller.id] = e.seller.storeName;
+      if (e.seller.vendors && e.seller.vendors.length > 0) {
+        e.seller.vendors.forEach((v) => {
+          sellersMap[v.id] = v.storeName;
+        });
+      } else if (e.seller.id && e.seller.id !== "unassigned") {
+        sellersMap[e.seller.id] = e.seller.storeName;
+      }
     });
     return Object.entries(sellersMap).map(([id, name]) => ({ value: id, label: name }));
   }, [enquiries]);
 
+  // Derive unique companies list for filters dropdown
+  const companyList = useMemo(() => {
+    const companiesMap = {};
+    enquiries.forEach((e) => {
+      if (e.buyer && e.buyer.company) {
+        companiesMap[e.buyer.company] = e.buyer.company;
+      }
+    });
+    return Object.values(companiesMap).sort().map(name => ({ value: name, label: name }));
+  }, [enquiries]);
+
   // Handle status update directly from quick preview drawer
-  const handleUpdateStatus = (id, newStatus) => {
-    setEnquiries((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              status: newStatus,
-              responseHistory: [
-                ...item.responseHistory,
-                {
-                  stage: `Status updated to ${newStatus}`,
-                  user: "Admin",
-                  date: new Date().toISOString(),
-                  comment: `Status manually changed by administrator.`
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      const res = await api.post(`/admin/rfq/${id}/status`, { 
+        status: newStatus, 
+        notes: `Status manually changed to ${newStatus} from quick preview drawer.` 
+      });
+      if (res.success || res.data) {
+        setEnquiries((prev) =>
+          prev.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  status: newStatus,
+                  responseHistory: [
+                    ...item.responseHistory,
+                    {
+                      stage: `Status updated to ${newStatus}`,
+                      user: "Admin",
+                      date: new Date().toISOString(),
+                      comment: `Status manually changed by administrator.`
+                    }
+                  ]
                 }
-              ]
-            }
-          : item
-      )
-    );
-    toast.success(`Enquiry status updated to ${newStatus}`);
-    if (selectedEnquiry && selectedEnquiry.id === id) {
-      setSelectedEnquiry((prev) => ({ ...prev, status: newStatus }));
+              : item
+          )
+        );
+        toast.success(`Enquiry status updated to ${newStatus}`);
+        if (selectedEnquiry && selectedEnquiry.id === id) {
+          setSelectedEnquiry((prev) => ({ ...prev, status: newStatus }));
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update RFQ status");
     }
   };
 
@@ -202,9 +298,9 @@ const AdminB2BEnquiries = () => {
   const stats = useMemo(() => {
     return {
       total: enquiries.length,
-      pending: enquiries.filter((e) => e.status === "Pending").length,
-      responded: enquiries.filter((e) => e.status === "Seller Responded" || e.status === "Quotation Sent").length,
-      approved: enquiries.filter((e) => e.status === "Approved").length,
+      pending: enquiries.filter((e) => e.status === "Pending" || e.status === "Submitted" || e.status === "Under Review" || e.status === "Under Super Admin Review" || e.status === "Vendor Evaluation" || e.status === "Vendor Negotiation").length,
+      responded: enquiries.filter((e) => e.status === "Seller Responded" || e.status === "Quotation Sent" || e.status === "Sent To Vendors" || e.status === "Quotation Received" || e.status === "Quotations Received" || e.status === "Quotation Review" || e.status === "Vendor Evaluation" || e.status === "Vendor Negotiation").length,
+      approved: enquiries.filter((e) => e.status === "Approved" || e.status === "Completed" || e.status === "Purchase Order Generated" || e.status === "Vendor Selected" || e.status === "Awaiting B2B Confirmation" || e.status === "Awaiting B2B Approval").length,
       rejected: enquiries.filter((e) => e.status === "Rejected").length,
       spam: enquiries.filter((e) => e.flagged).length,
       totalValue: enquiries.reduce((acc, e) => acc + (e.totalEstimatedValue || 0), 0)
@@ -221,13 +317,35 @@ const AdminB2BEnquiries = () => {
         item.seller.storeName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.products.some((p) => p.name.toLowerCase().includes(searchQuery.toLowerCase()));
 
-      const matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
-      const matchesPriority = selectedPriority === "all" || item.priority === selectedPriority;
-      const matchesSeller = selectedSeller === "all" || item.seller.id === selectedSeller;
+      let matchesStatus = selectedStatus === "all" || item.status === selectedStatus;
+      
+      // Map alias statuses for sidebar and dashboard compatibility
+      if (selectedStatus === "Submitted" || selectedStatus === "Pending") {
+        matchesStatus = item.status === "Submitted" || item.status === "Pending" || item.status === "Draft";
+      } else if (selectedStatus === "Under Review") {
+        matchesStatus = item.status === "Under Review" || item.status === "Under Super Admin Review";
+      } else if (selectedStatus === "Vendor Negotiation" || selectedStatus === "Negotiations" || selectedStatus === "Negotiation In Progress") {
+        matchesStatus = item.status === "Vendor Negotiation";
+      } else if (selectedStatus === "Sent To Vendors" || selectedStatus === "Vendor RFQs") {
+        matchesStatus = ["Sent To Vendors", "Quotations Received", "Quotation Received", "Vendor Evaluation", "Vendor Negotiation"].includes(item.status);
+      } else if (selectedStatus === "Quotations Received" || selectedStatus === "Quotation Received" || selectedStatus === "Quotations") {
+        matchesStatus = item.status === "Quotations Received" || item.status === "Quotation Received";
+      } else if (selectedStatus === "Vendor Selected" || selectedStatus === "Vendor Selection" || selectedStatus === "Awaiting B2B Confirmation") {
+        matchesStatus = item.status === "Vendor Selected" || item.status === "Vendor Evaluation";
+      } else if (selectedStatus === "Purchase Order Generated" || selectedStatus === "Purchase Orders" || selectedStatus === "Completed") {
+        matchesStatus = item.status === "Purchase Order Generated" || item.status === "Completed" || item.status === "Awaiting B2B Approval";
+      }
 
-      return matchesSearch && matchesStatus && matchesPriority && matchesSeller;
+      const matchesPriority = selectedPriority === "all" || item.priority.toLowerCase() === selectedPriority.toLowerCase();
+      const matchesSeller = selectedSeller === "all" || 
+        item.seller.id === selectedSeller ||
+        (item.seller.ids && item.seller.ids.includes(selectedSeller));
+      
+      const matchesCompany = selectedCompany === "all" || item.buyer.company === selectedCompany;
+
+      return matchesSearch && matchesStatus && matchesPriority && matchesSeller && matchesCompany;
     });
-  }, [enquiries, searchQuery, selectedStatus, selectedPriority, selectedSeller]);
+  }, [enquiries, searchQuery, selectedStatus, selectedPriority, selectedSeller, selectedCompany]);
 
   const columns = [
     {
@@ -303,10 +421,8 @@ const AdminB2BEnquiries = () => {
       sortable: true,
       render: (value) => {
         let variant = "warning";
-        if (value === "Under Review") variant = "info";
-        if (value === "Seller Responded") variant = "info";
-        if (value === "Quotation Sent") variant = "success";
-        if (value === "Approved") variant = "success";
+        if (["Under Review", "Seller Responded", "Quotations Received", "Vendor Evaluation", "Vendor Negotiation"].includes(value)) variant = "info";
+        if (["Quotation Sent", "Approved", "Vendor Selected", "Awaiting B2B Approval", "Purchase Order Generated", "Completed"].includes(value)) variant = "success";
         if (value === "Rejected") variant = "danger";
         return <Badge variant={variant}>{value}</Badge>;
       }
@@ -470,14 +586,14 @@ const AdminB2BEnquiries = () => {
                 onChange={(e) => setSelectedStatus(e.target.value)}
                 options={[
                   { value: "all", label: "All Statuses" },
-                  { value: "Pending", label: "Pending" },
+                  { value: "Submitted", label: "Pending RFQs" },
                   { value: "Under Review", label: "Under Review" },
-                  { value: "Seller Responded", label: "Seller Responded" },
-                  { value: "Quotation Sent", label: "Quotation Sent" },
-                  { value: "Approved", label: "Approved" },
+                  { value: "Vendor Negotiation", label: "Negotiations" },
+                  { value: "Sent To Vendors", label: "Vendor RFQs" },
+                  { value: "Purchase Order Generated", label: "Purchase Orders" },
                   { value: "Rejected", label: "Rejected" }
                 ]}
-                className="w-full sm:w-auto min-w-[140px]"
+                className="w-full sm:w-auto min-w-[145px]"
               />
             </div>
 
@@ -504,6 +620,19 @@ const AdminB2BEnquiries = () => {
                 options={[
                   { value: "all", label: "All Sellers" },
                   ...sellerList
+                ]}
+                className="w-full sm:w-auto min-w-[160px]"
+              />
+            </div>
+
+            <div className="w-full sm:w-auto flex items-center gap-2">
+              <span className="text-xs text-gray-400 font-semibold uppercase tracking-wider hidden md:inline">Company:</span>
+              <AnimatedSelect
+                value={selectedCompany}
+                onChange={(e) => setSelectedCompany(e.target.value)}
+                options={[
+                  { value: "all", label: "All Companies" },
+                  ...companyList
                 ]}
                 className="w-full sm:w-auto min-w-[160px]"
               />
@@ -571,11 +700,11 @@ const AdminB2BEnquiries = () => {
                     </span>
                     <Badge
                       variant={
-                        selectedEnquiry.status === "Approved" || selectedEnquiry.status === "Quotation Sent"
+                        ["Approved", "Quotation Sent", "Vendor Selected", "Awaiting B2B Approval", "Purchase Order Generated", "Completed"].includes(selectedEnquiry.status)
                           ? "success"
                           : selectedEnquiry.status === "Rejected"
                           ? "danger"
-                          : selectedEnquiry.status === "Pending"
+                          : ["Pending", "Submitted"].includes(selectedEnquiry.status)
                           ? "warning"
                           : "info"
                       }

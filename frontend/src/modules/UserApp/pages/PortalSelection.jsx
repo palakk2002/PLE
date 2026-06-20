@@ -59,11 +59,10 @@ const PortalSelection = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setTheme(isDarkMode ? 'light' : 'dark')}
-            className={`absolute top-6 right-6 z-30 p-3 rounded-full border transition-all duration-200 shadow-md ${
-              isDarkMode 
-                ? 'bg-zinc-900 border-zinc-800 text-yellow-400 hover:bg-zinc-800' 
+            className={`absolute top-6 right-6 z-30 p-3 rounded-full border transition-all duration-200 shadow-md ${isDarkMode
+                ? 'bg-zinc-900 border-zinc-800 text-yellow-400 hover:bg-zinc-800'
                 : 'bg-white border-gray-200 text-gray-800 hover:bg-gray-50'
-            }`}
+              }`}
             aria-label="Toggle Theme"
           >
             {isDarkMode ? <FiSun size={20} /> : <FiMoon size={20} />}

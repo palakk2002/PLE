@@ -36,6 +36,7 @@ const iconMap = {
   Products: FiPackage,
   Orders: FiShoppingBag,
   "B2B Enquiries": FiInbox,
+  "Direct RFQs": FiFileText,
   "Product Enquiries": FiMessageSquare,
   "Product Requests": FiInbox,
   "Return Requests": FiRefreshCw,
@@ -74,6 +75,7 @@ const getChildRoute = (parentRoute, childName) => {
     },
     "/vendor/b2b-enquiries": {
       "All Enquiries": "/vendor/b2b-enquiries/all",
+      "B2B Orders": "/vendor/b2b-enquiries/orders",
       "B2B Analytics": "/vendor/b2b-enquiries/analytics",
       "B2B Settings": "/vendor/b2b-enquiries/settings",
     },

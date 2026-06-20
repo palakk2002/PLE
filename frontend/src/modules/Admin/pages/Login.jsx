@@ -85,7 +85,7 @@ const AdminLogin = () => {
             <div className="relative">
               <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
-                type="email"
+                type="text"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
@@ -148,8 +148,8 @@ const AdminLogin = () => {
         {/* Demo Credentials */}
         <div className="mt-6 p-4 bg-primary-50 rounded-xl">
           <p className="text-sm text-gray-700 font-semibold mb-2">Demo Credentials:</p>
-          <p className="text-xs text-gray-600">Email: admin@admin.com</p>
-          <p className="text-xs text-gray-600">Password: admin123</p>
+          <p className="text-xs text-gray-600">Username/Email: admin@admin.com or superadmin</p>
+          <p className="text-xs text-gray-600">Password: admin@123</p>
         </div>
       </motion.div>
     </div>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as adminService from '../../modules/Admin/services/adminService';
 import toast from 'react-hot-toast';
+import api from '../utils/api';
 
 const STORAGE_KEY = 'mock-campaigns';
 
@@ -65,9 +66,16 @@ export const useCampaignStore = create((set, get) => ({
     
     let backendCampaigns = [];
     try {
-      const response = await adminService.getAllCampaigns(params);
-      const data = response.data;
-      backendCampaigns = Array.isArray(data) ? data : (data?.campaigns || []);
+      const isAdminPath = window.location.pathname.startsWith('/admin');
+      if (isAdminPath) {
+        const response = await adminService.getAllCampaigns(params);
+        const data = response.data;
+        backendCampaigns = Array.isArray(data) ? data : (data?.campaigns || []);
+      } else {
+        const response = await api.get('/campaigns', { params });
+        const data = response.data?.data || response.data;
+        backendCampaigns = Array.isArray(data) ? data : (data?.campaigns || []);
+      }
     } catch (error) {
       console.warn("Backend fetchCampaigns failed, using localStorage fallback.");
     }

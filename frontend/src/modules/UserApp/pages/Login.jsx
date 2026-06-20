@@ -4,8 +4,9 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../../../shared/store/authStore';
-import { useCartStore } from '../../../shared/store/useStore';
 import { useWishlistStore } from '../../../shared/store/wishlistStore';
+import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
+import { useB2bStore } from '../../../shared/store/b2bStore';
 import {
   clearPostLoginRedirect,
   consumePostLoginAction,
@@ -21,14 +22,34 @@ const MobileLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, isAuthenticated } = useAuthStore();
+  const { login: loginB2B, isLoading: isB2BLoading, isAuthenticated: isB2BAuthenticated } = useB2BAdminStore();
   const { isBusiness } = useBusinessBuyer();
 
   // Auto-redirect when authentication state changes
+  const [showB2BOptionModal, setShowB2BOptionModal] = useState(false);
+
   useEffect(() => {
-    if (isAuthenticated) {
+    const { adminProfile } = useB2BAdminStore.getState();
+    const isActuallyAdmin = isB2BAuthenticated && adminProfile && !adminProfile.isEmployee;
+    const isActuallyEmployee = isB2BAuthenticated && adminProfile && adminProfile.isEmployee;
+
+    if (isB2BAuthenticated && adminProfile) {
+      // Sync authStore to match the active B2B session
+      const token = localStorage.getItem('b2bAdminToken') || sessionStorage.getItem('b2bAdminToken');
+      const mainAuth = useAuthStore.getState();
+      if (token && !mainAuth.isAuthenticated) {
+        localStorage.setItem('token', token);
+        sessionStorage.setItem('token', token);
+        useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
+      }
+    }
+
+    if (isActuallyAdmin) {
+      setShowB2BOptionModal(true);
+    } else if (isActuallyEmployee || (isAuthenticated && !isActuallyAdmin)) {
       navigate('/home', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isB2BAuthenticated, navigate]);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -57,33 +78,117 @@ const MobileLogin = () => {
 
   const onSubmit = async (data) => {
     try {
-      console.log('Login submit start', data);
-      await login(data.email, data.password, rememberMe);
-      console.log('Login successful, navigating to home');
-      replayPendingAction();
-      toast.success('Login successful!');
-      clearPostLoginRedirect();
-      navigate('/home', { replace: true });
-    } catch (error) {
-      const backendMessage = String(
-        error?.response?.data?.message ||
-        error?.response?.data?.error ||
-        ''
-      );
-      const message = String(error?.message || '');
-      const normalized = `${backendMessage} ${message}`.toLowerCase();
+      if (isBusiness) {
+        const result = await loginB2B({ businessEmail: data.email, password: data.password });
+        if (result?.success || result === true) {
+          const { adminProfile } = useB2BAdminStore.getState();
+          
+          // Switch the app mode to business_buyer for B2B users
+          useB2bStore.getState().setUserRole('business_buyer');
 
-      if (
-        normalized.includes('email not verified') ||
-        normalized.includes('verify your email')
-      ) {
-        navigate('/verification', {
-          state: { email: String(data.email || '').trim().toLowerCase() },
-          replace: true,
-        });
+          // Manually sync authStore to prevent secondary login failure errors for BOTH admin and employee
+          const token = localStorage.getItem('b2bAdminToken') || sessionStorage.getItem('b2bAdminToken');
+          if (token) {
+            localStorage.setItem('token', token);
+            sessionStorage.setItem('token', token);
+            useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
+          }
+
+          if (adminProfile?.isEmployee) {
+            navigate('/home', { replace: true });
+          } else {
+            setShowB2BOptionModal(true);
+          }
+        }
         return;
       }
-      toast.error(error.message || 'Login failed. Please try again.');
+
+      console.log('Login submit start', data);
+      try {
+        const result = await login(data.email, data.password, rememberMe);
+        console.log('Login successful');
+        
+        // Check if the user who just logged in is actually a B2B user
+        const userRole = result?.user?.role;
+        const b2bState = useB2bStore.getState();
+        const isMockEmployee = b2bState.companies?.some(c => 
+          c.employees?.some(e => e.email?.toLowerCase() === data.email.toLowerCase())
+        );
+
+        if (userRole === 'b2bAdmin' || userRole === 'b2bEmployee' || isMockEmployee) {
+           const token = useAuthStore.getState().token || localStorage.getItem('token');
+           if (token) {
+             localStorage.setItem('b2bAdminToken', token);
+             if (userRole === 'b2bAdmin' || userRole === 'b2bEmployee') {
+               useB2BAdminStore.setState({ 
+                 isAuthenticated: true, 
+                 adminProfile: result.user 
+               });
+             }
+           }
+           if (userRole === 'b2bEmployee' || result?.user?.isEmployee || isMockEmployee) {
+             b2bState.setUserRole('business_buyer');
+           }
+        }
+        
+        replayPendingAction();
+        toast.success('Login successful!');
+        clearPostLoginRedirect();
+        
+        // Instead of blind navigation, let the useEffect handle it now that we've synced the stores
+      } catch (err) {
+        const errorMsg = String(err?.response?.data?.message || err?.message || '').toLowerCase();
+        // If standard user fails, try B2B login as fallback for employees
+        if (errorMsg.includes('invalid') || errorMsg.includes('not found') || errorMsg.includes('failed')) {
+          try {
+            const b2bResult = await loginB2B({ businessEmail: data.email, password: data.password });
+            if (b2bResult?.success || b2bResult === true) {
+              const { adminProfile } = useB2BAdminStore.getState();
+              // Manually sync authStore to prevent secondary login failure errors for BOTH admin and employee
+              const token = localStorage.getItem('b2bAdminToken') || sessionStorage.getItem('b2bAdminToken');
+              if (token) {
+                localStorage.setItem('token', token);
+                sessionStorage.setItem('token', token);
+                useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
+              }
+
+              if (adminProfile?.isEmployee) {
+                // If it's an employee, switch the app mode to business
+                useB2bStore.getState().setUserRole('business_buyer');
+                
+                toast.success('Login successful as B2B Employee!');
+                navigate('/home', { replace: true });
+                return;
+              } else {
+                setShowB2BOptionModal(true);
+                return;
+              }
+            }
+          } catch (fallbackErr) {
+            // ignore fallback error and let the original error show
+          }
+        }
+        
+        // Handle verification case or generic error
+        if (
+          errorMsg.includes('email not verified') ||
+          errorMsg.includes('verify your email')
+        ) {
+          navigate('/verification', {
+            state: { email: String(data.email || '').trim().toLowerCase() },
+            replace: true,
+          });
+          return;
+        }
+
+        toast.error(
+          err?.response?.data?.message || 
+          err?.message || 
+          'Login failed. Please check your credentials.'
+        );
+      }
+    } catch (error) {
+      toast.error(error?.message || 'Login failed. Please try again.');
     }
   };
 
@@ -206,10 +311,10 @@ const MobileLogin = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isBusiness ? isB2BLoading : isLoading}
                   className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isLoading ? 'Logging in...' : 'Log In'}
+                  {(isBusiness ? isB2BLoading : isLoading) ? 'Logging in...' : 'Log In'}
                 </button>
               </form>
 
@@ -247,6 +352,38 @@ const MobileLogin = () => {
             </div>
           </motion.div>
         </div>
+
+        {/* B2B Admin Options Modal */}
+        {showB2BOptionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-xl max-w-sm w-full border border-gray-100 dark:border-zinc-800"
+            >
+              <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 mb-2 text-center">
+                Welcome back!
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6 text-center">
+                Where would you like to go?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => navigate('/home', { replace: true })}
+                  className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold transition-colors shadow-sm"
+                >
+                  Bulk Order (Home)
+                </button>
+                <button
+                  onClick={() => navigate('/b2b-dashboard/overview', { replace: true })}
+                  className="w-full bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-900 dark:text-white py-3.5 rounded-xl font-semibold transition-colors"
+                >
+                  Admin Panel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </MobileLayout>
     </PageTransition>
   );

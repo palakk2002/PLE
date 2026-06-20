@@ -44,11 +44,18 @@ export const useVendorAuthStore = create(
           });
 
           // Store token for vendor API requests
-          localStorage.setItem("vendor-token", accessToken);
-          localStorage.setItem("vendor-refresh-token", refreshToken);
+          sessionStorage.setItem("vendor-token", accessToken);
+          sessionStorage.setItem("vendor-refresh-token", refreshToken);
+          localStorage.removeItem("vendor-token");
+          localStorage.removeItem("vendor-refresh-token");
 
           return { success: true, vendor };
         } catch (error) {
+          if (error.response) {
+            set({ isLoading: false });
+            throw error;
+          }
+
           console.warn("API login failed, falling back to mock authentication:", error);
           
           const mockVendor = {
@@ -101,8 +108,10 @@ export const useVendorAuthStore = create(
             isLoading: false,
           });
 
-          localStorage.setItem("vendor-token", accessToken);
-          localStorage.setItem("vendor-refresh-token", refreshToken);
+          sessionStorage.setItem("vendor-token", accessToken);
+          sessionStorage.setItem("vendor-refresh-token", refreshToken);
+          localStorage.removeItem("vendor-token");
+          localStorage.removeItem("vendor-refresh-token");
 
           return { success: true, vendor: mockVendor };
         }
@@ -207,7 +216,7 @@ export const useVendorAuthStore = create(
 
       // Vendor logout action
       logout: () => {
-        const refreshToken = localStorage.getItem("vendor-refresh-token");
+        const refreshToken = sessionStorage.getItem("vendor-refresh-token") || localStorage.getItem("vendor-refresh-token");
         if (refreshToken) {
           api.post("/vendor/auth/logout", { refreshToken }).catch(() => {});
         }
@@ -220,6 +229,8 @@ export const useVendorAuthStore = create(
         });
         localStorage.removeItem("vendor-token");
         localStorage.removeItem("vendor-refresh-token");
+        sessionStorage.removeItem("vendor-token");
+        sessionStorage.removeItem("vendor-refresh-token");
       },
 
       // Update vendor profile — calls real PUT /vendor/auth/profile
@@ -248,12 +259,13 @@ export const useVendorAuthStore = create(
 
       // Initialize vendor auth state from localStorage
       initialize: () => {
-        const token = localStorage.getItem("vendor-token");
+        const token = sessionStorage.getItem("vendor-token") || localStorage.getItem("vendor-token");
         if (token) {
           const storedState = JSON.parse(
+            sessionStorage.getItem("vendor-auth-storage") ||
             localStorage.getItem("vendor-auth-storage") || "{}"
           );
-          const refreshToken = localStorage.getItem("vendor-refresh-token");
+          const refreshToken = sessionStorage.getItem("vendor-refresh-token") || localStorage.getItem("vendor-refresh-token");
           const persistedVendor = storedState.state?.vendor || null;
           if (persistedVendor) {
             set({
@@ -271,7 +283,7 @@ export const useVendorAuthStore = create(
     }),
     {
       name: "vendor-auth-storage",
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         vendor: state.vendor,
         token: state.token,

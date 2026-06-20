@@ -102,7 +102,7 @@ export const login = asyncHandler(async (req, res) => {
     const user = await User.findOne({ email: normalizedEmail }).select('+password');
     if (!user) throw new ApiError(401, 'Invalid email or password.');
     if (!user.isActive) throw new ApiError(403, 'Your account has been deactivated.');
-    if (!user.isVerified) {
+    if (!user.isVerified && !['b2bAdmin', 'b2bEmployee'].includes(user.role)) {
         await sendOTP(user, 'email_verification');
         throw new ApiError(403, 'Email not verified. A new OTP has been sent to your email.');
     }
@@ -110,7 +110,7 @@ export const login = asyncHandler(async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) throw new ApiError(401, 'Invalid email or password.');
 
-    const { accessToken, refreshToken } = generateTokens({ id: user._id, role: 'customer', email: user.email });
+    const { accessToken, refreshToken } = generateTokens({ id: user._id, role: user.role || 'customer', email: user.email });
     await persistRefreshSession(user, refreshToken);
     res.status(200).json(new ApiResponse(200, {
         accessToken,

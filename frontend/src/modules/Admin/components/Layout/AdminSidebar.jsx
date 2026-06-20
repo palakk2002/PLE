@@ -41,7 +41,7 @@ const iconMap = {
   Brands: FiTag,
   Customers: FiUsers,
   "B2B Marketplace": FiBriefcase,
-  "B2B Enquiries": FiInbox,
+  "RFQ Management": FiInbox,
   "Product Enquiries": FiMessageCircle,
   "Product Requests": FiInbox,
   "Refurbished Mkt": FiRefreshCw,
@@ -59,6 +59,7 @@ const iconMap = {
   Firebase: FiDatabase,
   "Loyalty Program": FiAward,
   "Landing Page": FiGlobe,
+  "B2B Users": FiUsers,
 };
 
 // Helper function to convert child name to route path
@@ -93,10 +94,13 @@ const getChildRoute = (parentRoute, childName) => {
       "B2B Settings": "/admin/b2b/b2b-settings",
     },
     "/admin/b2b-enquiries": {
-      "RFQ Dashboard": "/admin/b2b-enquiries/all",
-      "Seller Responses": "/admin/b2b-enquiries/seller-responses",
-      "Disputes & Complaints": "/admin/b2b-enquiries/disputes",
-      "Spam Monitoring": "/admin/b2b-enquiries/spam",
+      "Pending RFQs": "/admin/b2b-enquiries/all?status=Submitted",
+      "Under Review": "/admin/b2b-enquiries/all?status=Under Review",
+      "Negotiations": "/admin/b2b-enquiries/all?status=Vendor Negotiation",
+      "Vendor RFQs": "/admin/b2b-enquiries/all?status=Sent To Vendors",
+      "Quotations": "/admin/b2b-enquiries/all?status=Quotations Received",
+      "Vendor Selection": "/admin/b2b-enquiries/all?status=Vendor Selected",
+      "Purchase Orders": "/admin/b2b-enquiries/all?status=Purchase Order Generated",
     },
     "/admin/refurbished": {
       "QC Dashboard": "/admin/refurbished/dashboard",
@@ -111,6 +115,17 @@ const getChildRoute = (parentRoute, childName) => {
       "Assign Delivery": "/admin/delivery/assign-delivery",
       "Logistics Control Center": "/admin/delivery-control",
       "Zone Configuration": "/admin/delivery-control",
+    },
+    "/admin/vendors": {
+      "Manage Vendors": "/admin/vendors/manage-vendors",
+      "Pending Approvals": "/admin/vendors/pending-approvals",
+      "Commission Rates": "/admin/vendors/commission-rates",
+      "Vendor Analytics": "/admin/vendors/vendor-analytics",
+    },
+    "/admin/b2b-users": {
+      "Manage B2B Users": "/admin/b2b-users/manage",
+      "Pending Approvals": "/admin/b2b-users/pending",
+      "B2B Analytics": "/admin/b2b-users/analytics",
     },
     "/admin/offers": {
       "Home Sliders": "/admin/offers/home-sliders",
@@ -222,7 +237,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       }
       // Check if current path is a child of this item (not just the parent route itself)
       const isChildRoute =
-        location.pathname.startsWith(item.route) &&
+        location.pathname.startsWith(item.route + "/") &&
         location.pathname !== item.route;
       return isChildRoute;
     });
@@ -246,7 +261,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         if (item.route === "/admin/dashboard") {
           return location.pathname === "/admin/dashboard";
         }
-        return location.pathname.startsWith(item.route);
+        return location.pathname === item.route || location.pathname.startsWith(item.route + "/");
       });
       // If we're on a parent route without children, close all expanded items
       if (
@@ -264,7 +279,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
     if (route === "/admin/dashboard") {
       return location.pathname === "/admin/dashboard";
     }
-    return location.pathname.startsWith(route);
+    return location.pathname === route || location.pathname.startsWith(route + "/");
   };
 
   // Toggle expanded state for menu items with children

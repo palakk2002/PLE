@@ -13,6 +13,7 @@ import * as returnController from '../controllers/return.controller.js';
 import * as reviewController from '../controllers/review.controller.js';
 import * as shippingController from '../controllers/shipping.controller.js';
 import * as uploadController from '../controllers/upload.controller.js';
+import * as vendorPurchaseOrderController from '../controllers/vendorPurchaseOrder.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -127,8 +128,21 @@ router.post('/uploads/images', ...vendorAuth, uploadMultiple('images', 8), uploa
 
 // RFQ routes (protected Vendor)
 import * as vendorRfqController from '../controllers/vendorRfq.controller.js';
+import * as vendorDirectRfqController from '../controllers/vendorDirectRfq.controller.js';
+
 router.get('/rfq', ...vendorAuth, vendorRfqController.getVendorRFQs);
+router.post('/rfq/upload', ...vendorAuth, uploadDocumentSingle('file'), vendorRfqController.uploadAttachment);
 router.post('/rfq/:id/quote', ...vendorAuth, vendorRfqController.vendorSendQuote);
 router.post('/rfq/:id/reject', ...vendorAuth, vendorRfqController.vendorRejectRFQ);
+router.post('/rfq/:id/message', ...vendorAuth, vendorRfqController.sendVendorNegotiationMessage);
+
+// Direct RFQ routes
+router.get('/direct-rfq', ...vendorAuth, vendorDirectRfqController.getVendorDirectRFQs);
+router.get('/direct-rfq/:id', ...vendorAuth, vendorDirectRfqController.getVendorDirectRFQDetail);
+router.post('/direct-rfq/:id/message', ...vendorAuth, vendorDirectRfqController.sendDirectMessage);
+
+// Purchase Orders (B2B)
+router.get('/b2b/purchase-orders', ...vendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrders);
+router.get('/b2b/purchase-orders/:id', ...vendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrderById);
 
 export default router;

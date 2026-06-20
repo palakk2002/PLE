@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiAlertCircle,
@@ -20,37 +20,79 @@ import Badge from "../../../../shared/components/Badge";
 import AnimatedSelect from "../../components/AnimatedSelect";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import toast from "react-hot-toast";
-import { initialB2BEnquiries } from "../../data/adminB2BEnquiryMockData";
+import api from "../../../../shared/utils/api";
+
+const mapRfqToDispute = (rfq) => {
+  const lastMsg = rfq.negotiationMessages && rfq.negotiationMessages.length > 0
+    ? rfq.negotiationMessages[rfq.negotiationMessages.length - 1]
+    : null;
+  const firstMsg = rfq.negotiationMessages && rfq.negotiationMessages.length > 0
+    ? rfq.negotiationMessages[0]
+    : null;
+  
+  // Determine status
+  let mappedStatus = "Open";
+  if (["Approved", "Vendor Selected", "Awaiting B2B Confirmation", "Purchase Order Generated", "Completed"].includes(rfq.status)) {
+    mappedStatus = "Resolved";
+  } else if (["Negotiation In Progress", "Under Super Admin Review", "Vendor Negotiation"].includes(rfq.status)) {
+    mappedStatus = "Under Investigation";
+  }
+  
+  // Seller store names
+  let sellerStore = "No Vendor Assigned";
+  if (rfq.assignedVendorIds && rfq.assignedVendorIds.length > 0) {
+    sellerStore = rfq.assignedVendorIds.map(v => typeof v === 'object' ? (v.storeName || v.name) : 'Vendor').join(', ');
+  }
+
+  return {
+    id: `DISP-${rfq.rfqId}`,
+    raisedBy: firstMsg?.senderType === "SuperAdmin" ? "Admin" : "Buyer",
+    type: rfq.quotations && rfq.quotations.length > 0 ? "Price Discrepancy" : "Negotiation & Terms",
+    description: lastMsg?.message || rfq.requirementDetails || "Negotiation thread started.",
+    status: mappedStatus,
+    createdAt: lastMsg?.createdAt || rfq.updatedAt || rfq.createdAt,
+    resolutionNotes: rfq.approvalHistory?.map(h => h.notes).filter(Boolean).join(" | ") || "",
+    enquiryId: rfq._id,
+    enquiryNumber: rfq.rfqId,
+    buyerCompany: rfq.companyName || "B2B Company",
+    sellerStore: sellerStore
+  };
+};
 
 const AdminRFQDisputes = () => {
   const navigate = useNavigate();
-  const [enquiries] = useState(initialB2BEnquiries);
-
-  // Flatten disputes from all enquiries
-  const initialDisputesList = useMemo(() => {
-    const list = [];
-    enquiries.forEach((enquiry) => {
-      if (enquiry.disputes && enquiry.disputes.length > 0) {
-        enquiry.disputes.forEach((disp) => {
-          list.push({
-            ...disp,
-            enquiryId: enquiry.id,
-            enquiryNumber: enquiry.enquiryNumber,
-            buyerCompany: enquiry.buyer.company,
-            sellerStore: enquiry.seller.storeName
-          });
-        });
-      }
-    });
-    return list;
-  }, [enquiries]);
-
-  const [disputes, setDisputes] = useState(initialDisputesList);
+  const [rfqs, setRfqs] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [disputes, setDisputes] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedDispute, setSelectedDispute] = useState(null);
   const [resolutionInput, setResolutionInput] = useState("");
+
+  // Fetch real RFQs from backend
+  useEffect(() => {
+    const fetchRFQs = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/admin/rfq");
+        if (res && res.data) {
+          setRfqs(res.data);
+          // Filter RFQs with negotiation messages
+          const rfqDiscussions = res.data.filter(
+            (rfq) => rfq.negotiationMessages && rfq.negotiationMessages.length > 0
+          );
+          setDisputes(rfqDiscussions.map(mapRfqToDispute));
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load dispute center data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchRFQs();
+  }, []);
 
   // Update dispute details (status & notes)
   const handleUpdateDispute = (id, nextStatus, notes) => {
@@ -320,6 +362,7 @@ const AdminRFQDisputes = () => {
                 options={[
                   { value: "all", label: "All Types" },
                   { value: "Price Discrepancy", label: "Price Discrepancy" },
+                  { value: "Negotiation & Terms", label: "Negotiation & Terms" },
                   { value: "Communication Breach", label: "Communication Breach" }
                 ]}
                 className="w-full sm:w-auto min-w-[170px]"

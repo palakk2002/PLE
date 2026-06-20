@@ -4,6 +4,7 @@ import { useAuthStore } from "../store/authStore";
 import { useVendorAuthStore } from "../../modules/Vendor/store/vendorAuthStore";
 import { useDeliveryAuthStore } from "../../modules/Delivery/store/deliveryStore";
 import { useAdminAuthStore } from "../../modules/Admin/store/adminStore";
+import { useB2BAdminStore } from "../../modules/B2BAdmin/store/b2bAdminStore";
 
 const PRODUCTS_CACHE_KEY = "user-catalog-products-cache";
 const VENDORS_CACHE_KEY = "user-catalog-vendors-cache";
@@ -48,6 +49,38 @@ const AppBootstrap = () => {
     try { useVendorAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useDeliveryAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useAdminAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
+
+    // Self-healing synchronization for B2B session states
+    try {
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+      const b2bToken = localStorage.getItem('b2bAdminToken') || sessionStorage.getItem('b2bAdminToken');
+      const mainAuth = useAuthStore.getState();
+      const b2bAuth = useB2BAdminStore.getState();
+
+      const role = mainAuth.user?.role;
+      const isB2BUser = role === 'b2bAdmin' || role === 'b2bEmployee' || mainAuth.user?.isEmployee;
+
+      if (!token && !b2bToken) {
+        if (mainAuth.isAuthenticated) {
+          try { mainAuth.logout(); } catch (e) {}
+        }
+        if (b2bAuth.isAuthenticated) {
+          try { b2bAuth.logout(); } catch (e) {}
+        }
+      } else if (b2bAuth.isAuthenticated && b2bToken && !mainAuth.isAuthenticated) {
+        localStorage.setItem('token', b2bToken);
+        sessionStorage.setItem('token', b2bToken);
+        useAuthStore.setState({ isAuthenticated: true, token: b2bToken, user: b2bAuth.adminProfile });
+      } else if (mainAuth.isAuthenticated && token && isB2BUser && !b2bAuth.isAuthenticated) {
+        localStorage.setItem('b2bAdminToken', token);
+        sessionStorage.setItem('b2bAdminToken', token);
+        useB2BAdminStore.setState({ isAuthenticated: true, adminProfile: mainAuth.user });
+      } else if (mainAuth.isAuthenticated && !isB2BUser && b2bAuth.isAuthenticated) {
+        try { b2bAuth.logout(); } catch (e) {}
+      }
+    } catch (e) {
+      console.warn("B2B self-healing sync failed:", e);
+    }
 
     let cancelled = false;
 

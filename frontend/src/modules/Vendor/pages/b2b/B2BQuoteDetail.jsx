@@ -243,7 +243,7 @@ const B2BQuoteDetail = () => {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Simulation Tools */}
-          {quote.status === "submitted" && (
+          {quote.status === "submitted" && !/^[a-fA-F0-9]{24}$/.test(enquiry.id) && (
             <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl shadow-sm p-5 space-y-4">
               <h3 className="font-bold text-amber-900 flex items-center gap-1.5 text-base">
                 <FiClock className="animate-spin text-amber-600" />

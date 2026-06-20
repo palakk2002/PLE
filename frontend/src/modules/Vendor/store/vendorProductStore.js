@@ -491,14 +491,8 @@ export const useVendorProductStore = create((set, get) => ({
         try {
             const res = await createVendorProduct(data);
             const product = res.data ?? res;
-            set((state) => {
-                const nextProducts = state.products.filter(p => p.name !== product.name);
-                return {
-                    products: [product, ...nextProducts],
-                    total: state.total + 1,
-                    isSaving: false,
-                };
-            });
+            await get().fetchProducts();
+            set({ isSaving: false });
             toast.success('Product created successfully');
             return product;
         } catch (error) {
@@ -540,16 +534,12 @@ export const useVendorProductStore = create((set, get) => ({
         try {
             const res = await updateVendorProduct(id, data);
             const updated = res.data ?? res;
-            set((state) => ({
-                products: state.products.map((p) =>
-                    (p._id ?? p.id) === id ? updated : p
-                ),
-                isSaving: false,
-            }));
+            await get().fetchProducts();
+            set({ isSaving: false });
             toast.success('Product updated successfully');
             return updated;
-        } catch {
-            console.warn("updateVendorProduct API failed, updating locally:");
+        } catch (error) {
+            console.warn("updateVendorProduct API failed, updating locally:", error);
             set((state) => ({
                 products: state.products.map((p) =>
                     (p._id ?? p.id) === id ? { ...p, ...data } : p
@@ -581,14 +571,12 @@ export const useVendorProductStore = create((set, get) => ({
 
         try {
             await deleteVendorProduct(id);
-            set((state) => ({
-                products: state.products.filter((p) => (p._id ?? p.id) !== id),
-                total: Math.max(0, state.total - 1),
-                isLoading: false,
-            }));
+            await get().fetchProducts();
+            set({ isLoading: false });
             toast.success('Product deleted successfully');
             return true;
-        } catch {
+        } catch (error) {
+            console.warn("deleteVendorProduct API failed, deleting locally:", error);
             set((state) => ({
                 products: state.products.filter((p) => (p._id ?? p.id) !== id),
                 total: Math.max(0, state.total - 1),
@@ -612,15 +600,12 @@ export const useVendorProductStore = create((set, get) => ({
         try {
             const res = await updateVendorStock(productId, stockQuantity);
             const updated = res.data ?? res;
-            set((state) => ({
-                products: state.products.map((p) =>
-                    (p._id ?? p.id) === productId ? updated : p
-                ),
-                isSaving: false,
-            }));
+            await get().fetchProducts();
+            set({ isSaving: false });
             toast.success('Stock updated successfully');
             return true;
-        } catch {
+        } catch (error) {
+            console.warn("updateVendorStock API failed, updating locally:", error);
             set({ isSaving: false });
             return false;
         }

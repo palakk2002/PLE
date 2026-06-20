@@ -7,11 +7,15 @@ import {
   FiCreditCard,
   FiTruck,
   FiMessageSquare,
+  FiPaperclip,
+  FiUpload,
+  FiTrash2,
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useVendorB2BStore } from "../../store/vendorB2BStore";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
 
 const B2BCreateQuote = () => {
   const { id } = useParams();
@@ -26,7 +30,42 @@ const B2BCreateQuote = () => {
   const [validityDays, setValidityDays] = useState(settings.defaultQuoteValidity || 15);
   const [paymentTerms, setPaymentTerms] = useState(settings.defaultPaymentTerms || "Net 30 days");
   const [shippingTerms, setShippingTerms] = useState(settings.defaultShippingTerms || "FOB Origin");
+  const [warranty, setWarranty] = useState("12 Months Manufacturer Warranty");
+  const [taxDetails, setTaxDetails] = useState("18% GST extra");
+  const [attachments, setAttachments] = useState([]);
+  const [uploading, setUploading] = useState(false);
   const [generalNotes, setGeneralNotes] = useState("");
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+      setUploading(true);
+      const uploadForm = new FormData();
+      uploadForm.append('file', file);
+      
+      const res = await api.post('/vendor/rfq/upload', uploadForm, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      const fileUrl = res?.data?.url || res?.url || '';
+      if (fileUrl) {
+        setAttachments(prev => [...prev, fileUrl]);
+        toast.success("Document uploaded successfully!");
+      } else {
+        toast.error("Failed to retrieve uploaded file URL");
+      }
+    } catch (err) {
+      console.error(err);
+      // Fallback for mock if upload fails
+      const mockUrl = URL.createObjectURL(file);
+      setAttachments(prev => [...prev, mockUrl]);
+      toast.success("Mock upload: file added locally!");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -69,7 +108,7 @@ const B2BCreateQuote = () => {
   // Calculate quote subtotal/total
   const quoteTotal = items.reduce((sum, item) => sum + item.offeredPrice * item.qty, 0);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (items.some((item) => item.offeredPrice <= 0)) {
@@ -93,12 +132,19 @@ const B2BCreateQuote = () => {
       validUntil: expirationDate.toISOString(),
       paymentTerms,
       shippingTerms,
+      warranty,
+      taxDetails,
+      attachments,
       notes: generalNotes,
     };
 
-    const quoteId = createQuote(enquiry.id, quoteData);
-    toast.success(`Quote ${quoteId} submitted successfully!`);
-    navigate(`/vendor/b2b-enquiries/${enquiry.id}`);
+    try {
+      const quoteId = await createQuote(enquiry.id, quoteData);
+      toast.success("Quote submitted successfully!");
+      navigate(`/vendor/b2b-enquiries/${enquiry.id}`);
+    } catch (err) {
+      toast.error(err?.message || "Failed to submit quotation");
+    }
   };
 
   if (loading) {
@@ -278,6 +324,34 @@ const B2BCreateQuote = () => {
                 required
               />
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5 flex items-center gap-1">
+                <FiFileText className="text-gray-400" /> Warranty Details
+              </label>
+              <input
+                type="text"
+                value={warranty}
+                onChange={(e) => setWarranty(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium"
+                placeholder="e.g. 12 Months Manufacturer Warranty"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5 flex items-center gap-1">
+                <FiFileText className="text-gray-400" /> Tax & GST Details
+              </label>
+              <input
+                type="text"
+                value={taxDetails}
+                onChange={(e) => setTaxDetails(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium"
+                placeholder="e.g. 18% GST extra / inclusive"
+                required
+              />
+            </div>
           </div>
 
           {/* Right panel: General Notes */}
@@ -294,10 +368,60 @@ const B2BCreateQuote = () => {
               <textarea
                 value={generalNotes}
                 onChange={(e) => setGeneralNotes(e.target.value)}
-                className="w-full h-[180px] p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm leading-relaxed"
+                className="w-full h-[230px] p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm leading-relaxed"
                 placeholder="Write clear, professional remarks about stock availability, warranties, certifications, packaging or discounts..."
               ></textarea>
             </div>
+          </div>
+        </div>
+
+        {/* Full width attachments card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-4">
+          <h2 className="font-semibold text-gray-800 flex items-center gap-2 border-b border-gray-100 pb-2">
+            <FiPaperclip className="text-amber-800" />
+            Quotation Documents & Attachments
+          </h2>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500 mb-1.5">
+              Upload Spec Sheet / Quotation PDF (Optional)
+            </label>
+            <div className="flex items-center gap-3">
+              <input
+                type="file"
+                id="doc-upload"
+                onChange={handleFileUpload}
+                className="hidden"
+                disabled={uploading}
+              />
+              <button
+                type="button"
+                onClick={() => document.getElementById("doc-upload").click()}
+                disabled={uploading}
+                className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-lg transition-colors flex items-center gap-1.5 disabled:opacity-50"
+              >
+                <FiUpload /> {uploading ? "Uploading..." : "Upload Document"}
+              </button>
+            </div>
+
+            {attachments.length > 0 && (
+              <div className="mt-3 space-y-2 max-w-md">
+                {attachments.map((url, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-150 text-xs">
+                    <span className="font-mono truncate max-w-[80%] text-gray-750">
+                      {url.split('/').pop()}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      <FiTrash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
