@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
@@ -23,8 +24,14 @@ export const sendEmail = async ({ to, subject, html, text }) => {
         text,
     };
 
-    const info = await transporter.sendMail(mailOptions);
-    return info;
+    try {
+        const info = await transporter.sendMail(mailOptions);
+        console.log(`Email sent successfully to ${to}: ${info.messageId}`);
+        return info;
+    } catch (error) {
+        console.error('Email sending failed details:', error);
+        throw error;
+    }
 };
 
 export const sendOrderConfirmationEmail = async (order, userEmail) => {

@@ -62,13 +62,14 @@
     ]
   },
   {
-    "title": "B2B Enquiries",
+    "title": "RFQ Management",
     "route": "/admin/b2b-enquiries",
     "children": [
-      "RFQ Dashboard",
-      "Seller Responses",
-      "Disputes & Complaints",
-      "Spam Monitoring"
+      "Pending RFQs",
+      "Under Review",
+      "Negotiations",
+      "Vendor RFQs",
+      "Purchase Orders"
     ]
   },
   {
@@ -101,6 +102,15 @@
       "Pending Approvals",
       "Commission Rates",
       "Vendor Analytics"
+    ]
+  },
+  {
+    "title": "B2B Users",
+    "route": "/admin/b2b-users",
+    "children": [
+      "Manage B2B Users",
+      "Pending Approvals",
+      "B2B Analytics"
     ]
   },
   {

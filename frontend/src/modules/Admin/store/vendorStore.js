@@ -174,17 +174,7 @@ export const useVendorStore = create((set, get) => ({
         localStorage.setItem('mock-pending-vendors', JSON.stringify(updated));
       }
 
-      set((state) => ({
-        vendors: state.vendors.map((v) =>
-          String(v.id || v._id) === String(id) ? { ...v, ...vendor } : v
-        ),
-        selectedVendor:
-          state.selectedVendor &&
-          String(state.selectedVendor.id || state.selectedVendor._id) ===
-          String(id)
-            ? { ...state.selectedVendor, ...vendor }
-            : state.selectedVendor,
-      }));
+      await get().initialize();
       return true;
     } catch {
       console.warn("updateVendorStatus API failed, updating vendor status locally:", id, status);
@@ -223,17 +213,7 @@ export const useVendorStore = create((set, get) => ({
         localStorage.setItem('mock-pending-vendors', JSON.stringify(updated));
       }
 
-      set((state) => ({
-        vendors: state.vendors.map((v) =>
-          String(v.id || v._id) === String(id) ? { ...v, ...vendor } : v
-        ),
-        selectedVendor:
-          state.selectedVendor &&
-          String(state.selectedVendor.id || state.selectedVendor._id) ===
-          String(id)
-            ? { ...state.selectedVendor, ...vendor }
-            : state.selectedVendor,
-      }));
+      await get().initialize();
       return true;
     } catch {
       console.warn("updateCommissionRate API failed, updating locally:");

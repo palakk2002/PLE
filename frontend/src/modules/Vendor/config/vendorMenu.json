@@ -27,9 +27,15 @@
         "route": "/vendor/b2b-enquiries",
         "children": [
             "All Enquiries",
+            "B2B Orders",
             "B2B Analytics",
             "B2B Settings"
         ]
+    },
+    {
+        "title": "Direct RFQs",
+        "route": "/vendor/direct-rfqs",
+        "children": []
     },
     {
         "title":  "Return Requests",

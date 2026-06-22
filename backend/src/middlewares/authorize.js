@@ -31,11 +31,11 @@ export const enforceAccountStatus = async (req, res, next) => {
 
         const role = String(req.user.role).toLowerCase();
 
-        if (role === 'customer') {
+        if (role === 'customer' || role === 'b2badmin' || role === 'b2bemployee') {
             const user = await User.findById(req.user.id).select('isActive isVerified').lean();
             if (!user) return next(new ApiError(401, 'Account not found.'));
             if (!user.isActive) return next(new ApiError(403, 'Account is deactivated. Contact support.'));
-            if (!user.isVerified) return next(new ApiError(403, 'Please verify your email first.'));
+            if (role === 'customer' && !user.isVerified) return next(new ApiError(403, 'Please verify your email first.'));
             return next();
         }
 

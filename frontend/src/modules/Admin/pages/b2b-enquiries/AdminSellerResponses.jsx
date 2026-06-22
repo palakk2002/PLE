@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiClock,
@@ -17,55 +17,105 @@ import ExportButton from "../../components/ExportButton";
 import Badge from "../../../../shared/components/Badge";
 import AnimatedSelect from "../../components/AnimatedSelect";
 import { formatPrice } from "../../../../shared/utils/helpers";
-import { initialB2BEnquiries } from "../../data/adminB2BEnquiryMockData";
+import api from "../../../../shared/utils/api";
+import toast from "react-hot-toast";
 
 const AdminSellerResponses = () => {
   const navigate = useNavigate();
-  const [enquiries] = useState(initialB2BEnquiries);
+  const [rfqs, setRfqs] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedResponseStatus, setSelectedResponseStatus] = useState("all");
 
-  // Derive SLA and response status for each enquiry
-  const sellerResponseRows = useMemo(() => {
-    return enquiries.map((item) => {
-      const assignedDate = new Date(item.createdAt);
-      // Let's set SLA to 48 hours from creation date
-      const deadlineDate = new Date(assignedDate.getTime() + 48 * 60 * 60 * 1000);
-      const isResponded = !!item.sellerQuotation;
-
-      let responseTimeHours = "-";
-      let daysElapsed = 0;
-      let status = "Pending";
-
-      if (isResponded) {
-        status = "Responded";
-        // Calculate response time from created to quote date
-        const quoteDate = new Date(item.responseHistory.find((h) => h.stage.includes("Response") || h.stage.includes("Quote"))?.date || item.createdAt);
-        const diffMs = quoteDate.getTime() - assignedDate.getTime();
-        responseTimeHours = (diffMs / (1000 * 60 * 60)).toFixed(1) + "h";
-        daysElapsed = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-      } else {
-        const now = new Date();
-        const diffMs = now.getTime() - assignedDate.getTime();
-        daysElapsed = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-        if (now > deadlineDate) {
-          status = "Overdue";
-        } else {
-          status = "Pending Response";
+  // Fetch real RFQs from backend
+  useEffect(() => {
+    const fetchRFQs = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/admin/rfq");
+        if (res && res.data) {
+          setRfqs(res.data);
         }
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load seller response data");
+      } finally {
+        setLoading(false);
       }
+    };
+    fetchRFQs();
+  }, []);
 
-      return {
-        ...item,
-        assignedDate: item.createdAt,
-        deadlineDate: deadlineDate.toISOString(),
-        daysElapsed,
-        responseTimeHours,
-        responseStatus: status,
-        quotedAmount: item.sellerQuotation ? item.sellerQuotation.quotedValue : null
-      };
+  // Derive per-vendor SLA rows from real RFQ data
+  // For each RFQ that has assignedVendorIds, create one row per vendor showing their response status
+  const sellerResponseRows = useMemo(() => {
+    const rows = [];
+    rfqs.forEach((rfq) => {
+      if (!rfq.assignedVendorIds || rfq.assignedVendorIds.length === 0) return;
+
+      // Find the approximate assignment date: use updatedAt (when vendors were assigned) or createdAt
+      const assignedDate = new Date(rfq.updatedAt || rfq.createdAt);
+      const SLA_HOURS = 48;
+      const deadlineDate = new Date(assignedDate.getTime() + SLA_HOURS * 60 * 60 * 1000);
+
+      rfq.assignedVendorIds.forEach((vendor) => {
+        const vendorId = typeof vendor === "object" ? vendor._id : vendor;
+        const storeName = typeof vendor === "object" ? (vendor.storeName || vendor.name || "Vendor Store") : "Vendor Store";
+        const vendorName = typeof vendor === "object" ? (vendor.name || "Vendor Rep") : "Vendor Rep";
+        const vendorEmail = typeof vendor === "object" ? (vendor.email || "N/A") : "N/A";
+
+        // Find if this vendor has submitted a quotation
+        const quote = (rfq.quotations || []).find(
+          (q) => String(q.vendorId) === String(vendorId)
+        );
+
+        const hasResponded = !!quote;
+        let responseTimeHours = "-";
+        let daysElapsed = 0;
+        let status = "Pending Response";
+
+        if (hasResponded) {
+          status = "Responded";
+          const quoteDate = new Date(quote.createdAt || assignedDate);
+          const diffMs = quoteDate.getTime() - assignedDate.getTime();
+          responseTimeHours = Math.max(0, diffMs / (1000 * 60 * 60)).toFixed(1) + "h";
+          daysElapsed = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+        } else {
+          const now = new Date();
+          const diffMs = now.getTime() - assignedDate.getTime();
+          daysElapsed = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+          if (now > deadlineDate) {
+            status = "Overdue";
+          }
+        }
+
+        rows.push({
+          id: `${rfq._id}-${vendorId}`,
+          rfqId: rfq._id,
+          enquiryNumber: rfq.rfqId,
+          buyer: {
+            name: rfq.companyName || "B2B Company",
+            company: rfq.companyName || "B2B Company",
+            email: "N/A"
+          },
+          seller: {
+            id: vendorId,
+            storeName,
+            name: vendorName,
+            email: vendorEmail
+          },
+          assignedDate: assignedDate.toISOString(),
+          deadlineDate: deadlineDate.toISOString(),
+          daysElapsed,
+          responseTimeHours,
+          responseStatus: status,
+          quotedAmount: quote ? quote.totalPrice : null,
+          rfqStatus: rfq.status
+        });
+      });
     });
-  }, [enquiries]);
+    return rows;
+  }, [rfqs]);
 
   // Compute overall stats
   const stats = useMemo(() => {
@@ -74,18 +124,23 @@ const AdminSellerResponses = () => {
     const pending = sellerResponseRows.filter((r) => r.responseStatus === "Pending Response").length;
     const overdue = sellerResponseRows.filter((r) => r.responseStatus === "Overdue").length;
 
-    // Filter responses to get numbers for average
-    const respondedEntries = sellerResponseRows.filter((r) => r.responseStatus === "Responded" && r.responseTimeHours !== "-");
-    const avgResponseTimeVal = respondedEntries.length > 0
-      ? (respondedEntries.reduce((acc, curr) => acc + parseFloat(curr.responseTimeHours), 0) / respondedEntries.length).toFixed(1)
-      : "8.4";
+    const respondedEntries = sellerResponseRows.filter(
+      (r) => r.responseStatus === "Responded" && r.responseTimeHours !== "-"
+    );
+    const avgResponseTimeVal =
+      respondedEntries.length > 0
+        ? (
+            respondedEntries.reduce((acc, curr) => acc + parseFloat(curr.responseTimeHours), 0) /
+            respondedEntries.length
+          ).toFixed(1)
+        : "—";
 
     return {
       total,
       responded,
       pending,
       overdue,
-      avgResponseTime: `${avgResponseTimeVal} hrs`,
+      avgResponseTime: avgResponseTimeVal !== "—" ? `${avgResponseTimeVal} hrs` : "—",
       slaPerformance: total > 0 ? Math.round(((responded + pending) / total) * 100) : 100
     };
   }, [sellerResponseRows]);
@@ -113,7 +168,7 @@ const AdminSellerResponses = () => {
       sortable: true,
       render: (value, row) => (
         <span
-          onClick={() => navigate(`/admin/b2b-enquiries/${row.id}`)}
+          onClick={() => navigate(`/admin/b2b-enquiries/${row.rfqId}`)}
           className="font-bold text-primary-600 font-mono select-all hover:underline cursor-pointer flex items-center gap-1.5"
         >
           {value}
@@ -129,6 +184,14 @@ const AdminSellerResponses = () => {
           <span className="font-semibold text-gray-800 text-sm">{value.storeName}</span>
           <span className="text-[10px] text-gray-400 font-medium">Rep: {value.name}</span>
         </div>
+      )
+    },
+    {
+      key: "buyer",
+      label: "Buyer Company",
+      sortable: true,
+      render: (value) => (
+        <span className="text-xs font-semibold text-gray-700">{value.company}</span>
       )
     },
     {
@@ -224,7 +287,7 @@ const AdminSellerResponses = () => {
       sortable: false,
       render: (_, row) => (
         <button
-          onClick={() => navigate(`/admin/b2b-enquiries/${row.id}`)}
+          onClick={() => navigate(`/admin/b2b-enquiries/${row.rfqId}`)}
           className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors flex items-center gap-1 text-xs font-bold"
           title="Inspect Details"
         >
@@ -243,7 +306,7 @@ const AdminSellerResponses = () => {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1.5 flex items-center gap-2.5">
-          <FiBriefcase className="text-primary-600" /> Seller SLA & Response Monitor
+          <FiBriefcase className="text-primary-600" /> Seller SLA &amp; Response Monitor
         </h1>
         <p className="text-sm text-gray-500">
           Supervise seller quotation response times. Manage bottlenecks, identify delay frequencies, and optimize overall RFQ turnaround efficiency.
@@ -340,6 +403,7 @@ const AdminSellerResponses = () => {
                   { label: "Enquiry #", accessor: (row) => row.enquiryNumber },
                   { label: "Seller Store", accessor: (row) => row.seller.storeName },
                   { label: "Representative", accessor: (row) => row.seller.name },
+                  { label: "Buyer Company", accessor: (row) => row.buyer.company },
                   { label: "Assigned Date", accessor: (row) => row.assignedDate },
                   { label: "SLA Deadline", accessor: (row) => row.deadlineDate },
                   { label: "Days Elapsed", accessor: (row) => row.daysElapsed },
@@ -354,12 +418,24 @@ const AdminSellerResponses = () => {
         </div>
 
         {/* SLA DataTable */}
-        <DataTable
-          data={filteredRows}
-          columns={columns}
-          pagination={true}
-          itemsPerPage={10}
-        />
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 font-bold">Loading seller response data...</p>
+          </div>
+        ) : filteredRows.length === 0 ? (
+          <div className="text-center py-16 text-gray-400 border border-dashed border-gray-200 rounded-2xl">
+            <FiBriefcase className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+            <p className="font-extrabold text-sm text-gray-600">No Vendor Assignments Found</p>
+            <p className="text-xs text-gray-400 mt-1">Once RFQs are approved and vendors are assigned, their SLA tracking will appear here.</p>
+          </div>
+        ) : (
+          <DataTable
+            data={filteredRows}
+            columns={columns}
+            pagination={true}
+            itemsPerPage={10}
+          />
+        )}
       </div>
     </motion.div>
   );

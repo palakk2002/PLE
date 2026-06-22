@@ -20,8 +20,10 @@ export const useAdminAuthStore = create(
           const { accessToken, refreshToken, admin } = response.data;
 
           // Store token under 'adminToken' key (used by adminService interceptor)
-          localStorage.setItem('adminToken', accessToken);
-          localStorage.setItem('adminRefreshToken', refreshToken);
+          sessionStorage.setItem('adminToken', accessToken);
+          sessionStorage.setItem('adminRefreshToken', refreshToken);
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminRefreshToken');
 
           set({
             admin,
@@ -47,8 +49,10 @@ export const useAdminAuthStore = create(
           const accessToken = "mock.eyJyb2xlIjoiYWRtaW4iLCJleHAiOjI1MjQ2MDgwMDB9.signature";
           const refreshToken = "mock.eyJyb2xlIjoiYWRtaW4iLCJleHAiOjI1MjQ2MDgwMDB9.signature";
 
-          localStorage.setItem('adminToken', accessToken);
-          localStorage.setItem('adminRefreshToken', refreshToken);
+          sessionStorage.setItem('adminToken', accessToken);
+          sessionStorage.setItem('adminRefreshToken', refreshToken);
+          localStorage.removeItem('adminToken');
+          localStorage.removeItem('adminRefreshToken');
 
           set({
             admin: mockAdmin,
@@ -64,7 +68,7 @@ export const useAdminAuthStore = create(
 
       // Admin logout
       logout: () => {
-        const refreshToken = localStorage.getItem('adminRefreshToken');
+        const refreshToken = sessionStorage.getItem('adminRefreshToken') || localStorage.getItem('adminRefreshToken');
         if (refreshToken) {
           api.post('/admin/auth/logout', { refreshToken }).catch(() => {});
         }
@@ -72,14 +76,20 @@ export const useAdminAuthStore = create(
         set({ admin: null, token: null, refreshToken: null, isAuthenticated: false });
         localStorage.removeItem('adminToken');
         localStorage.removeItem('adminRefreshToken');
+        sessionStorage.removeItem('adminToken');
+        sessionStorage.removeItem('adminRefreshToken');
       },
 
       // Initialize admin auth state from localStorage
       initialize: () => {
-        const token = localStorage.getItem('adminToken');
+        const token = sessionStorage.getItem('adminToken') || localStorage.getItem('adminToken');
         if (token) {
-          const storedState = JSON.parse(localStorage.getItem('admin-auth-storage') || '{}');
-          const refreshToken = localStorage.getItem('adminRefreshToken');
+          const storedState = JSON.parse(
+            sessionStorage.getItem('admin-auth-storage') || 
+            localStorage.getItem('admin-auth-storage') || 
+            '{}'
+          );
+          const refreshToken = sessionStorage.getItem('adminRefreshToken') || localStorage.getItem('adminRefreshToken');
           if (storedState.state?.admin) {
             set({
               admin: storedState.state.admin,
@@ -96,7 +106,7 @@ export const useAdminAuthStore = create(
     }),
     {
       name: 'admin-auth-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         admin: state.admin,
         token: state.token,

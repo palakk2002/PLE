@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from '../../../shared/components/PageTransition';
 import { useB2bStore } from '../../../shared/store/b2bStore';
+import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
 
 const MobileRegister = () => {
   const navigate = useNavigate();
@@ -41,6 +42,8 @@ const MobileRegister = () => {
     email: '',
     phone: '',
     designation: '',
+    department: '',
+    address: '',
   });
 
   const {
@@ -74,7 +77,7 @@ const MobileRegister = () => {
     }
 
     setEmployees((prev) => [...prev, { ...empInput }]);
-    setEmpInput({ name: '', email: '', phone: '', designation: '' });
+    setEmpInput({ name: '', email: '', phone: '', designation: '', department: '', address: '' });
     toast.success('Employee added successfully!');
   };
 
@@ -135,29 +138,32 @@ const MobileRegister = () => {
   const handleB2BSubmit = async (e) => {
     e.preventDefault();
     try {
-      const companyData = {
-        companyName: b2bData.companyName,
-        gstNumber: b2bData.gstNumber.toUpperCase(),
-        businessEmail: b2bData.businessEmail,
-        businessPhone: b2bData.businessPhone,
-        businessAddress: b2bData.businessAddress,
-        businessType: b2bData.businessType,
-        website: b2bData.website,
+      const payload = {
+        companyData: {
+          companyName: b2bData.companyName,
+          gstNumber: b2bData.gstNumber.toUpperCase(),
+          businessEmail: b2bData.businessEmail,
+          businessPhone: b2bData.businessPhone,
+          businessAddress: b2bData.businessAddress,
+          businessType: b2bData.businessType,
+          website: b2bData.website,
+        },
+        adminData: {
+          adminName: b2bData.adminName,
+          adminEmail: b2bData.adminEmail,
+          adminPhone: b2bData.adminPhone,
+          password: b2bData.password,
+        },
+        employees
       };
 
-      const adminData = {
-        name: b2bData.adminName,
-        email: b2bData.adminEmail,
-        phone: b2bData.adminPhone,
-        password: b2bData.password,
-      };
+      const { register: registerB2BAdminAPI } = useB2BAdminStore.getState();
+      const success = await registerB2BAdminAPI(payload);
 
-      registerCompany(companyData, adminData, employees);
-
-      toast.success('Company Registration Successful! Logging you in...');
-      
-      await login(b2bData.adminEmail, b2bData.password);
-      navigate('/home');
+      if (success) {
+        toast.success('Company Registration Submitted Successfully! Awaiting Admin Approval.');
+        navigate('/login');
+      }
     } catch (error) {
       toast.error(error.message || 'Registration failed. Please try again.');
     }
@@ -393,7 +399,7 @@ const MobileRegister = () => {
                         <button type="button" onClick={() => { if (validateStep2()) setB2bStep(3); }} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-3 rounded-xl font-bold text-sm">Next: Employees</button>
                       </div>
                     </div>
-                  )}
+                  )}x
 
                   {b2bStep === 3 && (
                     <div className="space-y-4 text-xs font-semibold">
@@ -414,6 +420,14 @@ const MobileRegister = () => {
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Designation *</label>
                           <input type="text" name="designation" value={empInput.designation} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Purchase Manager" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Department</label>
+                          <input type="text" name="department" value={empInput.department} onChange={handleEmpChange} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="E.g. Procurement" />
+                        </div>
+                        <div>
+                          <label className="block text-gray-600 dark:text-zinc-400 mb-1">Address</label>
+                          <textarea name="address" value={empInput.address} onChange={handleEmpChange} rows="2" className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Employee Address"></textarea>
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Password *</label>

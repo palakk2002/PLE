@@ -233,6 +233,12 @@ router.get('/brands/all', asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, brands, 'Brands fetched.'));
 }));
 
+// GET /api/campaigns (public)
+router.get('/campaigns', asyncHandler(async (req, res) => {
+    const campaigns = await Campaign.find({ isActive: true }).sort({ createdAt: -1 });
+    res.status(200).json(new ApiResponse(200, campaigns, 'Campaigns fetched.'));
+}));
+
 // GET /api/vendors/all (public)
 router.get('/vendors/all', asyncHandler(async (req, res) => {
     const { status = 'approved', page = 1, limit = 50, search } = req.query;

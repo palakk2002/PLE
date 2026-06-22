@@ -15,24 +15,26 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
   const location = useLocation();
   const headerHeight = useMobileHeaderHeight();
 
-  // Hide header and bottom nav on login, register, and verification pages
-  const isAuthPage = location.pathname === '/login' ||
-    location.pathname === '/register' ||
-    location.pathname === '/verification';
+  const pathname = location.pathname.toLowerCase();
 
-  const isCheckoutPage = location.pathname === '/checkout';
-  const isReturnsPage = location.pathname === '/returns';
+  // Hide header and bottom nav on login, register, and verification pages
+  const isAuthPage = pathname === '/login' ||
+    pathname === '/register' ||
+    pathname === '/verification';
+
+  const isCheckoutPage = pathname === '/checkout';
+  const isReturnsPage = pathname === '/returns';
   const isLocationSelectorOpen = useUIStore((state) => state.isLocationSelectorOpen);
   
   // Respect the showBottomNav prop and hide on auth pages or when location selector is open
   const shouldShowBottomNav = showBottomNav && !isAuthPage && !isLocationSelectorOpen;
   // Hide header on categories, search, wishlist, profile, returns, and auth pages
   const shouldShowHeader = !isAuthPage &&
-    location.pathname !== '/categories' &&
-    location.pathname !== '/search' &&
-    location.pathname !== '/wishlist' &&
-    location.pathname !== '/profile' &&
-    location.pathname !== '/orders' &&
+    pathname !== '/categories' &&
+    pathname !== '/search' &&
+    pathname !== '/wishlist' &&
+    pathname !== '/profile' &&
+    pathname !== '/orders' &&
     !isReturnsPage &&
     !isCheckoutPage;
 
@@ -63,7 +65,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
           to="/product-request/new"
           className="fixed right-4 z-[9998] safe-area-bottom px-5 py-3 rounded-full text-white shadow-2xl flex items-center justify-center gap-2 hover:scale-105 active:scale-[0.95] transition-all duration-300 group font-bold text-xs"
           style={{ 
-            bottom: location.pathname.startsWith('/product/') ? "calc(6.5rem + 10px)" : "calc(4rem + 10px)",
+            bottom: pathname.startsWith('/product/') ? "calc(6.5rem + 10px)" : "calc(4rem + 10px)",
             background: "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)"
           }}
           title="Can't find a product? Request it!"

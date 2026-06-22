@@ -2,19 +2,85 @@
 import { create } from "zustand";
 import api from "../../../shared/utils/api";
 import { mockEnquiries, defaultB2BSettings, mockAnalytics } from "../data/b2bEnquiryMockData";
+import { useVendorAuthStore } from "./vendorAuthStore";
 
 const mapRfqToEnquiry = (rfq) => {
-  const latestSellerOffer = rfq.timeline && [...rfq.timeline].reverse().find(t => t.senderType === 'seller');
-  const quotes = (rfq.timeline || [])
-    .filter(t => t.senderType === 'seller')
-    .map((t, idx) => ({
-      id: `QT-${idx}-${rfq._id}`,
-      totalValue: t.price * t.quantity,
-      status: 'submitted',
-      notes: t.notes,
-      createdAt: t.timestamp || new Date().toISOString(),
-      validUntil: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString()
+  const vendorState = useVendorAuthStore.getState();
+  const vendorId = vendorState?.vendor?.id || vendorState?.vendor?._id;
+
+  // Find the current vendor's quote(s) in rfq.quotations
+  const myQuotes = (rfq.quotations || [])
+    .filter(q => String(q.vendorId) === String(vendorId))
+    .map((q, idx) => ({
+      id: q._id || `QT-${idx}-${rfq._id}`,
+      items: [
+        {
+          name: rfq.productId?.name || rfq.customProductName || 'Product',
+          sku: rfq.productId?._id || 'PROD-1',
+          qty: rfq.quantity,
+          offeredPrice: q.unitPrice,
+          deliveryDays: parseInt(q.deliveryTime) || 7
+        }
+      ],
+      totalValue: q.totalPrice,
+      status: q.status.toLowerCase(), // 'submitted', 'negotiating', 'selected', 'rejected'
+      notes: q.additionalNotes,
+      warranty: q.warranty,
+      taxDetails: q.taxDetails,
+      attachments: q.attachments || [],
+      messages: q.messages || [],
+      createdAt: q.createdAt || new Date().toISOString(),
+      validUntil: new Date(new Date(q.createdAt || Date.now()).getTime() + 15 * 24 * 60 * 60 * 1000).toISOString()
     }));
+
+  const myActiveQuote = myQuotes[0]; // Active quote submitted by this vendor
+
+  // Determine UI status based on RFQ status and vendor's quote
+  let mappedStatus = "new";
+  if (myActiveQuote) {
+    if (myActiveQuote.status === "selected") {
+      mappedStatus = "accepted";
+    } else if (myActiveQuote.status === "rejected") {
+      mappedStatus = "rejected";
+    } else {
+      mappedStatus = "quoted";
+    }
+  } else {
+    if (rfq.status === "Rejected") {
+      mappedStatus = "rejected";
+    } else if (['Completed', 'Purchase Order Generated', 'Vendor Selected'].includes(rfq.status)) {
+      mappedStatus = "expired";
+    } else if (rfq.status === "Sent To Vendors" || rfq.status === "Quotation Received" || rfq.status === "Quotation Review" || rfq.status === "Vendor Negotiation") {
+      mappedStatus = "new";
+    } else {
+      mappedStatus = "new";
+    }
+  }
+
+  // Fallback for company/buyer information
+  const buyerName = rfq.createdByAdminId?.adminName || rfq.buyerId?.name || 'Business Buyer';
+  const buyerCompany = rfq.companyName || rfq.buyerId?.companyName || 'B2B Client Company';
+  const buyerEmail = rfq.createdByAdminId?.adminEmail || rfq.buyerId?.email || 'buyer@company.com';
+  const buyerPhone = rfq.createdByAdminId?.adminPhone || rfq.buyerId?.phone || '9876543210';
+  const buyerAddress = rfq.buyerId?.businessAddress || 'Default Company Address';
+
+  // Map timeline events from approvalHistory
+  const mappedTimeline = (rfq.approvalHistory || []).map(h => ({
+    action: h.action,
+    timestamp: h.createdAt || new Date().toISOString(),
+    by: h.updaterType === 'SuperAdmin' ? 'Super Admin' : h.updaterType,
+    notes: h.notes
+  }));
+
+  // If there's no history, populate with a default "RFQ Received" event
+  if (mappedTimeline.length === 0) {
+    mappedTimeline.push({
+      action: "RFQ Invitation Received",
+      timestamp: rfq.createdAt || new Date().toISOString(),
+      by: "System",
+      notes: "Sourcing request dispatched to vendor."
+    });
+  }
 
   return {
     id: rfq._id,
@@ -22,40 +88,38 @@ const mapRfqToEnquiry = (rfq) => {
     enquiryNumber: rfq.rfqId,
     rfqId: rfq.rfqId,
     createdAt: rfq.createdAt,
-    status: rfq.status.toLowerCase(), // e.g. 'pending', 'quoted', 'negotiating', 'accepted', 'rejected'
-    priority: rfq.quantity > 500 ? 'high' : rfq.quantity > 100 ? 'medium' : 'low',
-    message: rfq.requirementDetails || 'No buyer message provided.',
+    status: mappedStatus,
+    priority: rfq.priority ? rfq.priority.toLowerCase() : (rfq.quantity > 500 ? 'high' : rfq.quantity > 100 ? 'medium' : 'low'),
+    message: rfq.requirementDetails || 'No buyer message or specifications provided.',
     totalEstimatedValue: rfq.targetPrice * rfq.quantity,
     buyer: {
-      name: rfq.buyerId?.name || 'Business Buyer',
-      company: rfq.buyerId?.companyName || 'Apex General Enterprises',
-      email: rfq.buyerId?.email || 'buyer@apex.in',
-      phone: rfq.buyerId?.phone || '9876543210',
-      address: rfq.buyerId?.businessAddress || 'BKC, Mumbai'
+      name: buyerName,
+      company: buyerCompany,
+      email: buyerEmail,
+      phone: buyerPhone,
+      address: buyerAddress,
+      businessType: "Wholesaler",
+      gstNumber: rfq.buyerId?.gstNumber || "27AAPCG9838F1Z1",
+      verificationStatus: "Approved"
     },
     products: [
       {
-        name: rfq.productId?.name || 'Product',
+        name: rfq.productId?.name || rfq.customProductName || 'Product',
         sku: rfq.productId?._id || 'PROD-1',
         qty: rfq.quantity,
-        unit: rfq.productId?.unit || 'pcs',
+        unit: 'pcs',
         targetPrice: rfq.targetPrice,
       }
     ],
-    timeline: (rfq.timeline || []).map(t => ({
-      action: t.senderType === 'buyer' ? `Buyer counter offer: ₹${t.price}` : `Seller quote: ₹${t.price}`,
-      timestamp: t.timestamp || new Date().toISOString(),
-      by: t.senderType === 'buyer' ? 'Buyer' : 'Seller',
-      notes: t.notes
-    })),
-    quotes,
+    timeline: mappedTimeline,
+    quotes: myQuotes,
     originalRfq: rfq
   };
 };
 
 export const useVendorB2BStore = create((set, get) => ({
-  // State
-  enquiries: [...mockEnquiries],
+  // State - start with empty, will be populated from real API
+  enquiries: [],
   settings: { ...defaultB2BSettings },
   analytics: { ...mockAnalytics },
   isLoading: false,
@@ -67,11 +131,11 @@ export const useVendorB2BStore = create((set, get) => ({
       const res = await api.get('/vendor/rfq');
       const payload = res?.data ?? res;
       const mapped = Array.isArray(payload) ? payload.map(mapRfqToEnquiry) : [];
-      const merged = [...mapped, ...mockEnquiries.filter(me => !mapped.some(q => q.enquiryNumber === me.enquiryNumber))];
-      set({ enquiries: merged });
+      set({ enquiries: mapped });
     } catch (error) {
       console.error('Error fetching vendor RFQs:', error);
-      set({ enquiries: [...mockEnquiries] });
+      // On error show empty — vendor should only see real data, not mock
+      set({ enquiries: [] });
     } finally {
       set({ isLoading: false });
     }
@@ -81,11 +145,11 @@ export const useVendorB2BStore = create((set, get) => ({
     return get().enquiries.find((e) => e.id === id) || null;
   },
 
-  updateEnquiryStatus: async (id, status) => {
+  updateEnquiryStatus: async (id, status, notes = 'Vendor rejected the RFQ request.') => {
     const isMongoId = /^[a-fA-F0-9]{24}$/.test(id);
     if (isMongoId && status === 'rejected') {
       try {
-        await api.post(`/vendor/rfq/${id}/reject`, { notes: 'Vendor rejected the RFQ request.' });
+        await api.post(`/vendor/rfq/${id}/reject`, { notes });
         get().fetchEnquiries();
       } catch (error) {
         console.error('Error rejecting RFQ:', error);
@@ -106,12 +170,21 @@ export const useVendorB2BStore = create((set, get) => ({
     try {
       const firstItem = quoteData.items[0];
       if (isMongoId) {
-        await api.post(`/vendor/rfq/${enquiryId}/quote`, {
-          price: firstItem.offeredPrice,
-          quantity: firstItem.qty,
-          deliveryTimeline: `${firstItem.deliveryDays} days`,
-          notes: quoteData.notes
+        const res = await api.post(`/vendor/rfq/${enquiryId}/quote`, {
+          unitPrice: Number(firstItem.offeredPrice),
+          totalPrice: Number(quoteData.totalValue),
+          deliveryTime: `${firstItem.deliveryDays} days`,
+          warranty: quoteData.warranty || "N/A",
+          taxDetails: quoteData.taxDetails || "Excluding Taxes",
+          additionalNotes: quoteData.notes || "",
+          attachments: quoteData.attachments || []
         });
+        get().fetchEnquiries();
+        const backendRfq = res?.data || res;
+        const vendorState = useVendorAuthStore.getState();
+        const vendorId = vendorState?.vendor?.id || vendorState?.vendor?._id;
+        const myQuote = backendRfq?.quotations?.find(q => String(q.vendorId) === String(vendorId));
+        return myQuote?._id || `QT-${Date.now()}`;
       } else {
         // Local fallback for mock
         const quoteId = `QT-${Date.now()}`;
@@ -128,8 +201,6 @@ export const useVendorB2BStore = create((set, get) => ({
         }));
         return quoteId;
       }
-      get().fetchEnquiries();
-      return `QT-${Date.now()}`;
     } catch (error) {
       console.error('Error submitting quote:', error);
       throw error;
@@ -138,6 +209,16 @@ export const useVendorB2BStore = create((set, get) => ({
 
   updateQuote: (enquiryId, quoteId, data) => {
     // Local no-op
+  },
+
+  sendNegotiationMessage: async (rfqId, message) => {
+    try {
+      await api.post(`/vendor/rfq/${rfqId}/message`, { message });
+      await get().fetchEnquiries();
+    } catch (error) {
+      console.error('Error sending negotiation message:', error);
+      throw error;
+    }
   },
 
   // Settings

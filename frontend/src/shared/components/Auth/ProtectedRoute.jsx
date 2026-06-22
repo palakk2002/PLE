@@ -1,3 +1,4 @@
+
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 
@@ -28,16 +29,12 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (isExpired) {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh-token');
-    localStorage.removeItem('auth-storage');
+    useAuthStore.getState().logout();
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 
-  if (resolvedRole && resolvedRole !== 'customer' && resolvedRole !== 'business_buyer') {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh-token');
-    localStorage.removeItem('auth-storage');
+  if (resolvedRole && !['customer', 'business_buyer', 'b2badmin', 'b2bemployee'].includes(resolvedRole)) {
+    useAuthStore.getState().logout();
     return <Navigate to="/" state={{ from: location }} replace />;
   }
 

@@ -30,7 +30,7 @@ import {
 import { placeOrderSchema, createReturnRequestSchema } from '../validators/order.validator.js';
 
 const router = Router();
-const customerAuth = [authenticate, authorize('customer'), enforceAccountStatus];
+const customerAuth = [authenticate, authorize('customer', 'b2bAdmin', 'b2bEmployee'), enforceAccountStatus];
 
 // Auth routes
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);

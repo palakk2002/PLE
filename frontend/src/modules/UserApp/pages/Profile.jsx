@@ -51,6 +51,7 @@ import { B2BBusinessBadge } from "../components/B2B/B2BBusinessBadge";
 import { B2BBusinessDashboard } from "../components/B2B/B2BBusinessDashboard";
 import { B2BMyEnquiries } from "../components/B2B/B2BMyEnquiries";
 import { MyProductEnquiries } from "../components/Enquiry/MyProductEnquiries";
+import { useB2BAdminStore } from "../../B2BAdmin/store/b2bAdminStore";
 
 const MobileProfile = () => {
   const navigate = useNavigate();
@@ -78,7 +79,35 @@ const MobileProfile = () => {
 
   // Company / Employee CRUD States
   const { companies, updateCompanyDetails, addEmployee, updateEmployee, toggleEmployeeStatus, removeEmployee } = useB2bStore();
-  const company = companies?.find(c => c.id === user?.companyId || c.companyName === user?.companyName || c.admin?.email?.toLowerCase() === user?.email?.toLowerCase());
+  const { 
+    employees: dbEmployees, 
+    fetchEmployees: fetchDbEmployees, 
+    createEmployee: createDbEmployee, 
+    updateEmployee: updateDbEmployee, 
+    deleteEmployee: deleteDbEmployee,
+    companyProfile: dbCompanyProfile,
+    fetchCompanyProfile: fetchDbCompanyProfile,
+    updateCompanyProfile: updateDbCompanyProfile
+  } = useB2BAdminStore();
+
+  const isB2BAdmin = user?.role === 'b2bAdmin';
+  const isB2BEmployee = user?.role === 'b2bEmployee';
+  const isB2BUser = isB2BAdmin || isB2BEmployee;
+
+  const company = isB2BUser 
+    ? dbCompanyProfile 
+    : companies?.find(c => c.id === user?.companyId || c.companyName === user?.companyName || c.admin?.email?.toLowerCase() === user?.email?.toLowerCase());
+
+  useEffect(() => {
+    if (isB2BUser) {
+      if (isB2BAdmin) {
+        fetchDbEmployees();
+      }
+      fetchDbCompanyProfile();
+    }
+  }, [user, isB2BUser, isB2BAdmin, fetchDbEmployees, fetchDbCompanyProfile]);
+
+  const employeesList = isB2BAdmin ? dbEmployees : (company?.employees || []);
 
   const [isEditingCompany, setIsEditingCompany] = useState(false);
   const [companyForm, setCompanyForm] = useState({
@@ -98,8 +127,8 @@ const MobileProfile = () => {
         gstNumber: company.gstNumber || '',
         businessEmail: company.businessEmail || '',
         businessPhone: company.businessPhone || '',
-        businessAddress: company.businessAddress || '',
-        businessType: company.businessType || '',
+        businessAddress: company.businessAddress || company.companyAddress || '',
+        businessType: company.businessType || company.companyType || '',
         website: company.website || '',
       });
     }
@@ -114,12 +143,26 @@ const MobileProfile = () => {
     designation: '',
   });
 
-  const handleCompanySave = (e) => {
+  const handleCompanySave = async (e) => {
     e.preventDefault();
     if (!company) return;
-    updateCompanyDetails(company.id, companyForm);
-    setIsEditingCompany(false);
-    toast.success('Company details updated successfully!');
+    if (isB2BAdmin) {
+      const payload = {
+        companyName: companyForm.companyName,
+        businessPhone: companyForm.businessPhone,
+        companyAddress: companyForm.businessAddress,
+        companyType: companyForm.businessType,
+        website: companyForm.website,
+      };
+      const success = await updateDbCompanyProfile(payload);
+      if (success) {
+        setIsEditingCompany(false);
+      }
+    } else {
+      updateCompanyDetails(company.id, companyForm);
+      setIsEditingCompany(false);
+      toast.success('Company details updated successfully!');
+    }
   };
 
   const handleAddEmpSubmit = (e) => {
@@ -321,10 +364,11 @@ const MobileProfile = () => {
       ? [
           {
             id: "b2b-requests",
-            label: "B2B RFQs & Stock Requests",
+            label: "Sourcing Center (B2B Dashboard)",
             icon: FiFileText,
             color: "text-[#7B0A0A]",
             bg: "bg-[#7B0A0A]/10",
+            link: "/b2b-dashboard"
           },
           {
             id: "company-profile",
@@ -335,7 +379,7 @@ const MobileProfile = () => {
           },
         ]
       : []),
-    ...(isBusiness && user?.isCompanyAdmin
+    ...(isBusiness && (user?.isCompanyAdmin || user?.role === 'b2bAdmin')
       ? [
           {
             id: "team-management",
@@ -1100,7 +1144,7 @@ const MobileProfile = () => {
                       <h2 className="text-xl font-bold text-gray-800">Company Profile</h2>
                       <p className="text-xs text-gray-500 mt-1">View or manage details of your business account</p>
                     </div>
-                    {user?.isCompanyAdmin && !isEditingCompany && (
+                    {(user?.isCompanyAdmin || user?.role === 'b2bAdmin') && !isEditingCompany && (
                       <button
                         onClick={() => setIsEditingCompany(true)}
                         className="px-4 py-2 bg-[#AE020B] hover:bg-[#8d0208] text-white font-bold rounded-xl text-xs transition-colors"
@@ -1194,9 +1238,9 @@ const MobileProfile = () => {
 
                       <div className="bg-gray-50 p-4 rounded-xl border space-y-2">
                         <h4 className="font-bold text-gray-700">Company Administrator</h4>
-                        <p className="text-gray-600">Name: <span className="font-bold text-gray-850">{company.admin?.name}</span></p>
-                        <p className="text-gray-600">Email: <span className="font-bold text-gray-850">{company.admin?.email}</span></p>
-                        <p className="text-gray-600">Phone: <span className="font-bold text-gray-850">{company.admin?.phone}</span></p>
+                        <p className="text-gray-600">Name: <span className="font-bold text-gray-850">{company.admin?.name || user?.name}</span></p>
+                        <p className="text-gray-600">Email: <span className="font-bold text-gray-850">{company.admin?.email || user?.email}</span></p>
+                        <p className="text-gray-600">Phone: <span className="font-bold text-gray-855">{company.admin?.phone || user?.phone}</span></p>
                       </div>
 
                       {isEditingCompany && (
@@ -1235,7 +1279,7 @@ const MobileProfile = () => {
               )}
 
               {/* Team Management Tab */}
-              {isBusiness && user?.isCompanyAdmin && activeTab === "team-management" && (
+              {isBusiness && (user?.isCompanyAdmin || user?.role === 'b2bAdmin') && activeTab === "team-management" && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -1261,9 +1305,9 @@ const MobileProfile = () => {
                   {showAddEmpModal && (
                     <div className="p-4 border rounded-xl bg-gray-50 space-y-4 text-xs font-semibold">
                       <h3 className="font-bold text-sm text-gray-800">{editingEmployee ? 'Edit Employee' : 'Add Employee'}</h3>
-                      <form onSubmit={(e) => {
+                      <form onSubmit={async (e) => {
                         e.preventDefault();
-                        if (!company) return;
+                        if (!isB2BAdmin && !company) return;
                         if (!empForm.name || !empForm.email || !empForm.phone || !empForm.designation) {
                           toast.error('All fields are required.');
                           return;
@@ -1272,16 +1316,47 @@ const MobileProfile = () => {
                           toast.error('Passwords do not match or are empty.');
                           return;
                         }
-                        if (editingEmployee) {
-                          updateEmployee(company.id, editingEmployee.email, empForm);
-                          toast.success('Employee details updated!');
+
+                        if (isB2BAdmin) {
+                          const nameParts = empForm.name.trim().split(/\s+/);
+                          const firstName = nameParts[0] || '';
+                          const lastName = nameParts.slice(1).join(' ') || '';
+                          const payload = {
+                            firstName,
+                            lastName,
+                            email: empForm.email,
+                            phone: empForm.phone,
+                            designation: empForm.designation,
+                            password: empForm.password
+                          };
+                          
+                          if (editingEmployee) {
+                            const success = await updateDbEmployee(editingEmployee._id, payload);
+                            if (success) {
+                              setShowAddEmpModal(false);
+                              setEditingEmployee(null);
+                              setEmpForm({ name: '', email: '', phone: '', designation: '', password: '', confirmPassword: '' });
+                            }
+                          } else {
+                            const success = await createDbEmployee(payload);
+                            if (success) {
+                              setShowAddEmpModal(false);
+                              setEditingEmployee(null);
+                              setEmpForm({ name: '', email: '', phone: '', designation: '', password: '', confirmPassword: '' });
+                            }
+                          }
                         } else {
-                          addEmployee(company.id, empForm);
-                          toast.success('Employee added successfully!');
+                          if (editingEmployee) {
+                            updateEmployee(company.id, editingEmployee.email, empForm);
+                            toast.success('Employee details updated!');
+                          } else {
+                            addEmployee(company.id, empForm);
+                            toast.success('Employee added successfully!');
+                          }
+                          setShowAddEmpModal(false);
+                          setEditingEmployee(null);
+                          setEmpForm({ name: '', email: '', phone: '', designation: '', password: '', confirmPassword: '' });
                         }
-                        setShowAddEmpModal(false);
-                        setEditingEmployee(null);
-                        setEmpForm({ name: '', email: '', phone: '', designation: '', password: '', confirmPassword: '' });
                       }} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                           <label className="block text-gray-650 mb-1">Employee Name *</label>
@@ -1358,7 +1433,7 @@ const MobileProfile = () => {
                               setShowAddEmpModal(false);
                               setEditingEmployee(null);
                             }}
-                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-750 rounded-lg font-bold"
+                            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-755 rounded-lg font-bold"
                           >
                             Cancel
                           </button>
@@ -1367,7 +1442,7 @@ const MobileProfile = () => {
                     </div>
                   )}
 
-                  {company?.employees && company.employees.length > 0 ? (
+                  {employeesList && employeesList.length > 0 ? (
                     <div className="overflow-x-auto rounded-xl border border-gray-150">
                       <table className="w-full text-left text-xs">
                         <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-bold tracking-wider">
@@ -1381,76 +1456,93 @@ const MobileProfile = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100 text-gray-755">
-                          {company.employees.map((emp) => (
-                            <tr key={emp.email} className="hover:bg-gray-50">
-                              <td className="py-3.5 px-4 font-bold text-gray-900">{emp.name}</td>
-                              <td className="py-3.5 px-4 font-medium">
-                                <p>{emp.email}</p>
-                                <div className="flex gap-2 text-[9px] mt-1 text-gray-400 font-bold">
-                                  <button onClick={() => {
-                                    navigator.clipboard.writeText(`Email: ${emp.email}\nPassword: ${emp.password || 'Employee@123'}`);
-                                    toast.success('Credentials copied!');
-                                  }} className="text-blue-500 hover:underline">Copy Credentials</button>
-                                  <span>•</span>
-                                  <button onClick={() => {
-                                    const loginLink = `${window.location.origin}/login`;
-                                    navigator.clipboard.writeText(loginLink);
-                                    toast.success('Login link copied!');
-                                  }} className="text-emerald-500 hover:underline">Copy Login Link</button>
-                                  <span>•</span>
-                                  <button onClick={() => {
-                                    toast.success(`Invitation resending simulated to ${emp.email}`);
-                                  }} className="text-purple-550 hover:underline">Resend Invitation</button>
-                                </div>
-                              </td>
-                              <td className="py-3.5 px-4 font-mono font-bold">{emp.phone}</td>
-                              <td className="py-3.5 px-4 font-semibold text-gray-650">{emp.designation}</td>
-                              <td className="py-3.5 px-4 text-center">
-                                <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
-                                  emp.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
-                                }`}>
-                                  {emp.status}
-                                </span>
-                              </td>
-                              <td className="py-3.5 px-4 text-right space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setEditingEmployee(emp);
-                                    setEmpForm({
-                                      name: emp.name,
-                                      email: emp.email,
-                                      phone: emp.phone,
-                                      designation: emp.designation,
-                                    });
-                                    setShowAddEmpModal(true);
-                                  }}
-                                  className="text-[#AE020B] hover:underline font-bold"
-                                >
-                                  Edit
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    toggleEmployeeStatus(company.id, emp.email);
-                                    toast.success(`Employee status toggled!`);
-                                  }}
-                                  className="text-amber-800 hover:underline font-bold"
-                                >
-                                  {emp.status === 'Active' ? 'Deactivate' : 'Activate'}
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    if (window.confirm('Are you sure you want to remove this employee?')) {
-                                      removeEmployee(company.id, emp.email);
-                                      toast.success('Employee removed successfully.');
-                                    }
-                                  }}
-                                  className="text-gray-500 hover:text-red-700 font-bold hover:underline"
-                                >
-                                  Remove
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
+                          {employeesList.map((emp) => {
+                            const empName = emp.name || `${emp.firstName || ''} ${emp.lastName || ''}`.trim() || 'Employee';
+                            const empEmail = emp.email;
+                            const empPhone = emp.phone;
+                            const empDesignation = emp.designation;
+                            const empStatus = emp.status || (emp.isActive !== false ? 'Active' : 'Inactive');
+                            
+                            return (
+                              <tr key={empEmail} className="hover:bg-gray-50">
+                                <td className="py-3.5 px-4 font-bold text-gray-900">{empName}</td>
+                                <td className="py-3.5 px-4 font-medium">
+                                  <p>{empEmail}</p>
+                                  <div className="flex gap-2 text-[9px] mt-1 text-gray-400 font-bold">
+                                    <button onClick={() => {
+                                      navigator.clipboard.writeText(`Email: ${empEmail}\nPassword: ${emp.password || 'Employee@123'}`);
+                                      toast.success('Credentials copied!');
+                                    }} className="text-blue-500 hover:underline">Copy Credentials</button>
+                                    <span>•</span>
+                                    <button onClick={() => {
+                                      const loginLink = `${window.location.origin}/login`;
+                                      navigator.clipboard.writeText(loginLink);
+                                      toast.success('Login link copied!');
+                                    }} className="text-emerald-500 hover:underline">Copy Login Link</button>
+                                    <span>•</span>
+                                    <button onClick={() => {
+                                      toast.success(`Invitation resending simulated to ${empEmail}`);
+                                    }} className="text-purple-550 hover:underline">Resend Invitation</button>
+                                  </div>
+                                </td>
+                                <td className="py-3.5 px-4 font-mono font-bold">{empPhone}</td>
+                                <td className="py-3.5 px-4 font-semibold text-gray-655">{empDesignation}</td>
+                                <td className="py-3.5 px-4 text-center">
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
+                                    empStatus === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+                                  }`}>
+                                    {empStatus}
+                                  </span>
+                                </td>
+                                <td className="py-3.5 px-4 text-right space-x-2">
+                                  <button
+                                    onClick={() => {
+                                      setEditingEmployee(emp);
+                                      setEmpForm({
+                                        name: empName,
+                                        email: empEmail,
+                                        phone: empPhone || '',
+                                        designation: empDesignation || '',
+                                      });
+                                      setShowAddEmpModal(true);
+                                    }}
+                                    className="text-[#AE020B] hover:underline font-bold"
+                                  >
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (isB2BAdmin) {
+                                        const nextStatus = emp.isActive !== false ? 'Inactive' : 'Active';
+                                        await updateDbEmployee(emp._id, { status: nextStatus });
+                                      } else {
+                                        toggleEmployeeStatus(company.id, empEmail);
+                                        toast.success(`Employee status toggled!`);
+                                      }
+                                    }}
+                                    className="text-amber-800 hover:underline font-bold"
+                                  >
+                                    {empStatus === 'Active' ? 'Deactivate' : 'Activate'}
+                                  </button>
+                                  <button
+                                    onClick={async () => {
+                                      if (window.confirm('Are you sure you want to remove this employee?')) {
+                                        if (isB2BAdmin) {
+                                          await deleteDbEmployee(emp._id);
+                                        } else {
+                                          removeEmployee(company.id, empEmail);
+                                          toast.success('Employee removed successfully.');
+                                        }
+                                      }
+                                    }}
+                                    className="text-gray-500 hover:text-red-700 font-bold hover:underline"
+                                  >
+                                    Remove
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

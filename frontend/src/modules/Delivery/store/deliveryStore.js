@@ -172,8 +172,10 @@ export const useDeliveryAuthStore = create(
             throw new Error('Invalid login response from server.');
           }
 
-          localStorage.setItem('delivery-token', accessToken);
-          localStorage.setItem('delivery-refresh-token', refreshToken);
+          sessionStorage.setItem('delivery-token', accessToken);
+          sessionStorage.setItem('delivery-refresh-token', refreshToken);
+          localStorage.removeItem('delivery-token');
+          localStorage.removeItem('delivery-refresh-token');
 
           let enriched = loginDeliveryBoy;
           try {
@@ -212,8 +214,10 @@ export const useDeliveryAuthStore = create(
           const accessToken = "mock.eyJyb2xlIjoiZGVsaXZlcnkiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
           const refreshToken = "mock.eyJyb2xlIjoiZGVsaXZlcnkiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
 
-          localStorage.setItem('delivery-token', accessToken);
-          localStorage.setItem('delivery-refresh-token', refreshToken);
+          sessionStorage.setItem('delivery-token', accessToken);
+          sessionStorage.setItem('delivery-refresh-token', refreshToken);
+          localStorage.removeItem('delivery-token');
+          localStorage.removeItem('delivery-refresh-token');
 
           set({
             deliveryBoy: mockDeliveryBoy,
@@ -229,7 +233,7 @@ export const useDeliveryAuthStore = create(
 
       // Delivery boy logout action
       logout: () => {
-        const refreshToken = localStorage.getItem('delivery-refresh-token');
+        const refreshToken = sessionStorage.getItem('delivery-refresh-token') || localStorage.getItem('delivery-refresh-token');
         if (refreshToken) {
           api.post('/delivery/auth/logout', { refreshToken }).catch(() => {});
         }
@@ -250,6 +254,8 @@ export const useDeliveryAuthStore = create(
         });
         localStorage.removeItem('delivery-token');
         localStorage.removeItem('delivery-refresh-token');
+        sessionStorage.removeItem('delivery-token');
+        sessionStorage.removeItem('delivery-refresh-token');
       },
 
       // Update delivery boy status
@@ -444,10 +450,13 @@ export const useDeliveryAuthStore = create(
 
       // Initialize delivery auth state from localStorage
       initialize: () => {
-        const token = localStorage.getItem('delivery-token');
+        const token = sessionStorage.getItem('delivery-token') || localStorage.getItem('delivery-token');
         if (token) {
-          const storedState = JSON.parse(localStorage.getItem('delivery-auth-storage') || '{}');
-          const refreshToken = localStorage.getItem('delivery-refresh-token');
+          const storedState = JSON.parse(
+            sessionStorage.getItem('delivery-auth-storage') || 
+            localStorage.getItem('delivery-auth-storage') || '{}'
+          );
+          const refreshToken = sessionStorage.getItem('delivery-refresh-token') || localStorage.getItem('delivery-refresh-token');
           if (storedState.state?.deliveryBoy) {
             set({
               deliveryBoy: normalizeDeliveryBoy(storedState.state.deliveryBoy),
@@ -474,7 +483,7 @@ export const useDeliveryAuthStore = create(
     }),
     {
       name: 'delivery-auth-storage',
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         deliveryBoy: state.deliveryBoy,
         token: state.token,

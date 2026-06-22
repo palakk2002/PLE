@@ -13,7 +13,9 @@ try {
 }
 
 import "dotenv/config";
+import http from "http";
 import app from "./app.js";
+import { initSocket } from "./config/socket.js";
 import connectDB from "./config/db.js";
 import { validateEnv } from "./config/env.js";
 
@@ -23,10 +25,16 @@ const startServer = async () => {
   try {
     validateEnv();
     await connectDB();
-    app.listen(PORT, () => {
+    
+    const server = http.createServer(app);
+    initSocket(server);
+
+    server.listen(PORT, () => {
       console.log(`Server running on http://localhost:${PORT}`);
-      console.log(`🚀 Environment: ${process.env.NODE_ENV || "development"}`);
+      console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
     });
+
+    // Trigger restart
   } catch (error) {
     console.error("📦 Server startup failed:", error.message);
     process.exit(1);

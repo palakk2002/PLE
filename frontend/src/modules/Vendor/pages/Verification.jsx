@@ -65,11 +65,7 @@ const VendorVerification = () => {
 
     setIsLoading(true);
     try {
-      try {
-        await verifyVendorOTP(email, verificationCode);
-      } catch (apiError) {
-        console.warn("verifyVendorOTP API failed, proceeding with mock verification:", apiError);
-      }
+      await verifyVendorOTP(email, verificationCode);
       toast.success('Email verified! Your account is pending admin approval.');
       navigate('/vendor/login');
     } catch {

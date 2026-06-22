@@ -13,6 +13,7 @@ import * as reportController from '../controllers/report.controller.js';
 import * as marketingController from '../controllers/marketing.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
 import * as uploadController from '../controllers/upload.controller.js';
+import b2bUserRoutes from './b2bUser.routes.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -121,6 +122,7 @@ router.patch('/vendors/:id/status', ...adminAuth, validate(vendorIdParamSchema, 
 router.patch('/vendors/:id/commission', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorCommissionUpdateSchema), vendorController.updateCommissionRate);
 
 // ─── Customers ────────────────────────────────────────────────────────────────
+router.use('/b2b-users', b2bUserRoutes);
 router.get('/b2b/users', ...adminAuth, customerController.getB2BUsers);
 router.patch('/b2b/users/:id/verify', ...adminAuth, customerController.verifyB2BUser);
 router.get('/customers', ...adminAuth, validate(customerListQuerySchema, 'query'), customerController.getAllCustomers);
@@ -198,5 +200,13 @@ import * as adminRfqController from '../controllers/adminRfq.controller.js';
 router.get('/rfq', ...adminAuth, adminRfqController.getAdminRFQs);
 router.get('/rfq/stats', ...adminAuth, adminRfqController.getRFQStats);
 router.get('/rfq/:id', ...adminAuth, adminRfqController.getAdminRFQDetail);
+router.post('/rfq/:id/status', ...adminAuth, adminRfqController.updateRFQStatus);
+router.post('/rfq/:id/assign-vendors', ...adminAuth, adminRfqController.assignVendors);
+router.post('/rfq/:id/select-vendor', ...adminAuth, adminRfqController.selectVendorQuote);
+router.post('/rfq/:id/submit-b2b-approval', ...adminAuth, adminRfqController.submitB2BApproval);
+router.post('/rfq/:id/message', ...adminAuth, adminRfqController.sendAdminDiscussionMessage);
+router.post('/rfq/:id/vendor/:vendorId/message', ...adminAuth, adminRfqController.sendAdminToVendorMessage);
+router.get('/purchase-orders', ...adminAuth, adminRfqController.getAdminPurchaseOrders);
+router.get('/purchase-orders/:id', ...adminAuth, adminRfqController.getAdminPurchaseOrderDetail);
 
 export default router;

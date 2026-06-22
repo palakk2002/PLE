@@ -1,24 +1,70 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useBusinessBuyer } from '../../hooks/useBusinessBuyer';
+import { useAuthStore } from '../../../../shared/store/authStore';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiCheckCircle, FiSend, FiFileText, FiCalendar, FiBriefcase, FiDollarSign, FiPaperclip } from 'react-icons/fi';
+import { FiX, FiCheckCircle, FiSend, FiFileText, FiCalendar, FiBriefcase, FiDollarSign, FiPaperclip, FiSearch } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import api from '../../../../shared/utils/api';
 
 export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
   const { businessProfile, getWholesaleSpecs } = useBusinessBuyer();
+  const { user } = useAuthStore();
+  const isEmployee = user?.role === 'b2bEmployee';
+  const isAdmin = user?.role === 'b2bAdmin';
+
   const specs = product ? getWholesaleSpecs(product.id, product.price) : { moq: 1, tiers: [] };
 
   const [quantity, setQuantity] = useState(product ? specs.moq : 1);
   const [targetPrice, setTargetPrice] = useState(product ? Math.round(specs.tiers[2]?.price || product.price * 0.6) : 100);
   const [customProductName, setCustomProductName] = useState('');
-  const [businessName, setBusinessName] = useState(businessProfile.companyName);
+  const [businessName, setBusinessName] = useState(businessProfile?.companyName || '');
   const [expectedDeliveryDate, setExpectedDeliveryDate] = useState('');
   const [budgetRange, setBudgetRange] = useState('');
   const [notes, setNotes] = useState('');
   const [attachmentFile, setAttachmentFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Vendor selection state for employees
+  const [vendors, setVendors] = useState([]);
+  const [selectedVendorId, setSelectedVendorId] = useState('');
+  const [category, setCategory] = useState(product ? (product.categoryName || product.category || 'General') : '');
+  const [vendorSearch, setVendorSearch] = useState('');
+
+  useEffect(() => {
+    if (isEmployee && isOpen) {
+      const fetchVendors = async () => {
+        try {
+          const res = await api.get('/b2b-user/admin/vendors');
+          setVendors(res.data?.data?.vendors || res.data?.vendors || []);
+        } catch (error) {
+          console.error("Failed to fetch vendors", error);
+        }
+      };
+      fetchVendors();
+    }
+  }, [isEmployee, isOpen]);
+
+  const filteredVendors = useMemo(() => {
+    let result = vendors;
+    if (category) {
+      result = result.filter((v) => {
+        if (!v.categories || !Array.isArray(v.categories)) return false;
+        return v.categories.some(
+          (c) => String(c).toLowerCase() === String(category).toLowerCase()
+        );
+      });
+    }
+    if (vendorSearch) {
+      const q = vendorSearch.toLowerCase();
+      result = result.filter(v => 
+        v.name?.toLowerCase().includes(q) || 
+        v.email?.toLowerCase().includes(q) || 
+        v.storeName?.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [vendors, category, vendorSearch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,15 +96,44 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
         attachmentUrl = uploadRes.data?.url || uploadRes.url || '';
       }
 
-      await api.post('/rfq', {
-        productId: product ? (product.id || product._id) : undefined,
-        customProductName: product ? undefined : customProductName,
-        quantity,
-        targetPrice,
-        requirementDetails: notes,
-        expectedDeliveryDate: expectedDeliveryDate || undefined,
-        attachment: attachmentUrl
-      });
+      if (isEmployee) {
+        if (!selectedVendorId) {
+          toast.error('Please select a vendor');
+          setIsSubmitting(false);
+          return;
+        }
+        await api.post('/b2b-user/employee/direct-rfq', {
+          vendorId: selectedVendorId,
+          productId: product ? (product.id || product._id) : undefined,
+          customProductName: product ? undefined : customProductName,
+          quantity,
+          targetPrice,
+          requirementDetails: notes,
+          category,
+          expectedDeliveryDate: expectedDeliveryDate || undefined,
+          attachment: attachmentUrl
+        });
+      } else if (isAdmin) {
+        await api.post('/b2b-user/admin/rfq', {
+          productId: product ? (product.id || product._id) : undefined,
+          customProductName: product ? undefined : customProductName,
+          quantity,
+          targetPrice,
+          requirementDetails: notes,
+          expectedDeliveryDate: expectedDeliveryDate || undefined,
+          attachment: attachmentUrl
+        });
+      } else {
+        await api.post('/user/rfq', {
+          productId: product ? (product.id || product._id) : undefined,
+          customProductName: product ? undefined : customProductName,
+          quantity,
+          targetPrice,
+          requirementDetails: notes,
+          expectedDeliveryDate: expectedDeliveryDate || undefined,
+          attachment: attachmentUrl
+        });
+      }
 
       toast.success('Wholesale quote request (RFQ) sent successfully!');
       onClose();
@@ -109,28 +184,119 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {/* Product Info */}
             {product ? (
-              <div className="bg-gray-50 p-3 rounded-xl border border-gray-100">
-                <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">
-                  Product
-                </span>
-                <p className="font-bold text-gray-900 line-clamp-1">{product.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">
-                  Retail Price: ₹{product.price} / {product.unit} | B2B MOQ: {specs.moq} {product.unit}s
-                </p>
+              <div className="bg-gray-50 p-3 rounded-xl border border-gray-100 grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">
+                    Product
+                  </span>
+                  <p className="font-bold text-gray-900 line-clamp-1">{product.name}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    Retail Price: ₹{product.price} / {product.unit} | B2B MOQ: {specs.moq} {product.unit}s
+                  </p>
+                </div>
+                {isEmployee && (
+                  <div>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-1">
+                      Category (Prefilled)
+                    </span>
+                    <input
+                      type="text"
+                      value={category}
+                      readOnly
+                      disabled
+                      className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-1.5 text-sm font-bold text-gray-500 cursor-not-allowed"
+                    />
+                  </div>
+                )}
               </div>
             ) : (
-              <div>
-                <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
-                  Requested Custom Product Details / Specifications
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider truncate">
+                    Requested Custom Product Details / Specifications
+                  </label>
+                  <input
+                    type="text"
+                    value={customProductName}
+                    onChange={(e) => setCustomProductName(e.target.value)}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-2.5 font-bold text-gray-900 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors"
+                    placeholder="e.g. Organic Cotton T-Shirts, Custom Sizes"
+                    required
+                  />
+                </div>
+                {isEmployee && (
+                  <div>
+                    <label className="block text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                      RFQ Category
+                    </label>
+                    <select
+                      value={category}
+                      onChange={(e) => {
+                        setCategory(e.target.value);
+                        setSelectedVendorId(''); // Reset vendor selection when category changes
+                      }}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-2.5 font-bold text-gray-900 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      <option value="Electronics">Electronics</option>
+                      <option value="Fashion">Fashion</option>
+                      <option value="Home & Garden">Home & Garden</option>
+                      <option value="Health & Beauty">Health & Beauty</option>
+                      <option value="Industrial">Industrial</option>
+                      <option value="General">General</option>
+                    </select>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Vendor Selection (Employee Only) */}
+            {isEmployee && (
+              <div className="p-4 bg-red-50/50 rounded-xl border border-red-100">
+                <label className="block text-xs font-bold text-[#AE020B] mb-2 uppercase tracking-wider">
+                  Select Target Vendor
                 </label>
-                <input
-                  type="text"
-                  value={customProductName}
-                  onChange={(e) => setCustomProductName(e.target.value)}
-                  className="w-full border border-gray-300 rounded-xl px-4 py-2.5 font-bold text-gray-900 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 transition-colors"
-                  placeholder="e.g. Organic Cotton T-Shirts, Custom Sizes"
-                  required
-                />
+                
+                {/* Vendor Search input */}
+                <div className="relative mb-3">
+                  <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input 
+                    type="text"
+                    placeholder="Search vendors by name or email..."
+                    value={vendorSearch}
+                    onChange={(e) => setVendorSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-red-300"
+                  />
+                </div>
+
+                <div className="h-[130px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                  {filteredVendors.length === 0 ? (
+                    <div className="text-center py-4 text-sm text-gray-500 bg-white rounded-lg border border-gray-100">
+                      No matching vendors found for this category or search.
+                    </div>
+                  ) : (
+                    filteredVendors.map((v) => (
+                      <div
+                        key={v._id}
+                        onClick={() => setSelectedVendorId(v._id)}
+                        className={`p-3 rounded-lg border cursor-pointer transition-all flex items-center justify-between ${
+                          selectedVendorId === v._id
+                            ? 'border-red-500 bg-red-50 shadow-sm'
+                            : 'border-gray-200 bg-white hover:border-red-300'
+                        }`}
+                      >
+                        <div>
+                          <p className="font-bold text-sm text-gray-900">{v.name || v.storeName}</p>
+                          <p className="text-xs text-gray-500">{v.email}</p>
+                        </div>
+                        {selectedVendorId === v._id && (
+                          <FiCheckCircle className="text-red-500 w-5 h-5" />
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             )}
 

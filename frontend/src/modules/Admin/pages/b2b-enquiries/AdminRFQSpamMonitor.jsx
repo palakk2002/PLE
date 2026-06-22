@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiFlag,
@@ -18,30 +18,60 @@ import ExportButton from "../../components/ExportButton";
 import Badge from "../../../../shared/components/Badge";
 import AnimatedSelect from "../../components/AnimatedSelect";
 import toast from "react-hot-toast";
-import { initialB2BEnquiries } from "../../data/adminB2BEnquiryMockData";
+import api from "../../../../shared/utils/api";
+
+// Map a real RFQ to a spam record (only Rejected RFQs are flagged)
+const mapRfqToSpamRecord = (rfq) => ({
+  id: rfq._id,
+  rfqId: rfq._id,
+  enquiryNumber: rfq.rfqId,
+  createdAt: rfq.createdAt,
+  riskScore: rfq.status === "Rejected" ? 85 : 40,
+  spamStatus: "Flagged",
+  detectionMethod: rfq.status === "Rejected" ? "Manual (Rejected by Admin)" : "Auto (AI Filter)",
+  flagReason:
+    rfq.status === "Rejected"
+      ? "RFQ was rejected by Super Admin — flagged for quality review."
+      : "Suspicious activity pattern detected — pending moderation.",
+  buyer: {
+    name: rfq.companyName || "B2B Company",
+    company: rfq.companyName || "B2B Company",
+    email: rfq.companyId?.businessEmail || "N/A"
+  }
+});
 
 const AdminRFQSpamMonitor = () => {
   const navigate = useNavigate();
-
-  // Get only flagged enquiries initially
-  const initialSpamList = useMemo(() => {
-    return initialB2BEnquiries
-      .filter((e) => e.flagged)
-      .map((e) => ({
-        ...e,
-        riskScore: e.riskScore || 85,
-        spamStatus: e.spamStatus || "Flagged",
-        detectionMethod: e.detectionMethod || "Auto (AI Filter)",
-        flagReason: e.flagReason || "Repetitive generic text structure, potential promotional spam bot."
-      }));
-  }, []);
-
-  const [spamRecords, setSpamRecords] = useState(initialSpamList);
+  const [loading, setLoading] = useState(false);
+  const [spamRecords, setSpamRecords] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedRiskLevel, setSelectedRiskLevel] = useState("all");
 
-  // Moderate spam status (Verified, Blocked)
+  // Fetch real RFQs and filter flagged (Rejected) ones
+  useEffect(() => {
+    const fetchFlaggedRFQs = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get("/admin/rfq");
+        if (res && res.data) {
+          // Filter RFQs that are Rejected — these are the "flagged" entries
+          const flagged = res.data
+            .filter((rfq) => rfq.status === "Rejected")
+            .map(mapRfqToSpamRecord);
+          setSpamRecords(flagged);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to load spam monitor data");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFlaggedRFQs();
+  }, []);
+
+  // Moderate spam status (Verified Safe, Blocked) — local UI state
   const handleModerateSpam = (id, action) => {
     let nextStatus = "Flagged";
     if (action === "safe") {
@@ -110,7 +140,7 @@ const AdminRFQSpamMonitor = () => {
       sortable: true,
       render: (value, row) => (
         <span
-          onClick={() => navigate(`/admin/b2b-enquiries/${row.id}`)}
+          onClick={() => navigate(`/admin/b2b-enquiries/${row.rfqId}`)}
           className="font-bold text-primary-600 font-mono select-all hover:underline cursor-pointer flex items-center gap-1 text-xs"
         >
           {value}
@@ -211,7 +241,7 @@ const AdminRFQSpamMonitor = () => {
             <button
               onClick={() => handleModerateSpam(row.id, "block")}
               className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors border border-red-100 flex items-center justify-center gap-1 text-[10px] font-bold"
-              title="Block Spammer IP & Account"
+              title="Block Spammer IP &amp; Account"
             >
               <FiSlash className="w-3.5 h-3.5" /> Block
             </button>
@@ -230,10 +260,10 @@ const AdminRFQSpamMonitor = () => {
       {/* Page Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1.5 flex items-center gap-2.5">
-          <FiFlag className="text-primary-600" /> trust & safety: RFQ Spam Monitor
+          <FiFlag className="text-primary-600" /> Trust &amp; Safety: RFQ Spam Monitor
         </h1>
         <p className="text-sm text-gray-500">
-          Supervise automated spam flags. Track bot indicators, filter out scrapers, block persistent junk accounts, and clear false-positive trust ratings.
+          Supervise automated spam flags. Track rejected RFQs, filter out suspicious requests, block persistent junk accounts, and clear false-positive trust ratings.
         </p>
       </div>
 
@@ -264,7 +294,7 @@ const AdminRFQSpamMonitor = () => {
             <FiSlash className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Blocked Bots</p>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Blocked</p>
             <h3 className="text-xl sm:text-2xl font-extrabold text-gray-800 mt-1">{stats.blocked}</h3>
           </div>
         </div>
@@ -355,12 +385,24 @@ const AdminRFQSpamMonitor = () => {
         </div>
 
         {/* Spam Table */}
-        <DataTable
-          data={filteredRows}
-          columns={columns}
-          pagination={true}
-          itemsPerPage={10}
-        />
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 font-bold">Loading trust &amp; safety data...</p>
+          </div>
+        ) : filteredRows.length === 0 ? (
+          <div className="text-center py-16 text-gray-400 border border-dashed border-gray-200 rounded-2xl">
+            <FiFlag className="w-10 h-10 mx-auto mb-3 text-gray-300" />
+            <p className="font-extrabold text-sm text-gray-600">No Flagged RFQs</p>
+            <p className="text-xs text-gray-400 mt-1">Rejected RFQs will appear here for trust &amp; safety review.</p>
+          </div>
+        ) : (
+          <DataTable
+            data={filteredRows}
+            columns={columns}
+            pagination={true}
+            itemsPerPage={10}
+          />
+        )}
       </div>
     </motion.div>
   );

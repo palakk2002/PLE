@@ -1,11 +1,11 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
+import toast, { Toaster, useToasterStore } from "react-hot-toast";
 
 import CartDrawer from "./shared/components/Cart/CartDrawer";
 import ProtectedRoute from "./shared/components/Auth/ProtectedRoute";
@@ -61,6 +61,10 @@ const PendingApprovals = lazy(() => import("./modules/Admin/pages/vendors/Pendin
 const VendorDetail = lazy(() => import("./modules/Admin/pages/vendors/VendorDetail"));
 const CommissionRates = lazy(() => import("./modules/Admin/pages/vendors/CommissionRates"));
 const AdminVendorAnalytics = lazy(() => import("./modules/Admin/pages/vendors/VendorAnalytics"));
+const B2BUsersDashboard = lazy(() => import("./modules/Admin/pages/b2b-users/B2BUsersDashboard"));
+const ManageB2BUsers = lazy(() => import("./modules/Admin/pages/b2b-users/ManageB2BUsers"));
+const PendingB2BApprovals = lazy(() => import("./modules/Admin/pages/b2b-users/PendingB2BApprovals"));
+const B2BAnalytics = lazy(() => import("./modules/Admin/pages/b2b-users/B2BAnalytics"));
 const B2BMarketplace = lazy(() => import("./modules/Admin/pages/b2b/B2BMarketplace"));
 const BusinessUsers = lazy(() => import("./modules/Admin/pages/b2b/BusinessUsers"));
 const B2BProducts = lazy(() => import("./modules/Admin/pages/b2b/B2BProducts"));
@@ -253,10 +257,42 @@ const VendorB2BEnquiries = lazy(() => import("./modules/Vendor/pages/b2b/B2BEnqu
 const VendorB2BEnquiryDetail = lazy(() => import("./modules/Vendor/pages/b2b/B2BEnquiryDetail"));
 const VendorB2BCreateQuote = lazy(() => import("./modules/Vendor/pages/b2b/B2BCreateQuote"));
 const VendorB2BQuoteDetail = lazy(() => import("./modules/Vendor/pages/b2b/B2BQuoteDetail"));
+const VendorB2BOrders = lazy(() => import("./modules/Vendor/pages/b2b/VendorB2BOrders"));
 const VendorB2BAnalytics = lazy(() => import("./modules/Vendor/pages/b2b/B2BAnalytics"));
 const VendorB2BSettings = lazy(() => import("./modules/Vendor/pages/b2b/B2BSettings"));
+const VendorDirectRFQs = lazy(() => import("./modules/Vendor/pages/b2b/VendorDirectRFQs"));
+const VendorDirectRFQDetail = lazy(() => import("./modules/Vendor/pages/b2b/VendorDirectRFQDetail"));
 const VendorDeliverySettings = lazy(() => import("./modules/Vendor/pages/VendorDeliverySettings"));
 const VendorFestivalCampaigns = lazy(() => import("./modules/Vendor/pages/FestivalCampaigns"));
+
+// B2B Admin Dashboard Routes (Lazy Loaded)
+const B2BDashboardLayout = lazy(() => import("./modules/B2BAdmin/components/Layout/B2BDashboardLayout"));
+const B2BDashboardOverview = lazy(() => import("./modules/B2BAdmin/pages/DashboardOverview"));
+const B2BEmployeeManagement = lazy(() => import("./modules/B2BAdmin/pages/EmployeeManagement"));
+const B2BCompanyProfile = lazy(() => import("./modules/B2BAdmin/pages/CompanyProfile"));
+const B2BAdminProfile = lazy(() => import("./modules/B2BAdmin/pages/AdminProfile"));
+const B2BEmployeeProfile = lazy(() => import("./modules/B2BAdmin/pages/EmployeeProfile"));
+const B2BActivityLogs = lazy(() => import("./modules/B2BAdmin/pages/ActivityLogs"));
+const B2BNotifications = lazy(() => import("./modules/B2BAdmin/pages/Notifications"));
+const B2BDashboardSettings = lazy(() => import("./modules/B2BAdmin/pages/Settings"));
+const B2BRFQs = lazy(() => import("./modules/B2BAdmin/pages/RFQs"));
+const B2BCreateRFQ = lazy(() => import("./modules/B2BAdmin/pages/CreateRFQ"));
+const B2BRFQDetail = lazy(() => import("./modules/B2BAdmin/pages/RFQDetail"));
+const B2BQuotations = lazy(() => import("./modules/B2BAdmin/pages/Quotations"));
+const B2BRFQDiscussions = lazy(() => import("./modules/B2BAdmin/pages/RFQDiscussions"));
+const B2BPurchaseOrders = lazy(() => import("./modules/B2BAdmin/pages/PurchaseOrders"));
+import B2BProtectedRoute from "./modules/B2BAdmin/components/B2BProtectedRoute";
+
+import { useB2BAdminStore } from "./modules/B2BAdmin/store/b2bAdminStore";
+
+const B2BIndexRoute = () => {
+  const { adminProfile } = useB2BAdminStore();
+  const isEmployee = adminProfile?.isEmployee || adminProfile?.role === 'b2bEmployee';
+  if (isEmployee) {
+    return <Navigate to="/b2b-dashboard/rfqs" replace />;
+  }
+  return <Navigate to="/b2b-dashboard/overview" replace />;
+};
 
 // Inner component that has access to useLocation
 const AppRoutes = () => {
@@ -663,6 +699,31 @@ const AppRoutes = () => {
           </RouteWrapper>
         }
       />
+
+      {/* B2B Admin Dashboard Routes */}
+      <Route path="/b2b-dashboard" element={
+        <B2BProtectedRoute>
+          <B2BDashboardLayout />
+        </B2BProtectedRoute>
+      }>
+        <Route index element={<B2BIndexRoute />} />
+        <Route path="overview" element={<B2BDashboardOverview />} />
+        <Route path="employees" element={<B2BEmployeeManagement />} />
+        <Route path="employees/:id" element={<B2BEmployeeProfile />} />
+        <Route path="rfqs" element={<B2BRFQs />} />
+        <Route path="rfqs/new" element={<B2BCreateRFQ />} />
+        <Route path="rfqs/:id" element={<B2BRFQDetail />} />
+        <Route path="direct-rfqs/:id" element={<B2BRFQDetail />} />
+        <Route path="quotations" element={<B2BQuotations />} />
+        <Route path="discussions" element={<B2BRFQDiscussions />} />
+        <Route path="purchase-orders" element={<B2BPurchaseOrders />} />
+        <Route path="company-profile" element={<B2BCompanyProfile />} />
+        <Route path="admin-profile" element={<B2BAdminProfile />} />
+        <Route path="activity-logs" element={<B2BActivityLogs />} />
+        <Route path="notifications" element={<B2BNotifications />} />
+        <Route path="settings" element={<B2BDashboardSettings />} />
+      </Route>
+
       {/* Admin Routes */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route
@@ -718,6 +779,12 @@ const AppRoutes = () => {
           element={<AdminVendorAnalytics />}
         />
         <Route path="vendors/:id" element={<VendorDetail />} />
+
+        {/* B2B Users Routes */}
+        <Route path="b2b-users" element={<B2BUsersDashboard />} />
+        <Route path="b2b-users/manage" element={<ManageB2BUsers />} />
+        <Route path="b2b-users/pending" element={<PendingB2BApprovals />} />
+        <Route path="b2b-users/analytics" element={<B2BAnalytics />} />
 
         {/* B2B Marketplace Routes */}
         <Route path="b2b" element={<B2BMarketplace />} />
@@ -937,8 +1004,12 @@ const AppRoutes = () => {
         <Route path="b2b-enquiries/:id" element={<VendorB2BEnquiryDetail />} />
         <Route path="b2b-enquiries/:id/create-quote" element={<VendorB2BCreateQuote />} />
         <Route path="b2b-enquiries/:id/quote/:quoteId" element={<VendorB2BQuoteDetail />} />
+        <Route path="b2b-enquiries/orders" element={<VendorB2BOrders />} />
         <Route path="b2b-enquiries/analytics" element={<VendorB2BAnalytics />} />
         <Route path="b2b-enquiries/settings" element={<VendorB2BSettings />} />
+        {/* Direct RFQ Routes */}
+        <Route path="direct-rfqs" element={<VendorDirectRFQs />} />
+        <Route path="direct-rfqs/:id" element={<VendorDirectRFQDetail />} />
         {/* Offers & Promotion Management System (Seller) */}
         <Route path="my-offers" element={<Navigate to="dashboard" replace />} />
         <Route path="my-offers/dashboard" element={<OfferDashboard />} />
@@ -956,6 +1027,21 @@ const AppRoutes = () => {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
+};
+
+// Helper component to limit active toast notifications to exactly 1
+const ToastLimitHandler = () => {
+  const { toasts } = useToasterStore();
+
+  useEffect(() => {
+    // Only allow 1 visible toast at a time
+    toasts
+      .filter((t) => t.visible)
+      .filter((_, i) => i >= 1)
+      .forEach((t) => toast.dismiss(t.id));
+  }, [toasts]);
+
+  return null;
 };
 
 function App() {
@@ -997,6 +1083,7 @@ function App() {
               },
             }}
           />
+          <ToastLimitHandler />
         </OfflineDetector>
       </Router>
     </ErrorBoundary>
