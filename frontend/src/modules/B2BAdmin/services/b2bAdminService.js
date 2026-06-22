@@ -26,3 +26,7 @@ export const markNotificationAsRead = (id) => api.put(`/b2b-user/admin/notificat
 export const markAllNotificationsAsRead = () => api.put('/b2b-user/admin/notifications/read-all');
 export const deleteNotification = (id) => api.delete(`/b2b-user/admin/notifications/${id}`);
 
+// ─── Purchase Orders ──────────────────────────────────────────────────────────
+export const payPurchaseOrder = (id, data) => api.patch(`/b2b-user/admin/purchase-orders/${id}/pay`, data);
+
+

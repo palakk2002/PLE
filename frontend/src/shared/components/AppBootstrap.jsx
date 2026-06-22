@@ -5,6 +5,7 @@ import { useVendorAuthStore } from "../../modules/Vendor/store/vendorAuthStore";
 import { useDeliveryAuthStore } from "../../modules/Delivery/store/deliveryStore";
 import { useAdminAuthStore } from "../../modules/Admin/store/adminStore";
 import { useB2BAdminStore } from "../../modules/B2BAdmin/store/b2bAdminStore";
+import { useB2bStore } from "../store/b2bStore";
 
 const PRODUCTS_CACHE_KEY = "user-catalog-products-cache";
 const VENDORS_CACHE_KEY = "user-catalog-vendors-cache";
@@ -77,6 +78,14 @@ const AppBootstrap = () => {
         useB2BAdminStore.setState({ isAuthenticated: true, adminProfile: mainAuth.user });
       } else if (mainAuth.isAuthenticated && !isB2BUser && b2bAuth.isAuthenticated) {
         try { b2bAuth.logout(); } catch (e) {}
+      }
+
+      // Synchronize the B2B store portal role to business_buyer if authenticated as a B2B user
+      if (isB2BUser && (mainAuth.isAuthenticated || b2bAuth.isAuthenticated)) {
+        const b2bStore = useB2bStore.getState();
+        if (b2bStore.userRole !== 'business_buyer') {
+          b2bStore.setUserRole('business_buyer');
+        }
       }
     } catch (e) {
       console.warn("B2B self-healing sync failed:", e);

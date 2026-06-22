@@ -46,6 +46,22 @@ const purchaseOrderSchema = new mongoose.Schema(
             enum: ['Sent', 'Approved', 'Completed', 'Cancelled'],
             default: 'Sent',
             index: true
+        },
+        paymentStatus: {
+            type: String,
+            enum: ['Unpaid', 'Paid', 'Pending'],
+            default: 'Unpaid',
+            index: true
+        },
+        paymentMethod: {
+            type: String,
+            enum: ['Card', 'UPI', 'NetBanking', 'None'],
+            default: 'None'
+        },
+        paymentDetails: {
+            transactionId: { type: String },
+            paidAt: { type: Date },
+            cardLast4: { type: String }
         }
     },
     { timestamps: true }

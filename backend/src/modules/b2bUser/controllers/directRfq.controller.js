@@ -13,8 +13,8 @@ export const createDirectRFQ = asyncHandler(async (req, res) => {
     const employee = await User.findById(employeeId);
     if (!employee || !employee.companyId) throw new ApiError(400, "User must belong to a B2B company");
 
-    const { vendorId, productId, customProductName, quantity, targetPrice, requirementDetails } = req.body;
-    
+    const { vendorId, productId, customProductName, quantity, targetPrice, requirementDetails, category, expectedDeliveryDate, attachment } = req.body;
+
     const drfq = await DirectRFQ.create({
         directRfqId: generateId(),
         employeeId,
@@ -25,6 +25,9 @@ export const createDirectRFQ = asyncHandler(async (req, res) => {
         quantity,
         targetPrice,
         requirementDetails,
+        category,
+        expectedDeliveryDate,
+        attachment,
         status: 'Pending Vendor'
     });
 
@@ -52,7 +55,7 @@ export const getDirectRFQDetail = asyncHandler(async (req, res) => {
     const drfq = await DirectRFQ.findById(id)
         .populate('vendorId', 'name storeName email')
         .populate('employeeId', 'name email');
-    if(!drfq) throw new ApiError(404, "Not found");
+    if (!drfq) throw new ApiError(404, "Not found");
     res.status(200).json(new ApiResponse(200, drfq, "Fetched Direct RFQ detail"));
 });
 
@@ -62,7 +65,7 @@ export const sendDirectMessage = asyncHandler(async (req, res) => {
     const employee = await User.findById(req.user.id);
 
     const drfq = await DirectRFQ.findById(id);
-    if(!drfq) throw new ApiError(404, "Not found");
+    if (!drfq) throw new ApiError(404, "Not found");
 
     const newMsg = {
         senderId: req.user.id,
@@ -72,8 +75,8 @@ export const sendDirectMessage = asyncHandler(async (req, res) => {
         priceOffer
     };
     drfq.messages.push(newMsg);
-    
-    if(action === 'accept') {
+
+    if (action === 'accept') {
         drfq.status = 'Pending Admin Approval';
         drfq.finalAgreedPrice = priceOffer || drfq.targetPrice;
         newMsg.message = `[SYSTEM] Employee locked price at ₹${drfq.finalAgreedPrice} and sent for B2B Admin approval.`;
@@ -85,7 +88,7 @@ export const sendDirectMessage = asyncHandler(async (req, res) => {
     const io = getIO();
     io.to(`rfq_${id}`).emit('new_message', { rfqId: id, message: newMsg });
 
-    if(action === 'accept') {
+    if (action === 'accept') {
         io.to(`rfq_${id}`).emit('status_update', { rfqId: id, status: drfq.status });
     }
 

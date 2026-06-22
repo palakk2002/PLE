@@ -62,10 +62,13 @@ const B2BEnquiryDetail = () => {
           setEnquiry((prev) => {
             if (!prev) return prev;
             const updated = { ...prev };
-            // Append message to active quote
+            // Append message to active quote immutably
             if (updated.quotes && updated.quotes.length > 0) {
-              const activeQuote = updated.quotes[0];
+              const newQuotes = [...updated.quotes];
+              const activeQuote = { ...newQuotes[0] };
               activeQuote.messages = [...(activeQuote.messages || []), data.message];
+              newQuotes[0] = activeQuote;
+              updated.quotes = newQuotes;
             }
             return updated;
           });

@@ -44,15 +44,17 @@ const RFQs = () => {
       ]);
       
       let allRfqs = [];
-      if (standardRes && standardRes.data) {
+      if (standardRes && standardRes.data && standardRes.data.data) {
         // Filter out dummy RFQs created for PO generation of Direct RFQs
-        const filteredStandard = standardRes.data.filter(r => !r.rfqId?.startsWith('DRFQ-'));
+        const standardList = standardRes.data.data.rfqs || standardRes.data.data || [];
+        const filteredStandard = Array.isArray(standardList) ? standardList.filter(r => !r.rfqId?.startsWith('DRFQ-')) : [];
         allRfqs = [...allRfqs, ...filteredStandard];
       }
       
-      if (directRes && directRes.data) {
+      if (directRes && directRes.data && directRes.data.data) {
         // Normalize Direct RFQ fields to match Standard RFQ format for the table
-        const normalizedDirectRfqs = directRes.data.map(drfq => ({
+        const directList = directRes.data.data || [];
+        const normalizedDirectRfqs = Array.isArray(directList) ? directList.map(drfq => ({
           ...drfq,
           isDirect: true,
           rfqId: drfq.directRfqId,
@@ -62,7 +64,7 @@ const RFQs = () => {
           status: drfq.status,
           createdAt: drfq.createdAt,
           _id: drfq._id
-        }));
+        })) : [];
         allRfqs = [...allRfqs, ...normalizedDirectRfqs];
       }
 

@@ -91,17 +91,21 @@ const MobileProfile = () => {
   } = useB2BAdminStore();
 
   const isB2BAdmin = user?.role === 'b2bAdmin';
+  const isB2BEmployee = user?.role === 'b2bEmployee';
+  const isB2BUser = isB2BAdmin || isB2BEmployee;
 
-  const company = isB2BAdmin 
+  const company = isB2BUser 
     ? dbCompanyProfile 
     : companies?.find(c => c.id === user?.companyId || c.companyName === user?.companyName || c.admin?.email?.toLowerCase() === user?.email?.toLowerCase());
 
   useEffect(() => {
-    if (isB2BAdmin) {
-      fetchDbEmployees();
+    if (isB2BUser) {
+      if (isB2BAdmin) {
+        fetchDbEmployees();
+      }
       fetchDbCompanyProfile();
     }
-  }, [user, isB2BAdmin, fetchDbEmployees, fetchDbCompanyProfile]);
+  }, [user, isB2BUser, isB2BAdmin, fetchDbEmployees, fetchDbCompanyProfile]);
 
   const employeesList = isB2BAdmin ? dbEmployees : (company?.employees || []);
 

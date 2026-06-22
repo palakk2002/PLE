@@ -630,7 +630,7 @@ const AdminRFQDetail = () => {
               <FiClock className="text-[#C07A3D]" /> RFQ Event Timeline
             </h3>
 
-            <div className="space-y-5 text-xs">
+            <div className="space-y-5 text-xs max-h-[480px] overflow-y-auto pr-2">
               {rfq.approvalHistory && rfq.approvalHistory.length > 0 ? (
                 rfq.approvalHistory.map((log, i) => (
                   <div key={i} className="flex gap-3 text-xs">

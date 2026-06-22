@@ -132,6 +132,27 @@ const VendorB2BOrders = () => {
       }
     },
     {
+      key: 'paymentStatus',
+      label: 'Payment',
+      sortable: true,
+      render: (value, row) => {
+        const val = value || 'Unpaid';
+        let variant = 'warning';
+        if (val === 'Paid') variant = 'success';
+        if (val === 'Pending') variant = 'info';
+        return (
+          <div className="flex flex-col items-start gap-0.5">
+            <Badge variant={variant}>{val}</Badge>
+            {val === 'Paid' && row.paymentMethod && (
+              <span className="text-[9px] font-bold text-gray-450 uppercase tracking-wider font-mono">
+                via {row.paymentMethod}
+              </span>
+            )}
+          </div>
+        );
+      }
+    },
+    {
       key: 'actions',
       label: 'Actions',
       sortable: false,
@@ -276,8 +297,11 @@ const VendorB2BOrders = () => {
                         day: 'numeric', month: 'long', year: 'numeric'
                       })}
                     </p>
-                    <div className="mt-2.5">
+                    <div className="flex flex-col gap-1 items-end pt-1">
                       <Badge variant="success">Document: {selectedPo.status}</Badge>
+                      <Badge variant={selectedPo.paymentStatus === 'Paid' ? 'success' : 'warning'}>
+                        Payment: {selectedPo.paymentStatus || 'Unpaid'}
+                      </Badge>
                     </div>
                   </div>
                 </div>
@@ -386,6 +410,15 @@ const VendorB2BOrders = () => {
                       <span>Total Contract Value:</span>
                       <span className="text-[#C07A3D]">{formatPrice(selectedPo.pricing.total)}</span>
                     </div>
+                    {selectedPo.paymentStatus === 'Paid' && selectedPo.paymentDetails && (
+                      <div className="mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-xs font-semibold text-emerald-900 space-y-1 text-left">
+                        <p className="font-bold uppercase text-[9px] tracking-wide text-emerald-800">Simulated Payment Details</p>
+                        <p>Status: <span className="font-bold">Success</span></p>
+                        <p>Method: <span className="font-bold">{selectedPo.paymentMethod}</span></p>
+                        <p>Txn ID: <span className="font-mono font-bold">{selectedPo.paymentDetails.transactionId}</span></p>
+                        <p>Paid On: <span className="font-bold">{new Date(selectedPo.paymentDetails.paidAt).toLocaleString('en-IN')}</span></p>
+                      </div>
+                    )}
                   </div>
                 </div>
 

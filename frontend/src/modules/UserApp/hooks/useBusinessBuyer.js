@@ -1,4 +1,5 @@
 import { useB2bStore } from "../../../shared/store/b2bStore";
+import { useAuthStore } from "../../../shared/store/authStore";
 import { getB2bProductSpecs } from "../data/b2bMockData";
 
 export const useBusinessBuyer = () => {
@@ -17,7 +18,9 @@ export const useBusinessBuyer = () => {
   );
   const resetB2b = useB2bStore((state) => state.resetB2b);
 
-  const isBusiness = userRole === "business_buyer";
+  const { user } = useAuthStore();
+  const isB2BUser = user?.role === 'b2bAdmin' || user?.role === 'b2bEmployee' || user?.isEmployee;
+  const isBusiness = userRole === "business_buyer" || !!isB2BUser;
 
   /**
    * Get B2B specifications for a given product

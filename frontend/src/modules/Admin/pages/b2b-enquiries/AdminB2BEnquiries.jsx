@@ -15,7 +15,10 @@ import {
   FiDollarSign,
   FiX,
   FiCheck,
-  FiFlag
+  FiFlag,
+  FiPrinter,
+  FiTruck,
+  FiFileText
 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import DataTable from "../../components/DataTable";
@@ -141,6 +144,28 @@ const AdminB2BEnquiries = () => {
   const [selectedSeller, setSelectedSeller] = useState("all");
   const [selectedCompany, setSelectedCompany] = useState("all");
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+  const [selectedPo, setSelectedPo] = useState(null);
+
+  const handleViewPoForRfq = async (rfqId) => {
+    try {
+      setLoading(true);
+      const res = await api.get(`/admin/purchase-orders?rfqId=${rfqId}`);
+      if (res && res.data && res.data.length > 0) {
+        setSelectedPo(res.data[0]);
+      } else {
+        toast.error("Purchase Order details not found for this RFQ.");
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || "Failed to fetch Purchase Order details.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   useEffect(() => {
     if (statusParam) {
@@ -464,7 +489,13 @@ const AdminB2BEnquiries = () => {
       render: (_, row) => (
         <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
           <button
-            onClick={() => setSelectedEnquiry(row)}
+            onClick={() => {
+              if (row.status === "Purchase Order Generated" || row.status === "Completed") {
+                handleViewPoForRfq(row.id);
+              } else {
+                setSelectedEnquiry(row);
+              }
+            }}
             className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
             title="Quick Preview"
           >
@@ -667,7 +698,13 @@ const AdminB2BEnquiries = () => {
           columns={columns}
           pagination={true}
           itemsPerPage={10}
-          onRowClick={(row) => setSelectedEnquiry(row)}
+          onRowClick={(row) => {
+            if (row.status === "Purchase Order Generated" || row.status === "Completed") {
+              handleViewPoForRfq(row.id);
+            } else {
+              setSelectedEnquiry(row);
+            }
+          }}
         />
       </div>
 
@@ -930,6 +967,239 @@ const AdminB2BEnquiries = () => {
           </>
         )}
       </AnimatePresence>
+
+      {/* PO Viewer Modal */}
+      <AnimatePresence>
+        {selectedPo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-sm print:relative print:p-0 print:bg-white print:z-auto">
+            {/* Backdrop */}
+            <div className="fixed inset-0 print:hidden" onClick={() => setSelectedPo(null)} />
+            
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl w-full max-w-4xl h-[90vh] flex flex-col shadow-2xl relative z-10 border border-gray-150 overflow-hidden print:shadow-none print:border-none print:h-auto print:w-auto"
+            >
+              {/* Modal Header */}
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 print:hidden">
+                <h3 className="text-base font-black text-gray-900 flex items-center gap-2">
+                  <FiFileText className="text-[#C07A3D]" /> Sourcing Purchase Agreement
+                </h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handlePrint}
+                    className="py-1.5 px-3 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                  >
+                    <FiPrinter /> Print / PDF
+                  </button>
+                  <button
+                    onClick={() => setSelectedPo(null)}
+                    className="p-2 hover:bg-gray-150 rounded-xl text-gray-400 hover:text-gray-650"
+                  >
+                    <FiX className="w-5 h-5" strokeWidth={2.5} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Print Document Content */}
+              <div className="po-print-content flex-1 overflow-y-auto p-8 sm:p-12 space-y-8 print:p-0 print:overflow-visible font-sans select-text text-left">
+                
+                {/* PO Header */}
+                <div className="flex justify-between items-start gap-4">
+                  <div className="space-y-1.5">
+                    <span className="text-[10px] font-black uppercase text-[#C07A3D] tracking-widest block">Wholesale Procurement PO</span>
+                    <h1 className="text-2xl font-black text-gray-950 tracking-tight">{selectedPo.poNumber}</h1>
+                    <p className="text-xs text-gray-400 font-bold font-mono">Linked RFQ ID: {(selectedPo.rfqId?.rfqId || (typeof selectedPo.rfqId === 'object' ? selectedPo.rfqId?.rfqId : selectedPo.rfqId)) || 'N/A'}</p>
+                  </div>
+                  <div className="text-right text-xs">
+                    <p className="font-bold text-gray-800">Date Issued:</p>
+                    <p className="text-gray-500 font-medium mt-0.5">
+                      {new Date(selectedPo.createdAt).toLocaleDateString('en-IN', {
+                        day: 'numeric', month: 'long', year: 'numeric'
+                      })}
+                    </p>
+                    <div className="flex flex-col gap-1 items-end pt-1">
+                      <Badge variant="success">Document: {selectedPo.status}</Badge>
+                      <Badge variant={selectedPo.paymentStatus === 'Paid' ? 'success' : 'warning'}>
+                        Payment: {selectedPo.paymentStatus || 'Unpaid'}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="border-gray-150" />
+
+                {/* Company and Vendor Details Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-xs leading-relaxed">
+                  {/* Buyer details */}
+                  <div className="space-y-2.5 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                    <h3 className="font-extrabold text-gray-400 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <FiBriefcase className="text-[#C07A3D]" /> Sourcing Entity (Bill To)
+                    </h3>
+                    <div className="font-semibold text-gray-700 space-y-1">
+                      <p className="font-black text-gray-900 text-sm">{selectedPo.companyDetails?.name}</p>
+                      <p>{selectedPo.companyDetails?.address}</p>
+                      <p>Phone: {selectedPo.companyDetails?.phone}</p>
+                      <p>Email: {selectedPo.companyDetails?.email}</p>
+                      {selectedPo.companyDetails?.gstin && (
+                        <p className="pt-1 text-[10px] font-mono font-bold text-[#C07A3D]">GSTIN: {selectedPo.companyDetails.gstin}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Vendor details */}
+                  <div className="space-y-2.5 bg-gray-50 p-5 rounded-2xl border border-gray-100">
+                    <h3 className="font-extrabold text-gray-400 uppercase tracking-wider text-[10px] flex items-center gap-1.5">
+                      <FiUser className="text-[#C07A3D]" /> Sourced Vendor (Ship From)
+                    </h3>
+                    <div className="font-semibold text-gray-700 space-y-1">
+                      <p className="font-black text-gray-900 text-sm">{selectedPo.vendorDetails?.storeName}</p>
+                      <p>Representative: {selectedPo.vendorDetails?.name}</p>
+                      <p>Phone: {selectedPo.vendorDetails?.phone}</p>
+                      <p>Email: {selectedPo.vendorDetails?.email}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Line Items Table */}
+                <div className="space-y-3">
+                  <h3 className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">Line items</h3>
+                  <div className="border border-gray-150 rounded-2xl overflow-hidden text-xs">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200 font-bold text-gray-650">
+                          <th className="p-4">Item Name / Reference</th>
+                          <th className="p-4 text-center">Quantity</th>
+                          <th className="p-4 text-right">Contract Rate</th>
+                          <th className="p-4 text-right">Subtotal</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="font-semibold text-gray-800 border-b border-gray-100 last:border-none">
+                          <td className="p-4">
+                            <span className="font-bold text-gray-900 text-sm block">{selectedPo.productDetails?.name}</span>
+                            <span className="text-[10px] text-gray-400 mt-0.5">Ref ID: {selectedPo.productId || 'Custom Catalog Item'}</span>
+                          </td>
+                          <td className="p-4 text-center text-base font-black text-gray-800">{selectedPo.productDetails?.qty?.toLocaleString()}</td>
+                          <td className="p-4 text-right text-base font-extrabold text-gray-900">{formatPrice(selectedPo.productDetails?.unitPrice)}</td>
+                          <td className="p-4 text-right text-base font-black text-gray-900">{formatPrice(selectedPo.pricing?.subtotal)}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Financial Summary & Delivery Info Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+                  {/* Delivery specifications */}
+                  <div className="space-y-3.5 text-xs font-semibold text-gray-650">
+                    <div className="flex gap-2.5">
+                      <FiTruck className="w-4 h-4 text-[#C07A3D] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-extrabold text-[#C07A3D] uppercase text-[9px] tracking-wider">Shipment Destination Address</p>
+                        <p className="mt-1 font-bold text-gray-800 leading-relaxed">{selectedPo.deliveryInformation?.shippingAddress}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex gap-2.5">
+                      <FiCalendar className="w-4 h-4 text-[#C07A3D] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-extrabold text-[#C07A3D] uppercase text-[9px] tracking-wider">Target Sourcing Timeline</p>
+                        <p className="mt-1 font-bold text-gray-855">
+                          {selectedPo.deliveryInformation?.expectedDeliveryDate 
+                            ? new Date(selectedPo.deliveryInformation.expectedDeliveryDate).toLocaleDateString('en-IN', {
+                                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+                              })
+                            : 'Flexible / Per Sourcing Bid Terms'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pricing recap */}
+                  <div className="bg-gray-50 rounded-2xl p-6 border border-gray-150 space-y-3.5 text-xs text-gray-650">
+                    <div className="flex justify-between">
+                      <span className="font-bold">Items subtotal:</span>
+                      <span className="font-bold text-gray-900">{formatPrice(selectedPo.pricing?.subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="font-bold">Estimated Sourcing Tax (GST):</span>
+                      <span className="font-bold text-gray-900">{formatPrice(selectedPo.pricing?.tax || 0)}</span>
+                    </div>
+                    <hr className="border-gray-200" />
+                    <div className="flex justify-between text-base font-black text-gray-900">
+                      <span>Total Contract Value:</span>
+                      <span className="text-[#C07A3D]">{formatPrice(selectedPo.pricing?.total)}</span>
+                    </div>
+                    {selectedPo.paymentStatus === 'Paid' && selectedPo.paymentDetails && (
+                      <div className="mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-xs font-semibold text-emerald-900 space-y-1 text-left">
+                        <p className="font-bold uppercase text-[9px] tracking-wide text-emerald-800">Payment Details</p>
+                        <p>Status: <span className="font-bold">Success</span></p>
+                        <p>Method: <span className="font-bold">{selectedPo.paymentMethod}</span></p>
+                        <p>Txn ID: <span className="font-mono font-bold">{selectedPo.paymentDetails.transactionId}</span></p>
+                        <p>Paid On: <span className="font-bold">{new Date(selectedPo.paymentDetails.paidAt).toLocaleString('en-IN')}</span></p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sourcing Contract Terms */}
+                <div className="border-t border-gray-150 pt-6 space-y-4 text-[10px] text-gray-500 leading-relaxed font-semibold">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                      <p className="font-bold text-gray-700 uppercase">Payment net terms</p>
+                      <p className="mt-1">{selectedPo.terms?.paymentTerms || 'NET 30 Days'}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-700 uppercase">Fulfillment Terms</p>
+                      <p className="mt-1">{selectedPo.terms?.deliveryTerms || 'FOB Destination / Origin'}</p>
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-700 uppercase">Vendor Warranty</p>
+                      <p className="mt-1">{selectedPo.terms?.warranty || '1 Year Standard'}</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-100 mt-2 text-amber-900">
+                    <p className="font-bold uppercase text-[9px] tracking-wide">Purchase Agreement Terms</p>
+                    <p className="mt-1 font-medium">
+                      {selectedPo.terms?.termsConditions || 'This Purchase Order represents a binding sourcing contract between the B2B Entity and the Vendor. Delivery timeline commitments, quality tolerances, and dispute resolution parameters default to terms agreed upon inside the RFQ selection sheet.'}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Print Styles */}
+      <style>{`
+        @media print {
+          @page {
+            margin: 0.5in;
+            size: A4;
+          }
+          
+          body, html, #root {
+            background: white !important;
+            height: auto !important;
+            min-height: auto !important;
+            overflow: visible !important;
+          }
+          
+          table, tr, td {
+            page-break-inside: avoid;
+          }
+          
+          * {
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+        }
+      `}</style>
     </motion.div>
   );
 };

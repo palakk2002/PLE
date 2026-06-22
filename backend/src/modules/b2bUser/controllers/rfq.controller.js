@@ -8,6 +8,7 @@ import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import Product from '../../../models/Product.model.js';
 import DirectRFQ from '../../../models/DirectRFQ.model.js';
+import Category from '../../../models/Category.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import {
     uploadLocalFileToCloudinaryAndCleanup,
@@ -42,8 +43,16 @@ const generatePoId = () => {
 
 // GET /api/b2b-user/admin/vendors
 export const getVendorsForSourcing = asyncHandler(async (req, res) => {
-    const vendors = await Vendor.find({ status: 'approved' }).select('name storeName email phone companyName');
-    res.status(200).json(new ApiResponse(200, { vendors }, 'Fetched sourcing vendors.'));
+    const vendors = await Vendor.find({ status: 'approved' }).lean().select('name storeName email phone companyName');
+    
+    // Attach categories each vendor sells in
+    const vendorsWithCategories = await Promise.all(vendors.map(async (vendor) => {
+        const products = await Product.find({ vendorId: vendor._id }).populate('categoryId', 'name').lean();
+        const categories = [...new Set(products.map(p => p.categoryId?.name).filter(Boolean))];
+        return { ...vendor, categories };
+    }));
+
+    res.status(200).json(new ApiResponse(200, { vendors: vendorsWithCategories }, 'Fetched sourcing vendors.'));
 });
 
 // GET /api/b2b-user/admin/rfq
@@ -409,7 +418,7 @@ export const confirmQuote = asyncHandler(async (req, res) => {
         if (!directRfq) {
             throw new ApiError(404, 'RFQ not found.');
         }
-        
+
         // Allowed statuses for Direct RFQ approval
         if (!['Vendor Accepted', 'Pending Admin Approval', 'PO Generated'].includes(directRfq.status)) {
             throw new ApiError(400, 'Direct RFQ is not accepted by the vendor or awaiting admin approval.');
@@ -474,7 +483,7 @@ export const confirmQuote = asyncHandler(async (req, res) => {
         // Fallback: pick the quotation with lowest total price (best deal) among submitted ones
         const submittedQuotes = rfq.quotations.filter(q => ['Submitted', 'Negotiating'].includes(q.status));
         if (submittedQuotes.length > 0) {
-            selectedQuote = submittedQuotes.reduce((best, q) => 
+            selectedQuote = submittedQuotes.reduce((best, q) =>
                 (!best || q.totalPrice < best.totalPrice) ? q : best, null
             );
             // Mark it as Selected
@@ -728,6 +737,39 @@ export const getPurchaseOrderDetail = asyncHandler(async (req, res) => {
 
     res.status(200).json(new ApiResponse(200, po, 'Purchase Order details fetched successfully.'));
 });
+
+// PATCH /api/b2b-user/admin/purchase-orders/:id/pay
+export const payPurchaseOrder = asyncHandler(async (req, res) => {
+    const companyId = await getCompanyId(req);
+    const po = await PurchaseOrder.findOne({ _id: req.params.id, companyId });
+
+    if (!po) {
+        throw new ApiError(404, 'Purchase Order not found.');
+    }
+
+    if (po.paymentStatus === 'Paid') {
+        throw new ApiError(400, 'Purchase Order is already paid.');
+    }
+
+    const { paymentMethod, cardLast4 } = req.body;
+
+    po.paymentStatus = 'Paid';
+    po.paymentMethod = paymentMethod || 'Card';
+    po.paymentDetails = {
+        transactionId: `TXN-MOCK-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
+        paidAt: new Date(),
+        cardLast4: paymentMethod === 'Card' ? (cardLast4 || '4242') : undefined
+    };
+
+    if (po.status === 'Sent') {
+        po.status = 'Approved';
+    }
+
+    await po.save();
+
+    res.status(200).json(new ApiResponse(200, po, 'Purchase Order paid successfully (simulated).'));
+});
+
 
 // POST /api/b2b-user/admin/rfq/upload
 export const uploadAttachment = asyncHandler(async (req, res) => {

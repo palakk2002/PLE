@@ -28,8 +28,8 @@ const requireAdmin = authorize('b2bAdmin');
 // Dashboard
 router.get('/dashboard', getDashboardOverview);
 
-// Company Profile (Admin only)
-router.get('/company', requireAdmin, getCompanyProfile);
+// Company Profile (Admin only for editing, both Admin and Employee for viewing)
+router.get('/company', getCompanyProfile);
 router.put('/company', requireAdmin, updateCompanyProfile);
 
 // Admin Profile (Admin only)
@@ -63,6 +63,7 @@ router.post('/rfq/:id/request-renegotiation', requireAdmin, rfqController.reques
 // Purchase Orders
 router.get('/purchase-orders', rfqController.getPurchaseOrders);
 router.get('/purchase-orders/:id', rfqController.getPurchaseOrderDetail);
+router.patch('/purchase-orders/:id/pay', requireAdmin, rfqController.payPurchaseOrder);
 
 // Notifications
 router.get('/notifications', notificationController.getUserNotifications);

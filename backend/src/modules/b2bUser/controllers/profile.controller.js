@@ -10,20 +10,30 @@ import User from '../../../models/User.model.js';
  * @access  Private (B2B Admin)
  */
 export const getCompanyProfile = asyncHandler(async (req, res) => {
-    const adminId = req.user.id;
+    const userId = req.user.id;
 
-    const admin = await User.findById(adminId);
-    if (!admin) {
+    const user = await User.findById(userId);
+    if (!user) {
         throw new ApiError(404, 'User not found.');
     }
 
-    const company = await B2BCompany.findById(admin.companyId);
+    const company = await B2BCompany.findById(user.companyId);
 
     if (!company) {
         throw new ApiError(404, 'Company not found.');
     }
 
-    res.status(200).json(new ApiResponse(200, company, 'Company profile fetched successfully.'));
+    const companyAdmin = await User.findOne({ companyId: user.companyId, role: 'b2bAdmin' });
+    const companyObj = company.toObject();
+    if (companyAdmin) {
+        companyObj.admin = {
+            name: companyAdmin.name,
+            email: companyAdmin.email,
+            phone: companyAdmin.phone
+        };
+    }
+
+    res.status(200).json(new ApiResponse(200, companyObj, 'Company profile fetched successfully.'));
 });
 
 /**

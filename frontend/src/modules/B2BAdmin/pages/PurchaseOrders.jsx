@@ -27,6 +27,39 @@ const PurchaseOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPo, setSelectedPo] = useState(null);
 
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('Card'); // 'Card' | 'UPI'
+  const [mockCard, setMockCard] = useState({
+    number: '4242 4242 4242 4242',
+    expiry: '12/28',
+    cvv: '123',
+    name: 'Wholesale Buyer Admin'
+  });
+  const [mockUpi, setMockUpi] = useState('b2badmin@okaxis');
+  const [paying, setPaying] = useState(false);
+
+  const handleMockPaymentSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedPo) return;
+    try {
+      setPaying(true);
+      const res = await api.patch(`/b2b-user/admin/purchase-orders/${selectedPo._id}/pay`, {
+        paymentMethod,
+        cardLast4: paymentMethod === 'Card' ? mockCard.number.replace(/\s/g, '').slice(-4) : undefined
+      });
+      if (res && res.success) {
+        toast.success('Simulated transaction completed successfully!');
+        setSelectedPo(res.data);
+        fetchPOs();
+        setShowPaymentModal(false);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Simulated checkout failed.');
+    } finally {
+      setPaying(false);
+    }
+  };
+
   const fetchPOs = async () => {
     try {
       setLoading(true);
@@ -129,6 +162,27 @@ const PurchaseOrders = () => {
         let variant = 'success';
         if (value === 'Cancelled') variant = 'danger';
         return <Badge variant={variant}>{value}</Badge>;
+      }
+    },
+    {
+      key: 'paymentStatus',
+      label: 'Payment',
+      sortable: true,
+      render: (value, row) => {
+        const val = value || 'Unpaid';
+        let variant = 'warning';
+        if (val === 'Paid') variant = 'success';
+        if (val === 'Pending') variant = 'info';
+        return (
+          <div className="flex flex-col items-start gap-0.5">
+            <Badge variant={variant}>{val}</Badge>
+            {val === 'Paid' && row.paymentMethod && (
+              <span className="text-[9px] font-bold text-gray-450 uppercase tracking-wider font-mono">
+                via {row.paymentMethod}
+              </span>
+            )}
+          </div>
+        );
       }
     },
     {
@@ -244,6 +298,14 @@ const PurchaseOrders = () => {
                   <FiFileText className="text-[#C07A3D]" /> Sourcing Purchase Agreement
                 </h3>
                 <div className="flex items-center gap-2">
+                  {selectedPo.paymentStatus !== 'Paid' && (
+                    <button
+                      onClick={() => setShowPaymentModal(true)}
+                      className="py-1.5 px-4 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                    >
+                      <FiDollarSign /> Pay Contract Value
+                    </button>
+                  )}
                   <button
                     onClick={handlePrint}
                     className="py-1.5 px-3 bg-gray-900 hover:bg-black text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
@@ -276,8 +338,11 @@ const PurchaseOrders = () => {
                         day: 'numeric', month: 'long', year: 'numeric'
                       })}
                     </p>
-                    <div className="mt-2.5">
+                    <div className="flex flex-col gap-1 items-end pt-1">
                       <Badge variant="success">Document: {selectedPo.status}</Badge>
+                      <Badge variant={selectedPo.paymentStatus === 'Paid' ? 'success' : 'warning'}>
+                        Payment: {selectedPo.paymentStatus || 'Unpaid'}
+                      </Badge>
                     </div>
                   </div>
                 </div>
@@ -386,6 +451,15 @@ const PurchaseOrders = () => {
                       <span>Total Contract Value:</span>
                       <span className="text-[#C07A3D]">{formatPrice(selectedPo.pricing.total)}</span>
                     </div>
+                    {selectedPo.paymentStatus === 'Paid' && selectedPo.paymentDetails && (
+                      <div className="mt-4 p-4 bg-emerald-50 rounded-2xl border border-emerald-100 text-xs font-semibold text-emerald-900 space-y-1 text-left">
+                        <p className="font-bold uppercase text-[9px] tracking-wide text-emerald-800">Simulated Payment Details</p>
+                        <p>Status: <span className="font-bold">Success</span></p>
+                        <p>Method: <span className="font-bold">{selectedPo.paymentMethod}</span></p>
+                        <p>Txn ID: <span className="font-mono font-bold">{selectedPo.paymentDetails.transactionId}</span></p>
+                        <p>Paid On: <span className="font-bold">{new Date(selectedPo.paymentDetails.paidAt).toLocaleString('en-IN')}</span></p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -414,6 +488,134 @@ const PurchaseOrders = () => {
                   </div>
                 </div>
 
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Mock Payment Overlay Modal */}
+      <AnimatePresence>
+        {showPaymentModal && selectedPo && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="fixed inset-0" onClick={() => setShowPaymentModal(false)} />
+            
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl relative z-10 border border-gray-150 space-y-6"
+            >
+              <div className="flex justify-between items-center pb-2 border-b border-gray-100">
+                <div>
+                  <h3 className="text-base font-black text-gray-900">Wholesale Payment</h3>
+                  <p className="text-[10px] text-gray-400 font-bold mt-0.5">PO: {selectedPo.poNumber}</p>
+                </div>
+                <button
+                  onClick={() => setShowPaymentModal(false)}
+                  className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-650"
+                >
+                  <FiX className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex justify-between items-center bg-gray-50 p-4 rounded-2xl border border-gray-100 text-xs font-semibold">
+                  <span className="font-bold text-gray-500">Contract Total:</span>
+                  <span className="font-extrabold text-[#C07A3D] text-base">{formatPrice(selectedPo.pricing.total)}</span>
+                </div>
+
+                <div className="flex gap-2 p-1 bg-gray-100 rounded-xl">
+                  {['Card', 'UPI'].map((method) => (
+                    <button
+                      key={method}
+                      type="button"
+                      onClick={() => setPaymentMethod(method)}
+                      className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
+                        paymentMethod === method ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      {method === 'Card' ? 'Credit/Debit Card' : 'UPI Apps'}
+                    </button>
+                  ))}
+                </div>
+
+                <form onSubmit={handleMockPaymentSubmit} className="space-y-4">
+                  {paymentMethod === 'Card' ? (
+                    <div className="space-y-3.5 text-left">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase">Card Number</label>
+                        <input
+                          type="text"
+                          required
+                          value={mockCard.number}
+                          onChange={(e) => setMockCard({ ...mockCard, number: e.target.value })}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-mono font-bold"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-500 uppercase">Expiry Date</label>
+                          <input
+                            type="text"
+                            required
+                            placeholder="MM/YY"
+                            value={mockCard.expiry}
+                            onChange={(e) => setMockCard({ ...mockCard, expiry: e.target.value })}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-bold"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold text-gray-500 uppercase">CVV</label>
+                          <input
+                            type="password"
+                            required
+                            placeholder="***"
+                            maxLength="3"
+                            value={mockCard.cvv}
+                            onChange={(e) => setMockCard({ ...mockCard, cvv: e.target.value })}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-bold"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase">Cardholder Name</label>
+                        <input
+                          type="text"
+                          required
+                          value={mockCard.name}
+                          onChange={(e) => setMockCard({ ...mockCard, name: e.target.value })}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-bold text-gray-700"
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-bold text-gray-500 uppercase">UPI ID / VPA</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. b2badmin@okaxis"
+                        value={mockUpi}
+                        onChange={(e) => setMockUpi(e.target.value)}
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-bold"
+                      />
+                      <span className="text-[9px] text-gray-400 font-bold block mt-1">Select simulated app auto-authorization on submission.</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={paying}
+                    className="w-full py-3 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-sm disabled:opacity-50"
+                  >
+                    {paying ? (
+                      <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+                    ) : (
+                      'Simulate Payment & Approve PO'
+                    )}
+                  </button>
+                </form>
               </div>
             </motion.div>
           </div>

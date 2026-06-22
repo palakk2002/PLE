@@ -407,7 +407,11 @@ export const sendAdminToVendorMessage = asyncHandler(async (req, res) => {
 
 // GET /api/admin/purchase-orders
 export const getAdminPurchaseOrders = asyncHandler(async (req, res) => {
-    const pos = await PurchaseOrder.find()
+    const filter = {};
+    if (req.query.rfqId) {
+        filter.rfqId = req.query.rfqId;
+    }
+    const pos = await PurchaseOrder.find(filter)
         .populate('rfqId', 'rfqId')
         .sort({ createdAt: -1 });
 
