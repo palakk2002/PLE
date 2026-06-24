@@ -22,6 +22,7 @@ import AnimatedSelect from "../../components/AnimatedSelect";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import toast from "react-hot-toast";
 import api from "../../../../shared/utils/api";
+import socketService from '../../../../shared/utils/socket';
 
 const B2BOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -29,14 +30,42 @@ const B2BOrders = () => {
 
   useEffect(() => {
     fetchOrders();
+
+    const socket = socketService.getSocket();
+    socket.emit('join_admin_room');
+
+    const handlePaymentUpdate = (data) => {
+      toast.success(`Payment received for PO ${data.poNumber} (${data.companyName})`);
+      
+      setOrders(prev => prev.map(order => 
+        order.backendId === data.poId || order.id === data.poNumber
+          ? { ...order, paymentStatus: data.paymentStatus }
+          : order
+      ));
+      
+      setSelectedOrder((prev) => {
+        if (prev && (prev.backendId === data.poId || prev.id === data.poNumber)) {
+          return { ...prev, paymentStatus: data.paymentStatus };
+        }
+        return prev;
+      });
+    };
+
+    socket.on('payment_status_updated', handlePaymentUpdate);
+
+    return () => {
+      socket.off('payment_status_updated', handlePaymentUpdate);
+      socket.emit('leave_admin_room');
+    };
   }, []);
 
   const fetchOrders = async () => {
     try {
       setLoading(true);
       const res = await api.get('/admin/purchase-orders');
-      if (res && res.data) {
-        const mappedOrders = res.data.map(po => ({
+      if (res && res.data && res.data.data) {
+        const pos = res.data.data.purchaseOrders || [];
+        const mappedOrders = pos.map(po => ({
           id: po.poNumber,
           backendId: po._id,
           businessName: po.companyDetails?.name || 'Unknown Company',
@@ -89,29 +118,52 @@ const B2BOrders = () => {
   }, [orders]);
 
   // Update Status
-  const handleUpdateStatus = (id, newStatus) => {
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === id ? { ...order, status: newStatus } : order
-      )
-    );
-    toast.success(`Order ${id} status updated to ${newStatus}`);
-    if (selectedOrder && selectedOrder.id === id) {
-      setSelectedOrder((prev) => ({ ...prev, status: newStatus }));
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      let mappedBackendStatus = 'Sent';
+      if (newStatus === 'Processing') mappedBackendStatus = 'Sent';
+      if (newStatus === 'Shipped') mappedBackendStatus = 'Approved';
+      if (newStatus === 'Delivered') mappedBackendStatus = 'Completed';
+      if (newStatus === 'Pending') mappedBackendStatus = 'Cancelled';
+
+      const orderToUpdate = orders.find(o => o.id === id);
+      if (orderToUpdate && orderToUpdate.backendId) {
+        await api.patch(`/admin/purchase-orders/${orderToUpdate.backendId}/status`, { status: mappedBackendStatus });
+      }
+
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === id ? { ...order, status: newStatus } : order
+        )
+      );
+      toast.success(`Order ${id} status updated to ${newStatus}`);
+      if (selectedOrder && selectedOrder.id === id) {
+        setSelectedOrder((prev) => ({ ...prev, status: newStatus }));
+      }
+    } catch (err) {
+      toast.error('Failed to update status');
     }
   };
 
   // Toggle Payment Status
-  const handleTogglePayment = (id, currentPayment) => {
+  const handleTogglePayment = async (id, currentPayment) => {
     const newPayment = currentPayment === "Paid" ? "Unpaid" : "Paid";
-    setOrders((prev) =>
-      prev.map((order) =>
-        order.id === id ? { ...order, paymentStatus: newPayment } : order
-      )
-    );
-    toast.success(`Order ${id} payment marked as ${newPayment}`);
-    if (selectedOrder && selectedOrder.id === id) {
-      setSelectedOrder((prev) => ({ ...prev, paymentStatus: newPayment }));
+    try {
+      const orderToUpdate = orders.find(o => o.id === id);
+      if (orderToUpdate && orderToUpdate.backendId) {
+        await api.patch(`/admin/purchase-orders/${orderToUpdate.backendId}/payment`, { paymentStatus: newPayment });
+      }
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === id ? { ...order, paymentStatus: newPayment } : order
+        )
+      );
+      toast.success(`Order ${id} payment marked as ${newPayment}`);
+      if (selectedOrder && selectedOrder.id === id) {
+        setSelectedOrder((prev) => ({ ...prev, paymentStatus: newPayment }));
+      }
+    } catch (err) {
+      toast.error('Failed to update payment status');
     }
   };
 

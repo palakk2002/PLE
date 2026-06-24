@@ -10,6 +10,7 @@ import {
   FiCheckCircle,
 } from "react-icons/fi";
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
 
 // Initial categories mapping setup
 const DEFAULT_CATEGORY_SETTINGS = [
@@ -24,14 +25,23 @@ const DEFAULT_CATEGORY_SETTINGS = [
 const RefurbishedCategories = () => {
   const [categories, setCategories] = useState([]);
 
+  const [isSaving, setIsSaving] = useState(false);
+
   useEffect(() => {
-    const saved = localStorage.getItem("refurbished-categories-settings");
-    if (saved) {
-      setCategories(JSON.parse(saved));
-    } else {
-      setCategories(DEFAULT_CATEGORY_SETTINGS);
-      localStorage.setItem("refurbished-categories-settings", JSON.stringify(DEFAULT_CATEGORY_SETTINGS));
-    }
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/admin/settings/refurbished_categories');
+        if (res.data && res.data.length > 0) {
+          setCategories(res.data);
+        } else {
+          setCategories(DEFAULT_CATEGORY_SETTINGS);
+        }
+      } catch (err) {
+        console.error("Failed to load category settings", err);
+        setCategories(DEFAULT_CATEGORY_SETTINGS);
+      }
+    };
+    fetchSettings();
   }, []);
 
   const handleToggle = (id, key) => {
@@ -42,7 +52,6 @@ const RefurbishedCategories = () => {
       return cat;
     });
     setCategories(updated);
-    localStorage.setItem("refurbished-categories-settings", JSON.stringify(updated));
   };
 
   const handleCommissionChange = (id, value) => {
@@ -54,12 +63,18 @@ const RefurbishedCategories = () => {
       return cat;
     });
     setCategories(updated);
-    localStorage.setItem("refurbished-categories-settings", JSON.stringify(updated));
   };
 
-  const handleSaveAll = () => {
-    localStorage.setItem("refurbished-categories-settings", JSON.stringify(categories));
-    toast.success("Category mappings saved successfully!");
+  const handleSaveAll = async () => {
+    setIsSaving(true);
+    try {
+      await api.put('/admin/settings/refurbished_categories', categories);
+      toast.success("Category mappings saved successfully!");
+    } catch (err) {
+      toast.error("Failed to save category mappings");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -81,9 +96,10 @@ const RefurbishedCategories = () => {
         </div>
         <button
           onClick={handleSaveAll}
-          className="flex items-center gap-1.5 px-4 py-2 bg-[#C07A3D] hover:bg-[#D18B4A] text-white rounded-xl text-xs font-bold shadow-sm transition-all"
+          disabled={isSaving}
+          className="flex items-center gap-1.5 px-4 py-2 bg-[#C07A3D] hover:bg-[#D18B4A] text-white rounded-xl text-xs font-bold shadow-sm transition-all disabled:opacity-50"
         >
-          <FiSave /> Save Configuration
+          <FiSave /> {isSaving ? "Saving..." : "Save Configuration"}
         </button>
       </div>
 

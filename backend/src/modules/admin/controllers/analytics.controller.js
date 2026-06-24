@@ -5,14 +5,26 @@ import User from '../../../models/User.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import Product from '../../../models/Product.model.js';
 
+// Helper to add date filter
+const getDateFilter = (startDate, endDate) => {
+    if (!startDate && !endDate) return {};
+    const createdAt = {};
+    if (startDate) createdAt.$gte = new Date(startDate);
+    if (endDate) createdAt.$lte = new Date(new Date(endDate).setHours(23, 59, 59, 999));
+    return { createdAt };
+};
+
 // GET /api/admin/analytics/dashboard
 export const getDashboardStats = asyncHandler(async (req, res) => {
-    const activeOrderFilter = { isDeleted: { $ne: true } };
+    const { startDate, endDate } = req.query;
+    const dateFilter = getDateFilter(startDate, endDate);
+    
+    const activeOrderFilter = { isDeleted: { $ne: true }, ...dateFilter };
     const [totalOrders, totalUsers, totalVendors, totalProducts, revenueAgg, pendingOrders] = await Promise.all([
         Order.countDocuments(activeOrderFilter),
-        User.countDocuments({ role: 'customer' }),
-        Vendor.countDocuments({ status: 'approved' }),
-        Product.countDocuments({ isActive: true }),
+        User.countDocuments({ role: 'customer', ...dateFilter }),
+        Vendor.countDocuments({ status: 'approved', ...dateFilter }),
+        Product.countDocuments({ isActive: true, ...dateFilter }),
         Order.aggregate([{ $match: { ...activeOrderFilter, status: { $ne: 'cancelled' } } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
         Order.countDocuments({ ...activeOrderFilter, status: 'pending' }),
     ]);
@@ -25,6 +37,35 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         totalRevenue: revenueAgg[0]?.total || 0,
         pendingOrders,
     }, 'Dashboard stats fetched.'));
+});
+
+// GET /api/admin/analytics/b2b-overview
+export const getB2bOverviewStats = asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const dateFilter = getDateFilter(startDate, endDate);
+
+    const activeOrderFilter = { isDeleted: { $ne: true }, type: 'b2b', status: { $ne: 'cancelled' }, ...dateFilter };
+    
+    const [b2bUsersCount, b2bProductsCount, b2bOrdersCount, b2bRevenueAgg] = await Promise.all([
+        User.countDocuments({ role: { $in: ['b2badmin', 'b2bemployee'] }, ...dateFilter }),
+        Product.countDocuments({ isActive: true, 'b2bPricing.bulkPricing': { $exists: true, $not: { $size: 0 } }, ...dateFilter }),
+        Order.countDocuments(activeOrderFilter),
+        Order.aggregate([
+            { $match: activeOrderFilter },
+            { $group: { _id: null, total: { $sum: '$total' } } }
+        ])
+    ]);
+
+    // If the B2B products filter doesn't return anything (e.g. no products use that exact schema),
+    // let's fallback to any products that might have isB2b true or just count all products as B2B if that's the business model.
+    // For now, keeping the strict bulkPricing filter as per common B2B schemas.
+
+    res.status(200).json(new ApiResponse(200, {
+        b2bUsers: b2bUsersCount,
+        b2bProducts: b2bProductsCount,
+        b2bOrders: b2bOrdersCount,
+        b2bRevenue: b2bRevenueAgg[0]?.total || 0
+    }, 'B2B Overview stats fetched.'));
 });
 
 // GET /api/admin/analytics/revenue
@@ -54,8 +95,11 @@ export const getRevenueData = asyncHandler(async (req, res) => {
 
 // GET /api/admin/analytics/order-status
 export const getOrderStatusBreakdown = asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const dateFilter = getDateFilter(startDate, endDate);
+
     const breakdown = await Order.aggregate([
-        { $match: { isDeleted: { $ne: true } } },
+        { $match: { isDeleted: { $ne: true }, ...dateFilter } },
         { $group: { _id: '$status', count: { $sum: 1 } } },
         { $sort: { count: -1 } },
     ]);
@@ -66,8 +110,11 @@ export const getOrderStatusBreakdown = asyncHandler(async (req, res) => {
 
 // GET /api/admin/analytics/top-products
 export const getTopProducts = asyncHandler(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const dateFilter = getDateFilter(startDate, endDate);
+
     const topProducts = await Order.aggregate([
-        { $match: { isDeleted: { $ne: true }, status: { $ne: 'cancelled' } } },
+        { $match: { isDeleted: { $ne: true }, status: { $ne: 'cancelled' }, ...dateFilter } },
         { $unwind: '$items' },
         { $group: { _id: '$items.productId', totalSold: { $sum: '$items.quantity' }, revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } } } },
         { $sort: { totalSold: -1 } },
@@ -107,7 +154,10 @@ export const getCustomerGrowth = asyncHandler(async (req, res) => {
 
 // GET /api/admin/analytics/recent-orders
 export const getRecentOrders = asyncHandler(async (req, res) => {
-    const orders = await Order.find({ isDeleted: { $ne: true } })
+    const { startDate, endDate } = req.query;
+    const dateFilter = getDateFilter(startDate, endDate);
+
+    const orders = await Order.find({ isDeleted: { $ne: true }, ...dateFilter })
         .populate('userId', 'name email')
         .sort({ createdAt: -1 })
         .limit(5)

@@ -4,15 +4,35 @@ import { FiArrowLeft, FiPlus, FiInbox, FiChevronRight, FiCalendar, FiClock } fro
 import { motion } from "framer-motion";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
+import api from "../../../shared/utils/api";
 
 const ProductRequestHistory = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loaded = JSON.parse(localStorage.getItem("ple_product_requests") || "[]");
-    setRequests(loaded);
+    fetchRequests();
   }, []);
+
+  const fetchRequests = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/user/product-requests');
+      if (response.success || response.statusCode === 200) {
+        const formatted = (response.data || []).map(r => ({
+          ...r,
+          id: r.requestId,
+          date: r.createdAt
+        }));
+        setRequests(formatted);
+      }
+    } catch (error) {
+      console.error("Failed to fetch product requests:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const getStatusStyle = (status) => {
     const map = {
@@ -54,7 +74,12 @@ const ProductRequestHistory = () => {
           </div>
 
           {/* List or Empty State */}
-          {requests.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#7B0A0A] mb-4"></div>
+              <p className="text-gray-500 font-semibold">Loading your requests...</p>
+            </div>
+          ) : requests.length === 0 ? (
             <div className="bg-white rounded-3xl p-12 border border-gray-100 shadow-sm text-center max-w-md mx-auto my-12">
               <FiInbox className="mx-auto text-6xl text-gray-300 mb-4" />
               <h3 className="text-lg font-bold text-gray-800">No requests found</h3>

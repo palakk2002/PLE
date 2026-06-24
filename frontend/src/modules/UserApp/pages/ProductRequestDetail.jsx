@@ -4,6 +4,7 @@ import { FiArrowLeft, FiCalendar, FiCheckCircle, FiInfo, FiTag, FiShoppingBag, F
 import { motion } from "framer-motion";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
+import api from "../../../shared/utils/api";
 
 const ProductRequestDetail = () => {
   const navigate = useNavigate();
@@ -11,10 +12,25 @@ const ProductRequestDetail = () => {
   const [request, setRequest] = useState(null);
 
   useEffect(() => {
-    const loaded = JSON.parse(localStorage.getItem("ple_product_requests") || "[]");
-    const found = loaded.find((r) => r.id === id);
-    setRequest(found);
+    fetchRequestDetail();
   }, [id]);
+
+  const fetchRequestDetail = async () => {
+    try {
+      const response = await api.get(`/user/product-requests/${id}`);
+      if (response.success || response.statusCode === 200) {
+        const reqData = response.data;
+        setRequest({
+          ...reqData,
+          id: reqData.requestId,
+          date: reqData.createdAt
+        });
+      }
+    } catch (error) {
+      console.error("Failed to fetch request detail:", error);
+      // Let it remain null to show "Request not found"
+    }
+  };
 
   if (!request) {
     return (

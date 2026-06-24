@@ -17,166 +17,9 @@ import {
 } from "react-icons/fi";
 import Badge from "../../../../shared/components/Badge";
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
 
-// Initial Refurbished Products Mock Data
-const INITIAL_REFURBISHED_PRODUCTS = [
-  {
-    id: "refurb_phone_1",
-    name: "Apple iPhone 13 Pro 128GB - Graphite",
-    vendorName: "Apex Electronics Retail",
-    price: 38999,
-    originalPrice: 79999,
-    image: "https://images.unsplash.com/photo-1632633038674-f114e7a7ebb9?w=500&auto=format&fit=crop&q=60",
-    condition: "refurbished",
-    refurbishedGrade: "A",
-    status: "pending",
-    usageAge: "2.5 years",
-    purchaseYear: 2023,
-    batteryHealth: 76, // Triggers Fake Grading Warning if Grade A
-    cosmeticCondition: "Good",
-    functionalCondition: "100% Functional",
-    replacedParts: "Display panel replaced with OEM Grade screen",
-    repairDetails: "Screen replaced and verified at Authorized Service Center in Nov 2025.",
-    warrantyDuration: "6 Months",
-    warrantyType: "Seller Warranty",
-    accessories: ["Fast Charger", "USB-C to Lightning Cable"],
-    tested: true,
-    certified: true,
-    qualityChecked: true,
-    flagged: false,
-    flagReason: "",
-  },
-  {
-    id: "refurb_watch_1",
-    name: "Tommy Hilfiger Refurbished Chronograph Watch",
-    vendorName: "Tech Gear Pro",
-    price: 9999,
-    originalPrice: 19999,
-    image: "https://images.unsplash.com/photo-1522312346375-d1a52e2b99b3?w=500&auto=format&fit=crop&q=60",
-    condition: "refurbished",
-    refurbishedGrade: "A",
-    status: "approved",
-    usageAge: "1 year",
-    purchaseYear: 2025,
-    batteryHealth: 94,
-    cosmeticCondition: "Mint",
-    functionalCondition: "100% Functional",
-    replacedParts: "None",
-    repairDetails: "No repairs carried out. Factory original seal intact.",
-    warrantyDuration: "12 Months",
-    warrantyType: "Brand Warranty",
-    accessories: ["Original Box", "Charger", "Quality Certificate"],
-    tested: true,
-    certified: true,
-    qualityChecked: true,
-    flagged: false,
-    flagReason: "",
-  },
-  {
-    id: "refurb_boot_1",
-    name: "Levi's Renewed Leather Ankle Boots",
-    vendorName: "Fashion Hub Store",
-    price: 4999,
-    originalPrice: 9999,
-    image: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=500&auto=format&fit=crop&q=60",
-    condition: "renewed",
-    refurbishedGrade: "A",
-    status: "approved",
-    usageAge: "6 months",
-    purchaseYear: 2025,
-    batteryHealth: 100,
-    cosmeticCondition: "Excellent",
-    functionalCondition: "Pristine condition",
-    replacedParts: "Insole padding renewed",
-    repairDetails: "Sanitized and insole renewed. Leather polished.",
-    warrantyDuration: "6 Months",
-    warrantyType: "Seller Warranty",
-    accessories: ["Shoe Box", "Care Tag"],
-    tested: true,
-    certified: true,
-    qualityChecked: true,
-    flagged: false,
-    flagReason: "",
-  },
-  {
-    id: "refurb_laptop_1",
-    name: "Dell XPS 13 9310 - Core i7 - 16GB - 512GB",
-    vendorName: "Apex Electronics Retail",
-    price: 64999,
-    originalPrice: 125000,
-    image: "https://images.unsplash.com/photo-1593642632823-8f785ba67e45?w=500&auto=format&fit=crop&q=60",
-    condition: "open_box",
-    refurbishedGrade: "A",
-    status: "pending",
-    usageAge: "2 months",
-    purchaseYear: 2026,
-    batteryHealth: 99,
-    cosmeticCondition: "Pristine",
-    functionalCondition: "100% Functional",
-    replacedParts: "None",
-    repairDetails: "Item returned by customer within 15 days. No service or repairs required.",
-    warrantyDuration: "10 Months",
-    warrantyType: "Brand Warranty",
-    accessories: ["Original Charger", "Original Packaging Box", "Setup Manual"],
-    tested: true,
-    certified: false,
-    qualityChecked: true,
-    flagged: false,
-    flagReason: "",
-  },
-  {
-    id: "refurb_head_1",
-    name: "Sony WH-1000XM4 Wireless Headphones - Black",
-    vendorName: "Gupta Electronics",
-    price: 12999,
-    originalPrice: 24999,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&auto=format&fit=crop&q=60",
-    condition: "refurbished",
-    refurbishedGrade: "B",
-    status: "pending",
-    usageAge: "1.5 years",
-    purchaseYear: 2024,
-    batteryHealth: 82,
-    cosmeticCondition: "Good",
-    functionalCondition: "100% Functional",
-    replacedParts: "Leatherette earpads replaced",
-    repairDetails: "Earpads replaced with OEM cushions, thoroughly sanitized.",
-    warrantyDuration: "3 Months",
-    warrantyType: "Seller Warranty",
-    accessories: ["Carrying Case", "Aux Cable", "Charging Cord"],
-    tested: true,
-    certified: true,
-    qualityChecked: true,
-    flagged: false,
-    flagReason: "",
-  },
-  {
-    id: "refurb_phone_2",
-    name: "Samsung Galaxy S21 Ultra 5G - Silver",
-    vendorName: "Gupta Electronics",
-    price: 29999,
-    originalPrice: 105000,
-    image: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=500&auto=format&fit=crop&q=60",
-    condition: "refurbished",
-    refurbishedGrade: "C",
-    status: "rejected",
-    usageAge: "3 years",
-    purchaseYear: 2023,
-    batteryHealth: 68,
-    cosmeticCondition: "Fair",
-    functionalCondition: "Camera zoom has focus jitter",
-    replacedParts: "Back glass panel replaced",
-    repairDetails: "Back cover glass panel replaced. Diagnostic flags autofocus issues on secondary telephoto lens.",
-    warrantyDuration: "3 Months",
-    warrantyType: "Seller Warranty",
-    accessories: ["Charger Cable Only"],
-    tested: true,
-    certified: false,
-    qualityChecked: false,
-    flagged: true,
-    flagReason: "Misleading Grade - Autofocus camera issue listed under Grade B previously.",
-  }
-];
+// Fetch dynamic data instead of mock
 
 const ProductApprovals = () => {
   const [products, setProducts] = useState([]);
@@ -192,20 +35,54 @@ const ProductApprovals = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
 
-  // Initialize store from localStorage or fall back to mock data
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize from backend
   useEffect(() => {
-    const saved = localStorage.getItem("refurbished-approvals-list");
-    if (saved) {
-      setProducts(JSON.parse(saved));
-    } else {
-      setProducts(INITIAL_REFURBISHED_PRODUCTS);
-      localStorage.setItem("refurbished-approvals-list", JSON.stringify(INITIAL_REFURBISHED_PRODUCTS));
-    }
+    fetchProducts();
   }, []);
 
-  const saveProducts = (updatedList) => {
-    setProducts(updatedList);
-    localStorage.setItem("refurbished-approvals-list", JSON.stringify(updatedList));
+  const fetchProducts = async () => {
+    try {
+      setIsLoading(true);
+      const res = await api.get('/admin/refurbished-products');
+      const formatted = res.data.map(p => ({
+        id: p._id,
+        name: p.name,
+        vendorName: p.vendorId?.storeName || p.vendorId?.name || "Unknown Vendor",
+        price: p.price,
+        originalPrice: p.originalPrice || p.price,
+        image: p.image || p.images?.[0] || 'https://via.placeholder.com/150',
+        condition: p.refurbishedDetails?.condition || 'refurbished',
+        refurbishedGrade: p.refurbishedDetails?.grade || 'A',
+        status: p.refurbishedDetails?.approvalStatus || 'pending',
+        usageAge: p.refurbishedDetails?.usageAge || 'Unknown',
+        purchaseYear: p.refurbishedDetails?.purchaseYear || new Date().getFullYear(),
+        batteryHealth: p.refurbishedDetails?.batteryHealth || 100,
+        cosmeticCondition: p.refurbishedDetails?.cosmeticCondition || 'Good',
+        functionalCondition: p.refurbishedDetails?.functionalCondition || 'Functional',
+        replacedParts: p.refurbishedDetails?.replacedParts || 'None',
+        repairDetails: p.refurbishedDetails?.repairDetails || 'None',
+        warrantyDuration: p.refurbishedDetails?.warrantyDuration || 'No Warranty',
+        warrantyType: p.refurbishedDetails?.warrantyType || 'None',
+        accessories: p.refurbishedDetails?.accessories || [],
+        tested: p.refurbishedDetails?.tested || false,
+        certified: p.refurbishedDetails?.certified || false,
+        qualityChecked: p.refurbishedDetails?.qualityChecked || false,
+        flagged: p.refurbishedDetails?.flagged || false,
+        flagReason: p.refurbishedDetails?.flagReason || "",
+      }));
+      setProducts(formatted);
+    } catch (err) {
+      toast.error('Failed to fetch refurbished products');
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveProducts = () => {
+    fetchProducts();
   };
 
   // Filter products based on tab, search, and condition
@@ -228,44 +105,41 @@ const ProductApprovals = () => {
     setShowRejectForm(false);
   };
 
-  const handleApprove = (id) => {
-    const updated = products.map((p) => {
-      if (p.id === id) {
-        return {
-          ...p,
-          status: "approved",
-          refurbishedGrade: moderateGrade,
-          flagged: isFlagged,
-          flagReason: isFlagged ? flagReason : "",
-        };
-      }
-      return p;
-    });
-    saveProducts(updated);
-    toast.success("Listing approved successfully!");
-    setSelectedProduct(null);
+  const handleApprove = async (id) => {
+    try {
+      await api.put(`/admin/refurbished-products/${id}/status`, {
+        status: 'approved',
+        grade: moderateGrade,
+        flagged: isFlagged,
+        flagReason: isFlagged ? flagReason : "",
+      });
+      toast.success("Listing approved successfully!");
+      saveProducts();
+      setSelectedProduct(null);
+    } catch (err) {
+      toast.error("Failed to approve product");
+    }
   };
 
-  const handleReject = (id) => {
+  const handleReject = async (id) => {
     if (!rejectionReason.trim()) {
       toast.error("Please provide a reason for rejecting the listing.");
       return;
     }
-    const updated = products.map((p) => {
-      if (p.id === id) {
-        return {
-          ...p,
-          status: "rejected",
-          refurbishedGrade: moderateGrade,
-          flagged: isFlagged || true,
-          flagReason: `Rejected: ${rejectionReason}. ${isFlagged ? flagReason : ""}`,
-        };
-      }
-      return p;
-    });
-    saveProducts(updated);
-    toast.error("Listing rejected.");
-    setSelectedProduct(null);
+    try {
+      await api.put(`/admin/refurbished-products/${id}/status`, {
+        status: 'rejected',
+        grade: moderateGrade,
+        flagged: isFlagged || true,
+        flagReason: `Rejected: ${rejectionReason}. ${isFlagged ? flagReason : ""}`,
+        rejectionReason: rejectionReason
+      });
+      toast.error("Listing rejected.");
+      saveProducts();
+      setSelectedProduct(null);
+    } catch (err) {
+      toast.error("Failed to reject product");
+    }
   };
 
   // Condition Formatter Helper
@@ -356,7 +230,9 @@ const ProductApprovals = () => {
 
       {/* Grid of Listings */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+            <div className="col-span-full py-12 text-center text-gray-500">Loading...</div>
+        ) : filteredProducts.length > 0 ? (
           filteredProducts.map((product) => (
             <motion.div
               layout

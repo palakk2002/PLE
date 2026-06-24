@@ -520,4 +520,11 @@ router.get('/orders/track/:id', asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, order, 'Order tracking info.'));
 }));
 
+// GET /api/settings/:key (public settings)
+router.get('/settings/:key', asyncHandler(async (req, res) => {
+    const { default: Settings } = await import('../models/Settings.model.js');
+    const setting = await Settings.findOne({ key: req.params.key });
+    res.status(200).json(new ApiResponse(200, setting ? setting.value : null, `Settings for ${req.params.key} fetched.`));
+}));
+
 export default router;

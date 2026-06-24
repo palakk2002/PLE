@@ -52,6 +52,7 @@ import { B2BBusinessDashboard } from "../components/B2B/B2BBusinessDashboard";
 import { B2BMyEnquiries } from "../components/B2B/B2BMyEnquiries";
 import { MyProductEnquiries } from "../components/Enquiry/MyProductEnquiries";
 import { useB2BAdminStore } from "../../B2BAdmin/store/b2bAdminStore";
+import { useWalletStore } from "../../../shared/store/walletStore";
 
 const MobileProfile = () => {
   const navigate = useNavigate();
@@ -79,11 +80,11 @@ const MobileProfile = () => {
 
   // Company / Employee CRUD States
   const { companies, updateCompanyDetails, addEmployee, updateEmployee, toggleEmployeeStatus, removeEmployee } = useB2bStore();
-  const { 
-    employees: dbEmployees, 
-    fetchEmployees: fetchDbEmployees, 
-    createEmployee: createDbEmployee, 
-    updateEmployee: updateDbEmployee, 
+  const {
+    employees: dbEmployees,
+    fetchEmployees: fetchDbEmployees,
+    createEmployee: createDbEmployee,
+    updateEmployee: updateDbEmployee,
     deleteEmployee: deleteDbEmployee,
     companyProfile: dbCompanyProfile,
     fetchCompanyProfile: fetchDbCompanyProfile,
@@ -94,9 +95,11 @@ const MobileProfile = () => {
   const isB2BEmployee = user?.role === 'b2bEmployee';
   const isB2BUser = isB2BAdmin || isB2BEmployee;
 
-  const company = isB2BUser 
-    ? dbCompanyProfile 
+  const company = isB2BUser
+    ? dbCompanyProfile
     : companies?.find(c => c.id === user?.companyId || c.companyName === user?.companyName || c.admin?.email?.toLowerCase() === user?.email?.toLowerCase());
+
+  const { balance: walletBalance, fetchWallet } = useWalletStore();
 
   useEffect(() => {
     if (isB2BUser) {
@@ -106,6 +109,12 @@ const MobileProfile = () => {
       fetchDbCompanyProfile();
     }
   }, [user, isB2BUser, isB2BAdmin, fetchDbEmployees, fetchDbCompanyProfile]);
+
+  useEffect(() => {
+    if (user) {
+      fetchWallet();
+    }
+  }, [user, fetchWallet]);
 
   const employeesList = isB2BAdmin ? dbEmployees : (company?.employees || []);
 
@@ -183,7 +192,6 @@ const MobileProfile = () => {
     setEditingEmployee(null);
     setEmpForm({ name: '', email: '', phone: '', designation: '' });
   };
-  const walletBalance = parseFloat(localStorage.getItem(`wallet_balance_${user?.id || "guest"}`) || "1500");
   const { availablePoints, totalEarned, totalRedeemed, pendingPoints, history: loyaltyHistory } = useLoyaltyStore();
   const ensureNotificationHydrated = useUserNotificationStore(
     (state) => state.ensureHydrated,
@@ -362,33 +370,33 @@ const MobileProfile = () => {
     },
     ...(isBusiness
       ? [
-          {
-            id: "b2b-requests",
-            label: "Sourcing Center (B2B Dashboard)",
-            icon: FiFileText,
-            color: "text-[#7B0A0A]",
-            bg: "bg-[#7B0A0A]/10",
-            link: "/b2b-dashboard"
-          },
-          {
-            id: "company-profile",
-            label: "Company Profile",
-            icon: FiBriefcase,
-            color: "text-[#7B0A0A]",
-            bg: "bg-[#7B0A0A]/10",
-          },
-        ]
+        {
+          id: "b2b-requests",
+          label: "Sourcing Center (B2B Dashboard)",
+          icon: FiFileText,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+          link: "/b2b-dashboard"
+        },
+        {
+          id: "company-profile",
+          label: "Company Profile",
+          icon: FiBriefcase,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+        },
+      ]
       : []),
     ...(isBusiness && (user?.isCompanyAdmin || user?.role === 'b2bAdmin')
       ? [
-          {
-            id: "team-management",
-            label: "Team Management",
-            icon: FiUsers,
-            color: "text-[#7B0A0A]",
-            bg: "bg-[#7B0A0A]/10",
-          },
-        ]
+        {
+          id: "team-management",
+          label: "Team Management",
+          icon: FiUsers,
+          color: "text-[#7B0A0A]",
+          bg: "bg-[#7B0A0A]/10",
+        },
+      ]
       : []),
     {
       id: "orders",
@@ -588,19 +596,19 @@ const MobileProfile = () => {
                       ? "Security"
                       : activeTab === "offers"
                         ? "My Offers"
-                      : activeTab === "loyalty"
-                        ? "My Loyalty Points"
-                        : activeTab === "feedback"
-                          ? "Give Feedback"
-                          : activeTab === "product-enquiries"
-                            ? "My Enquiries"
-                            : activeTab === "b2b-requests"
-                              ? "B2B Requests"
-                              : activeTab === "company-profile"
-                                ? "Company Profile"
-                              : activeTab === "team-management"
-                                ? "Team Management"
-                                : "My Account"}
+                        : activeTab === "loyalty"
+                          ? "My Loyalty Points"
+                          : activeTab === "feedback"
+                            ? "Give Feedback"
+                            : activeTab === "product-enquiries"
+                              ? "My Enquiries"
+                              : activeTab === "b2b-requests"
+                                ? "B2B Requests"
+                                : activeTab === "company-profile"
+                                  ? "Company Profile"
+                                  : activeTab === "team-management"
+                                    ? "Team Management"
+                                    : "My Account"}
               </h1>
             </div>
           </div>
@@ -887,11 +895,10 @@ const MobileProfile = () => {
                               message: "Name must be at least 2 characters",
                             },
                           })}
-                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${
-                            personalErrors.name
+                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${personalErrors.name
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
-                          } focus:outline-none transition-colors text-base`}
+                            } focus:outline-none transition-colors text-base`}
                           placeholder="Your full name"
                         />
                       </div>
@@ -924,11 +931,10 @@ const MobileProfile = () => {
                               "Please enter a valid email",
                           })}
                           readOnly
-                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${
-                            personalErrors.email
+                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${personalErrors.email
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
-                          } focus:outline-none transition-colors text-base bg-gray-50 text-gray-500 cursor-not-allowed`}
+                            } focus:outline-none transition-colors text-base bg-gray-50 text-gray-500 cursor-not-allowed`}
                           placeholder="your.email@example.com"
                         />
                       </div>
@@ -963,11 +969,10 @@ const MobileProfile = () => {
                               isValidPhone(value) ||
                               "Please enter a valid phone number",
                           })}
-                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${
-                            personalErrors.phone
+                          className={`w-full pl-12 pr-4 py-3 rounded-xl border-2 ${personalErrors.phone
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
-                          } focus:outline-none transition-colors text-base`}
+                            } focus:outline-none transition-colors text-base`}
                           placeholder="1234567890"
                         />
                       </div>
@@ -1010,11 +1015,10 @@ const MobileProfile = () => {
                           type="date"
                           placeholder="Date of Birth"
                           {...registerPersonal("dob")}
-                          className={`w-full px-4 py-3 rounded-xl border-2 ${
-                            personalErrors.dob
+                          className={`w-full px-4 py-3 rounded-xl border-2 ${personalErrors.dob
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
-                          } focus:outline-none transition-colors text-base`}
+                            } focus:outline-none transition-colors text-base`}
                         />
                         <AnimatePresence>
                           {personalErrors.dob && (
@@ -1047,45 +1051,46 @@ const MobileProfile = () => {
                       <div className="flex items-center gap-2 mb-4">
                         <FiBriefcase className="text-primary-600 text-xl" />
                         <h3 className="font-extrabold text-gray-800 text-base">Business Profile Details</h3>
-                        <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
-                          (user?.verificationStatus || 'Pending Verification') === 'Approved'
+                        <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${(company?.verificationStatus || user?.verificationStatus || 'Pending Verification') === 'Approved'
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                            : (user?.verificationStatus || 'Pending Verification') === 'Rejected'
-                            ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                            : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
-                        }`}>
-                          {user?.verificationStatus || 'Pending Verification'}
+                            : (company?.verificationStatus || user?.verificationStatus || 'Pending Verification') === 'Rejected'
+                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200 animate-pulse'
+                          }`}>
+                          {company?.verificationStatus || user?.verificationStatus || 'Pending Verification'}
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-2xl p-5 border border-gray-100 text-sm">
                         <div>
                           <span className="text-gray-400 block font-medium text-xs">Company Name</span>
-                          <span className="font-bold text-gray-800">{user?.companyName || 'Not Set'}</span>
+                          <span className="font-bold text-gray-800">{company?.companyName || user?.companyName || 'Not Set'}</span>
                         </div>
                         <div>
                           <span className="text-gray-400 block font-medium text-xs">Company Type</span>
-                          <span className="font-bold text-gray-800">{user?.businessType || 'Not Set'}</span>
+                          <span className="font-bold text-gray-800">{company?.businessType || user?.businessType || 'Not Set'}</span>
                         </div>
                         <div>
                           <span className="text-gray-400 block font-medium text-xs">GST Number</span>
-                          <span className="font-bold text-gray-800 font-mono">{user?.gstNumber || 'Not Set'}</span>
+                          <span className="font-bold text-gray-800 font-mono">{company?.gstNumber || user?.gstNumber || 'Not Set'}</span>
                         </div>
                         <div>
                           <span className="text-gray-400 block font-medium text-xs">Years In Business</span>
-                          <span className="font-bold text-gray-800">{user?.yearsInBusiness || '0'} Years</span>
+                          <span className="font-bold text-gray-800">{company?.yearsInBusiness || user?.yearsInBusiness || '0'} Years</span>
                         </div>
                         <div className="md:col-span-2">
                           <span className="text-gray-400 block font-medium text-xs">Business Address</span>
                           <span className="font-bold text-gray-800">
-                            {user?.businessAddress ? `${user.businessAddress}, ${user.city || ''}, ${user.state || ''} - ${user.pincode || ''}` : 'Not Set'}
+                            {(company?.businessAddress || user?.businessAddress) 
+                              ? `${company?.businessAddress || user?.businessAddress}, ${company?.city || user?.city || ''}, ${company?.state || user?.state || ''} - ${company?.pincode || user?.pincode || ''}`.replace(/,\s*,/g, ',').replace(/,\s*-/, ' -').replace(/^[,\s]+/, '') 
+                              : 'Not Set'}
                           </span>
                         </div>
-                        {user?.gstCertificate && (
+                        {(company?.gstCertificate || user?.gstCertificate) && (
                           <div className="md:col-span-2 mt-2">
                             <span className="text-gray-400 block font-medium text-xs mb-1.5">Submitted GST Certificate</span>
                             <a
-                              href={user.gstCertificate}
+                              href={company?.gstCertificate || user?.gstCertificate}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-2 text-xs font-bold text-primary-600 hover:text-primary-700 bg-white border border-gray-200 px-3 py-2 rounded-xl transition-all shadow-sm hover:shadow"
@@ -1329,7 +1334,7 @@ const MobileProfile = () => {
                             designation: empForm.designation,
                             password: empForm.password
                           };
-                          
+
                           if (editingEmployee) {
                             const success = await updateDbEmployee(editingEmployee._id, payload);
                             if (success) {
@@ -1462,7 +1467,7 @@ const MobileProfile = () => {
                             const empPhone = emp.phone;
                             const empDesignation = emp.designation;
                             const empStatus = emp.status || (emp.isActive !== false ? 'Active' : 'Inactive');
-                            
+
                             return (
                               <tr key={empEmail} className="hover:bg-gray-50">
                                 <td className="py-3.5 px-4 font-bold text-gray-900">{empName}</td>
@@ -1488,9 +1493,8 @@ const MobileProfile = () => {
                                 <td className="py-3.5 px-4 font-mono font-bold">{empPhone}</td>
                                 <td className="py-3.5 px-4 font-semibold text-gray-655">{empDesignation}</td>
                                 <td className="py-3.5 px-4 text-center">
-                                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${
-                                    empStatus === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
-                                  }`}>
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-bold ${empStatus === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+                                    }`}>
                                     {empStatus}
                                   </span>
                                 </td>
@@ -1589,11 +1593,10 @@ const MobileProfile = () => {
                           {...registerPassword("currentPassword", {
                             required: "Current password is required",
                           })}
-                          className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${
-                            passwordErrors.currentPassword
+                          className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${passwordErrors.currentPassword
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
-                          } focus:outline-none transition-colors text-sm sm:text-base`}
+                            } focus:outline-none transition-colors text-sm sm:text-base`}
                           placeholder="Current Password"
                         />
                         <button
@@ -1628,11 +1631,10 @@ const MobileProfile = () => {
                               message: "Password must be at least 6 characters",
                             },
                           })}
-                          className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${
-                            passwordErrors.newPassword
+                          className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${passwordErrors.newPassword
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
-                          } focus:outline-none transition-colors text-sm sm:text-base`}
+                            } focus:outline-none transition-colors text-sm sm:text-base`}
                           placeholder="New Password"
                         />
                         <button
@@ -1668,11 +1670,10 @@ const MobileProfile = () => {
                             validate: (value) =>
                               value === newPassword || "Passwords do not match",
                           })}
-                          className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${
-                            passwordErrors.confirmPassword
+                          className={`w-full pl-12 pr-12 py-3 rounded-xl border-2 ${passwordErrors.confirmPassword
                               ? "border-red-300 focus:border-red-500"
                               : "border-gray-200 focus:border-primary-500"
-                          } focus:outline-none transition-colors text-sm sm:text-base`}
+                            } focus:outline-none transition-colors text-sm sm:text-base`}
                           placeholder="Confirm Password"
                         />
                         <button
@@ -1721,11 +1722,10 @@ const MobileProfile = () => {
                         key={subTab}
                         type="button"
                         onClick={() => setSelectedOfferSubTab(subTab)}
-                        className={`flex-1 py-2 text-xs font-bold capitalize rounded-lg transition-all ${
-                          selectedOfferSubTab === subTab
+                        className={`flex-1 py-2 text-xs font-bold capitalize rounded-lg transition-all ${selectedOfferSubTab === subTab
                             ? "bg-white text-gray-900 shadow-sm"
                             : "text-gray-500"
-                        }`}
+                          }`}
                       >
                         {subTab} Offers
                       </button>
@@ -1786,11 +1786,10 @@ const MobileProfile = () => {
                             className="p-1 focus:outline-none transition-transform hover:scale-125"
                           >
                             <FiStar
-                              className={`w-8 h-8 ${
-                                star <= feedbackRating
+                              className={`w-8 h-8 ${star <= feedbackRating
                                   ? "text-amber-400 fill-amber-400"
                                   : "text-gray-300"
-                              } transition-colors duration-200`}
+                                } transition-colors duration-200`}
                             />
                           </button>
                         ))}
@@ -1888,7 +1887,7 @@ const MobileProfile = () => {
                         <p className="text-xs text-gray-500 mt-0.5">Track your points lifecycle updates</p>
                       </div>
                     </div>
-                    
+
                     <div className="overflow-x-auto">
                       <table className="w-full text-left text-sm">
                         <thead className="bg-gray-50 text-gray-500 uppercase text-[10px] font-black tracking-wider border-b border-gray-150">

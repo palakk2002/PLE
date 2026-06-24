@@ -80,36 +80,47 @@ const OrderStatusPieChart = ({ data = [] }) => {
         <h3 className="text-base sm:text-lg font-bold text-gray-800">Order Status</h3>
         <p className="text-xs sm:text-sm text-gray-500 mt-1">Distribution of order statuses</p>
       </div>
-      <ResponsiveContainer width="100%" height={250} minHeight={200}>
-        <PieChart>
-          <Pie
-            data={statusData}
-            cx="50%"
-            cy="50%"
-            labelLine={false}
-            label={renderCustomLabel}
-            outerRadius={80}
-            innerRadius={50}
-            fill="#8884d8"
-            dataKey="value"
-            animationBegin={0}
-            animationDuration={800}
-          >
-            {statusData.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.color} />
-            ))}
-          </Pie>
-          <Tooltip content={<CustomTooltip />} />
-          <Legend
-            verticalAlign="bottom"
-            height={36}
-            iconType="circle"
-            formatter={(value, entry) => (
-              <span style={{ color: entry.color, fontSize: '12px' }}>{value}</span>
-            )}
-          />
-        </PieChart>
-      </ResponsiveContainer>
+      {statusData && statusData.length > 0 ? (
+        <ResponsiveContainer width="100%" height={250} minHeight={200}>
+          <PieChart>
+            <Pie
+              data={statusData}
+              cx="50%"
+              cy="50%"
+              labelLine={false}
+              label={renderCustomLabel}
+              outerRadius={80}
+              innerRadius={50}
+              fill="#8884d8"
+              dataKey="value"
+              animationBegin={0}
+              animationDuration={800}
+            >
+              {statusData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<CustomTooltip />} />
+            <Legend
+              verticalAlign="bottom"
+              height={36}
+              iconType="circle"
+              formatter={(value, entry) => (
+                <span style={{ color: entry.color, fontSize: '12px' }}>{value}</span>
+              )}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      ) : (
+        <div className="h-[250px] flex flex-col items-center justify-center text-gray-400">
+          <svg className="w-12 h-12 mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+          </svg>
+          <p className="font-semibold text-sm">No order status data</p>
+          <p className="text-xs">There are no orders to analyze.</p>
+        </div>
+      )}
     </motion.div>
   );
 };

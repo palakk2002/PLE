@@ -60,7 +60,7 @@ const Analytics = () => {
         const apiPeriod = mapUiPeriodToApiPeriod(period);
         const range = getRangeForPeriod(period);
         const [statsRes, revenueRes] = await Promise.allSettled([
-          getDashboardStats(),
+          getDashboardStats(range),
           getRevenueData(apiPeriod, range),
         ]);
 

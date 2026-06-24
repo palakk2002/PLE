@@ -62,6 +62,15 @@
     ]
   },
   {
+    "title": "B2B Users",
+    "route": "/admin/b2b-users",
+    "children": [
+      "Manage B2B Users",
+      "Pending Approvals",
+      "B2B Analytics"
+    ]
+  },
+  {
     "title": "RFQ Management",
     "route": "/admin/b2b-enquiries",
     "children": [
@@ -90,8 +99,7 @@
       "Delivery Boys",
       "Cash Collection",
       "Assign Delivery",
-      "Logistics Control Center",
-      "Zone Configuration"
+      "Logistics Control Center"
     ]
   },
   {
@@ -102,15 +110,6 @@
       "Pending Approvals",
       "Commission Rates",
       "Vendor Analytics"
-    ]
-  },
-  {
-    "title": "B2B Users",
-    "route": "/admin/b2b-users",
-    "children": [
-      "Manage B2B Users",
-      "Pending Approvals",
-      "B2B Analytics"
     ]
   },
   {

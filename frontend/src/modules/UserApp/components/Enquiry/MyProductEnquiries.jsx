@@ -1,19 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../../../shared/store/authStore';
-import { useProductEnquiryStore } from '../../../../shared/store/productEnquiryStore';
+import api from '../../../../shared/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiMessageSquare, FiEye, FiClock, FiCheckCircle, FiXCircle, FiX, FiCalendar, FiArrowRight, FiInfo } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export const MyProductEnquiries = () => {
   const { user } = useAuthStore();
-  const { enquiries, updateEnquiryStatus } = useProductEnquiryStore();
+  const [userEnquiries, setUserEnquiries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
 
-  // Filter user specific enquiries
-  const userEnquiries = enquiries.filter(
-    (e) => String(e.userId) === String(user?.id || user?._id)
-  );
+  const fetchEnquiries = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/user/enquiries');
+      if (response.success || response.statusCode === 200) {
+        setUserEnquiries(response.data || []);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to fetch your enquiries.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEnquiries();
+  }, []);
 
   const getStatusColor = (status) => {
     if (!status) return 'bg-gray-50 text-gray-700 border-gray-250';
@@ -47,12 +62,11 @@ export const MyProductEnquiries = () => {
     }
   };
 
-  const handleCloseEnquiry = (enquiryId) => {
-    updateEnquiryStatus(enquiryId, 'Closed', 'Enquiry closed by buyer.');
-    toast.success('Enquiry closed.');
-    // Refresh modal info
-    const updated = useProductEnquiryStore.getState().enquiries.find(e => e.id === enquiryId);
-    setSelectedEnquiry(updated);
+  const handleCloseEnquiry = async (enquiryId) => {
+    // Note: We don't have a direct /user/enquiries/:id endpoint to close yet, 
+    // but typically users shouldn't update status directly unless we add that endpoint.
+    // Let's add it or mock it for now, actually let's just close it locally or notify it's not supported.
+    toast.error('Closing enquiry directly is not supported in this version.');
   };
 
   return (
@@ -69,7 +83,11 @@ export const MyProductEnquiries = () => {
       </div>
 
       {/* List */}
-      {userEnquiries.length === 0 ? (
+      {isLoading ? (
+        <div className="flex flex-col items-center py-12 text-center text-gray-400 bg-white rounded-2xl border border-gray-150">
+          <p className="font-semibold text-gray-800">Loading your enquiries...</p>
+        </div>
+      ) : userEnquiries.length === 0 ? (
         <div className="flex flex-col items-center py-12 text-center text-gray-400 bg-white rounded-2xl border border-gray-150">
           <FiMessageSquare className="w-12 h-12 text-gray-300 mb-3" />
           <p className="font-semibold text-gray-800">No Product Enquiries found</p>

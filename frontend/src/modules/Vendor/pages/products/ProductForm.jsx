@@ -33,6 +33,8 @@ const ProductForm = () => {
   const { categories, initialize: initCategories } = useCategoryStore();
   const { brands, initialize: initBrands } = useBrandStore();
 
+  const [b2bSettings, setB2bSettings] = useState(null);
+
   const [formData, setFormData] = useState({
     name: "",
     unit: "",
@@ -111,6 +113,11 @@ const ProductForm = () => {
   useEffect(() => {
     initCategories();
     initBrands();
+    api.get('/settings/b2b').then(res => {
+      if (res.data?.data) {
+        setB2bSettings(res.data.data);
+      }
+    }).catch(err => console.error('Failed to load b2b settings', err));
   }, [initCategories, initBrands]);
 
   useEffect(() => {
@@ -555,6 +562,15 @@ const ProductForm = () => {
       ) {
         toast.error("Please enter valid numeric values for B2B fields");
         return;
+      }
+      
+      if (b2bSettings?.minWholesaleDiscount) {
+        const requiredDiscount = b2bSettings.minWholesaleDiscount;
+        const discountPercentage = ((parsedPrice - parsedB2bWholesalePrice) / parsedPrice) * 100;
+        if (discountPercentage < requiredDiscount) {
+          toast.error(`B2B Wholesale Price must be at least ${requiredDiscount}% lower than retail price.`);
+          return;
+        }
       }
     }
 

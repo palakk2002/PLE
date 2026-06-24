@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema(
 
         isVerified: { type: Boolean, default: false },
         isActive: { type: Boolean, default: true },
+        loyaltyPointsBalance: { type: Number, default: 0 },
         otp: { type: String, select: false },
         otpExpiry: { type: Date, select: false },
         resetOtp: { type: String, select: false },

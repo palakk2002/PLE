@@ -767,6 +767,18 @@ export const payPurchaseOrder = asyncHandler(async (req, res) => {
 
     await po.save();
 
+    try {
+        const io = getIO();
+        io.to('admin_room').emit('payment_status_updated', {
+            poId: po._id,
+            poNumber: po.poNumber,
+            paymentStatus: po.paymentStatus,
+            companyName: po.companyDetails?.name || 'Company'
+        });
+    } catch (err) {
+        console.error('Socket emission failed for payment update:', err);
+    }
+
     res.status(200).json(new ApiResponse(200, po, 'Purchase Order paid successfully (simulated).'));
 });
 

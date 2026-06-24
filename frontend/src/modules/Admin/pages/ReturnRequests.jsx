@@ -108,8 +108,8 @@ const ReturnRequests = () => {
       sortable: true,
       render: (value) => (
         <div>
-          <p className="font-medium text-gray-800">{value.name}</p>
-          <p className="text-xs text-gray-500">{value.email}</p>
+          <p className="font-medium text-gray-800">{value?.name || 'Guest'}</p>
+          <p className="text-xs text-gray-500">{value?.email || 'N/A'}</p>
         </div>
       ),
     },
@@ -326,12 +326,12 @@ const ReturnRequests = () => {
             <ExportButton
               data={filteredRequests}
               headers={[
-                { label: 'Return ID', accessor: (row) => row.id },
-                { label: 'Order ID', accessor: (row) => row.orderId },
-                { label: 'Customer', accessor: (row) => row.customer.name },
-                { label: 'Email', accessor: (row) => row.customer.email },
-                { label: 'Request Date', accessor: (row) => formatDateTime(row.requestDate) },
-                { label: 'Items', accessor: (row) => row.items.length },
+                { label: 'Return ID', accessor: (row) => row.id || row._id || 'N/A' },
+                { label: 'Order ID', accessor: (row) => row.orderId || 'N/A' },
+                { label: 'Customer', accessor: (row) => row.customer?.name || 'Guest' },
+                { label: 'Email', accessor: (row) => row.customer?.email || 'N/A' },
+                { label: 'Request Date', accessor: (row) => formatDateTime(row.requestDate || row.createdAt) },
+                { label: 'Items', accessor: (row) => Array.isArray(row.items) ? row.items.length : 0 },
                 { label: 'Reason', accessor: (row) => row.reason },
                 { label: 'Refund Amount', accessor: (row) => formatCurrency(row.refundAmount) },
                 { label: 'Status', accessor: (row) => row.status },

@@ -24,144 +24,6 @@ import AnimatedSelect from "../../components/AnimatedSelect";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import toast from "react-hot-toast";
 
-const initialBusinessUsers = [
-  {
-    id: "B2B001",
-    businessName: "Rajesh Wholesale Traders",
-    gstin: "27AABCR4821M1Z3",
-    pan: "ABCPR4821M",
-    contactPerson: "Rajesh Sharma",
-    email: "rajesh@traders.com",
-    phone: "+91 98765 43210",
-    type: "Wholesaler",
-    status: "Verified",
-    ordersCount: 18,
-    totalSpent: 485000,
-    address: "12, Crawford Market, Mumbai, Maharashtra - 400001",
-    creditTerms: "Net 30",
-    creditLimit: 200000,
-    joinDate: "2025-10-12",
-  },
-  {
-    id: "B2B002",
-    businessName: "Gupta Retail Mart",
-    gstin: "07AAACG9871A1Z9",
-    pan: "AAACG9871A",
-    contactPerson: "Amit Gupta",
-    email: "amit@guptamart.com",
-    phone: "+91 99112 23344",
-    type: "Retailer",
-    status: "Verified",
-    ordersCount: 32,
-    totalSpent: 720000,
-    address: "45, Karol Bagh, New Delhi, Delhi - 110005",
-    creditTerms: "Net 15",
-    creditLimit: 100000,
-    joinDate: "2025-11-05",
-  },
-  {
-    id: "B2B003",
-    businessName: "South India Distributors",
-    gstin: "33AAAAS1212B1Z7",
-    pan: "AAAAS1212B",
-    contactPerson: "K. S. Srinivasan",
-    email: "contact@southdistributors.com",
-    phone: "+91 88990 01122",
-    type: "Distributor",
-    status: "Verified",
-    ordersCount: 12,
-    totalSpent: 1250000,
-    address: "89, Mount Road, Chennai, Tamil Nadu - 600002",
-    creditTerms: "Net 45",
-    creditLimit: 500000,
-    joinDate: "2025-08-20",
-  },
-  {
-    id: "B2B004",
-    businessName: "Kalyani Enterprises",
-    gstin: "19AABCK3498L1ZE",
-    pan: "ABBCK3498L",
-    contactPerson: "Subhash Kalyani",
-    email: "subhash@kalyani.co.in",
-    phone: "+91 98300 12345",
-    type: "Wholesaler",
-    status: "Pending Verification",
-    ordersCount: 0,
-    totalSpent: 0,
-    address: "67, Salt Lake Sector 5, Kolkata, West Bengal - 700091",
-    creditTerms: "Prepaid Only",
-    creditLimit: 0,
-    joinDate: "2026-05-18",
-  },
-  {
-    id: "B2B005",
-    businessName: "Mahavir Electronics",
-    gstin: "24AAACM4582K1Z0",
-    pan: "AAACM4582K",
-    contactPerson: "Hasmukh Patel",
-    email: "hasmukh@mahavirelec.com",
-    phone: "+91 94260 98765",
-    type: "Retailer",
-    status: "Suspended",
-    ordersCount: 5,
-    totalSpent: 98000,
-    address: "102, GIDC Estate, Ahmedabad, Gujarat - 380015",
-    creditTerms: "None",
-    creditLimit: 0,
-    joinDate: "2025-05-10",
-  },
-  {
-    id: "B2B006",
-    businessName: "Apex Global Sourcing",
-    gstin: "29AAACA9922P1Z6",
-    pan: "AAACA9922P",
-    contactPerson: "Vikram Hegde",
-    email: "info@apexglobal.in",
-    phone: "+91 80223 34455",
-    type: "Distributor",
-    status: "Verified",
-    ordersCount: 22,
-    totalSpent: 1850000,
-    address: "402, Outer Ring Road, Bangalore, Karnataka - 560103",
-    creditTerms: "Net 45",
-    creditLimit: 800000,
-    joinDate: "2025-07-15",
-  },
-  {
-    id: "B2B007",
-    businessName: "Sharma & Sons Agency",
-    gstin: "09AABCS8811Q1Z4",
-    pan: "ABBCS8811Q",
-    contactPerson: "Ramesh Sharma",
-    email: "ramesh@sharmasongs.com",
-    phone: "+91 95540 11223",
-    type: "Wholesaler",
-    status: "Pending Verification",
-    ordersCount: 0,
-    totalSpent: 0,
-    address: "14/88, Civil Lines, Kanpur, Uttar Pradesh - 208001",
-    creditTerms: "Prepaid Only",
-    creditLimit: 0,
-    joinDate: "2026-05-22",
-  },
-  {
-    id: "B2B008",
-    businessName: "Jaipur Fab House",
-    gstin: "08AAACJ4411C1ZY",
-    pan: "AAACJ4411C",
-    contactPerson: "Pinky Shekhawat",
-    email: "pinky@jaipurfabs.com",
-    phone: "+91 97820 44556",
-    type: "Retailer",
-    status: "Verified",
-    ordersCount: 14,
-    totalSpent: 310000,
-    address: "D-25, Johari Bazar, Jaipur, Rajasthan - 302003",
-    creditTerms: "Net 30",
-    creditLimit: 150000,
-    joinDate: "2025-12-01",
-  },
-];
 
 const BusinessUsers = () => {
   const [users, setUsers] = useState([]);
@@ -175,56 +37,45 @@ const BusinessUsers = () => {
   const fetchB2BUsers = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/admin/b2b/users");
+      const response = await api.get("/admin/b2b-users");
       const fetchedData = response?.data?.data || response?.data || response;
-      if (fetchedData?.users) {
+      if (fetchedData?.b2bUsers) {
         // Map backend properties to table schema to maintain compatibility
-        const mappedUsers = fetchedData.users.map((u) => ({
+        const mappedUsers = fetchedData.b2bUsers.map((u) => ({
           id: u._id,
           _id: u._id,
           businessName: u.companyName || u.name,
           gstin: u.gstNumber || '',
           pan: u.gstNumber ? u.gstNumber.substring(2, 12) : '',
-          contactPerson: u.name,
-          email: u.email,
-          phone: u.phone || 'N/A',
-          type: u.businessType || 'Retailer',
+          contactPerson: u.admin?.adminName || u.name || 'N/A',
+          email: u.admin?.adminEmail || u.businessEmail || 'N/A',
+          phone: u.businessPhone || u.phone || 'N/A',
+          type: u.companyType || 'Retailer',
           status: u.verificationStatus === 'Approved' ? 'Verified' : u.verificationStatus === 'Rejected' ? 'Suspended' : 'Pending Verification',
           ordersCount: 0,
           totalSpent: 0,
-          address: `${u.businessAddress || ''}, ${u.city || ''}, ${u.state || ''} - ${u.pincode || ''}`,
+          address: u.companyAddress || '',
           creditTerms: u.verificationStatus === 'Approved' ? 'Net 30' : 'Prepaid Only',
           creditLimit: u.verificationStatus === 'Approved' ? 100000 : 0,
-          joinDate: u.createdAt ? u.createdAt.substring(0, 10) : '2026-06-02',
+          joinDate: u.createdAt ? u.createdAt.substring(0, 10) : new Date().toISOString().substring(0,10),
           gstCertificate: u.gstCertificate
         }));
         
-        // Merge real backend data at the top, and mock data below it
-        setUsers([...mappedUsers, ...initialBusinessUsers]);
+        setUsers(mappedUsers);
         
-        const mockStats = {
-          total: initialBusinessUsers.length,
-          approved: initialBusinessUsers.filter(u => u.status === 'Verified').length,
-          pending: initialBusinessUsers.filter(u => u.status === 'Pending Verification').length,
-          rejected: initialBusinessUsers.filter(u => u.status === 'Suspended').length
+        const b2bStats = {
+          total: mappedUsers.length,
+          approved: mappedUsers.filter(u => u.status === 'Verified').length,
+          pending: mappedUsers.filter(u => u.status === 'Pending Verification').length,
+          rejected: mappedUsers.filter(u => u.status === 'Suspended').length
         };
-
-        if (fetchedData.stats) {
-          setBackendStats({
-            total: (fetchedData.stats.total || 0) + mockStats.total,
-            pending: (fetchedData.stats.pending || 0) + mockStats.pending,
-            approved: (fetchedData.stats.approved || 0) + mockStats.approved,
-            rejected: (fetchedData.stats.rejected || 0) + mockStats.rejected
-          });
-        } else {
-          setBackendStats(mockStats);
-        }
+        setBackendStats(b2bStats);
       } else {
-        setUsers(initialBusinessUsers);
+        setUsers([]);
       }
     } catch (error) {
-      console.error("Failed to fetch real B2B users, falling back to mock:", error);
-      setUsers(initialBusinessUsers);
+      console.error("Failed to fetch real B2B users", error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -247,7 +98,7 @@ const BusinessUsers = () => {
   // Action Handlers
   const handleVerify = async (id, businessName) => {
     try {
-      await api.patch(`/admin/b2b/users/${id}/verify`, { status: "Approved" });
+      await api.patch(`/admin/b2b-users/${id}/status`, { status: "approved" });
       toast.success(`GSTIN for ${businessName} verified successfully!`);
       fetchB2BUsers();
       if (selectedUser && selectedUser.id === id) {
@@ -260,7 +111,7 @@ const BusinessUsers = () => {
 
   const handleSuspend = async (id, businessName) => {
     try {
-      await api.patch(`/admin/b2b/users/${id}/verify`, { status: "Rejected" });
+      await api.patch(`/admin/b2b-users/${id}/status`, { status: "rejected" });
       toast.error(`${businessName} has been suspended.`);
       fetchB2BUsers();
       if (selectedUser && selectedUser.id === id) {
@@ -273,7 +124,7 @@ const BusinessUsers = () => {
 
   const handleActivate = async (id, businessName) => {
     try {
-      await api.patch(`/admin/b2b/users/${id}/verify`, { status: "Approved" });
+      await api.patch(`/admin/b2b-users/${id}/status`, { status: "approved" });
       toast.success(`${businessName} activated successfully.`);
       fetchB2BUsers();
       if (selectedUser && selectedUser.id === id) {

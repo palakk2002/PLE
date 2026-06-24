@@ -12,23 +12,37 @@ import {
 } from "react-icons/fi";
 import Badge from "../../../../shared/components/Badge";
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
 
 const FraudModeration = () => {
   const [products, setProducts] = useState([]);
   const [selectedRisk, setSelectedRisk] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  useEffect(() => {
-    const saved = localStorage.getItem("refurbished-approvals-list");
-    if (saved) {
-      setProducts(JSON.parse(saved));
+  const fetchProducts = async () => {
+    try {
+      const res = await api.get('/admin/refurbished-products');
+      const formatted = res.data.map(p => ({
+        id: p._id,
+        name: p.name,
+        vendorName: p.vendorId?.storeName || p.vendorId?.name || "Unknown Vendor",
+        condition: p.refurbishedDetails?.condition || 'refurbished',
+        refurbishedGrade: p.refurbishedDetails?.grade || 'A',
+        status: p.refurbishedDetails?.approvalStatus || 'pending',
+        batteryHealth: p.refurbishedDetails?.batteryHealth || 100,
+        replacedParts: p.refurbishedDetails?.replacedParts || 'None',
+        flagged: p.refurbishedDetails?.flagged || false,
+        flagReason: p.refurbishedDetails?.flagReason || "",
+      }));
+      setProducts(formatted);
+    } catch (err) {
+      console.error("Failed to fetch products for moderation", err);
     }
-  }, []);
-
-  const saveProducts = (updated) => {
-    setProducts(updated);
-    localStorage.setItem("refurbished-approvals-list", JSON.stringify(updated));
   };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   // Compile alerts based on flagged products and custom rules
   const compiledAlerts = products
@@ -79,37 +93,37 @@ const FraudModeration = () => {
     })
     .filter(Boolean);
 
-  const handleDismissAlert = (alert) => {
-    const updated = products.map((p) => {
-      if (p.id === alert.productId) {
-        return {
-          ...p,
-          flagged: false,
-          flagReason: "",
-          // If it was a battery warning, downgrade grade to B so alert clears
-          refurbishedGrade: p.refurbishedGrade === "A" && p.batteryHealth < 80 ? "B" : p.refurbishedGrade,
-        };
-      }
-      return p;
-    });
-    saveProducts(updated);
-    toast.success("Alert dismissed successfully!");
+  const handleDismissAlert = async (alert) => {
+    try {
+      // If it was a battery warning, downgrade grade to B so alert clears
+      const newGrade = alert.originalItem?.refurbishedGrade === "A" && alert.originalItem?.batteryHealth < 80 
+        ? "B" : alert.originalItem?.refurbishedGrade;
+        
+      await api.put(`/admin/refurbished-products/${alert.productId}/status`, {
+        status: alert.originalItem?.status || 'pending',
+        grade: newGrade,
+        flagged: false,
+        flagReason: "",
+      });
+      toast.success("Alert dismissed successfully!");
+      fetchProducts();
+    } catch (err) {
+      toast.error("Failed to dismiss alert.");
+    }
   };
 
-  const handleSuspendListing = (alert) => {
-    const updated = products.map((p) => {
-      if (p.id === alert.productId) {
-        return {
-          ...p,
-          status: "rejected",
-          flagged: true,
-          flagReason: `Suspended due to fraud warning: ${alert.description}`,
-        };
-      }
-      return p;
-    });
-    saveProducts(updated);
-    toast.error("Product listing has been suspended.");
+  const handleSuspendListing = async (alert) => {
+    try {
+      await api.put(`/admin/refurbished-products/${alert.productId}/status`, {
+        status: "rejected",
+        flagged: true,
+        flagReason: `Suspended due to fraud warning: ${alert.description}`,
+      });
+      toast.error("Product listing has been suspended.");
+      fetchProducts();
+    } catch (err) {
+      toast.error("Failed to suspend listing.");
+    }
   };
 
   const handleAuditRequest = (alert) => {

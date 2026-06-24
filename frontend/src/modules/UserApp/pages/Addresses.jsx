@@ -9,10 +9,14 @@ import PageTransition from '../../../shared/components/PageTransition';
 import ProtectedRoute from '../../../shared/components/Auth/ProtectedRoute';
 import { useAddressStore } from '../../../shared/store/addressStore';
 import { useAuthStore } from '../../../shared/store/authStore';
+import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
 
 const MobileAddresses = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated: isCustomerAuth } = useAuthStore();
+  const { isAuthenticated: isB2BAuth } = useB2BAdminStore();
+  const isAuthenticated = isCustomerAuth || isB2BAuth;
+  
   const { addresses, addAddress, updateAddress, deleteAddress, setDefaultAddress, fetchAddresses, isLoading } =
     useAddressStore();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -212,22 +216,23 @@ const AddressFormModal = ({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 z-[10000] flex items-end"
+      className="fixed inset-0 bg-black/60 z-[10000] flex items-start justify-center pt-10 px-4 pb-4 backdrop-blur-sm"
       onClick={onCancel}
     >
       <motion.div
-        initial={{ y: '100%' }}
-        animate={{ y: 0 }}
-        exit={{ y: '100%' }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-t-3xl p-6 w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[85vh] overflow-y-auto shadow-2xl"
       >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-800">
             {editingAddress ? 'Edit Address' : 'Add New Address'}
           </h2>
-          <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full">
-            <FiX className="text-xl" />
+          <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <FiX className="text-xl text-gray-500" />
           </button>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

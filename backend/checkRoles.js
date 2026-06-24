@@ -1,0 +1,1 @@
+import dotenv from 'dotenv'; dotenv.config(); import mongoose from 'mongoose'; import User from './src/models/user.model.js'; mongoose.connect(process.env.MONGO_URI).then(async () => { const roles = await User.aggregate([{ $group: { _id: '$role', count: { $sum: 1 } } }]); console.log(roles); process.exit(0); });

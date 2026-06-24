@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useProductEnquiryStore } from '../../../shared/store/productEnquiryStore';
+import React, { useState, useEffect, useMemo } from 'react';
+import api from '../../../shared/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiSearch,
@@ -19,12 +19,34 @@ import AnimatedSelect from '../components/AnimatedSelect';
 import toast from 'react-hot-toast';
 
 const AdminProductEnquiries = () => {
-  const { enquiries, updateEnquiryStatus } = useProductEnquiryStore();
+  const [enquiries, setEnquiries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedPriority, setSelectedPriority] = useState('all');
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
+  const [replyText, setReplyText] = useState('');
+
+  const fetchEnquiries = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/admin/enquiries');
+      // api.js interceptor already unwraps response.data
+      if (response.success || response.statusCode === 200) {
+        setEnquiries(response.data || []);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to fetch enquiries.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEnquiries();
+  }, []);
 
   const stats = useMemo(() => {
     return {
@@ -52,12 +74,22 @@ const AdminProductEnquiries = () => {
     });
   }, [enquiries, searchQuery, selectedStatus, selectedPriority]);
 
-  const handleStatusUpdate = (id, newStatus, noteText) => {
-    updateEnquiryStatus(id, newStatus, noteText);
-    toast.success(`Enquiry status updated to ${newStatus}`);
-    // Refresh modal
-    const updated = useProductEnquiryStore.getState().enquiries.find(e => e.id === id);
-    setSelectedEnquiry(updated);
+  const handleStatusUpdate = async (id, newStatus, noteText) => {
+    try {
+      const response = await api.put(`/admin/enquiries/${id}/reply`, {
+        status: newStatus,
+        responseText: noteText
+      });
+      // api.js interceptor already unwraps response.data
+      if (response.success || response.statusCode === 200) {
+        toast.success(`Enquiry status updated to ${newStatus}`);
+        fetchEnquiries();
+        setSelectedEnquiry(response.data);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update status.');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -274,13 +306,22 @@ const AdminProductEnquiries = () => {
           </div>
         </div>
 
-        <DataTable
-          data={filteredEnquiries}
-          columns={columns}
-          pagination={true}
-          itemsPerPage={10}
-          onRowClick={(row) => setSelectedEnquiry(row)}
-        />
+        {isLoading ? (
+          <div className="py-12 text-center">
+            <p className="text-gray-500 font-semibold">Loading enquiries...</p>
+          </div>
+        ) : (
+          <DataTable
+            data={filteredEnquiries}
+            columns={columns}
+            pagination={true}
+            itemsPerPage={10}
+            onRowClick={(row) => {
+              setSelectedEnquiry(row);
+              setReplyText('');
+            }}
+          />
+        )}
       </div>
 
       {/* Quick Preview Slide Drawer */}
@@ -315,7 +356,10 @@ const AdminProductEnquiries = () => {
                   </h2>
                 </div>
                 <button
-                  onClick={() => setSelectedEnquiry(null)}
+                  onClick={() => {
+                    setSelectedEnquiry(null);
+                    setReplyText('');
+                  }}
                   className="p-2 hover:bg-gray-100 rounded-xl transition-colors text-gray-400 hover:text-gray-600"
                 >
                   <FiX className="w-5 h-5" />
@@ -398,9 +442,35 @@ const AdminProductEnquiries = () => {
 
                 {/* Quick Moderation Actions */}
                 {selectedEnquiry.status !== 'Closed' && selectedEnquiry.status !== 'Resolved' && (
-                  <div className="space-y-3 pt-4 border-t border-gray-100">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
-                      Admin Moderation Quick Actions
+                  <div className="space-y-4 pt-4 border-t border-gray-100">
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block">
+                        Reply to User
+                      </span>
+                      <textarea
+                        value={replyText}
+                        onChange={(e) => setReplyText(e.target.value)}
+                        placeholder="Write your response to the customer..."
+                        className="w-full bg-white border border-gray-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-shadow outline-none resize-none"
+                        rows={3}
+                      />
+                      <button
+                        onClick={() => {
+                          if (!replyText.trim()) {
+                            toast.error('Please enter a reply.');
+                            return;
+                          }
+                          handleStatusUpdate(selectedEnquiry.id, 'Seller Responded', replyText);
+                          setReplyText('');
+                        }}
+                        className="w-full py-2.5 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-md shadow-primary-500/20"
+                      >
+                        <FiInbox /> Send Reply
+                      </button>
+                    </div>
+                    
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block pt-2 border-t border-gray-50">
+                      Other Actions
                     </span>
                     <div className="grid grid-cols-2 gap-2">
                       <button

@@ -15,7 +15,23 @@ const Returns = () => {
   const [showFilter, setShowFilter] = useState(false);
 
   useEffect(() => {
-    fetchReturnRequests().catch(() => null);
+    let active = true;
+    const fetchRequests = async () => {
+      await fetchReturnRequests();
+    };
+    fetchRequests();
+
+    const handleRealTimeUpdate = () => {
+      if (active) {
+        fetchRequests();
+      }
+    };
+    window.addEventListener('return-status-updated', handleRealTimeUpdate);
+
+    return () => {
+      active = false;
+      window.removeEventListener('return-status-updated', handleRealTimeUpdate);
+    };
   }, [fetchReturnRequests]);
 
   const filteredReturns = useMemo(() => {

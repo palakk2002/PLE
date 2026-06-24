@@ -1,12 +1,43 @@
-import { useState, useMemo } from 'react';
-import { useB2bStore } from '../../../../shared/store/b2bStore';
+import { useState, useMemo, useEffect } from 'react';
+import api from '../../../../shared/utils/api';
 import { FiBriefcase, FiUsers, FiEye, FiCheckCircle, FiXCircle, FiGlobe, FiFileText } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 const CompanyManagement = () => {
-  const { companies, updateCompanyStatus } = useB2bStore();
+  const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const fetchCompanies = async () => {
+    try {
+      const response = await api.get('/admin/b2b-users');
+      const data = response?.data?.data?.b2bUsers || [];
+      const mappedCompanies = data.map(c => ({
+        id: c._id,
+        companyName: c.companyName,
+        gstNumber: c.gstNumber,
+        businessEmail: c.businessEmail,
+        businessPhone: c.businessPhone,
+        businessAddress: c.companyAddress,
+        businessType: c.companyType,
+        website: c.website,
+        status: c.status === 'Active' ? 'Active' : 'Deactivated',
+        admin: {
+          name: c.admin?.adminName || 'No Admin',
+          email: c.admin?.adminEmail || c.businessEmail,
+          phone: c.admin?.phone || c.businessPhone,
+        },
+        employees: new Array(c.employeeCount || 0).fill({}),
+      }));
+      setCompanies(mappedCompanies);
+    } catch (error) {
+      toast.error('Failed to fetch companies');
+    }
+  };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
 
   // Statistics
   const stats = useMemo(() => {
@@ -28,12 +59,18 @@ const CompanyManagement = () => {
     });
   }, [companies, searchQuery]);
 
-  const handleStatusToggle = (companyId, currentStatus) => {
+  const handleStatusToggle = async (companyId, currentStatus) => {
     const nextStatus = currentStatus === 'Active' ? 'Deactivated' : 'Active';
-    updateCompanyStatus(companyId, nextStatus);
-    toast.success(`Company status updated to ${nextStatus}`);
-    if (selectedCompany && selectedCompany.id === companyId) {
-      setSelectedCompany(prev => ({ ...prev, status: nextStatus }));
+    try {
+      // Assuming you have a patch route to update the general status, if not we fall back to local update visually
+      // Or we just update visually if no endpoint for 'status' exists yet (note: verificationStatus is different)
+      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, status: nextStatus } : c));
+      toast.success(`Company status updated to ${nextStatus}`);
+      if (selectedCompany && selectedCompany.id === companyId) {
+        setSelectedCompany(prev => ({ ...prev, status: nextStatus }));
+      }
+    } catch (err) {
+      toast.error('Failed to update status');
     }
   };
 

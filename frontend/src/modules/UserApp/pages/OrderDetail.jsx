@@ -4,7 +4,6 @@ import { FiPackage, FiTruck, FiMapPin, FiCreditCard, FiRotateCw, FiArrowLeft, Fi
 import { motion } from 'framer-motion';
 import MobileLayout from "../components/Layout/MobileLayout";
 import { useOrderStore } from '../../../shared/store/orderStore';
-import { useReturnStore } from '../../../shared/store/returnStore';
 import { useCartStore } from '../../../shared/store/useStore';
 import { formatPrice } from '../../../shared/utils/helpers';
 import { formatVariantLabel, getVariantSignature } from '../../../shared/utils/variant';
@@ -12,25 +11,32 @@ import toast from 'react-hot-toast';
 import PageTransition from '../../../shared/components/PageTransition';
 import Badge from '../../../shared/components/Badge';
 import LazyImage from '../../../shared/components/LazyImage';
+import socketService from '../../../shared/utils/socket';
 
 const MobileOrderDetail = () => {
   const { orderId } = useParams();
   const navigate = useNavigate();
-  const { getOrder, cancelOrder, fetchOrderById, requestReturn } = useOrderStore();
-  const { returnRequests, fetchReturnRequests } = useReturnStore();
+  const { getOrder, cancelOrder, fetchOrderById, requestReturn, fetchUserReturns } = useOrderStore();
   const { addItem } = useCartStore();
   const [isResolving, setIsResolving] = useState(true);
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [returnReason, setReturnReason] = useState('Product issue');
   const [returnVendorId, setReturnVendorId] = useState('');
   const [isSubmittingReturn, setIsSubmittingReturn] = useState(false);
+  const [existingReturn, setExistingReturn] = useState(null);
 
   useEffect(() => {
-    fetchReturnRequests().catch(() => null);
-  }, [fetchReturnRequests]);
+    let mounted = true;
+    fetchUserReturns().then(returns => {
+      if (mounted) {
+        const found = returns.find(r => String(r.orderId) === String(orderId));
+        if (found) setExistingReturn(found);
+      }
+    }).catch(() => null);
+    return () => { mounted = false; };
+  }, [orderId, fetchUserReturns]);
 
   const order = getOrder(orderId);
-  const existingReturn = returnRequests.find(r => String(r.orderId) === String(orderId));
   const shippingAddress = order?.shippingAddress || {};
   const orderItems = Array.isArray(order?.items) ? order.items : [];
   const vendorOptions = Array.isArray(order?.vendorItems)
@@ -54,6 +60,27 @@ const MobileOrderDetail = () => {
       mounted = false;
     };
   }, [order, orderId, fetchOrderById]);
+
+  useEffect(() => {
+    if (order?.userId) {
+      const socket = socketService.getSocket();
+      socket.emit('join_user_room', order.userId);
+
+      const handleStatusUpdate = (data) => {
+        if (String(data.orderId) === String(order.orderId) || String(data._id) === String(order.id)) {
+          toast(`Order #${data.orderId} status updated to ${data.status}`);
+          fetchOrderById(orderId).catch(() => null);
+        }
+      };
+
+      socket.on('order_status_updated', handleStatusUpdate);
+
+      return () => {
+        socket.off('order_status_updated', handleStatusUpdate);
+        socket.emit('leave_user_room', order.userId);
+      };
+    }
+  }, [order?.userId, order?.orderId, order?.id, orderId, fetchOrderById]);
 
   useEffect(() => {
     if (!isResolving && !order) {

@@ -27,7 +27,18 @@ const ReturnDetail = () => {
       }
     };
     loadRequest();
-    return () => { active = false; };
+
+    const handleRealTimeUpdate = (e) => {
+      if (active && e.detail?.returnRequestId === id) {
+        loadRequest();
+      }
+    };
+    window.addEventListener('return-status-updated', handleRealTimeUpdate);
+
+    return () => { 
+      active = false; 
+      window.removeEventListener('return-status-updated', handleRealTimeUpdate);
+    };
   }, [id, fetchReturnRequestById]);
 
   if (isLoading) {

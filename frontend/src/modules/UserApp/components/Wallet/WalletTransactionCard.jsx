@@ -29,10 +29,10 @@ const WalletTransactionCard = ({ tx }) => {
         </div>
         <div className="min-w-0">
           <h4 className="font-bold text-gray-800 dark:text-gray-200 text-sm truncate">
-            {tx.title}
+            {tx.title || tx.description || 'Transaction'}
           </h4>
           <p className="text-gray-400 dark:text-gray-500 text-xs">
-            {new Date(tx.date).toLocaleDateString("en-IN", {
+            {new Date(tx.date || tx.createdAt).toLocaleDateString("en-IN", {
               day: "numeric",
               month: "short",
               hour: "2-digit",

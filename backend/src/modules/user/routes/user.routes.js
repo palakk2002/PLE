@@ -5,6 +5,7 @@ import * as wishlistController from '../controllers/wishlist.controller.js';
 import * as reviewController from '../controllers/review.controller.js';
 import * as orderController from '../controllers/order.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
+import * as walletController from '../controllers/wallet.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter, otpLimiter } from '../../../middlewares/rateLimiter.js';
@@ -60,6 +61,12 @@ router.get('/wishlist', ...customerAuth, wishlistController.getWishlist);
 router.post('/wishlist', ...customerAuth, wishlistController.addToWishlist);
 router.delete('/wishlist/:productId', ...customerAuth, wishlistController.removeFromWishlist);
 
+// Wallet routes (protected)
+router.get('/wallet', ...customerAuth, walletController.getWallet);
+router.post('/wallet/add', ...customerAuth, walletController.addFunds);
+router.post('/wallet/transfer', ...customerAuth, walletController.transferFunds);
+router.post('/wallet/withdraw', ...customerAuth, walletController.withdrawFunds);
+
 // Review routes
 router.get('/reviews/product/:productId', reviewController.getProductReviews);
 router.post('/reviews', ...customerAuth, reviewController.addReview);
@@ -89,5 +96,16 @@ router.get('/rfq/:id', ...customerAuth, rfqController.getRFQDetail);
 router.post('/rfq/:id/counter', ...customerAuth, rfqController.buyerCounterOffer);
 router.post('/rfq/:id/accept', ...customerAuth, rfqController.buyerAcceptQuote);
 router.post('/rfq/:id/reject', ...customerAuth, rfqController.buyerRejectQuote);
+
+// Product Enquiry routes
+import * as enquiryController from '../controllers/productEnquiry.controller.js';
+router.post('/enquiries', ...customerAuth, enquiryController.createEnquiry);
+router.get('/enquiries', ...customerAuth, enquiryController.getMyEnquiries);
+
+// Product Request routes
+import * as productRequestController from '../../b2bUser/controllers/productRequest.controller.js';
+router.post('/product-requests', ...customerAuth, productRequestController.createProductRequest);
+router.get('/product-requests', ...customerAuth, productRequestController.getUserProductRequests);
+router.get('/product-requests/:id', ...customerAuth, productRequestController.getProductRequestById);
 
 export default router;

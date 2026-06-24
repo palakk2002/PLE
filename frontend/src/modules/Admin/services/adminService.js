@@ -16,23 +16,26 @@ export const getAdminProfile = () =>
     api.get('/admin/auth/profile');
 
 // ─── Analytics / Dashboard ────────────────────────────────────────────────────
-export const getDashboardStats = () =>
-    api.get('/admin/analytics/dashboard');
+export const getDashboardStats = (params = {}) =>
+    api.get('/admin/analytics/dashboard', { params });
+
+export const getB2bOverviewStats = (params = {}) =>
+    api.get('/admin/analytics/b2b-overview', { params });
 
 export const getRevenueData = (period = 'monthly', params = {}) =>
     api.get('/admin/analytics/revenue', { params: { period, ...params } });
 
-export const getOrderStatusBreakdown = () =>
-    api.get('/admin/analytics/order-status');
+export const getOrderStatusBreakdown = (params = {}) =>
+    api.get('/admin/analytics/order-status', { params });
 
-export const getTopProducts = () =>
-    api.get('/admin/analytics/top-products');
+export const getTopProducts = (params = {}) =>
+    api.get('/admin/analytics/top-products', { params });
 
 export const getCustomerGrowth = (period = 'monthly') =>
     api.get('/admin/analytics/customer-growth', { params: { period } });
 
-export const getRecentOrders = () =>
-    api.get('/admin/analytics/recent-orders');
+export const getRecentOrders = (params = {}) =>
+    api.get('/admin/analytics/recent-orders', { params });
 
 export const getSalesData = (period = 'monthly', params = {}) =>
     api.get('/admin/analytics/sales', { params: { period, ...params } });
@@ -58,6 +61,16 @@ export const assignDeliveryBoy = (id, deliveryBoyId) =>
 
 export const deleteOrder = (id) =>
     api.delete(`/admin/orders/${id}`);
+
+// ---- Purchase Orders --------
+export const getAllPurchaseOrders = (params = {}) =>
+    api.get('/admin/purchase-orders', { params });
+
+export const updatePurchaseOrderStatus = (id, status) =>
+    api.patch(`/admin/purchase-orders/${id}/status`, { status });
+
+export const updatePurchaseOrderPayment = (id, paymentStatus) =>
+    api.patch(`/admin/purchase-orders/${id}/payment`, { paymentStatus });
 
 // ─── Products ─────────────────────────────────────────────────────────────────
 export const getAllProducts = (params = {}) =>
@@ -245,6 +258,12 @@ export const getSettings = () =>
 
 export const updateSettings = (data) =>
     api.put('/admin/settings', data);
+
+export const getSettingByKey = (key) =>
+    api.get(`/admin/settings/${key}`);
+
+export const updateSettingByKey = (key, data) =>
+    api.put(`/admin/settings/${key}`, data);
 
 // ─── Marketing & Promotions ──────────────────────────────────────────────────
 // Coupons

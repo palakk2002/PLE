@@ -6,6 +6,8 @@ import { useDeliveryAuthStore } from "../../modules/Delivery/store/deliveryStore
 import { useAdminAuthStore } from "../../modules/Admin/store/adminStore";
 import { useB2BAdminStore } from "../../modules/B2BAdmin/store/b2bAdminStore";
 import { useB2bStore } from "../store/b2bStore";
+import socketService from "../utils/socket";
+import toast from "react-hot-toast";
 
 const PRODUCTS_CACHE_KEY = "user-catalog-products-cache";
 const VENDORS_CACHE_KEY = "user-catalog-vendors-cache";
@@ -147,6 +149,31 @@ const AppBootstrap = () => {
       cancelled = true;
     };
   }, []);
+
+  const user = useAuthStore((state) => state.user);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    const socket = socketService.getSocket();
+    socket.emit('join_user_room', user.id);
+    
+    const handleReturnUpdate = (data) => {
+      toast.success(data.message || `Return request status updated to ${data.status}`, {
+        duration: 5000,
+        position: 'top-right',
+        style: { background: '#10B981', color: '#fff', fontWeight: 'bold' }
+      });
+      window.dispatchEvent(new CustomEvent('return-status-updated', { detail: data }));
+    };
+    
+    socket.on('return_status_updated', handleReturnUpdate);
+    
+    return () => {
+      socket.off('return_status_updated', handleReturnUpdate);
+      socket.emit('leave_user_room', user.id);
+    };
+  }, [user?.id]);
 
   return null;
 };

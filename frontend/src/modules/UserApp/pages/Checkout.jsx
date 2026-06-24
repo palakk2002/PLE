@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import {
   FiMapPin,
@@ -19,6 +20,8 @@ import { useAuthStore } from "../../../shared/store/authStore";
 import { useAddressStore } from "../../../shared/store/addressStore";
 import { useOrderStore } from "../../../shared/store/orderStore";
 import { useLoyaltyStore } from "../../../shared/store/loyaltyStore";
+import { useB2BAdminStore } from "../../B2BAdmin/store/b2bAdminStore";
+import { useWalletStore } from "../../../shared/store/walletStore";
 import { formatPrice } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
 import toast from "react-hot-toast";
@@ -33,6 +36,7 @@ const MobileCheckout = () => {
   const navigate = useNavigate();
   const { items, getTotal, clearCart, getItemsByVendor } = useCartStore();
   const { user, isAuthenticated } = useAuthStore();
+  const { dbCompanyProfile } = useB2BAdminStore();
   const { addresses, getDefaultAddress, addAddress, fetchAddresses } = useAddressStore();
   const { createOrder } = useOrderStore();
   
@@ -41,6 +45,7 @@ const MobileCheckout = () => {
   const [appliedPoints, setAppliedPoints] = useState(0);
   
   const { isBusiness } = useBusinessBuyer();
+  const { balance: walletBalance, fetchWallet } = useWalletStore();
 
   // Group items by vendor
   const itemsByVendor = useMemo(
@@ -53,6 +58,7 @@ const MobileCheckout = () => {
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [b2bSettings, setB2bSettings] = useState(null);
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
@@ -60,6 +66,7 @@ const MobileCheckout = () => {
   const [estimatedShipping, setEstimatedShipping] = useState(null);
   const [isEstimatingShipping, setIsEstimatingShipping] = useState(false);
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
+  const [orderSuccess, setOrderSuccess] = useState(false);
   const [selectedUpiApp, setSelectedUpiApp] = useState("gpay"); // "gpay" | "phonepe" | "paytm"
   const [showUpiRedirect, setShowUpiRedirect] = useState(false);
   const [shippingDetails, setShippingDetails] = useState(null);
@@ -86,8 +93,9 @@ const MobileCheckout = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchAddresses().catch(() => null);
+      fetchWallet();
     }
-  }, [isAuthenticated, fetchAddresses]);
+  }, [isAuthenticated, fetchAddresses, fetchWallet]);
 
   useEffect(() => {
     let cancelled = false;
@@ -105,30 +113,60 @@ const MobileCheckout = () => {
       }
     };
 
+    const fetchB2bSettings = async () => {
+      try {
+        const response = await api.get("/settings/b2b");
+        if (response.data?.data && !cancelled) {
+          setB2bSettings(response.data.data);
+        }
+      } catch (err) {
+        console.error("Failed to load b2b settings", err);
+      }
+    };
+
     fetchCoupons();
+    if (isBusiness) fetchB2bSettings();
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isBusiness]);
 
   useEffect(() => {
     if (isAuthenticated && user) {
+      const defaultAddress = getDefaultAddress();
+      
+      // Base fallback data
+      let baseName = user.name || "";
+      let baseEmail = user.email || "";
+      let basePhone = user.phone || "";
+      let baseAddress = user.address || "";
+      
+      // If B2B, prefer company data for fallbacks
+      if (isBusiness && dbCompanyProfile) {
+        baseAddress = dbCompanyProfile.companyAddress || baseAddress;
+        baseName = dbCompanyProfile.companyName || baseName;
+        // B2B Admin could use company phone, but employee might use their own phone
+        if (user.role === 'b2bAdmin') {
+            basePhone = dbCompanyProfile.businessPhone || basePhone;
+        }
+      }
+
       setFormData((prev) => ({
         ...prev,
-        name: user.name || "",
-        email: user.email || "",
-        phone: user.phone || "",
+        name: baseName,
+        email: baseEmail,
+        phone: basePhone,
+        address: baseAddress,
       }));
 
-      const defaultAddress = getDefaultAddress();
       if (defaultAddress) {
         setSelectedAddressId(defaultAddress.id);
         setFormData((prev) => ({
           ...prev,
-          name: defaultAddress.fullName || user.name || "",
-          email: user.email || "",
-          phone: defaultAddress.phone || user.phone || "",
-          address: defaultAddress.address || "",
+          name: defaultAddress.fullName || baseName,
+          email: baseEmail,
+          phone: defaultAddress.phone || basePhone,
+          address: defaultAddress.address || baseAddress,
           city: defaultAddress.city || "",
           zipCode: defaultAddress.zipCode || "",
           state: defaultAddress.state || "",
@@ -136,7 +174,7 @@ const MobileCheckout = () => {
         }));
       }
     }
-  }, [isAuthenticated, user, getDefaultAddress, addresses]);
+  }, [isAuthenticated, user, dbCompanyProfile, isBusiness, getDefaultAddress, addresses]);
 
   const calculateShippingFallback = () => {
     const total = getTotal();
@@ -305,7 +343,7 @@ const MobileCheckout = () => {
     }
   };
 
-  if (items.length === 0) {
+  if (items.length === 0 && !orderSuccess) {
     return (
       <PageTransition>
         <MobileLayout showBottomNav={false} showCartBar={false}>
@@ -355,6 +393,11 @@ const MobileCheckout = () => {
       return;
     }
 
+    if (isBusiness && b2bSettings?.minOrderValue && total < b2bSettings.minOrderValue) {
+      toast.error(`Minimum order value for B2B purchases is ${formatPrice(b2bSettings.minOrderValue)}`);
+      return;
+    }
+
     if (step === 2 && isApplyingCoupon) {
       toast.error("Please wait for coupon validation to complete.");
       return;
@@ -396,8 +439,10 @@ const MobileCheckout = () => {
         localStorage.setItem(`applied_points_${order.id}`, appliedPoints.toString());
 
         clearCart();
-        toast.success("Order placed successfully!");
-        navigate(`/order-confirmation/${order.id}`);
+        setOrderSuccess(true);
+        setTimeout(() => {
+          navigate(`/order-confirmation/${order.id}`);
+        }, 2000);
       } catch (error) {
         toast.error(error?.message || "Failed to place order");
       } finally {
@@ -414,7 +459,7 @@ const MobileCheckout = () => {
         userId: isAuthenticated ? user?.id : null,
         items: items,
         shippingAddress: shippingDetails,
-        paymentMethod: `upi_${selectedUpiApp}`,
+        paymentMethod: 'upi',
         subtotal: total,
         shipping: shipping,
         tax: tax,
@@ -445,7 +490,61 @@ const MobileCheckout = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false}>
-        <div className="w-full pb-24 min-h-screen bg-gray-50">
+        {/* Success Interstitial Modal */}
+      {createPortal(
+        <AnimatePresence>
+          {orderSuccess && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+              className="bg-white/80 backdrop-blur-md flex flex-col items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                transition={{ type: "spring", stiffness: 300, damping: 25 }}
+                className="flex flex-col items-center bg-white p-8 rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] border border-gray-100 max-w-sm w-full text-center relative overflow-hidden"
+              >
+                {/* Decorative background glow */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-gradient-to-b from-green-50 to-transparent opacity-50 -z-10" />
+                
+                <motion.div 
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.1, type: "spring", stiffness: 200, damping: 15 }}
+                  className="w-20 h-20 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-2xl rotate-3 flex items-center justify-center mb-6 shadow-xl shadow-green-500/20"
+                >
+                  <motion.div
+                    initial={{ rotate: -3 }}
+                    animate={{ rotate: 0 }}
+                  >
+                    <FiCheck className="text-white text-4xl" strokeWidth={3} />
+                  </motion.div>
+                </motion.div>
+                
+                <h2 className="text-2xl font-extrabold text-gray-900 mb-2 tracking-tight">Order Successful!</h2>
+                <p className="text-gray-500 text-sm font-medium">Sit tight, we are redirecting you.</p>
+                
+                <div className="mt-8 w-full max-w-[200px]">
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                     <motion.div 
+                       initial={{ width: "0%" }}
+                       animate={{ width: "100%" }}
+                       transition={{ duration: 2, ease: "linear" }}
+                       className="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full"
+                     />
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      <div className="flex flex-col min-h-screen bg-gray-50 pb-32">
           {/* Header */}
           <div className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
             {/* Title Bar */}
@@ -656,10 +755,13 @@ const MobileCheckout = () => {
                       Payment Method
                     </h2>
                     <div className="space-y-3 mb-6">
-                      {["card", "upi", "cash", "bank"].map((method) => (
+                      {["card", "upi", "cash", "bank", "wallet"].map((method) => {
+                        const isWallet = method === "wallet";
+                        const isDisabled = isWallet && walletBalance < finalTotal;
+                        return (
                         <label
                           key={method}
-                          className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${formData.paymentMethod === method
+                          className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${isDisabled ? "opacity-50 cursor-not-allowed border-gray-100 bg-gray-50" : "cursor-pointer"} ${!isDisabled && formData.paymentMethod === method
                             ? "border-primary-500 bg-primary-50"
                             : "border-gray-200"
                             }`}>
@@ -669,19 +771,29 @@ const MobileCheckout = () => {
                             value={method}
                             checked={formData.paymentMethod === method}
                             onChange={handleInputChange}
+                            disabled={isDisabled}
                             className="w-5 h-5 text-primary-500"
                           />
-                          <span className="font-semibold text-gray-800 capitalize text-base">
+                          <span className="font-semibold text-gray-800 capitalize text-base flex flex-col">
+                            <span>
                             {method === "card"
                               ? "Credit/Debit Card"
                               : method === "upi"
                                 ? "UPI Payment (GPay / PhonePe / Paytm)"
                                 : method === "cash"
                                   ? "Cash on Delivery"
-                                  : "Bank Transfer"}
+                                  : method === "wallet"
+                                    ? "My Wallet"
+                                    : "Bank Transfer"}
+                            </span>
+                            {isWallet && (
+                              <span className={`text-xs mt-1 ${isDisabled ? 'text-red-500' : 'text-green-600'}`}>
+                                Balance: {formatPrice(walletBalance)} {isDisabled && "(Insufficient)"}
+                              </span>
+                            )}
                           </span>
                         </label>
-                      ))}
+                      )})}
                     </div>
 
                     {formData.paymentMethod === "upi" && (
@@ -1089,16 +1201,13 @@ const MobileCheckout = () => {
         </AnimatePresence>
 
         {/* UPI Redirect Modal */}
-        <AnimatePresence>
-          {showUpiRedirect && (
-            <UpiRedirectModal
-              upiApp={selectedUpiApp}
-              totalAmount={finalTotal}
-              onSuccess={handleCompleteUpiOrder}
-              onCancel={() => setShowUpiRedirect(false)}
-            />
-          )}
-        </AnimatePresence>
+        <UpiRedirectModal
+          show={showUpiRedirect}
+          upiApp={selectedUpiApp}
+          totalAmount={finalTotal}
+          onSuccess={handleCompleteUpiOrder}
+          onCancel={() => setShowUpiRedirect(false)}
+        />
       </MobileLayout>
     </PageTransition>
   );
@@ -1275,17 +1384,20 @@ const AddressFormModal = ({ onSubmit, onCancel }) => {
 };
 
 // Simulated Fullscreen UPI redirect payment gateway
-const UpiRedirectModal = ({ upiApp, totalAmount, onSuccess, onCancel }) => {
+const UpiRedirectModal = ({ show, upiApp, totalAmount, onSuccess, onCancel }) => {
   const [paymentState, setPaymentState] = useState("redirecting"); // "redirecting" | "authorizing"
 
   useEffect(() => {
-    // Stage 1: Redirecting simulation (1.5 seconds)
-    const redirectTimer = setTimeout(() => {
-      setPaymentState("authorizing");
-    }, 1500);
+    if (show) {
+      setPaymentState("redirecting");
+      // Stage 1: Redirecting simulation (1.5 seconds)
+      const redirectTimer = setTimeout(() => {
+        setPaymentState("authorizing");
+      }, 1500);
 
-    return () => clearTimeout(redirectTimer);
-  }, []);
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [show]);
 
   // Theme configuration based on the chosen app
   const appThemes = {
@@ -1320,12 +1432,15 @@ const UpiRedirectModal = ({ upiApp, totalAmount, onSuccess, onCancel }) => {
 
   const theme = appThemes[upiApp] || appThemes.gpay;
 
-  return (
-    <motion.div
+  return createPortal(
+    <AnimatePresence>
+      {show && (
+        <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+      className="bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm"
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
@@ -1389,16 +1504,17 @@ const UpiRedirectModal = ({ upiApp, totalAmount, onSuccess, onCancel }) => {
               {/* Complete / Cancel Buttons */}
               <div className="flex flex-col gap-2 pt-2">
                 <button
-                  type="button"
                   onClick={onSuccess}
-                  className={`w-full py-3.5 rounded-2xl text-white font-bold text-base shadow-lg transition-all ${theme.btnColor}`}
+                  className={`w-full py-4 text-white font-bold rounded-xl transition-all ${theme.btnColor} shadow-lg flex items-center justify-center gap-2`}
                 >
-                  Pay & Authorize {formatPrice(totalAmount)}
+                  <span>Pay & Authorize</span>
+                  <span className="font-black bg-white/20 px-2 py-1 rounded-lg text-sm">
+                    {formatPrice(totalAmount)}
+                  </span>
                 </button>
                 <button
-                  type="button"
                   onClick={onCancel}
-                  className="w-full py-2.5 rounded-2xl text-gray-500 font-bold hover:bg-gray-50 transition-colors text-sm"
+                  className="w-full py-3 text-gray-500 font-semibold rounded-xl hover:bg-gray-100 transition-colors text-sm"
                 >
                   Cancel Transaction
                 </button>
@@ -1413,6 +1529,9 @@ const UpiRedirectModal = ({ upiApp, totalAmount, onSuccess, onCancel }) => {
         </div>
       </motion.div>
     </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body
   );
 };
 

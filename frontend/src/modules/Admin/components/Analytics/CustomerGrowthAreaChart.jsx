@@ -60,45 +60,55 @@ const CustomerGrowthAreaChart = ({ data = [], period = 'month' }) => {
         </div>
       </div>
       <div className="w-full overflow-x-auto scrollbar-admin">
-        <ResponsiveContainer width="100%" height={250} minHeight={200}>
-          <AreaChart data={customerData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-            <defs>
-              <linearGradient id="colorCustomers" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis
-              dataKey="dateLabel"
-              stroke="#6b7280"
-              fontSize={10}
-              tickLine={false}
-              axisLine={false}
-              angle={-45}
-              textAnchor="end"
-              height={60}
-            />
-            <YAxis
-              stroke="#6b7280"
-              fontSize={10}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-              width={50}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Area
-              type="monotone"
-              dataKey="customers"
-              stroke="#ec4899"
-              strokeWidth={2}
-              fillOpacity={1}
-              fill="url(#colorCustomers)"
-              name="Total Customers"
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        {customerData && customerData.length > 0 ? (
+          <ResponsiveContainer width="100%" height={250} minHeight={200}>
+            <AreaChart data={customerData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorCustomers" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#ec4899" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#f43f5e" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+              <XAxis
+                dataKey="dateLabel"
+                stroke="#6b7280"
+                fontSize={10}
+                tickLine={false}
+                axisLine={false}
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis
+                stroke="#6b7280"
+                fontSize={10}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                width={50}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Area
+                type="monotone"
+                dataKey="customers"
+                stroke="#ec4899"
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorCustomers)"
+                name="Total Customers"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[250px] flex flex-col items-center justify-center text-gray-400">
+            <svg className="w-12 h-12 mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+            <p className="font-semibold text-sm">No customer growth data</p>
+            <p className="text-xs">There are no new customers in the selected period.</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );

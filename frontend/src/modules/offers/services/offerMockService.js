@@ -1,6 +1,6 @@
 import { initialOffers } from "../data/mockOffers";
 
-const STORAGE_KEY = "ple_offers_data";
+const STORAGE_KEY = "ple_offers_data_v2";
 const EVENT_NAME = "ple_offers_update";
 
 // Helper to initialize storage
