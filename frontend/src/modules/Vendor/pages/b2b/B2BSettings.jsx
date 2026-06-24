@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FiSettings,
   FiMessageSquare,
@@ -12,19 +12,45 @@ import { useVendorB2BStore } from "../../store/vendorB2BStore";
 import toast from "react-hot-toast";
 
 const B2BSettings = () => {
-  const { settings, updateSettings } = useVendorB2BStore();
+  const { settings, fetchSettings, updateSettings } = useVendorB2BStore();
+  const [loading, setLoading] = useState(true);
 
   const [form, setForm] = useState({
-    autoResponse: settings.autoResponse,
-    autoResponseMessage: settings.autoResponseMessage || "",
-    defaultPaymentTerms: settings.defaultPaymentTerms || "",
-    defaultShippingTerms: settings.defaultShippingTerms || "",
-    minimumOrderValue: settings.minimumOrderValue || 50000,
-    defaultQuoteValidity: settings.defaultQuoteValidity || 15,
-    notifyOnNewEnquiry: settings.notifyOnNewEnquiry,
-    notifyOnQuoteResponse: settings.notifyOnQuoteResponse,
-    notifyOnEnquiryExpiring: settings.notifyOnEnquiryExpiring,
+    autoResponse: false,
+    autoResponseMessage: "",
+    defaultPaymentTerms: "",
+    defaultShippingTerms: "",
+    minimumOrderValue: 50000,
+    defaultQuoteValidity: 15,
+    notifyOnNewEnquiry: true,
+    notifyOnQuoteResponse: true,
+    notifyOnEnquiryExpiring: true,
   });
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await fetchSettings();
+      setLoading(false);
+    };
+    loadData();
+  }, [fetchSettings]);
+
+  useEffect(() => {
+    if (settings) {
+      setForm({
+        autoResponse: settings.autoResponse || false,
+        autoResponseMessage: settings.autoResponseMessage || "",
+        defaultPaymentTerms: settings.defaultPaymentTerms || "",
+        defaultShippingTerms: settings.defaultShippingTerms || "",
+        minimumOrderValue: settings.minimumOrderValue || 50000,
+        defaultQuoteValidity: settings.defaultQuoteValidity || 15,
+        notifyOnNewEnquiry: settings.notifyOnNewEnquiry ?? true,
+        notifyOnQuoteResponse: settings.notifyOnQuoteResponse ?? true,
+        notifyOnEnquiryExpiring: settings.notifyOnEnquiryExpiring ?? true,
+      });
+    }
+  }, [settings]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -34,11 +60,23 @@ const B2BSettings = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateSettings(form);
-    toast.success("B2B settings updated successfully!");
+    try {
+      await updateSettings(form);
+      toast.success("B2B settings updated successfully!");
+    } catch (error) {
+      toast.error("Failed to update settings");
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-[#C07A3D] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

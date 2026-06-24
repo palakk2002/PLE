@@ -235,6 +235,7 @@ const VendorOrderDetail = lazy(() => import("./modules/Vendor/pages/orders/Order
 const VendorAnalytics = lazy(() => import("./modules/Vendor/pages/Analytics"));
 const VendorEarnings = lazy(() => import("./modules/Vendor/pages/Earnings"));
 const VendorSettings = lazy(() => import("./modules/Vendor/pages/Settings"));
+const VendorProfileSettings = lazy(() => import("./modules/Vendor/pages/settings/ProfileSettings"));
 const VendorStockManagement = lazy(() => import("./modules/Vendor/pages/StockManagement"));
 const VendorWalletHistory = lazy(() => import("./modules/Vendor/pages/WalletHistory"));
 const VendorChat = lazy(() => import("./modules/Vendor/pages/Chat"));
@@ -1022,7 +1023,7 @@ const AppRoutes = () => {
         <Route path="festival-campaigns" element={<VendorFestivalCampaigns />} />
         <Route path="product-requests" element={<VendorProductRequests />} />
         <Route path="product-enquiries" element={<VendorProductEnquiries />} />
-        <Route path="profile" element={<VendorSettings />} />
+        <Route path="profile" element={<VendorProfileSettings />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

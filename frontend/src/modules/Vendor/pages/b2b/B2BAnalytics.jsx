@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import {
   FiInbox,
   FiTrendingUp,
@@ -13,20 +13,42 @@ import { useVendorB2BStore } from "../../store/vendorB2BStore";
 import { formatPrice } from "../../../../shared/utils/helpers";
 
 const B2BAnalytics = () => {
-  const { analytics } = useVendorB2BStore();
+  const { analytics, fetchAnalytics } = useVendorB2BStore();
+  const [loading, setLoading] = useState(true);
 
-  const statusMetrics = useMemo(() => [
-    { label: "New", value: analytics.newEnquiries, color: "bg-blue-500", text: "text-blue-600" },
-    { label: "Responded", value: analytics.respondedEnquiries, color: "bg-indigo-500", text: "text-indigo-600" },
-    { label: "Quoted", value: analytics.quotedEnquiries, color: "bg-amber-500", text: "text-amber-600" },
-    { label: "Accepted", value: analytics.acceptedEnquiries, color: "bg-green-500", text: "text-green-600" },
-    { label: "Rejected", value: analytics.rejectedEnquiries, color: "bg-red-500", text: "text-red-600" },
-    { label: "Expired", value: analytics.expiredEnquiries, color: "bg-gray-400", text: "text-gray-500" },
-  ], [analytics]);
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await fetchAnalytics();
+      setLoading(false);
+    };
+    loadData();
+  }, [fetchAnalytics]);
+
+  const statusMetrics = useMemo(() => {
+    if (!analytics) return [];
+    return [
+      { label: "New", value: analytics.newEnquiries, color: "bg-blue-500", text: "text-blue-600" },
+      { label: "Responded", value: analytics.respondedEnquiries, color: "bg-indigo-500", text: "text-indigo-600" },
+      { label: "Quoted", value: analytics.quotedEnquiries, color: "bg-amber-500", text: "text-amber-600" },
+      { label: "Accepted", value: analytics.acceptedEnquiries, color: "bg-green-500", text: "text-green-600" },
+      { label: "Rejected", value: analytics.rejectedEnquiries, color: "bg-red-500", text: "text-red-600" },
+      { label: "Expired", value: analytics.expiredEnquiries, color: "bg-gray-400", text: "text-gray-500" },
+    ];
+  }, [analytics]);
 
   const maxMonthCount = useMemo(() => {
+    if (!analytics) return 1;
     return Math.max(...analytics.monthlyTrend.map((m) => m.count), 1);
   }, [analytics]);
+
+  if (loading || !analytics) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="w-8 h-8 border-4 border-[#C07A3D] border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

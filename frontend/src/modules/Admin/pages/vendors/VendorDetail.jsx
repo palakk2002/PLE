@@ -18,7 +18,7 @@ import {
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useVendorStore } from "../../store/vendorStore";
-import { getAllOrders, getVendorCommissions } from "../../services/adminService";
+import { getAllOrders, getVendorCommissions, getVendorDocuments, updateVendorDocumentStatus } from "../../services/adminService";
 import Badge from "../../../../shared/components/Badge";
 import DataTable from "../../components/DataTable";
 import { formatPrice } from "../../../../shared/utils/helpers";
@@ -35,6 +35,7 @@ const VendorDetail = () => {
   const [vendor, setVendor] = useState(null);
   const [vendorOrders, setVendorOrders] = useState([]);
   const [commissions, setCommissions] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [earningsSummary, setEarningsSummary] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [isEditingCommission, setIsEditingCommission] = useState(false);
@@ -117,6 +118,15 @@ const VendorDetail = () => {
         } catch {
           setCommissions([]);
         }
+
+        // 4. Fetch vendor documents
+        try {
+          const docsResponse = await getVendorDocuments(id);
+          const docsData = docsResponse?.data ?? docsResponse;
+          setDocuments(Array.isArray(docsData) ? docsData : []);
+        } catch {
+          setDocuments([]);
+        }
       } else {
         toast.error("Vendor not found");
         navigate("/admin/vendors");
@@ -148,6 +158,20 @@ const VendorDetail = () => {
       toast.success(`Vendor status updated to ${newStatus}`);
     } else {
       toast.error("Failed to update vendor status");
+    }
+  };
+
+  const handleDocumentStatusUpdate = async (docId, status) => {
+    try {
+      await updateVendorDocumentStatus(docId, status);
+      setDocuments((prevDocs) =>
+        prevDocs.map((doc) =>
+          doc._id === docId ? { ...doc, status } : doc
+        )
+      );
+      toast.success(`Document marked as ${status}`);
+    } catch {
+      toast.error("Failed to update document status");
     }
   };
 
@@ -284,6 +308,72 @@ const VendorDetail = () => {
     },
   ];
 
+  const documentColumns = [
+    {
+      key: "name",
+      label: "Document Name",
+      sortable: true,
+    },
+    {
+      key: "category",
+      label: "Category",
+      sortable: true,
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      render: (value) => (
+        <Badge
+          variant={
+            value === "approved"
+              ? "success"
+              : value === "pending"
+                ? "warning"
+                : "error"
+          }>
+          {value?.toUpperCase()}
+        </Badge>
+      ),
+    },
+    {
+      key: "expiryDate",
+      label: "Expiry Date",
+      sortable: true,
+      render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A',
+    },
+    {
+      key: "actions",
+      label: "Actions",
+      sortable: false,
+      render: (_, row) => (
+        <div className="flex items-center gap-2">
+          <a
+            href={row.fileUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors">
+            View
+          </a>
+          {row.status === "pending" && (
+            <>
+              <button
+                onClick={() => handleDocumentStatusUpdate(row._id, "approved")}
+                className="px-3 py-1 text-sm bg-green-50 text-green-600 rounded hover:bg-green-100 transition-colors">
+                Approve
+              </button>
+              <button
+                onClick={() => handleDocumentStatusUpdate(row._id, "rejected")}
+                className="px-3 py-1 text-sm bg-red-50 text-red-600 rounded hover:bg-red-100 transition-colors">
+                Reject
+              </button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -339,8 +429,8 @@ const VendorDetail = () => {
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="flex border-b border-gray-200">
-          {["overview", "orders", "commissions", "settings"].map((tab) => (
+        <div className="flex overflow-x-auto border-b border-gray-200">
+          {["overview", "orders", "commissions", "settings", "documents"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -586,6 +676,27 @@ const VendorDetail = () => {
                   </span>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Documents Tab */}
+          {activeTab === "documents" && (
+            <div>
+              <h2 className="text-lg font-bold text-gray-800 mb-4">
+                Vendor Documents
+              </h2>
+              {documents.length > 0 ? (
+                <DataTable
+                  data={documents}
+                  columns={documentColumns}
+                  pagination={true}
+                  itemsPerPage={10}
+                />
+              ) : (
+                <p className="text-gray-500 text-center py-8">
+                  No documents found for this vendor.
+                </p>
+              )}
             </div>
           )}
         </div>

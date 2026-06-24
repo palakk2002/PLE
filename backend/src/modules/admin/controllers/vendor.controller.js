@@ -3,6 +3,7 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Vendor from '../../../models/Vendor.model.js';
 import Commission from '../../../models/Commission.model.js';
+import VendorDocument from '../../../models/VendorDocument.model.js';
 import { sendEmail } from '../../../services/email.service.js';
 import { createNotification } from '../../../services/notification.service.js';
 
@@ -161,4 +162,61 @@ export const getVendorCommissions = asyncHandler(async (req, res) => {
             'Vendor commissions fetched.'
         )
     );
+});
+
+// GET /api/admin/vendors/:id/documents
+export const getVendorDocuments = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const vendor = await Vendor.findById(id).select('_id');
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    const documents = await VendorDocument.find({ vendorId: vendor._id }).sort({ createdAt: -1 });
+    res.status(200).json(new ApiResponse(200, documents, 'Vendor documents fetched.'));
+});
+
+// PATCH /api/admin/vendors/documents/:docId/status
+export const updateDocumentStatus = asyncHandler(async (req, res) => {
+    const { docId } = req.params;
+    const { status } = req.body;
+
+    const allowed = ['approved', 'rejected', 'pending'];
+    if (!allowed.includes(status)) {
+        throw new ApiError(400, `Status must be one of: ${allowed.join(', ')}`);
+    }
+
+    const document = await VendorDocument.findByIdAndUpdate(
+        docId,
+        { status },
+        { new: true }
+    ).populate('vendorId', 'name email storeName');
+
+    if (!document) throw new ApiError(404, 'Document not found.');
+
+    // Notify vendor
+    const vendor = document.vendorId;
+    if (vendor && status !== 'pending') {
+        const message = `Your document "${document.name}" has been ${status}.`;
+        
+        await createNotification({
+            recipientId: vendor._id,
+            recipientType: 'vendor',
+            title: 'Document Status Updated',
+            message,
+            type: 'system',
+            data: { docId: document._id, status },
+        });
+
+        try {
+            await sendEmail({
+                to: vendor.email,
+                subject: `Document ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+                text: message,
+                html: `<p>${message}</p>`,
+            });
+        } catch (err) {
+            console.warn(`Vendor document status email failed for ${vendor.email}: ${err.message}`);
+        }
+    }
+
+    res.status(200).json(new ApiResponse(200, document, `Document status updated to ${status}.`));
 });

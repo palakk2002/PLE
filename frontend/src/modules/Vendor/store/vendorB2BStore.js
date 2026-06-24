@@ -119,20 +119,8 @@ const mapRfqToEnquiry = (rfq) => {
 export const useVendorB2BStore = create((set, get) => ({
   // State - start with empty, will be populated from real API
   enquiries: [],
-  settings: {
-    b2bEnabled: false,
-    minimumOrderValue: 0,
-    bulkDiscountTiers: [],
-    paymentTerms: [],
-    shippingTerms: []
-  },
-  analytics: {
-    totalEnquiries: 0,
-    activeQuotes: 0,
-    convertedOrders: 0,
-    conversionRate: 0,
-    totalRevenue: 0
-  },
+  settings: null,
+  analytics: null,
   isLoading: false,
 
   // Enquiries
@@ -208,10 +196,33 @@ export const useVendorB2BStore = create((set, get) => ({
   },
 
   // Settings
-  updateSettings: (newSettings) => {
-    set((state) => ({
-      settings: { ...state.settings, ...newSettings },
-    }));
+  fetchSettings: async () => {
+    try {
+      const res = await api.get('/vendor/b2b/settings');
+      set({ settings: res.data });
+    } catch (error) {
+      console.error('Error fetching B2B settings:', error);
+    }
+  },
+
+  updateSettings: async (newSettings) => {
+    try {
+      const res = await api.put('/vendor/b2b/settings', newSettings);
+      set({ settings: res.data });
+    } catch (error) {
+      console.error('Error updating B2B settings:', error);
+      throw error;
+    }
+  },
+
+  // Analytics
+  fetchAnalytics: async () => {
+    try {
+      const res = await api.get('/vendor/b2b/analytics');
+      set({ analytics: res.data });
+    } catch (error) {
+      console.error('Error fetching B2B analytics:', error);
+    }
   },
 
   getAnalytics: () => {

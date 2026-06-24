@@ -142,6 +142,10 @@ router.get('/direct-rfq/:id', ...vendorAuth, vendorDirectRfqController.getVendor
 router.post('/direct-rfq/:id/message', ...vendorAuth, vendorDirectRfqController.sendDirectMessage);
 
 // Purchase Orders (B2B)
+import * as vendorB2BController from '../controllers/vendorB2B.controller.js';
+router.get('/b2b/settings', ...vendorAuth, vendorB2BController.getSettings);
+router.put('/b2b/settings', ...vendorAuth, vendorB2BController.updateSettings);
+router.get('/b2b/analytics', ...vendorAuth, vendorB2BController.getAnalytics);
 router.get('/b2b/purchase-orders', ...vendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrders);
 router.get('/b2b/purchase-orders/:id', ...vendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrderById);
 
