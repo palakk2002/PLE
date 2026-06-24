@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useProductEnquiryStore } from '../../../shared/store/productEnquiryStore';
+import React, { useState, useEffect, useMemo } from 'react';
+import api from '../../../shared/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiSearch,
@@ -16,7 +16,8 @@ import {
 import toast from 'react-hot-toast';
 
 const ProductEnquiries = () => {
-  const { enquiries, replyToEnquiry, updateEnquiryStatus } = useProductEnquiryStore();
+  const [enquiries, setEnquiries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -24,6 +25,25 @@ const ProductEnquiries = () => {
   const [selectedEnquiry, setSelectedEnquiry] = useState(null);
   
   const [responseText, setResponseText] = useState('');
+
+  const fetchEnquiries = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/vendor/enquiries');
+      if (response.data.success) {
+        setEnquiries(response.data.data);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to fetch enquiries.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEnquiries();
+  }, []);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -72,25 +92,45 @@ const ProductEnquiries = () => {
     });
   }, [enquiries, searchQuery, statusFilter, priorityFilter]);
 
-  const handleReply = (e, status) => {
+  const handleReply = async (e, status) => {
     e.preventDefault();
     if (!responseText.trim()) {
       toast.error('Response content cannot be empty.');
       return;
     }
-    replyToEnquiry(selectedEnquiry.id, responseText, status);
-    toast.success(`Response sent successfully! Status updated to: ${status}`);
-    setResponseText('');
-    // Refresh selected
-    const updated = useProductEnquiryStore.getState().enquiries.find(e => e.id === selectedEnquiry.id);
-    setSelectedEnquiry(updated);
+    
+    try {
+      const response = await api.put(`/vendor/enquiries/${selectedEnquiry.id}/reply`, {
+        status,
+        responseText
+      });
+      if (response.data.success) {
+        toast.success(`Response sent successfully! Status updated to: ${status}`);
+        setResponseText('');
+        fetchEnquiries(); // Refresh list
+        setSelectedEnquiry(response.data.data); // Update selected with fresh timeline
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to send reply.');
+    }
   };
 
-  const handleStatusChange = (status, noteText) => {
-    updateEnquiryStatus(selectedEnquiry.id, status, noteText);
-    toast.success(`Enquiry status updated to ${status}`);
-    const updated = useProductEnquiryStore.getState().enquiries.find(e => e.id === selectedEnquiry.id);
-    setSelectedEnquiry(updated);
+  const handleStatusChange = async (status, noteText) => {
+    try {
+      const response = await api.put(`/vendor/enquiries/${selectedEnquiry.id}/reply`, {
+        status,
+        responseText: noteText // backend handles note text when status is passed
+      });
+      if (response.data.success) {
+        toast.success(`Enquiry status updated to ${status}`);
+        fetchEnquiries(); // Refresh list
+        setSelectedEnquiry(response.data.data); // Update selected
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update status.');
+    }
   };
 
   return (
@@ -149,7 +189,11 @@ const ProductEnquiries = () => {
       </div>
 
       {/* Enquiries list table */}
-      {filteredEnquiries.length === 0 ? (
+      {isLoading ? (
+        <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
+          <p className="text-gray-500 font-semibold">Loading enquiries...</p>
+        </div>
+      ) : filteredEnquiries.length === 0 ? (
         <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
           <FiInbox className="mx-auto text-4xl text-gray-300 mb-3" />
           <p className="text-gray-500 text-base font-semibold">No product enquiries found</p>

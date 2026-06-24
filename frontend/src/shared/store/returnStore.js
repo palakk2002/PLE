@@ -1,10 +1,29 @@
 import { create } from 'zustand';
+import api from '../utils/api';
 import * as adminService from '../../modules/Admin/services/adminService';
 import toast from 'react-hot-toast';
-import { mockReturnRequests } from '../../data/adminMockData';
 import { useAuthStore } from './authStore';
+import { useAdminAuthStore } from '../../modules/Admin/store/adminStore';
+import { useVendorAuthStore } from '../../modules/Vendor/store/vendorAuthStore';
+import { useB2BAdminStore } from '../../modules/B2BAdmin/store/b2bAdminStore';
 
-// Initialize returns from localStorage or mock data
+const getActiveRole = () => {
+    const admin = useAdminAuthStore.getState().admin;
+    if (admin && (admin.role === 'superadmin' || admin.role === 'admin')) return admin.role;
+    
+    const vendor = useVendorAuthStore.getState().vendor;
+    if (vendor) return 'vendor';
+
+    const b2bAdmin = useB2BAdminStore.getState().adminProfile;
+    if (b2bAdmin && (b2bAdmin.role === 'b2bAdmin' || b2bAdmin.role === 'b2bEmployee')) return b2bAdmin.role;
+
+    const user = useAuthStore.getState().user;
+    if (user) return user.role;
+
+    return null;
+};
+
+// Initialize returns from localStorage (no mock fallbacks)
 const getInitialReturns = () => {
     try {
         const stored = localStorage.getItem('app-return-requests');
@@ -14,9 +33,7 @@ const getInitialReturns = () => {
     } catch (e) {
         console.error('Failed to parse stored return requests', e);
     }
-    // Set mock data as default
-    localStorage.setItem('app-return-requests', JSON.stringify(mockReturnRequests));
-    return mockReturnRequests;
+    return [];
 };
 
 export const useReturnStore = create((set, get) => ({
@@ -55,11 +72,16 @@ export const useReturnStore = create((set, get) => ({
             const allRequests = [];
 
             try {
+                const userRole = getActiveRole();
+                const endpoint = (userRole === 'superadmin' || userRole === 'admin') ? '/admin/return-requests' : userRole === 'vendor' ? '/vendor/return-requests' : '/user/returns';
+
                 do {
-                    const response = await adminService.getAllReturnRequests({
-                        ...queryParams,
-                        page: currentPage,
-                        limit: pageSize,
+                    const response = await api.get(endpoint, {
+                        params: {
+                            ...queryParams,
+                            page: currentPage,
+                            limit: pageSize,
+                        }
                     });
 
                     const pageRequests = Array.isArray(response?.data?.returnRequests)
@@ -85,7 +107,7 @@ export const useReturnStore = create((set, get) => ({
                     currentPage += 1;
                 } while (fetchAll && currentPage <= totalPages);
 
-                if (allRequests.length > 0) {
+                if (Array.isArray(allRequests)) {
                     set({
                         returnRequests: allRequests,
                         pagination: fetchAll
@@ -102,7 +124,7 @@ export const useReturnStore = create((set, get) => ({
                     return;
                 }
             } catch (apiError) {
-                console.warn("getAllReturnRequests API failed, using local/mock returns instead:", apiError);
+                console.warn("getAllReturnRequests API failed:", apiError);
             }
 
             // Fallback to local storage state
@@ -127,7 +149,9 @@ export const useReturnStore = create((set, get) => ({
         set({ isLoading: true });
         try {
             try {
-                const response = await adminService.getReturnRequestById(id);
+                const userRole = getActiveRole();
+                const endpoint = (userRole === 'superadmin' || userRole === 'admin') ? `/admin/return-requests/${id}` : userRole === 'vendor' ? `/vendor/return-requests/${id}` : `/user/returns/${id}`;
+                const response = await api.get(endpoint);
                 if (response?.data) {
                     set({ isLoading: false });
                     return response.data;
@@ -150,40 +174,38 @@ export const useReturnStore = create((set, get) => ({
     createReturnRequest: async (requestData) => {
         set({ isLoading: true });
         try {
-            const newId = `RET-${Math.floor(100000 + Math.random() * 900000)}`;
-            const newRequest = {
-                id: newId,
-                orderId: requestData.orderId,
-                customer: requestData.customer || {
-                    name: "John Doe",
-                    email: "john@example.com",
-                    phone: "+1234567890"
-                },
-                requestDate: new Date().toISOString(),
-                items: requestData.items || [],
+            const endpoint = `/user/orders/${requestData.orderId}/returns`;
+
+            // Transform items to match backend expectation
+            const transformedItems = (requestData.items || []).map(item => ({
+                productId: item.id || item.productId,
+                quantity: item.quantity,
+                reason: requestData.reason,
+            }));
+
+            const response = await api.post(endpoint, {
+                vendorId: requestData.vendorId,
+                items: transformedItems,
                 reason: requestData.reason,
                 description: requestData.description,
-                notes: requestData.notes || '',
-                images: requestData.images || [],
-                refundAmount: requestData.refundAmount || 0,
-                status: "Request Submitted",
-                refundStatus: "Pending",
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-                timeline: [
-                    { status: "Request Submitted", date: new Date().toISOString(), note: "Return request submitted by customer." }
-                ]
-            };
+                images: requestData.images || []
+            });
 
-            const updated = [newRequest, ...get().returnRequests];
-            set({ returnRequests: updated, isLoading: false });
-            get().saveToStorage(updated);
-            
-            toast.success('Return request submitted successfully');
-            return newRequest;
+            if (response?.data) {
+                const newRequest = response.data;
+                const updated = [newRequest, ...get().returnRequests];
+                set({ returnRequests: updated, isLoading: false });
+                get().saveToStorage(updated);
+                
+                toast.success('Return request submitted successfully');
+                return newRequest;
+            } else {
+                throw new Error("Invalid response from server");
+            }
         } catch (error) {
+            console.error("Error creating return request:", error);
             set({ isLoading: false });
-            toast.error('Failed to create return request');
+            toast.error(error?.response?.data?.message || error.message || 'Failed to create return request');
             return null;
         }
     },
@@ -192,9 +214,12 @@ export const useReturnStore = create((set, get) => ({
         set({ isLoading: true });
         try {
             try {
-                await adminService.updateReturnRequestStatus(id, statusData);
+                const userRole = getActiveRole();
+                const endpoint = (userRole === 'superadmin' || userRole === 'admin') ? `/admin/return-requests/${id}/status` : userRole === 'vendor' ? `/vendor/return-requests/${id}/status` : `/user/returns/${id}/status`;
+                await api.patch(endpoint, statusData);
             } catch (apiErr) {
-                console.warn("updateReturnRequestStatus API failed, updating locally:", apiErr);
+                console.error("updateReturnRequestStatus API failed:", apiErr);
+                throw new Error(apiErr?.response?.data?.message || "Failed to update return request status on server.");
             }
 
             const updatedList = get().returnRequests.map((req) => {
@@ -223,14 +248,14 @@ export const useReturnStore = create((set, get) => ({
                         const userId = user?.id || 'guest';
                         
                         // Credit wallet balance
-                        const savedBalance = localStorage.getItem(`wallet_balance_${userId}`);
+                        const savedBalance = localStorage.getItem(`wallet_balance_v2_${userId}`);
                         const currentBalance = savedBalance ? parseFloat(savedBalance) : 1500.0;
                         const refundAmount = req.refundAmount || 0;
                         const newBalance = currentBalance + refundAmount;
-                        localStorage.setItem(`wallet_balance_${userId}`, newBalance.toString());
+                        localStorage.setItem(`wallet_balance_v2_${userId}`, newBalance.toString());
 
                         // Add transaction history
-                        const savedTransactions = localStorage.getItem(`wallet_txs_${userId}`);
+                        const savedTransactions = localStorage.getItem(`wallet_txs_v2_${userId}`);
                         const txs = savedTransactions ? JSON.parse(savedTransactions) : [];
                         const newTx = {
                             id: `TXN${Math.floor(10000000 + Math.random() * 90000000)}`,
@@ -240,7 +265,7 @@ export const useReturnStore = create((set, get) => ({
                             date: new Date().toISOString(),
                             description: `Refund credited to wallet for Return Request ${req.id}`,
                         };
-                        localStorage.setItem(`wallet_txs_${userId}`, JSON.stringify([newTx, ...txs]));
+                        localStorage.setItem(`wallet_txs_v2_${userId}`, JSON.stringify([newTx, ...txs]));
                         
                         toast.success(`₹${refundAmount.toFixed(2)} credited to your wallet!`);
                     }

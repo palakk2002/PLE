@@ -39,91 +39,12 @@ export const useDeliveryStore = create(
                     isLoading: false
                 });
             } catch (error) {
-                console.warn("getAllDeliveryBoys API call failed, falling back to mock delivery boy data:", error);
+                console.warn("getAllDeliveryBoys API call failed:", error);
                 
-                const mockDeliveryBoys = [
-                    {
-                        id: "DB001",
-                        _id: "DB001",
-                        name: "Rahul Kumar",
-                        email: "rahul@delivery.com",
-                        phone: "+91 98765 43210",
-                        address: "12, Connaught Place, New Delhi, Delhi - 110001",
-                        vehicleType: "Bike",
-                        vehicleNumber: "DL-3C-AB-1234",
-                        status: "active",
-                        isActive: true,
-                        applicationStatus: "approved",
-                        totalDeliveries: 45,
-                        rating: 4.8,
-                        documentUrls: {
-                            drivingLicense: "#",
-                            aadharCard: "#"
-                        }
-                    },
-                    {
-                        id: "DB002",
-                        _id: "DB002",
-                        name: "Vikram Singh",
-                        email: "vikram@delivery.com",
-                        phone: "+91 99112 23344",
-                        address: "45, Saket, New Delhi, Delhi - 110017",
-                        vehicleType: "Scooter",
-                        vehicleNumber: "DL-3C-CD-5678",
-                        status: "active",
-                        isActive: true,
-                        applicationStatus: "approved",
-                        totalDeliveries: 28,
-                        rating: 4.5,
-                        documentUrls: {
-                            drivingLicense: "#",
-                            aadharCard: "#"
-                        }
-                    },
-                    {
-                        id: "DB003",
-                        _id: "DB003",
-                        name: "Amit Patel",
-                        email: "amit@delivery.com",
-                        phone: "+91 88990 01122",
-                        address: "89, GIDC, Sector 26, Gandhinagar, Gujarat - 382026",
-                        vehicleType: "Bike",
-                        vehicleNumber: "GJ-18-AB-9922",
-                        status: "inactive",
-                        isActive: false,
-                        applicationStatus: "pending",
-                        totalDeliveries: 0,
-                        rating: 0,
-                        documentUrls: {
-                            drivingLicense: "#",
-                            aadharCard: "#"
-                        }
-                    },
-                    {
-                        id: "DB004",
-                        _id: "DB004",
-                        name: "Sanjay Sharma",
-                        email: "sanjay@delivery.com",
-                        phone: "+91 95540 11223",
-                        address: "14/88, Civil Lines, Kanpur, Uttar Pradesh - 208001",
-                        vehicleType: "Bike",
-                        vehicleNumber: "UP-78-XY-4321",
-                        status: "active",
-                        isActive: true,
-                        applicationStatus: "approved",
-                        totalDeliveries: 12,
-                        rating: 4.2,
-                        documentUrls: {
-                            drivingLicense: "#",
-                            aadharCard: "#"
-                        }
-                    }
-                ];
-
                 set({
-                    deliveryBoys: mockDeliveryBoys,
+                    deliveryBoys: [],
                     pagination: {
-                        total: mockDeliveryBoys.length,
+                        total: 0,
                         page: 1,
                         limit: 10,
                         pages: 1

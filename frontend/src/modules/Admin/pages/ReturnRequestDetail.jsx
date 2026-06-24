@@ -333,28 +333,28 @@ const ReturnRequestDetail = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <p className="text-xs text-gray-500 mb-1">Name</p>
-                <p className="font-semibold text-sm text-gray-800">{returnRequest.customer.name}</p>
+                <p className="font-semibold text-sm text-gray-800">{returnRequest.customer?.name || 'Guest'}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-500 mb-1">Email</p>
                 <a
-                  href={`mailto:${returnRequest.customer.email}`}
+                  href={`mailto:${returnRequest.customer?.email || ''}`}
                   className="font-semibold text-xs text-blue-600 hover:text-blue-800 break-all"
                 >
-                  {returnRequest.customer.email}
+                  {returnRequest.customer?.email || 'N/A'}
                 </a>
               </div>
-              {returnRequest.customer.phone && (
+              {returnRequest.customer?.phone && (
                 <div>
                   <p className="text-xs text-gray-500 mb-1 flex items-center gap-1">
                     <FiPhone className="text-xs" />
                     Phone
                   </p>
                   <a
-                    href={`tel:${returnRequest.customer.phone}`}
+                    href={`tel:${returnRequest.customer?.phone}`}
                     className="font-semibold text-sm text-gray-800 hover:text-blue-600"
                   >
-                    {returnRequest.customer.phone}
+                    {returnRequest.customer?.phone}
                   </a>
                 </div>
               )}
@@ -455,15 +455,15 @@ const ReturnRequestDetail = () => {
                 View Original Order
               </Link>
               <button
-                onClick={() => window.location.href = `mailto:${returnRequest.customer.email}`}
+                onClick={() => window.location.href = `mailto:${returnRequest.customer?.email || ''}`}
                 className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-xs font-semibold"
               >
                 <FiMail className="text-sm" />
                 Email Customer
               </button>
-              {returnRequest.customer.phone && (
+              {returnRequest.customer?.phone && (
                 <button
-                  onClick={() => window.location.href = `tel:${returnRequest.customer.phone}`}
+                  onClick={() => window.location.href = `tel:${returnRequest.customer?.phone}`}
                   className="w-full flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-50 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors text-xs font-semibold"
                 >
                   <FiPhone className="text-sm" />

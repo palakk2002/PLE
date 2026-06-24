@@ -10,6 +10,8 @@ import Admin from '../../../models/Admin.model.js';
 import { generateOrderId } from '../../../utils/generateOrderId.js';
 import { generateTrackingNumber } from '../../../utils/generateTrackingNumber.js';
 import mongoose from 'mongoose';
+import Wallet from '../../../models/Wallet.model.js';
+import WalletTransaction from '../../../models/WalletTransaction.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { calculateVendorShippingForGroups } from '../../../services/vendorShipping.service.js';
 
@@ -241,7 +243,22 @@ export const placeOrder = asyncHandler(async (req, res) => {
         if (product.stockQuantity < item.quantity) throw new ApiError(400, `Only ${product.stockQuantity} units of ${product.name} available.`);
 
         // Always trust server-side product pricing; never trust client-sent item.price.
-        const { price: itemPrice, variantKey, hasVariantAxes } = resolveVariantSelection(product, item.variant);
+        let { price: itemPrice, variantKey, hasVariantAxes } = resolveVariantSelection(product, item.variant);
+
+        // Apply B2B Pricing if applicable
+        const isB2BUser = req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee';
+        if (isB2BUser && product.b2bEnabled) {
+            let b2bPrice = product.b2bWholesalePrice || itemPrice;
+            if (product.b2bBulkPricingSlabs && product.b2bBulkPricingSlabs.length > 0) {
+                const slab = product.b2bBulkPricingSlabs.find(
+                    s => item.quantity >= s.minQty && (!s.maxQty || item.quantity <= s.maxQty)
+                );
+                if (slab && slab.pricePerUnit) {
+                    b2bPrice = slab.pricePerUnit;
+                }
+            }
+            itemPrice = b2bPrice;
+        }
         const variantStockValue = variantKey ? Number(product?.variants?.stockMap?.get?.(variantKey) ?? product?.variants?.stockMap?.[variantKey]) : null;
         if (hasVariantAxes && variantKey && Number.isFinite(variantStockValue) && variantStockValue < item.quantity) {
             throw new ApiError(400, `Only ${variantStockValue} units available for selected variant of ${product.name}.`);
@@ -351,6 +368,26 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 }
             }
 
+            // Wallet Payment Validation & Deduction
+            if (normalizedPaymentMethod === 'wallet') {
+                const wallet = await Wallet.findOne({ userId }).session(session);
+                if (!wallet || wallet.balance < total) {
+                    throw new ApiError(400, 'Insufficient wallet balance for this order.');
+                }
+                
+                wallet.balance -= total;
+                await wallet.save({ session });
+
+                await WalletTransaction.create([{
+                    walletId: wallet._id,
+                    userId,
+                    amount: total,
+                    type: 'debit',
+                    description: 'Payment for order placement',
+                    status: 'completed'
+                }], { session });
+            }
+
             const [createdOrder] = await Order.create([{
                 orderId: generateOrderId(),
                 userId,
@@ -358,8 +395,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 vendorItems,
                 shippingAddress,
                 paymentMethod: normalizedPaymentMethod,
-                // Keep every new order pending until gateway/webhook confirmation is implemented.
-                paymentStatus: 'pending',
+                // Automatically set payment status to 'paid' for mock card/UPI payments.
+                paymentStatus: normalizedPaymentMethod === 'cod' ? 'pending' : 'paid',
                 subtotal,
                 shipping,
                 tax,

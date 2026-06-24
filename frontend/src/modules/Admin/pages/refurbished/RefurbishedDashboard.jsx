@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   FiClock,
@@ -13,16 +13,61 @@ import {
   FiActivity,
   FiAward,
 } from "react-icons/fi";
+import api from "../../../../shared/utils/api";
 
 const RefurbishedDashboard = () => {
   const [selectedPeriod, setSelectedPeriod] = useState("30d");
+  const [stats, setStats] = useState({
+    totalListings: 0,
+    approved: 0,
+    pendingApproval: 0,
+    rejected: 0,
+    advanced: {
+      sales: 0,
+      salesChange: "+0% MoM",
+      revenue: 0,
+      revenueChange: "+0% MoM",
+      returnRatio: "0.0",
+      topSellers: [],
+      returnStats: [],
+      monthlyRevenue: [0, 0, 0, 0, 0]
+    }
+  });
 
-  // Mock QC Metrics Data
+  // Chart Path Generator for smooth curves
+  const generateSmoothPath = (points) => {
+    if (!points || points.length === 0) return "";
+    let d = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 1; i < points.length; i++) {
+      const p0 = points[i - 1];
+      const p1 = points[i];
+      const cp1x = p0.x + (p1.x - p0.x) / 2;
+      const cp1y = p0.y;
+      const cp2x = p1.x - (p1.x - p0.x) / 2;
+      const cp2y = p1.y;
+      d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p1.x} ${p1.y}`;
+    }
+    return d;
+  };
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get('/admin/refurbished-stats');
+        setStats(res.data);
+      } catch (err) {
+        console.error("Failed to fetch refurbished stats", err);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  // Hybrid QC Metrics Data (Real + Visual Mock)
   const qcMetrics = [
     {
       label: "Pending Reviews",
-      value: "8",
-      change: "+2 today",
+      value: stats.pendingApproval,
+      change: "Action needed",
       isPositive: false,
       icon: FiClock,
       color: "from-amber-500 to-orange-600",
@@ -31,8 +76,8 @@ const RefurbishedDashboard = () => {
     },
     {
       label: "Approved Refurbished",
-      value: "124",
-      change: "+15 this week",
+      value: stats.approved,
+      change: "Live listings",
       isPositive: true,
       icon: FiCheckCircle,
       color: "from-emerald-500 to-teal-600",
@@ -41,8 +86,8 @@ const RefurbishedDashboard = () => {
     },
     {
       label: "Rejected Listings",
-      value: "14",
-      change: "+3 this week",
+      value: stats.rejected,
+      change: "Needs review",
       isPositive: false,
       icon: FiXCircle,
       color: "from-rose-500 to-red-600",
@@ -51,8 +96,8 @@ const RefurbishedDashboard = () => {
     },
     {
       label: "Total Quality Checked",
-      value: "146",
-      change: "100% inspected",
+      value: stats.totalListings,
+      change: "Total processed",
       isPositive: true,
       icon: FiLayers,
       color: "from-blue-500 to-indigo-600",
@@ -61,7 +106,7 @@ const RefurbishedDashboard = () => {
     },
     {
       label: "Refurbished Return Ratio",
-      value: "1.6%",
+      value: `${stats.advanced?.returnRatio || "0.0"}%`,
       change: "-0.4% vs B2C average",
       isPositive: true,
       icon: FiPercent,
@@ -71,26 +116,26 @@ const RefurbishedDashboard = () => {
     },
   ];
 
-  // Mock Refurbished Analytics Data
+  // Dynamic Refurbished Analytics Data from Backend
+  const approvalRatioNum = stats.totalListings > 0 ? ((stats.approved / stats.totalListings) * 100).toFixed(1) : "0.0";
   const analyticsSummary = {
-    sales: "1,248 units",
-    salesChange: "+12.4% MoM",
-    revenue: "₹45,82,499",
-    revenueChange: "+18.2% MoM",
-    approvalRatio: "89.8%",
-    topSellers: [
-      { name: "Apex Electronics Retail", sales: 489, rating: 4.8, revenue: "₹18,24,900", badge: "Gold Certified" },
-      { name: "Fashion Hub Store", sales: 312, rating: 4.6, revenue: "₹10,12,000", badge: "Verified Refurbisher" },
-      { name: "Gupta Electronics", sales: 245, rating: 4.5, revenue: "₹8,45,000", badge: "Quality Checked" },
-    ],
-    returnStats: [
-      { condition: "Grade A Refurbished", returnRate: "0.8%", volume: "620 units" },
-      { condition: "Grade B Refurbished", returnRate: "1.9%", volume: "410 units" },
-      { condition: "Grade C Refurbished", returnRate: "3.5%", volume: "120 units" },
-      { condition: "Renewed (Excellent)", returnRate: "1.1%", volume: "78 units" },
-      { condition: "Open Box (Pristine)", returnRate: "0.5%", volume: "20 units" },
-    ]
+    sales: `${stats.advanced?.sales || 0} units`,
+    salesChange: stats.advanced?.salesChange || "+0% MoM",
+    revenue: `₹${(stats.advanced?.revenue || 0).toLocaleString()}`,
+    revenueChange: stats.advanced?.revenueChange || "+0% MoM",
+    approvalRatio: `${approvalRatioNum}%`,
+    topSellers: stats.advanced?.topSellers || [],
+    returnStats: stats.advanced?.returnStats || []
   };
+
+  // Generate dynamic chart points based on monthlyRevenue
+  const monthlyRevenue = stats.advanced?.monthlyRevenue || [0, 0, 0, 0, 0];
+  const maxRevenue = Math.max(...monthlyRevenue) || 1;
+  const chartPoints = monthlyRevenue.map((rev, i) => ({
+    x: i * 125, // 500 width / 4 intervals = 125
+    y: 160 - (rev / maxRevenue) * 140, // 160 max Y, 20 top padding
+  }));
+  const chartPath = generateSmoothPath(chartPoints);
 
   return (
     <motion.div
@@ -114,11 +159,10 @@ const RefurbishedDashboard = () => {
             <button
               key={period}
               onClick={() => setSelectedPeriod(period)}
-              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${
-                selectedPeriod === period
+              className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all ${selectedPeriod === period
                   ? "bg-[#C07A3D] text-white shadow-sm"
                   : "text-gray-600 hover:bg-gray-50"
-              }`}
+                }`}
             >
               {period === "7d" ? "7 Days" : period === "30d" ? "30 Days" : "12 Months"}
             </button>
@@ -151,9 +195,8 @@ const RefurbishedDashboard = () => {
                   {metric.value}
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <span className={`text-[10px] font-bold ${
-                    metric.isPositive ? "text-emerald-600" : "text-amber-600"
-                  }`}>
+                  <span className={`text-[10px] font-bold ${metric.isPositive ? "text-emerald-600" : "text-amber-600"
+                    }`}>
                     {metric.change}
                   </span>
                 </div>
@@ -197,26 +240,25 @@ const RefurbishedDashboard = () => {
 
               {/* Area path */}
               <path
-                d="M 0 160 Q 80 130 150 90 T 300 70 T 420 40 T 500 25 L 500 160 Z"
+                d={`${chartPath} L 500 160 L 0 160 Z`}
                 fill="url(#chartGlow)"
               />
               {/* Stroke line */}
               <path
-                d="M 0 160 Q 80 130 150 90 T 300 70 T 420 40 T 500 25"
+                d={chartPath}
                 fill="none"
                 stroke="#C07A3D"
                 strokeWidth="3.5"
                 strokeLinecap="round"
               />
 
-              {/* Points */}
-              <circle cx="150" cy="90" r="5" fill="#C07A3D" stroke="#fff" strokeWidth="2" className="drop-shadow-sm" />
-              <circle cx="300" cy="70" r="5" fill="#C07A3D" stroke="#fff" strokeWidth="2" className="drop-shadow-sm" />
-              <circle cx="420" cy="40" r="5" fill="#C07A3D" stroke="#fff" strokeWidth="2" className="drop-shadow-sm" />
-              <circle cx="500" cy="25" r="5" fill="#C07A3D" stroke="#fff" strokeWidth="2" className="drop-shadow-sm" />
+              {/* Dynamic Points */}
+              {chartPoints.map((p, i) => (
+                <circle key={i} cx={p.x} cy={p.y} r="5" fill="#C07A3D" stroke="#fff" strokeWidth="2" className="drop-shadow-sm" />
+              ))}
             </svg>
           </div>
-          
+
           <div className="flex justify-between text-[10px] font-semibold text-gray-400 mt-2 px-1">
             <span>Jan</span>
             <span>Feb</span>
@@ -232,9 +274,9 @@ const RefurbishedDashboard = () => {
             <h3 className="font-bold text-gray-900 text-base mb-1">Return Rates by Condition</h3>
             <p className="text-xs text-gray-500 mb-4">Inspecting customer complaints & product returns</p>
           </div>
-          
+
           <div className="space-y-3.5 flex-1 flex flex-col justify-center">
-            {analyticsSummary.returnStats.map((item) => {
+            {analyticsSummary.returnStats.length > 0 ? analyticsSummary.returnStats.map((item) => {
               const parsedRate = parseFloat(item.returnRate);
               const colorClass = parsedRate > 2 ? "bg-red-500" : parsedRate > 1 ? "bg-amber-500" : "bg-emerald-500";
               return (
@@ -246,12 +288,16 @@ const RefurbishedDashboard = () => {
                   <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${colorClass}`}
-                      style={{ width: `${(parsedRate / 4.0) * 100}%` }}
+                      style={{ width: `${Math.min((parsedRate / 4.0) * 100, 100)}%` }}
                     />
                   </div>
                 </div>
               );
-            })}
+            }) : (
+              <div className="text-center py-8 text-gray-400 text-xs font-bold border border-dashed border-gray-200 rounded-xl">
+                No return complaints logged yet.
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -280,32 +326,34 @@ const RefurbishedDashboard = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {analyticsSummary.topSellers.map((seller, index) => (
-                  <tr key={seller.name} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="py-3.5 font-bold text-gray-900 flex items-center gap-2">
-                      <span className="text-xs text-gray-400">0{index + 1}.</span>
-                      {seller.name}
+                {analyticsSummary.topSellers.length > 0 ? analyticsSummary.topSellers.map((seller, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="py-4 font-bold text-gray-800 text-xs flex items-center gap-2">
+                      <span className="text-gray-400 text-[10px]">0{idx + 1}.</span> {seller.name}
                     </td>
-                    <td className="py-3.5 text-center text-gray-600 font-semibold">{seller.sales} units</td>
-                    <td className="py-3.5 text-center">
-                      <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-800 px-2 py-0.5 rounded-lg text-xs font-bold border border-amber-100">
+                    <td className="py-4 text-xs font-bold text-gray-700 text-center">{seller.sales} <span className="text-[10px] text-gray-400 font-semibold">units</span></td>
+                    <td className="py-4 text-center">
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-100">
                         ★ {seller.rating}
                       </span>
                     </td>
-                    <td className="py-3.5 text-right font-bold text-gray-900">{seller.revenue}</td>
-                    <td className="py-3.5 text-right">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                        index === 0
-                          ? "bg-amber-100 text-amber-800"
-                          : index === 1
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-blue-100 text-blue-800"
-                      }`}>
+                    <td className="py-4 font-black text-gray-900 text-right">{seller.revenue}</td>
+                    <td className="py-4 text-right">
+                      <span className={`text-[10px] font-bold px-2.5 py-1 rounded-lg ${seller.badge.includes("Gold") ? "bg-amber-100 text-amber-700" :
+                          seller.badge.includes("Verified") ? "bg-purple-100 text-purple-700" :
+                            "bg-blue-100 text-blue-700"
+                        }`}>
                         {seller.badge}
                       </span>
                     </td>
                   </tr>
-                ))}
+                )) : (
+                  <tr>
+                    <td colSpan="5" className="py-12 text-center text-gray-400 text-xs font-bold">
+                      Not enough active sales data to rank top sellers.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -317,7 +365,7 @@ const RefurbishedDashboard = () => {
             <h3 className="font-bold text-gray-900 text-base mb-1">Diagnostic Quality Assurance</h3>
             <p className="text-xs text-gray-500 mb-4">Inspection pass rates & grading metrics</p>
           </div>
-          
+
           <div className="text-center py-4 flex flex-col items-center justify-center">
             {/* Circular Progress Gauge */}
             <div className="relative w-36 h-36 flex items-center justify-center">
@@ -338,7 +386,7 @@ const RefurbishedDashboard = () => {
                   strokeWidth="8"
                   fill="none"
                   strokeDasharray="251.2"
-                  strokeDashoffset={251.2 - (251.2 * 89.8) / 100}
+                  strokeDashoffset={251.2 - (251.2 * parseFloat(approvalRatioNum)) / 100}
                   strokeLinecap="round"
                 />
               </svg>
@@ -350,7 +398,7 @@ const RefurbishedDashboard = () => {
           </div>
 
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-3.5 text-xs text-gray-500 text-center leading-relaxed">
-            Over <span className="font-bold text-gray-800">89.8%</span> of submitted refurbished listings successfully pass diagnostic inspection on first review.
+            Over <span className="font-bold text-gray-800">{analyticsSummary.approvalRatio}</span> of submitted refurbished listings successfully pass diagnostic inspection on first review.
           </div>
         </div>
       </div>

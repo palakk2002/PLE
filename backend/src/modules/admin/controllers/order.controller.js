@@ -6,7 +6,9 @@ import DeliveryBoy from '../../../models/DeliveryBoy.model.js';
 import User from '../../../models/User.model.js';
 import Commission from '../../../models/Commission.model.js';
 import Product from '../../../models/Product.model.js';
+import PurchaseOrder from '../../../models/PurchaseOrder.model.js';
 import { createNotification } from '../../../services/notification.service.js';
+import { getIO } from '../../../config/socket.js';
 
 // GET /api/admin/orders
 export const getAllOrders = asyncHandler(async (req, res) => {
@@ -251,6 +253,19 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         await Promise.allSettled(notificationTasks);
     }
 
+    try {
+        const io = getIO();
+        if (order.userId) {
+            io.to(`user_${order.userId}`).emit('order_status_updated', {
+                orderId: order.orderId,
+                _id: order._id,
+                status: nextStatus
+            });
+        }
+    } catch (err) {
+        console.error('Socket emission failed for order status update:', err);
+    }
+
     res.status(200).json(new ApiResponse(200, order, 'Order status updated.'));
 });
 
@@ -368,4 +383,72 @@ export const deleteOrder = asyncHandler(async (req, res) => {
     );
     if (!order) throw new ApiError(404, 'Order not found.');
     res.status(200).json(new ApiResponse(200, null, 'Order archived.'));
+});
+
+// GET /api/admin/purchase-orders
+export const getAllPurchaseOrders = asyncHandler(async (req, res) => {
+    const { status, paymentStatus, page = 1, limit = 20, search } = req.query;
+    const numericPage = Number(page) || 1;
+    const numericLimit = Number(limit) || 20;
+    const skip = (numericPage - 1) * numericLimit;
+
+    const filter = {};
+    if (status && status !== 'all') filter.status = status;
+    if (paymentStatus && paymentStatus !== 'all') filter.paymentStatus = paymentStatus;
+
+    if (search) {
+        filter.$or = [
+            { poNumber: { $regex: search, $options: 'i' } },
+            { 'companyDetails.name': { $regex: search, $options: 'i' } },
+            { 'vendorDetails.storeName': { $regex: search, $options: 'i' } }
+        ];
+    }
+
+    const [purchaseOrders, total] = await Promise.all([
+        PurchaseOrder.find(filter)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(numericLimit)
+            .lean(),
+        PurchaseOrder.countDocuments(filter)
+    ]);
+
+    res.status(200).json(new ApiResponse(200, {
+        purchaseOrders,
+        total,
+        page: numericPage,
+        pages: Math.ceil(total / numericLimit)
+    }, 'Purchase Orders fetched.'));
+});
+
+// PATCH /api/admin/purchase-orders/:id/status
+export const updatePurchaseOrderStatus = asyncHandler(async (req, res) => {
+    const { status } = req.body;
+    const allowed = ['Sent', 'Approved', 'Completed', 'Cancelled'];
+    if (!allowed.includes(status)) throw new ApiError(400, `Status must be one of: ${allowed.join(', ')}`);
+
+    const po = await PurchaseOrder.findByIdAndUpdate(
+        req.params.id,
+        { status },
+        { new: true }
+    );
+    if (!po) throw new ApiError(404, 'Purchase Order not found.');
+
+    res.status(200).json(new ApiResponse(200, po, 'Purchase Order status updated.'));
+});
+
+// PATCH /api/admin/purchase-orders/:id/payment
+export const updatePurchaseOrderPayment = asyncHandler(async (req, res) => {
+    const { paymentStatus } = req.body;
+    const allowed = ['Unpaid', 'Paid', 'Pending'];
+    if (!allowed.includes(paymentStatus)) throw new ApiError(400, `Payment status must be one of: ${allowed.join(', ')}`);
+
+    const po = await PurchaseOrder.findByIdAndUpdate(
+        req.params.id,
+        { paymentStatus },
+        { new: true }
+    );
+    if (!po) throw new ApiError(404, 'Purchase Order not found.');
+
+    res.status(200).json(new ApiResponse(200, po, 'Purchase Order payment status updated.'));
 });

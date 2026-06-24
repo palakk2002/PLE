@@ -1,7 +1,6 @@
 // Zustand store for B2B Enquiry / RFQ Management connected to backend
 import { create } from "zustand";
 import api from "../../../shared/utils/api";
-import { mockEnquiries, defaultB2BSettings, mockAnalytics } from "../data/b2bEnquiryMockData";
 import { useVendorAuthStore } from "./vendorAuthStore";
 
 const mapRfqToEnquiry = (rfq) => {
@@ -120,8 +119,20 @@ const mapRfqToEnquiry = (rfq) => {
 export const useVendorB2BStore = create((set, get) => ({
   // State - start with empty, will be populated from real API
   enquiries: [],
-  settings: { ...defaultB2BSettings },
-  analytics: { ...mockAnalytics },
+  settings: {
+    b2bEnabled: false,
+    minimumOrderValue: 0,
+    bulkDiscountTiers: [],
+    paymentTerms: [],
+    shippingTerms: []
+  },
+  analytics: {
+    totalEnquiries: 0,
+    activeQuotes: 0,
+    convertedOrders: 0,
+    conversionRate: 0,
+    totalRevenue: 0
+  },
   isLoading: false,
 
   // Enquiries
@@ -146,61 +157,36 @@ export const useVendorB2BStore = create((set, get) => ({
   },
 
   updateEnquiryStatus: async (id, status, notes = 'Vendor rejected the RFQ request.') => {
-    const isMongoId = /^[a-fA-F0-9]{24}$/.test(id);
-    if (isMongoId && status === 'rejected') {
+    if (status === 'rejected') {
       try {
         await api.post(`/vendor/rfq/${id}/reject`, { notes });
-        get().fetchEnquiries();
+        await get().fetchEnquiries();
       } catch (error) {
         console.error('Error rejecting RFQ:', error);
+        throw error;
       }
-    } else {
-      // Local fallback for mock
-      set((state) => ({
-        enquiries: state.enquiries.map((e) =>
-          e.id === id ? { ...e, status: status } : e
-        )
-      }));
     }
   },
 
   // Quotes
   createQuote: async (enquiryId, quoteData) => {
-    const isMongoId = /^[a-fA-F0-9]{24}$/.test(enquiryId);
     try {
       const firstItem = quoteData.items[0];
-      if (isMongoId) {
-        const res = await api.post(`/vendor/rfq/${enquiryId}/quote`, {
-          unitPrice: Number(firstItem.offeredPrice),
-          totalPrice: Number(quoteData.totalValue),
-          deliveryTime: `${firstItem.deliveryDays} days`,
-          warranty: quoteData.warranty || "N/A",
-          taxDetails: quoteData.taxDetails || "Excluding Taxes",
-          additionalNotes: quoteData.notes || "",
-          attachments: quoteData.attachments || []
-        });
-        get().fetchEnquiries();
-        const backendRfq = res?.data || res;
-        const vendorState = useVendorAuthStore.getState();
-        const vendorId = vendorState?.vendor?.id || vendorState?.vendor?._id;
-        const myQuote = backendRfq?.quotations?.find(q => String(q.vendorId) === String(vendorId));
-        return myQuote?._id || `QT-${Date.now()}`;
-      } else {
-        // Local fallback for mock
-        const quoteId = `QT-${Date.now()}`;
-        set((state) => ({
-          enquiries: state.enquiries.map((e) =>
-            e.id === enquiryId
-              ? {
-                  ...e,
-                  status: "quoted",
-                  quotes: [...e.quotes, { id: quoteId, enquiryId, ...quoteData, status: "submitted", createdAt: new Date().toISOString() }]
-                }
-              : e
-          )
-        }));
-        return quoteId;
-      }
+      const res = await api.post(`/vendor/rfq/${enquiryId}/quote`, {
+        unitPrice: Number(firstItem.offeredPrice),
+        totalPrice: Number(quoteData.totalValue),
+        deliveryTime: `${firstItem.deliveryDays} days`,
+        warranty: quoteData.warranty || "N/A",
+        taxDetails: quoteData.taxDetails || "Excluding Taxes",
+        additionalNotes: quoteData.notes || "",
+        attachments: quoteData.attachments || []
+      });
+      await get().fetchEnquiries();
+      const backendRfq = res?.data || res;
+      const vendorState = useVendorAuthStore.getState();
+      const vendorId = vendorState?.vendor?.id || vendorState?.vendor?._id;
+      const myQuote = backendRfq?.quotations?.find(q => String(q.vendorId) === String(vendorId));
+      return myQuote?._id || `QT-${Date.now()}`;
     } catch (error) {
       console.error('Error submitting quote:', error);
       throw error;

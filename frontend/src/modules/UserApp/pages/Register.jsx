@@ -10,6 +10,8 @@ import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from '../../../shared/components/PageTransition';
 import { useB2bStore } from '../../../shared/store/b2bStore';
 import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
+import api from '../../../shared/utils/api';
+import { useEffect } from 'react';
 
 const MobileRegister = () => {
   const navigate = useNavigate();
@@ -20,6 +22,18 @@ const MobileRegister = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [b2bStep, setB2bStep] = useState(1);
+  const [b2bSettings, setB2bSettings] = useState({ requireGST: true, requirePAN: true });
+
+  useEffect(() => {
+    api.get('/settings/b2b').then(res => {
+      if (res.data?.data) {
+        setB2bSettings({
+          requireGST: res.data.data.requireGST !== false,
+          requirePAN: res.data.data.requirePAN !== false
+        });
+      }
+    }).catch(err => console.error('Failed to load b2b settings', err));
+  }, []);
 
   const [b2bData, setB2bData] = useState({
     companyName: '',
@@ -87,18 +101,24 @@ const MobileRegister = () => {
   };
 
   const validateStep1 = () => {
-    if (!b2bData.companyName || !b2bData.gstNumber || !b2bData.businessEmail || !b2bData.businessPhone || !b2bData.businessAddress || !b2bData.businessType) {
+    if (!b2bData.companyName || !b2bData.businessEmail || !b2bData.businessPhone || !b2bData.businessAddress || !b2bData.businessType) {
       toast.error('Please fill all required company details.');
+      return false;
+    }
+    if (b2bSettings.requireGST && !b2bData.gstNumber) {
+      toast.error('GST Number is required.');
       return false;
     }
     if (!isValidEmail(b2bData.businessEmail)) {
       toast.error('Please enter a valid business email.');
       return false;
     }
-    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
-    if (!gstRegex.test(b2bData.gstNumber.toUpperCase())) {
-      toast.error('Please enter a valid Indian GSTIN format.');
-      return false;
+    if (b2bData.gstNumber) {
+      const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+      if (!gstRegex.test(b2bData.gstNumber.toUpperCase())) {
+        toast.error('Please enter a valid Indian GSTIN format.');
+        return false;
+      }
     }
     return true;
   };
@@ -330,7 +350,7 @@ const MobileRegister = () => {
                         <input type="text" name="companyName" value={b2bData.companyName} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Apex General Enterprises" />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">GST Number *</label>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">GST Number {b2bSettings.requireGST ? '*' : '(Optional)'}</label>
                         <input type="text" name="gstNumber" value={b2bData.gstNumber} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base font-mono uppercase" placeholder="27AAPCG9838F1Z1" />
                       </div>
                       <div>

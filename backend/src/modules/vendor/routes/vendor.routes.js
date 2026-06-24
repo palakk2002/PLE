@@ -145,4 +145,9 @@ router.post('/direct-rfq/:id/message', ...vendorAuth, vendorDirectRfqController.
 router.get('/b2b/purchase-orders', ...vendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrders);
 router.get('/b2b/purchase-orders/:id', ...vendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrderById);
 
+// Product Enquiry routes (protected Vendor)
+import * as vendorEnquiryController from '../controllers/productEnquiry.controller.js';
+router.get('/enquiries', ...vendorAuth, vendorEnquiryController.getVendorEnquiries);
+router.put('/enquiries/:id/reply', ...vendorAuth, vendorEnquiryController.replyToEnquiry);
+
 export default router;

@@ -15,6 +15,7 @@ import ExportButton from "../components/ExportButton";
 import { formatCurrency } from "../utils/adminHelpers";
 import {
   getDashboardStats,
+  getB2bOverviewStats,
   getRevenueData,
   getOrderStatusBreakdown,
   getTopProducts,
@@ -34,6 +35,12 @@ const Dashboard = () => {
     totalCustomers: 0,
     totalVendors: 0,
     pendingOrders: 0,
+  });
+  const [b2bStats, setB2bStats] = useState({
+    b2bUsers: 0,
+    b2bProducts: 0,
+    b2bOrders: 0,
+    b2bRevenue: 0,
   });
   const [revenueData, setRevenueData] = useState([]);
 
@@ -83,25 +90,55 @@ const Dashboard = () => {
   const [customerGrowth, setCustomerGrowth] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
 
+  const getDateRangeForPeriod = (uiPeriod) => {
+    const now = new Date();
+    const endDate = now.toISOString();
+    let startDate;
+
+    if (uiPeriod === "today" || uiPeriod === "day") {
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      startDate = start.toISOString();
+    } else if (uiPeriod === "week") {
+      const start = new Date(now);
+      const day = start.getDay();
+      const diff = start.getDate() - day + (day === 0 ? -6 : 1);
+      start.setDate(diff);
+      start.setHours(0, 0, 0, 0);
+      startDate = start.toISOString();
+    } else if (uiPeriod === "month") {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1);
+      startDate = start.toISOString();
+    } else if (uiPeriod === "year") {
+      const start = new Date(now.getFullYear(), 0, 1);
+      startDate = start.toISOString();
+    }
+    
+    return { startDate, endDate };
+  };
+
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
     try {
       const apiPeriod = mapUiPeriodToApiPeriod(period);
+      const dateParams = getDateRangeForPeriod(period);
 
       const [
         statsRes,
+        b2bRes,
         revenueRes,
         orderStatusRes,
         topProductsRes,
         customerGrowthRes,
         recentOrdersRes,
       ] = await Promise.allSettled([
-        getDashboardStats(),
+        getDashboardStats(dateParams),
+        getB2bOverviewStats(dateParams),
         getRevenueData(apiPeriod),
-        getOrderStatusBreakdown(),
-        getTopProducts(),
+        getOrderStatusBreakdown(dateParams),
+        getTopProducts(dateParams),
         getCustomerGrowth(apiPeriod),
-        getRecentOrders(),
+        getRecentOrders(dateParams),
       ]);
 
       if (statsRes.status === "fulfilled") {
@@ -124,6 +161,24 @@ const Dashboard = () => {
           pendingOrders: 0,
         });
       }
+      
+      if (b2bRes.status === "fulfilled") {
+        const bd = b2bRes.value.data;
+        setB2bStats({
+          b2bUsers: bd.b2bUsers || 0,
+          b2bProducts: bd.b2bProducts || 0,
+          b2bOrders: bd.b2bOrders || 0,
+          b2bRevenue: bd.b2bRevenue || 0,
+        });
+      } else {
+        setB2bStats({
+          b2bUsers: 0,
+          b2bProducts: 0,
+          b2bOrders: 0,
+          b2bRevenue: 0,
+        });
+      }
+
       if (revenueRes.status === "fulfilled") {
         setRevenueData(normalizeRevenueData(revenueRes.value.data, apiPeriod));
       } else {
@@ -226,7 +281,7 @@ const Dashboard = () => {
             </div>
             <div className="relative z-10">
               <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Business Users</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">12</p>
+              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{b2bStats.b2bUsers}</p>
             </div>
           </motion.div>
 
@@ -248,7 +303,7 @@ const Dashboard = () => {
             </div>
             <div className="relative z-10">
               <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">B2B Products</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">34</p>
+              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{b2bStats.b2bProducts}</p>
             </div>
           </motion.div>
 
@@ -270,7 +325,7 @@ const Dashboard = () => {
             </div>
             <div className="relative z-10">
               <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">B2B Orders</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">8</p>
+              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{b2bStats.b2bOrders}</p>
             </div>
           </motion.div>
 
@@ -292,7 +347,7 @@ const Dashboard = () => {
             </div>
             <div className="relative z-10">
               <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">B2B Revenue</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{formatCurrency(245000)}</p>
+              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{formatCurrency(b2bStats.b2bRevenue)}</p>
             </div>
           </motion.div>
         </div>

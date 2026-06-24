@@ -1,15 +1,41 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FiAward, FiRotateCcw, FiUsers, FiTrendingUp } from "react-icons/fi";
-import { useLoyaltyStore } from "../../../../shared/store/loyaltyStore";
+import api from "../../../../shared/utils/api";
 
 const LoyaltyDashboard = () => {
-  const { users, history } = useLoyaltyStore();
+  const [statsData, setStatsData] = useState({
+    totalIssued: 0,
+    totalRedeemed: 0,
+    activeMembers: 0,
+    outstandingPoints: 0
+  });
+  const [history, setHistory] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Compute stats dynamically from mock users in store
-  const totalIssued = users.reduce((sum, u) => sum + u.earnedPoints, 0);
-  const totalRedeemed = users.reduce((sum, u) => sum + u.redeemedPoints, 0);
-  const activeMembers = users.length;
-  const outstandingPoints = users.reduce((sum, u) => sum + u.currentPoints, 0);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const [statsRes, historyRes] = await Promise.all([
+          api.get('/admin/loyalty/stats'),
+          api.get('/admin/loyalty/transactions')
+        ]);
+        setStatsData(statsRes.data);
+        setHistory(historyRes.data);
+      } catch (err) {
+        console.error("Failed to fetch loyalty data", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const totalIssued = statsData.totalIssued;
+  const totalRedeemed = statsData.totalRedeemed;
+  const activeMembers = statsData.activeMembers;
+  const outstandingPoints = statsData.outstandingPoints;
 
   const stats = [
     {
@@ -60,6 +86,9 @@ const LoyaltyDashboard = () => {
       </div>
 
       {/* Metrics Cards */}
+      {isLoading ? (
+        <div className="text-center py-8 text-gray-500 font-semibold">Loading stats...</div>
+      ) : (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
@@ -84,6 +113,7 @@ const LoyaltyDashboard = () => {
           );
         })}
       </div>
+      )}
 
       {/* Recent Points Transactions */}
       <div className="bg-white border border-gray-250/60 rounded-2xl shadow-sm overflow-hidden">
@@ -103,49 +133,54 @@ const LoyaltyDashboard = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-gray-700">
-              {history.map((item, idx) => (
-                <tr key={idx} className="hover:bg-gray-55/40 transition-colors">
-                  <td className="py-4 px-6 font-medium">
-                    {new Date(item.date).toLocaleDateString("en-IN", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </td>
-                  <td className="py-4 px-6 font-mono text-xs font-bold text-primary-650">
-                    {item.orderRef}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    {item.earnedPoints > 0 ? (
-                      <span className="inline-flex items-center text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
-                        +{item.earnedPoints}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 font-bold">—</span>
-                    )}
-                  </td>
-                  <td className="py-4 px-6 text-center">
-                    {item.redeemedPoints > 0 ? (
-                      <span className="inline-flex items-center text-xs font-black text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full">
-                        -{item.redeemedPoints}
-                      </span>
-                    ) : (
-                      <span className="text-gray-400 font-bold">—</span>
-                    )}
-                  </td>
-                  <td className="py-4 px-6 text-right font-black text-gray-800">
-                    {item.balance}
-                  </td>
+              {isLoading ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-500 font-semibold">Loading transactions...</td>
                 </tr>
-              ))}
-              {history.length === 0 && (
+              ) : history.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-gray-400 font-semibold">
                     No points transactions found.
                   </td>
                 </tr>
+              ) : (
+                history.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-gray-55/40 transition-colors">
+                    <td className="py-4 px-6 font-medium">
+                      {new Date(item.date).toLocaleDateString("en-IN", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                    <td className="py-4 px-6 font-mono text-xs font-bold text-primary-650">
+                      {item.orderRef}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {item.earnedPoints > 0 ? (
+                        <span className="inline-flex items-center text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                          +{item.earnedPoints}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 font-bold">—</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      {item.redeemedPoints > 0 ? (
+                        <span className="inline-flex items-center text-xs font-black text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full">
+                          -{item.redeemedPoints}
+                        </span>
+                      ) : (
+                        <span className="text-gray-400 font-bold">—</span>
+                      )}
+                    </td>
+                    <td className="py-4 px-6 text-right font-black text-gray-800">
+                      {item.balance}
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>

@@ -107,6 +107,7 @@ const MobileCategory = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
   const [categoryProductsFeed, setCategoryProductsFeed] = useState([]);
+  const [isFetchingProducts, setIsFetchingProducts] = useState(true);
   const [filters, setFilters] = useState({
     minPrice: "",
     maxPrice: "",
@@ -120,10 +121,12 @@ const MobileCategory = () => {
       if (!categoryId) {
         if (!cancelled) {
           setCategoryProductsFeed([]);
+          setIsFetchingProducts(false);
         }
         return;
       }
 
+      setIsFetchingProducts(true);
       try {
         const response = await api.get("/products", {
           params: {
@@ -151,6 +154,10 @@ const MobileCategory = () => {
           return productCategoryId === categoryId || productParentId === categoryId;
         });
         setCategoryProductsFeed(fallback);
+      } finally {
+        if (!cancelled) {
+          setIsFetchingProducts(false);
+        }
       }
     };
 
@@ -521,7 +528,12 @@ const MobileCategory = () => {
 
           {/* Products List */}
           <div className="px-4 py-4">
-            {categoryProducts.length === 0 ? (
+            {isFetchingProducts ? (
+              <div className="flex flex-col items-center justify-center py-16 space-y-4">
+                <div className="w-12 h-12 border-4 border-gray-100 border-t-[#7B0A0A] rounded-full animate-spin"></div>
+                <p className="text-gray-500 font-semibold text-sm">Loading products...</p>
+              </div>
+            ) : categoryProducts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="text-6xl text-gray-300 mx-auto mb-4">📦</div>
                 <h3 className="text-xl font-bold text-gray-800 mb-2">

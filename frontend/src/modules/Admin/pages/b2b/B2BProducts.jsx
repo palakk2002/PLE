@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   FiSearch,
   FiEye,
@@ -18,193 +18,52 @@ import Badge from "../../../../shared/components/Badge";
 import AnimatedSelect from "../../components/AnimatedSelect";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import toast from "react-hot-toast";
-
-const initialB2BProducts = [
-  {
-    id: "PROD001",
-    name: "Premium Leather Office Chair",
-    sku: "CHR-LHR-001",
-    vendor: "Comfort Seatings",
-    category: "Furniture",
-    retailPrice: 12000,
-    wholesalePrice: 8500,
-    moq: 5,
-    status: "Active",
-    slabs: [
-      { minQty: 5, maxQty: 19, price: 8500 },
-      { minQty: 20, maxQty: 49, price: 8000 },
-      { minQty: 50, maxQty: null, price: 7500 },
-    ],
-    image: "",
-    stock: 250,
-  },
-  {
-    id: "PROD002",
-    name: "Ergonomic Keyboard & Mouse Combo",
-    sku: "KEY-MSE-882",
-    vendor: "Apex Electronics",
-    category: "Computers",
-    retailPrice: 3500,
-    wholesalePrice: 2400,
-    moq: 15,
-    status: "Active",
-    slabs: [
-      { minQty: 15, maxQty: 49, price: 2400 },
-      { minQty: 50, maxQty: 99, price: 2200 },
-      { minQty: 100, maxQty: null, price: 2000 },
-    ],
-    image: "",
-    stock: 500,
-  },
-  {
-    id: "PROD003",
-    name: "Double Walled Stainless Steel Bottle (1L)",
-    sku: "BTL-SS-099",
-    vendor: "GreenLife Kitchenware",
-    category: "Kitchenware",
-    retailPrice: 1500,
-    wholesalePrice: 950,
-    moq: 50,
-    status: "Active",
-    slabs: [
-      { minQty: 50, maxQty: 199, price: 950 },
-      { minQty: 200, maxQty: 499, price: 880 },
-      { minQty: 500, maxQty: null, price: 800 },
-    ],
-    image: "",
-    stock: 1200,
-  },
-  {
-    id: "PROD004",
-    name: "Noise Cancelling Wireless Headphones",
-    sku: "HDP-ANC-772",
-    vendor: "Apex Electronics",
-    category: "Electronics",
-    retailPrice: 8999,
-    wholesalePrice: 6200,
-    moq: 10,
-    status: "Active",
-    slabs: [
-      { minQty: 10, maxQty: 29, price: 6200 },
-      { minQty: 30, maxQty: 99, price: 5800 },
-      { minQty: 100, maxQty: null, price: 5400 },
-    ],
-    image: "",
-    stock: 180,
-  },
-  {
-    id: "PROD005",
-    name: "Adjustable Standing Desk (Dual Motor)",
-    sku: "DSK-STND-402",
-    vendor: "Comfort Seatings",
-    category: "Furniture",
-    retailPrice: 28000,
-    wholesalePrice: 19500,
-    moq: 2,
-    status: "Active",
-    slabs: [
-      { minQty: 2, maxQty: 9, price: 19500 },
-      { minQty: 10, maxQty: 24, price: 18500 },
-      { minQty: 25, maxQty: null, price: 17500 },
-    ],
-    image: "",
-    stock: 75,
-  },
-  {
-    id: "PROD006",
-    name: "Smart WiFi LED Bulb (9W, Pack of 10)",
-    sku: "LGT-LED-10P",
-    vendor: "Bright Lightings",
-    category: "Home Decor",
-    retailPrice: 2499,
-    wholesalePrice: 1650,
-    moq: 20,
-    status: "Active",
-    slabs: [
-      { minQty: 20, maxQty: 49, price: 1650 },
-      { minQty: 50, maxQty: 99, price: 1500 },
-      { minQty: 100, maxQty: null, price: 1380 },
-    ],
-    image: "",
-    stock: 800,
-  },
-  {
-    id: "PROD007",
-    name: "USB-C Multi-port Hub (8-in-1)",
-    sku: "HUB-USBC-801",
-    vendor: "Apex Electronics",
-    category: "Computers",
-    retailPrice: 4999,
-    wholesalePrice: 3400,
-    moq: 12,
-    status: "Active",
-    slabs: [
-      { minQty: 12, maxQty: 47, price: 3400 },
-      { minQty: 48, maxQty: null, price: 3100 },
-    ],
-    image: "",
-    stock: 320,
-  },
-  {
-    id: "PROD008",
-    name: "Ceramic Coffee Mug Set (6 pieces)",
-    sku: "MUG-CER-6SET",
-    vendor: "GreenLife Kitchenware",
-    category: "Kitchenware",
-    retailPrice: 1200,
-    wholesalePrice: 750,
-    moq: 30,
-    status: "Inactive",
-    slabs: [
-      { minQty: 30, maxQty: 89, price: 750 },
-      { minQty: 90, maxQty: null, price: 690 },
-    ],
-    image: "",
-    stock: 450,
-  },
-  {
-    id: "PROD009",
-    name: "Waterproof Sports Backpack (35L)",
-    sku: "BAG-SPT-002",
-    vendor: "TravelGear Co.",
-    category: "Luggage",
-    retailPrice: 2999,
-    wholesalePrice: 1800,
-    moq: 25,
-    status: "Active",
-    slabs: [
-      { minQty: 25, maxQty: 99, price: 1800 },
-      { minQty: 100, maxQty: null, price: 1600 },
-    ],
-    image: "",
-    stock: 600,
-  },
-  {
-    id: "PROD010",
-    name: "A5 Hardcover Journal (Dot Grid)",
-    sku: "JRN-A5-DOT",
-    vendor: "PaperCrafts India",
-    category: "Stationery",
-    retailPrice: 650,
-    wholesalePrice: 380,
-    moq: 100,
-    status: "Active",
-    slabs: [
-      { minQty: 100, maxQty: 499, price: 380 },
-      { minQty: 500, maxQty: 999, price: 340 },
-      { minQty: 1000, maxQty: null, price: 300 },
-    ],
-    image: "",
-    stock: 2500,
-  },
-];
+import api from "../../../../shared/utils/api";
 
 const B2BProducts = () => {
-  const [products, setProducts] = useState(initialB2BProducts);
+  const [products, setProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedVendor, setSelectedVendor] = useState("all");
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const fetchB2BProducts = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get('/admin/products?b2bOnly=true');
+      if (res && res.data && res.data.data) {
+        const prods = res.data.data.products || [];
+        const mapped = prods.map(p => ({
+          id: p._id,
+          name: p.name,
+          sku: p.slug,
+          vendor: p.vendorId?.storeName || 'Unknown',
+          category: p.categoryId?.name || 'Uncategorized',
+          retailPrice: p.price,
+          wholesalePrice: p.b2bWholesalePrice || p.price,
+          moq: p.b2bMinOrderQty || 1,
+          status: p.isActive ? "Active" : "Inactive",
+          slabs: p.b2bBulkPricingSlabs?.map(slab => ({
+            minQty: slab.minQty,
+            maxQty: slab.maxQty,
+            price: slab.pricePerUnit
+          })) || [],
+          image: p.image || '',
+          stock: p.stockQuantity || 0
+        }));
+        setProducts(mapped);
+      }
+    } catch (err) {
+      toast.error('Failed to fetch B2B Products');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchB2BProducts();
+  }, []);
 
   // Derive unique lists for filters
   const categories = useMemo(() => {
@@ -232,14 +91,20 @@ const B2BProducts = () => {
   }, [products]);
 
   // Toggle status handler
-  const handleToggleStatus = (id, currentStatus) => {
+  const handleToggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === "Active" ? "Inactive" : "Active";
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
-    );
-    toast.success(`Product status updated to ${newStatus}`);
-    if (selectedProduct && selectedProduct.id === id) {
-      setSelectedProduct((prev) => ({ ...prev, status: newStatus }));
+    const isActive = newStatus === "Active";
+    try {
+      await api.put(`/admin/products/${id}`, { isActive });
+      setProducts((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
+      );
+      toast.success(`Product status updated to ${newStatus}`);
+      if (selectedProduct && selectedProduct.id === id) {
+        setSelectedProduct((prev) => ({ ...prev, status: newStatus }));
+      }
+    } catch (err) {
+      toast.error('Failed to update product status');
     }
   };
 

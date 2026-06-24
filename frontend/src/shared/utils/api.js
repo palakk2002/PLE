@@ -250,7 +250,16 @@ const clearCacheByUrlMatch = (url = '') => {
 api.interceptors.request.use(
   (config) => {
     const scope = getScopeFromUrl(config.url || '');
-    const token = getStorageItem(AUTH_SCOPES[scope].accessKey);
+    let token = getStorageItem(AUTH_SCOPES[scope].accessKey);
+
+    // Prioritize B2B Admin token for shared '/user' endpoints if the user is acting as a B2B Admin
+    if (scope === 'user') {
+      const b2bToken = getStorageItem('b2bAdminToken');
+      if (b2bToken) {
+        token = b2bToken;
+      }
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -343,64 +352,6 @@ api.interceptors.response.use(
   (response) => {
     const url = response.config?.url || '';
     
-    // Intercept GET /products
-    if (url.endsWith('/products') || url.includes('/products?')) {
-      const params = response.config?.params || {};
-      const mockItems = getFilteredMockCircularProducts(params);
-      
-      if (response.data) {
-        if (response.data.products && Array.isArray(response.data.products)) {
-          const merged = [...response.data.products, ...mockItems];
-          const unique = merged.filter((item, index, self) => 
-            index === self.findIndex((t) => String(t.id) === String(item.id))
-          );
-          response.data.products = unique;
-          if (typeof response.data.total === 'number') {
-            response.data.total = unique.length;
-          }
-        } else if (response.data.data && response.data.data.products && Array.isArray(response.data.data.products)) {
-          const merged = [...response.data.data.products, ...mockItems];
-          const unique = merged.filter((item, index, self) => 
-            index === self.findIndex((t) => String(t.id) === String(item.id))
-          );
-          response.data.data.products = unique;
-          if (typeof response.data.data.total === 'number') {
-            response.data.data.total = unique.length;
-          }
-        }
-      }
-    }
-    
-    // Intercept GET /vendors/:vendorId/products
-    const vendorProductsMatch = url.match(/\/vendors\/([^/]+)\/products/);
-    if (vendorProductsMatch) {
-      const vendorId = vendorProductsMatch[1];
-      const params = response.config?.params || {};
-      const mockItems = getFilteredMockCircularProducts({ ...params, vendor: vendorId });
-      
-      if (response.data) {
-        if (response.data.products && Array.isArray(response.data.products)) {
-          const merged = [...response.data.products, ...mockItems];
-          const unique = merged.filter((item, index, self) => 
-            index === self.findIndex((t) => String(t.id) === String(item.id))
-          );
-          response.data.products = unique;
-          if (typeof response.data.total === 'number') {
-            response.data.total = unique.length;
-          }
-        } else if (response.data.data && response.data.data.products && Array.isArray(response.data.data.products)) {
-          const merged = [...response.data.data.products, ...mockItems];
-          const unique = merged.filter((item, index, self) => 
-            index === self.findIndex((t) => String(t.id) === String(item.id))
-          );
-          response.data.data.products = unique;
-          if (typeof response.data.data.total === 'number') {
-            response.data.data.total = unique.length;
-          }
-        }
-      }
-    }
-    
     const method = response.config?.method?.toLowerCase() || '';
     if (method === 'get' && isCacheableUrl(url) && response.status === 200) {
       const cacheKey = getCacheKey(response.config);
@@ -414,156 +365,9 @@ api.interceptors.response.use(
   },
   async (error) => {
     const originalRequest = error.config || {};
-    const url = originalRequest.url || '';
-    
-    // Intercept details request for mock circular products
-    if (url.includes('/products/refurb_')) {
-      const mockId = url.split('/').pop();
-      const matched = mockProductsList.find(p => String(p.id) === String(mockId));
-      if (matched) {
-        return {
-          success: true,
-          data: matched
-        };
-      }
-    }
-
     const scope = getScopeFromUrl(originalRequest.url || '');
     const currentPath = window.location.pathname;
     const pathScope = getScopeFromPath(currentPath);
-
-    // Catch mock session calls immediately to bypass standard error toasts, redirects, and logouts
-    const activeToken = scope && AUTH_SCOPES[scope] ? getStorageItem(AUTH_SCOPES[scope].accessKey) : null;
-    if (activeToken && activeToken.startsWith('mock.')) {
-      if (!originalRequest.url.includes('/vendors/all')) { console.warn("Mock session active, intercepting network failure for:", originalRequest.url); }
-      const url = originalRequest.url || '';
-      
-      if (url.includes('/vendor/auth/profile')) {
-        return {
-          id: "vendor_mock_12345",
-          _id: "vendor_mock_12345",
-          name: "Fashion Hub Admin",
-          storeName: "Fashion Hub",
-          status: "approved",
-          isVerified: true,
-          joinDate: new Date().toISOString(),
-          phone: "+91 98765 43210",
-          email: "fashionhub@example.com",
-          address: {
-            street: "123 Elegance Boulevard, Sector 4",
-            city: "New Delhi",
-            state: "Delhi",
-            zipCode: "110001",
-            country: "India",
-          }
-        };
-      }
-      if (url.includes('/vendor/orders')) {
-        return {
-          orders: [],
-          total: 0,
-          page: 1,
-          pages: 1
-        };
-      }
-      if (url.includes('/vendor/earnings')) {
-        return {
-          summary: {
-            totalEarnings: 154300,
-            pendingEarnings: 24500,
-            paidEarnings: 129800,
-            totalCommission: 15430,
-            totalOrders: 42
-          },
-          commissions: []
-        };
-      }
-      if (url.includes('/vendor/products')) {
-        return {
-          products: [],
-          total: 0,
-          page: 1,
-          pages: 1
-        };
-      }
-      if (url.includes('/uploads/image')) {
-        let uploadUrl = "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&auto=format&fit=crop&q=60"; // Default fallback
-        if (originalRequest.data instanceof FormData) {
-          const file = originalRequest.data.get('image') || originalRequest.data.get('file');
-          if (file && (file instanceof File || file instanceof Blob)) {
-            try {
-              uploadUrl = URL.createObjectURL(file);
-              console.log("Mock session - dynamically created local object URL for uploaded image:", uploadUrl);
-            } catch (err) {
-              console.warn("Failed to create Object URL for mock image upload:", err);
-            }
-          }
-        }
-        return {
-          statusCode: 201,
-          success: true,
-          message: "Image uploaded successfully",
-          data: {
-            url: uploadUrl,
-            publicId: `mock_fallback_${Date.now()}`
-          }
-        };
-      }
-      if (url.includes('/categories') || url.includes('/admin/categories')) {
-        if (!originalRequest.method || originalRequest.method.toLowerCase() === 'get') {
-          return {
-            statusCode: 200,
-            success: true,
-            message: "Categories fetched.",
-            data: [
-              { _id: "cat_mock_1", id: "cat_mock_1", name: "Fashion & Apparel", description: "Clothing, shoes, bags, and fashion accessories.", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400", parentId: null, isActive: true, order: 1 },
-              { _id: "cat_mock_2", id: "cat_mock_2", name: "Electronics & Gadgets", description: "Smartphones, laptops, smart home devices, and gear.", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400", parentId: null, isActive: true, order: 2 },
-              { _id: "cat_mock_3", id: "cat_mock_3", name: "Home & Kitchen", description: "Furniture, decor, kitchenware, and appliances.", image: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?w=400", parentId: null, isActive: true, order: 3 },
-              { _id: "cat_mock_4", id: "cat_mock_4", name: "Men's Clothing", description: "Jackets, t-shirts, jeans, and formal wear for men.", image: "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=400", parentId: "cat_mock_1", isActive: true, order: 1 },
-              { _id: "cat_mock_5", id: "cat_mock_5", name: "Women's Clothing", description: "Dresses, tops, skirts, and ethnic wear for women.", image: "https://images.unsplash.com/photo-1581044777550-4cfa60707c03?w=400", parentId: "cat_mock_1", isActive: true, order: 2 }
-            ]
-          };
-        }
-        let body = {};
-        try {
-          body = originalRequest.data ? (typeof originalRequest.data === 'string' ? JSON.parse(originalRequest.data) : originalRequest.data) : {};
-        } catch {
-          body = {};
-        }
-        return {
-          statusCode: 201,
-          success: true,
-          message: "Category saved successfully",
-          data: {
-            _id: body._id || `cat_mock_${Date.now()}`,
-            id: body.id || `cat_mock_${Date.now()}`,
-            name: body.name || "Mock Category",
-            description: body.description || "",
-            image: body.image || "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400",
-            parentId: body.parentId || null,
-            isActive: body.isActive !== undefined ? body.isActive : true,
-            order: Number(body.order) || 0
-          }
-        };
-      }
-      if (url.includes('/notifications')) {
-        return {
-          statusCode: 200,
-          success: true,
-          message: "Notifications fetched",
-          data: {
-            notifications: [
-              { _id: "not_mock_1", id: "not_mock_1", title: "New Vendor Registration", message: "Ankit Fashion Hub has registered and is awaiting review.", isRead: false, createdAt: new Date().toISOString() },
-              { _id: "not_mock_2", id: "not_mock_2", title: "Product Stock Warning", message: "Product 'White Watch' is low in stock.", isRead: true, createdAt: new Date().toISOString() }
-            ],
-            total: 2,
-            page: 1,
-            pages: 1
-          }
-        };
-      }
-      return { success: true, data: {} };
-    }
 
     if (shouldAttemptRefresh(error, scope)) {
       try {

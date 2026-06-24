@@ -13,6 +13,9 @@ import * as reportController from '../controllers/report.controller.js';
 import * as marketingController from '../controllers/marketing.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
 import * as uploadController from '../controllers/upload.controller.js';
+import * as refurbishedController from '../controllers/refurbished.controller.js';
+import * as loyaltyController from '../controllers/loyalty.controller.js';
+import * as settingsController from '../controllers/settings.controller.js';
 import b2bUserRoutes from './b2bUser.routes.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
@@ -65,36 +68,6 @@ import {
 
 const router = Router();
 const adminAuth = [authenticate, authorize('admin', 'superadmin'), enforceAccountStatus];
-
-// ─── Auth ─────────────────────────────────────────────────────────────────────
-router.post('/auth/login', authLimiter, authController.login);
-router.post('/auth/refresh', validate(refreshTokenSchema), authController.refresh);
-router.post('/auth/logout', validate(logoutSchema), authController.logout);
-router.get('/auth/profile', ...adminAuth, authController.getProfile);
-
-// ─── Analytics ────────────────────────────────────────────────────────────────
-router.get('/analytics/dashboard', ...adminAuth, analyticsController.getDashboardStats);
-router.get('/analytics/revenue', ...adminAuth, analyticsController.getRevenueData);
-router.get('/analytics/order-status', ...adminAuth, analyticsController.getOrderStatusBreakdown);
-router.get('/analytics/top-products', ...adminAuth, analyticsController.getTopProducts);
-router.get('/analytics/customer-growth', ...adminAuth, analyticsController.getCustomerGrowth);
-router.get('/analytics/recent-orders', ...adminAuth, analyticsController.getRecentOrders);
-router.get('/analytics/sales', ...adminAuth, analyticsController.getSalesData);
-router.get('/analytics/finance-summary', ...adminAuth, analyticsController.getFinancialSummary);
-router.get('/analytics/inventory-stats', ...adminAuth, analyticsController.getInventoryStats);
-
-// ─── Orders ───────────────────────────────────────────────────────────────────
-router.get('/orders', ...adminAuth, orderController.getAllOrders);
-router.get('/orders/:id', ...adminAuth, orderController.getOrderById);
-router.patch('/orders/:id/status', ...adminAuth, orderController.updateOrderStatus);
-router.patch('/orders/:id/assign-delivery', ...adminAuth, orderController.assignDeliveryBoy);
-router.delete('/orders/:id', ...adminAuth, orderController.deleteOrder);
-
-// ─── Products ─────────────────────────────────────────────────────────────────
-router.get('/products', ...adminAuth, catalogController.getAllProducts);
-router.get('/products/tax-pricing-rules', ...adminAuth, catalogController.getTaxPricingRules);
-router.get('/products/:id', ...adminAuth, catalogController.getProductById);
-router.post('/products', ...adminAuth, validate(createProductSchema), catalogController.createProduct);
 router.put('/products/tax-pricing-rules', ...adminAuth, validate(taxPricingRulesSchema), catalogController.updateTaxPricingRules);
 
 router.put('/products/:id', ...adminAuth, validate(updateProductSchema), catalogController.updateProduct);
@@ -135,6 +108,7 @@ router.patch('/customers/:id/status', ...adminAuth, validate(customerIdParamSche
 router.delete('/customers/:customerId/addresses/:addressId', ...adminAuth, validate(customerAddressParamsSchema, 'params'), customerController.deleteCustomerAddress);
 
 // ─── Delivery ─────────────────────────────────────────────────────────────────
+router.get('/delivery-control/stats', ...adminAuth, deliveryController.getDeliveryControlStats);
 router.get('/delivery-boys', ...adminAuth, validate(deliveryListQuerySchema, 'query'), deliveryController.getAllDeliveryBoys);
 router.post('/delivery-boys', ...adminAuth, validate(createDeliveryBoySchema), deliveryController.createDeliveryBoy);
 router.get('/delivery-boys/:id', ...adminAuth, validate(deliveryBoyIdParamSchema, 'params'), deliveryController.getDeliveryBoyById);
@@ -148,6 +122,10 @@ router.post('/delivery-boys/:id/settle-cash', ...adminAuth, validate(deliveryBoy
 router.get('/return-requests', ...adminAuth, returnController.getAllReturnRequests);
 router.get('/return-requests/:id', ...adminAuth, returnController.getReturnRequestById);
 router.patch('/return-requests/:id/status', ...adminAuth, returnController.updateReturnRequestStatus);
+
+// ─── Refurbished Complaints & Returns ─────────────────────────────────────────
+router.get('/refurbished-returns', ...adminAuth, returnController.getRefurbishedReturns);
+router.patch('/refurbished-returns/:id/status', ...adminAuth, returnController.updateRefurbishedReturn);
 
 // ─── Support Tickets ──────────────────────────────────────────────────────────
 router.get('/support/tickets', ...adminAuth, supportController.getAllTickets);
@@ -209,4 +187,53 @@ router.post('/rfq/:id/vendor/:vendorId/message', ...adminAuth, adminRfqControlle
 router.get('/purchase-orders', ...adminAuth, adminRfqController.getAdminPurchaseOrders);
 router.get('/purchase-orders/:id', ...adminAuth, adminRfqController.getAdminPurchaseOrderDetail);
 
+// Refurbished Products
+router.get('/refurbished-products', ...adminAuth, refurbishedController.getRefurbishedProducts);
+router.put('/refurbished-products/:id/status', ...adminAuth, refurbishedController.updateRefurbishedStatus);
+router.get('/refurbished-stats', ...adminAuth, refurbishedController.getRefurbishedStats);
+
+// Loyalty Program
+router.get('/loyalty/stats', ...adminAuth, loyaltyController.getLoyaltyStats);
+router.get('/loyalty/transactions', ...adminAuth, loyaltyController.getLoyaltyTransactions);
+
+// Settings (Logistics, etc)
+router.get('/settings/:key', ...adminAuth, settingsController.getSettings);
+router.put('/settings/:key', ...adminAuth, settingsController.updateSettings);
+
 export default router;
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+router.post('/auth/login', authLimiter, authController.login);
+router.post('/auth/refresh', validate(refreshTokenSchema), authController.refresh);
+router.post('/auth/logout', validate(logoutSchema), authController.logout);
+router.get('/auth/profile', ...adminAuth, authController.getProfile);
+
+// ─── Analytics ────────────────────────────────────────────────────────────────
+router.get('/analytics/dashboard', ...adminAuth, analyticsController.getDashboardStats);
+router.get('/analytics/b2b-overview', ...adminAuth, analyticsController.getB2bOverviewStats);
+router.get('/analytics/revenue', ...adminAuth, analyticsController.getRevenueData);
+router.get('/analytics/order-status', ...adminAuth, analyticsController.getOrderStatusBreakdown);
+router.get('/analytics/top-products', ...adminAuth, analyticsController.getTopProducts);
+router.get('/analytics/customer-growth', ...adminAuth, analyticsController.getCustomerGrowth);
+router.get('/analytics/recent-orders', ...adminAuth, analyticsController.getRecentOrders);
+router.get('/analytics/sales', ...adminAuth, analyticsController.getSalesData);
+router.get('/analytics/finance-summary', ...adminAuth, analyticsController.getFinancialSummary);
+router.get('/analytics/inventory-stats', ...adminAuth, analyticsController.getInventoryStats);
+
+// ─── Orders ───────────────────────────────────────────────────────────────────
+router.get('/orders', ...adminAuth, orderController.getAllOrders);
+router.get('/orders/:id', ...adminAuth, orderController.getOrderById);
+router.patch('/orders/:id/status', ...adminAuth, orderController.updateOrderStatus);
+router.patch('/orders/:id/assign-delivery', ...adminAuth, orderController.assignDeliveryBoy);
+router.delete('/orders/:id', ...adminAuth, orderController.deleteOrder);
+
+// ---- Purchase Orders --------
+router.get('/purchase-orders', ...adminAuth, orderController.getAllPurchaseOrders);
+router.patch('/purchase-orders/:id/status', ...adminAuth, orderController.updatePurchaseOrderStatus);
+router.patch('/purchase-orders/:id/payment', ...adminAuth, orderController.updatePurchaseOrderPayment);
+
+// ─── Products ─────────────────────────────────────────────────────────────────
+router.get('/products', ...adminAuth, catalogController.getAllProducts);
+router.get('/products/tax-pricing-rules', ...adminAuth, catalogController.getTaxPricingRules);
+router.get('/products/:id', ...adminAuth, catalogController.getProductById);
+router.post('/products', ...adminAuth, validate(createProductSchema), catalogController.createProduct);

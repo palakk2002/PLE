@@ -24,6 +24,7 @@ import DataTable from "../../components/DataTable";
 import { formatPrice } from "../../../../shared/utils/helpers";
 // import { formatDateTime } from '../../../utils/adminHelpers';
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
 
 const VendorDetail = () => {
   const { id } = useParams();
@@ -41,12 +42,13 @@ const VendorDetail = () => {
   const [isRefurbishedEnabled, setIsRefurbishedEnabled] = useState(false);
   const isSameVendorId = (a, b) => String(a) === String(b);
 
-  const handleToggleRefurbished = () => {
+  const handleToggleRefurbished = async () => {
     try {
-      const config = JSON.parse(localStorage.getItem("refurbished-sellers-config") || "{}");
       const newVal = !isRefurbishedEnabled;
-      config[id] = newVal;
-      localStorage.setItem("refurbished-sellers-config", JSON.stringify(config));
+      
+      // Update via backend API instead of local storage
+      await api.patch(`/admin/vendors/${id}/status`, { isRefurbishedSeller: newVal });
+      
       setIsRefurbishedEnabled(newVal);
       if (newVal) {
         toast.success("Refurbished selling permission enabled for this seller.");
@@ -65,12 +67,7 @@ const VendorDetail = () => {
       if (data) {
         setVendor(data);
         setCommissionRate(((data.commissionRate || 0) * 100).toFixed(1));
-        try {
-          const config = JSON.parse(localStorage.getItem("refurbished-sellers-config") || "{}");
-          setIsRefurbishedEnabled(!!config[id]);
-        } catch {
-          setIsRefurbishedEnabled(false);
-        }
+        setIsRefurbishedEnabled(!!data.isRefurbishedSeller);
 
         // 2. Fetch Vendor Orders (all pages)
         try {

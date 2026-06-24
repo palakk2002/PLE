@@ -117,6 +117,7 @@ const MobileCategories = () => {
     minRating: "",
   });
   const [categoryProductsFeed, setCategoryProductsFeed] = useState([]);
+  const [isFetchingProducts, setIsFetchingProducts] = useState(true);
 
   // Get subcategories for selected category
   const subcategories = useMemo(() => {
@@ -156,10 +157,12 @@ const MobileCategories = () => {
       if (!targetCategoryId) {
         if (!cancelled) {
           setCategoryProductsFeed([]);
+          setIsFetchingProducts(false);
         }
         return;
       }
 
+      setIsFetchingProducts(true);
       try {
         const response = await api.get("/products", {
           params: {
@@ -191,6 +194,10 @@ const MobileCategories = () => {
           return productCategoryId === selectedId || productParentId === selectedId;
         });
         setCategoryProductsFeed(fallback);
+      } finally {
+        if (!cancelled) {
+          setIsFetchingProducts(false);
+        }
       }
     };
 
@@ -654,7 +661,12 @@ const MobileCategories = () => {
                   </div>
                 )}
 
-                {filteredProducts.length === 0 ? (
+                {isFetchingProducts ? (
+                  <div className="flex flex-col items-center justify-center py-16 space-y-4 w-full">
+                    <div className="w-12 h-12 border-4 border-gray-100 border-t-[#7B0A0A] rounded-full animate-spin"></div>
+                    <p className="text-gray-500 font-semibold text-sm">Loading products...</p>
+                  </div>
+                ) : filteredProducts.length === 0 ? (
                   <div key="empty" className="text-center py-12">
                     <div className="text-6xl text-gray-300 mx-auto mb-4">
                       📦

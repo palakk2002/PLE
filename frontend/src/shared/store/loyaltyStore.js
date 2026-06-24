@@ -7,72 +7,17 @@ const DEFAULT_RULES = {
   redemptionRatio: 0.1, // 1 point = ₹0.10
 };
 
-const DEFAULT_HISTORY = [
-  {
-    date: "2026-05-15T10:30:00.000Z",
-    orderRef: "ORD-893274",
-    earnedPoints: 150,
-    redeemedPoints: 0,
-    balance: 150,
-  },
-  {
-    date: "2026-05-20T14:45:00.000Z",
-    orderRef: "ORD-894101",
-    earnedPoints: 300,
-    redeemedPoints: 100,
-    balance: 350,
-  },
-  {
-    date: "2026-06-01T09:15:00.000Z",
-    orderRef: "ORD-895629",
-    earnedPoints: 500,
-    redeemedPoints: 400,
-    balance: 450,
-  },
-];
+const DEFAULT_HISTORY = [];
 
-const DEFAULT_USERS = [
-  {
-    id: "buyer_mock_12345",
-    name: "Sarkar Raj",
-    email: "sarkarraj0766@gmail.com",
-    currentPoints: 450,
-    earnedPoints: 950,
-    redeemedPoints: 500,
-  },
-  {
-    id: "user_2",
-    name: "Ananya Sharma",
-    email: "ananya@example.com",
-    currentPoints: 1200,
-    earnedPoints: 1800,
-    redeemedPoints: 600,
-  },
-  {
-    id: "user_3",
-    name: "Rohan Gupta",
-    email: "rohan@example.com",
-    currentPoints: 0,
-    earnedPoints: 500,
-    redeemedPoints: 500,
-  },
-  {
-    id: "user_4",
-    name: "Priya Nair",
-    email: "priya@example.com",
-    currentPoints: 750,
-    earnedPoints: 1000,
-    redeemedPoints: 250,
-  },
-];
+const DEFAULT_USERS = [];
 
 export const useLoyaltyStore = create(
   persist(
     (set, get) => ({
-      availablePoints: 450,
-      totalEarned: 950,
-      totalRedeemed: 500,
-      pendingPoints: 120,
+      availablePoints: 0,
+      totalEarned: 0,
+      totalRedeemed: 0,
+      pendingPoints: 0,
       rules: DEFAULT_RULES,
       history: DEFAULT_HISTORY,
       users: DEFAULT_USERS,
@@ -174,10 +119,10 @@ export const useLoyaltyStore = create(
 
       resetLoyalty: () => {
         set({
-          availablePoints: 450,
-          totalEarned: 950,
-          totalRedeemed: 500,
-          pendingPoints: 120,
+          availablePoints: 0,
+          totalEarned: 0,
+          totalRedeemed: 0,
+          pendingPoints: 0,
           rules: DEFAULT_RULES,
           history: DEFAULT_HISTORY,
           users: DEFAULT_USERS,
@@ -185,7 +130,7 @@ export const useLoyaltyStore = create(
       },
     }),
     {
-      name: "loyalty-storage",
+      name: "loyalty-storage-v2",
       storage: createJSONStorage(() => localStorage),
     }
   )

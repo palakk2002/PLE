@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { getVendorById } from '../../data/vendors';
+import { useVendorStore } from './vendorStore';
 
 export const useCommissionStore = create(
   persist(
@@ -10,11 +10,10 @@ export const useCommissionStore = create(
 
       // Calculate commission for an order item
       calculateCommission: (vendorId, itemPrice, quantity) => {
-        const vendor = getVendorById(vendorId);
-        if (!vendor) return 0;
+        const vendor = useVendorStore.getState().vendors.find(v => String(v.id || v._id) === String(vendorId));
 
         const subtotal = itemPrice * quantity;
-        const commissionRate = vendor.commissionRate || 10; // Default 10%
+        const commissionRate = vendor?.commissionRate || 10; // Default 10%
         const commission = (subtotal * commissionRate) / 100;
         const vendorEarnings = subtotal - commission;
 

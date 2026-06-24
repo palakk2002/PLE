@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiRotateCcw,
@@ -14,91 +14,56 @@ import {
 } from "react-icons/fi";
 import Badge from "../../../../shared/components/Badge";
 import toast from "react-hot-toast";
-
-// Mock Complaints and Return Tracking Database
-const INITIAL_RETURNS = [
-  {
-    id: "ret_1001",
-    productName: "Apple iPhone 13 Pro 128GB - Graphite",
-    vendorName: "Apex Electronics Retail",
-    buyerName: "Rahul Verma",
-    issue: "Buyer claims display has an obvious green tint on low brightness settings.",
-    status: "qc_center", // return_initiated, in_transit, qc_center, refund_processed, claim_rejected
-    trackingStep: 3, // 1, 2, 3, 4
-    hasDamageReport: true,
-    damageNotes: "Faint horizontal lines visible when screen brightness is under 20%. LCD controller IC anomaly.",
-    photoUrl: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=500&auto=format&fit=crop&q=60",
-    date: "2026-05-24",
-  },
-  {
-    id: "ret_1002",
-    productName: "Sony WH-1000XM4 Wireless Headphones",
-    vendorName: "Gupta Electronics",
-    buyerName: "Sneha Nair",
-    issue: "Left earcup padding was unclipped. Battery drain is faster than listed.",
-    status: "in_transit",
-    trackingStep: 2,
-    hasDamageReport: false,
-    damageNotes: "",
-    photoUrl: "",
-    date: "2026-05-22",
-  },
-  {
-    id: "ret_1003",
-    productName: "Levi's Renewed Leather Ankle Boots",
-    vendorName: "Fashion Hub Store",
-    buyerName: "Amit Sen",
-    issue: "Soles show heavy scuff marks. Graded as 'A' but matches 'B' or 'C' standard.",
-    status: "refund_processed",
-    trackingStep: 4,
-    hasDamageReport: true,
-    damageNotes: "Inspection validates sole wear is 2.5mm deep, exceeding Grade A threshold. Refund authorized.",
-    photoUrl: "https://images.unsplash.com/photo-1520639888713-7851133b1ed0?w=500&auto=format&fit=crop&q=60",
-    date: "2026-05-20",
-  },
-  {
-    id: "ret_1004",
-    productName: "Puma Open-Box Athletic Running Shoes",
-    vendorName: "Tech Gear Pro",
-    buyerName: "Vikram Shah",
-    issue: "Shoe box packaging was torn. Missing original accessory card.",
-    status: "return_initiated",
-    trackingStep: 1,
-    hasDamageReport: false,
-    damageNotes: "",
-    photoUrl: "",
-    date: "2026-05-25",
-  }
-];
+import api from "../../../../shared/utils/api";
 
 const ComplaintsReturns = () => {
-  const [returnsList, setReturnsList] = useState(INITIAL_RETURNS);
+  const [returnsList, setReturnsList] = useState([]);
   const [activeSubTab, setActiveSubTab] = useState("complaints"); // complaints, tracking, inspection, claims
   const [selectedReturn, setSelectedReturn] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
 
-  const handleUpdateStatus = (id, newStatus, trackingStep) => {
-    const updated = returnsList.map((r) => {
-      if (r.id === id) {
-        return { ...r, status: newStatus, trackingStep };
+  useEffect(() => {
+    const fetchReturns = async () => {
+      try {
+        const res = await api.get('/admin/refurbished-returns');
+        setReturnsList(res.data);
+      } catch (err) {
+        toast.error("Failed to fetch refurbished returns");
+        console.error(err);
+      } finally {
+        setLoading(false);
       }
-      return r;
-    });
-    setReturnsList(updated);
-    if (selectedReturn && selectedReturn.id === id) {
-      setSelectedReturn({ ...selectedReturn, status: newStatus, trackingStep });
+    };
+    fetchReturns();
+  }, []);
+
+  const handleUpdateStatus = async (id, newStatus, trackingStep) => {
+    try {
+      await api.patch(`/admin/refurbished-returns/${id}/status`, { status: newStatus, trackingStep });
+      
+      const updated = returnsList.map((r) => {
+        if (r.id === id) {
+          return { ...r, status: newStatus, trackingStep };
+        }
+        return r;
+      });
+      setReturnsList(updated);
+      if (selectedReturn && selectedReturn.id === id) {
+        setSelectedReturn({ ...selectedReturn, status: newStatus, trackingStep });
+      }
+      toast.success(`Return status updated successfully.`);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update return status");
     }
-    toast.success(`Return status updated successfully.`);
   };
 
   const handleApproveRefund = (id) => {
     handleUpdateStatus(id, "refund_processed", 4);
-    toast.success("Refund processed and issued to buyer.");
   };
 
   const handleRejectClaim = (id) => {
     handleUpdateStatus(id, "claim_rejected", 4);
-    toast.error("Refund claim rejected. Item returning to buyer.");
   };
 
   // Filters

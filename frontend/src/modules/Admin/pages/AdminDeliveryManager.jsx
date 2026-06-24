@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   FiTruck,
@@ -13,27 +13,65 @@ import {
   FiUser
 } from 'react-icons/fi';
 import {
-  deliveryZones as initialZones,
-  initialDeliveryOrders,
-  platformLogisticsStats
+  deliveryZones as initialZones
 } from '../../../shared/data/deliveryMockData';
 import { formatPrice } from '../../../shared/utils/helpers';
-
+import api from '../../../shared/utils/api';
+import toast from 'react-hot-toast';
 const AdminDeliveryManager = () => {
   const [zones, setZones] = useState(initialZones);
-  const [orders, setOrders] = useState(initialDeliveryOrders);
+  const [orders, setOrders] = useState([]);
   
   // New zone form states
   const [newZoneName, setNewZoneName] = useState('');
   const [newZoneCode, setNewZoneCode] = useState('');
   const [newZoneType, setNewZoneType] = useState('same-city');
   const [newZoneDrivers, setNewZoneDrivers] = useState(10);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [dashboardStats, setDashboardStats] = useState({
+    stats: { averageTransitTime: "0.0", onTimeSLA: "100.0", criticalDelays: "0.0", activeCarrierPartners: 0 },
+    activeShipments: [],
+    sellerSlas: []
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await api.get('/admin/settings/logistics');
+        if (res.data?.zones) {
+          setZones(res.data.zones);
+        }
+        
+        const statsRes = await api.get('/admin/delivery-control/stats');
+        if (statsRes.data?.data) {
+          setDashboardStats(statsRes.data.data);
+          setOrders(statsRes.data.data.activeShipments || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch logistics data", err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    try {
+      await api.put('/admin/settings/logistics', { zones });
+      toast.success("Logistics settings saved successfully!");
+    } catch (err) {
+      toast.error("Failed to save logistics settings.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
-  // Stats summary from mock utilities
+  // Stats summary from backend
   const stats = [
     {
       label: 'Average Transit Time',
-      value: `${platformLogisticsStats.averageDeliveryHours} Hours`,
+      value: `${dashboardStats.stats.averageTransitTime} Hours`,
       desc: 'Same-city local deliveries',
       icon: FiClock,
       color: 'from-blue-500 to-indigo-600',
@@ -42,7 +80,7 @@ const AdminDeliveryManager = () => {
     },
     {
       label: 'On-Time SLA Success',
-      value: `${platformLogisticsStats.sameCitySuccessRate}%`,
+      value: `${dashboardStats.stats.onTimeSLA}%`,
       desc: 'Guaranteed 8-16h express SLA',
       icon: FiTrendingUp,
       color: 'from-emerald-500 to-teal-600',
@@ -51,7 +89,7 @@ const AdminDeliveryManager = () => {
     },
     {
       label: 'Critical SLA Delays',
-      value: `${platformLogisticsStats.delayedShipmentPercentage}%`,
+      value: `${dashboardStats.stats.criticalDelays}%`,
       desc: 'Escalations and delayed orders',
       icon: FiAlertTriangle,
       color: 'from-red-500 to-orange-600',
@@ -60,7 +98,7 @@ const AdminDeliveryManager = () => {
     },
     {
       label: 'Active Carrier Partners',
-      value: `${platformLogisticsStats.activeCarrierPartners} fleets`,
+      value: `${dashboardStats.stats.activeCarrierPartners} fleets`,
       desc: 'Registered courier partners',
       icon: FiTruck,
       color: 'from-amber-500 to-orange-600',
@@ -94,13 +132,8 @@ const AdminDeliveryManager = () => {
     setZones(zones.filter(z => z.id !== id));
   };
 
-  // Seller SLAs benchmarks data
-  const sellerSlas = [
-    { name: 'Apex Electronics Ltd', zone: 'Mumbai Metro Loop', dispatchHours: '4.8h', compliance: '99.1%', status: 'Superstar' },
-    { name: 'Premium Logistics Furnitures', zone: 'Bangalore Zone-A', dispatchHours: '7.2h', compliance: '98.4%', status: 'Superstar' },
-    { name: 'Vibrant Glasswares Inc', zone: 'Delhi Ring Loop', dispatchHours: '14.5h', compliance: '94.2%', status: 'Compliant' },
-    { name: 'Standard Packaging Suppliers', zone: 'Outstation Western Zone', dispatchHours: '32.1h', compliance: '88.5%', status: 'Needs Improvement' }
-  ];
+  // Seller SLAs benchmarks data from backend
+  const sellerSlas = dashboardStats.sellerSlas || [];
 
   return (
     <motion.div
@@ -184,29 +217,29 @@ const AdminDeliveryManager = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {orders.map((order) => {
-                    const isDelayed = order.delivery?.slaStatus === 'delayed';
-                    const isExpress = order.delivery?.type === 'express';
+                  {orders.length > 0 ? orders.map((order) => {
+                    const isDelayed = order.slaCompliance === 'DELAYED SLA';
+                    const isExpress = order.channel === 'EXPRESS';
                     return (
                       <tr key={order.id} className="hover:bg-gray-50/50 transition-colors text-xs">
                         <td className="px-5 py-4 font-bold text-gray-700">{order.id}</td>
                         <td className="px-5 py-4">
-                          <div className="font-semibold text-gray-800">{order.customer}</div>
-                          <div className="text-[10px] text-gray-400 mt-0.5 truncate max-w-xs">{order.address}</div>
+                          <div className="font-semibold text-gray-800">{order.customerName || order.customer}</div>
+                          <div className="text-[10px] text-gray-400 mt-0.5 truncate max-w-xs">{order.destination || order.address}</div>
                         </td>
                         <td className="px-5 py-4">
                           {isExpress ? (
-                            <span className="bg-orange-50 text-orange-700 border border-orange-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">⚡ Express</span>
-                          ) : order.delivery?.type === 'bulk' ? (
-                            <span className="bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">📦 B2B Bulk</span>
+                            <span className="bg-orange-50 text-orange-700 border border-orange-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">⚡ {order.channel}</span>
+                          ) : order.channel === 'B2B BULK' ? (
+                            <span className="bg-blue-50 text-blue-700 border border-blue-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">📦 {order.channel}</span>
                           ) : (
-                            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">🚚 Standard</span>
+                            <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">🚚 {order.channel}</span>
                           )}
                         </td>
                         <td className="px-5 py-4">
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                            order.status === 'completed' ? 'bg-green-100 text-green-800' :
-                            order.status === 'in-transit' ? 'bg-blue-100 text-blue-800' :
+                            order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                            order.status === 'IN-TRANSIT' || order.status === 'SHIPPED' ? 'bg-blue-100 text-blue-800' :
                             'bg-yellow-100 text-yellow-800'
                           }`}>
                             {order.status}
@@ -215,15 +248,21 @@ const AdminDeliveryManager = () => {
                         <td className="px-5 py-4">
                           <span className={`px-2.5 py-1 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 w-max ${
                             isDelayed ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse' :
-                            order.delivery?.priority ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                            order.slaCompliance === 'PRIORITY SLA' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
                             'bg-emerald-50 text-emerald-700 border border-emerald-200'
                           }`}>
-                            {isDelayed ? '⚠️ Delayed SLA' : order.delivery?.priority ? '⏱️ Priority SLA' : '✓ On Time'}
+                            {isDelayed ? '⚠️ Delayed SLA' : order.slaCompliance === 'PRIORITY SLA' ? '⏱️ Priority SLA' : '✓ On Time'}
                           </span>
                         </td>
                       </tr>
                     );
-                  })}
+                  }) : (
+                    <tr>
+                      <td colSpan="5" className="px-5 py-8 text-center text-gray-400 font-bold text-xs">
+                        No active shipments currently found in the network.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -256,7 +295,7 @@ const AdminDeliveryManager = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 text-xs">
-                  {sellerSlas.map((s, idx) => (
+                  {sellerSlas.length > 0 ? sellerSlas.map((s, idx) => (
                     <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-5 py-4 font-semibold text-gray-800">{s.name}</td>
                       <td className="px-5 py-4 text-gray-600">{s.zone}</td>
@@ -272,7 +311,13 @@ const AdminDeliveryManager = () => {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan="5" className="px-5 py-8 text-center text-gray-400 font-bold text-xs">
+                        No seller dispatch benchmarks available.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -284,9 +329,18 @@ const AdminDeliveryManager = () => {
           {/* Active Logistics Coverage Setup */}
           <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 space-y-4">
             <div>
-              <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                <FiMapPin className="text-primary-600" />
-                Delivery Zones Setup
+              <h2 className="text-lg font-bold text-gray-800 flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <FiMapPin className="text-primary-600" />
+                  Delivery Zones Setup
+                </span>
+                <button
+                  onClick={handleSaveSettings}
+                  disabled={isSaving}
+                  className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors disabled:opacity-50"
+                >
+                  {isSaving ? "Saving..." : "Save Config"}
+                </button>
               </h2>
               <p className="text-xs text-gray-500 mt-0.5">Manage regional boundaries and postal ZIP restrictions</p>
             </div>

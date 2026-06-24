@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import toast from "react-hot-toast";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
+import api from "../../../shared/utils/api";
 
 const ProductRequestForm = () => {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ const ProductRequestForm = () => {
     setImagePreview("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.name.trim()) {
@@ -99,27 +100,44 @@ const ProductRequestForm = () => {
       return;
     }
 
-    // Save request
-    const existingRequests = JSON.parse(localStorage.getItem("ple_product_requests") || "[]");
-    const newRequest = {
-      id: `REQ-${Math.floor(100000 + Math.random() * 900000)}`,
-      productName: formData.name,
-      category: formData.category,
-      quantity: Number(formData.quantity),
-      expectedBudget: Number(formData.budget),
-      description: formData.description,
-      image: imagePreview || null,
-      status: "Submitted",
-      date: new Date().toISOString(),
-      timeline: [
-        { status: "Submitted", date: new Date().toISOString(), comment: "Your product request has been successfully submitted." }
-      ],
-      sellerResponses: [],
-    };
+    try {
+      let uploadedImageUrl = null;
 
-    localStorage.setItem("ple_product_requests", JSON.stringify([newRequest, ...existingRequests]));
-    toast.success("Product request submitted successfully!");
-    navigate("/product-requests");
+      if (image) {
+        const uploadData = new FormData();
+        uploadData.append('file', image);
+
+        const uploadRes = await api.post('/user/rfq/upload', uploadData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        // Handling response format depending on api.js interceptor
+        if (uploadRes.success || uploadRes.statusCode === 200) {
+           uploadedImageUrl = uploadRes.data?.url || uploadRes.url;
+        } else {
+           throw new Error("Failed to upload image");
+        }
+      }
+
+      const payload = {
+        productName: formData.name,
+        category: formData.category,
+        quantity: Number(formData.quantity),
+        expectedBudget: Number(formData.budget),
+        description: formData.description,
+        image: uploadedImageUrl
+      };
+
+      const res = await api.post('/user/product-requests', payload);
+
+      if (res.success || res.statusCode === 201) {
+        toast.success("Product request submitted successfully!");
+        navigate("/product-requests");
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to submit request.");
+    }
   };
 
   return (

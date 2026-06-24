@@ -5,10 +5,10 @@ import { useAuthStore } from '../../../../shared/store/authStore';
 import { useProductEnquiryStore } from '../../../../shared/store/productEnquiryStore';
 import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import api from '../../../../shared/utils/api';
 
 export const ProductEnquiryModal = ({ isOpen, onClose, product }) => {
   const { user, isAuthenticated } = useAuthStore();
-  const addEnquiry = useProductEnquiryStore((state) => state.addEnquiry);
   const navigate = useNavigate();
 
   const [subject, setSubject] = useState('');
@@ -38,7 +38,7 @@ export const ProductEnquiryModal = ({ isOpen, onClose, product }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isAuthenticated) {
       toast.error('Please login to submit an enquiry.');
@@ -57,28 +57,29 @@ export const ProductEnquiryModal = ({ isOpen, onClose, product }) => {
 
     setIsSubmitting(true);
     try {
-      addEnquiry({
-        productId: product.id,
-        productName: product.name,
-        productImage: product.image,
+      const response = await api.post('/user/enquiries', {
+        productId: product.id || product._id,
         subject,
         question,
         priority,
-        attachment: attachmentName || null,
-        userId: user?.id || user?._id || 'user-123',
-        userName: user?.name || 'Customer',
-        userEmail: user?.email || 'customer@example.com',
+        attachment: attachmentName || null
       });
-      toast.success('Product enquiry submitted successfully!');
-      onClose();
-      // Reset form
-      setSubject('');
-      setQuestion('');
-      setPriority('Medium');
-      setAttachmentName('');
+      
+      // api.js interceptor already unwraps response.data, so check response.success directly
+      if (response.success || response.statusCode === 201) {
+        toast.success('Product enquiry submitted successfully!');
+        onClose();
+        // Reset form
+        setSubject('');
+        setQuestion('');
+        setPriority('Medium');
+        setAttachmentName('');
+      } else {
+        toast.error(response.message || 'Failed to submit enquiry');
+      }
     } catch (error) {
       console.error(error);
-      toast.error('Failed to submit enquiry');
+      toast.error(error.response?.data?.message || error.message || 'Failed to submit enquiry');
     } finally {
       setIsSubmitting(false);
     }

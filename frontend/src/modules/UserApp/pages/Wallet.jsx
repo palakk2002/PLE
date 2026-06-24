@@ -16,6 +16,7 @@ import {
   FiCheck,
 } from "react-icons/fi";
 import { useAuthStore } from "../../../shared/store/authStore";
+import { useWalletStore } from "../../../shared/store/walletStore";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
 import toast from "react-hot-toast";
@@ -25,59 +26,7 @@ import WalletTransactionCard from "../components/Wallet/WalletTransactionCard";
 const MobileWallet = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-
-  const [balance, setBalance] = useState(() => {
-    const savedBalance = localStorage.getItem(`wallet_balance_${user?.id || "guest"}`);
-    return savedBalance ? parseFloat(savedBalance) : 1500.0;
-  });
-
-  const [transactions, setTransactions] = useState(() => {
-    const savedTransactions = localStorage.getItem(`wallet_txs_${user?.id || "guest"}`);
-    return savedTransactions
-      ? JSON.parse(savedTransactions)
-      : [
-          {
-            id: "TXN10023901",
-            type: "credit",
-            title: "Sign Up Reward",
-            amount: 500.0,
-            date: "2026-06-01T10:30:00Z",
-            description: "Welcome bonus credited to wallet",
-          },
-          {
-            id: "TXN10024098",
-            type: "debit",
-            title: "Paid for Order #98102",
-            amount: 350.0,
-            date: "2026-06-03T15:45:00Z",
-            description: "Order payment debit",
-          },
-          {
-            id: "TXN10025211",
-            type: "credit",
-            title: "Cashback Received",
-            amount: 50.0,
-            date: "2026-06-04T09:12:00Z",
-            description: "Promo campaign cashback reward",
-          },
-          {
-            id: "TXN10026312",
-            type: "Refund Credit",
-            title: "Refund from Order #1234",
-            amount: 250.0,
-            date: "2026-06-05T14:20:00Z",
-            description: "Refund credited to wallet",
-          },
-          {
-            id: "TXN10027415",
-            type: "Refund Credit",
-            title: "Refund from Order #5678",
-            amount: 120.0,
-            date: "2026-06-06T11:15:00Z",
-            description: "Refund credited to wallet",
-          },
-        ];
-  });
+  const { balance, transactions, fetchWallet, addFunds, transferFunds, withdrawFunds, isLoading } = useWalletStore();
 
   const [activeTab, setActiveTab] = useState("all"); // 'all', 'credit', 'debit', 'refunds'
   const [showAddMoney, setShowAddMoney] = useState(false);
@@ -96,16 +45,11 @@ const MobileWallet = () => {
   const [accountNumber, setAccountNumber] = useState("");
   const [ifscCode, setIfscCode] = useState("");
 
-  // Persist balance and transactions
   useEffect(() => {
-    localStorage.setItem(`wallet_balance_${user?.id || "guest"}`, balance.toString());
-  }, [balance, user]);
+    fetchWallet();
+  }, [fetchWallet]);
 
-  useEffect(() => {
-    localStorage.setItem(`wallet_txs_${user?.id || "guest"}`, JSON.stringify(transactions));
-  }, [transactions, user]);
-
-  const handleAddMoney = (e) => {
+  const handleAddMoney = async (e) => {
     e.preventDefault();
     const amountVal = parseFloat(addAmount);
     if (isNaN(amountVal) || amountVal <= 0) {
@@ -123,28 +67,18 @@ const MobileWallet = () => {
       return;
     }
 
-    // Process deposit
-    const newTx = {
-      id: `TXN${Math.floor(10000000 + Math.random() * 90000000)}`,
-      type: "credit",
-      title: "Deposited Funds",
-      amount: amountVal,
-      date: new Date().toISOString(),
-      description: `Added money via ${paymentMethod.toUpperCase()}`,
-    };
-
-    setBalance((prev) => prev + amountVal);
-    setTransactions((prev) => [newTx, ...prev]);
-    toast.success(`₹${amountVal.toFixed(2)} added to your wallet!`);
-    
-    // Reset form
-    setAddAmount("");
-    setCardNumber("");
-    setUpiId("");
-    setShowAddMoney(false);
+    const res = await addFunds(amountVal, paymentMethod);
+    if (res.success) {
+      toast.success(`₹${amountVal.toFixed(2)} added to your wallet!`);
+      // Reset form
+      setAddAmount("");
+      setCardNumber("");
+      setUpiId("");
+      setShowAddMoney(false);
+    }
   };
 
-  const handleSendMoney = (e) => {
+  const handleSendMoney = async (e) => {
     e.preventDefault();
     const amountVal = parseFloat(sendAmount);
     if (!sendRecipient.trim()) {
@@ -160,27 +94,17 @@ const MobileWallet = () => {
       return;
     }
 
-    // Process send
-    const newTx = {
-      id: `TXN${Math.floor(10000000 + Math.random() * 90000000)}`,
-      type: "debit",
-      title: `Sent to ${sendRecipient}`,
-      amount: amountVal,
-      date: new Date().toISOString(),
-      description: `Transferred funds to ${sendRecipient}`,
-    };
-
-    setBalance((prev) => prev - amountVal);
-    setTransactions((prev) => [newTx, ...prev]);
-    toast.success(`₹${amountVal.toFixed(2)} transferred successfully!`);
-
-    // Reset form
-    setSendRecipient("");
-    setSendAmount("");
-    setShowSendMoney(false);
+    const res = await transferFunds(sendRecipient, amountVal);
+    if (res.success) {
+      toast.success(`₹${amountVal.toFixed(2)} transferred successfully!`);
+      // Reset form
+      setSendRecipient("");
+      setSendAmount("");
+      setShowSendMoney(false);
+    }
   };
 
-  const handleWithdrawMoney = (e) => {
+  const handleWithdrawMoney = async (e) => {
     e.preventDefault();
     const amountVal = parseFloat(withdrawAmount);
     if (isNaN(amountVal) || amountVal <= 0) {
@@ -196,26 +120,17 @@ const MobileWallet = () => {
       return;
     }
 
-    // Process withdraw
-    const newTx = {
-      id: `TXN${Math.floor(10000000 + Math.random() * 90000000)}`,
-      type: "debit",
-      title: "Withdrawal to Bank",
-      amount: amountVal,
-      date: new Date().toISOString(),
-      description: `Withdrew to ${bankName} A/C: ****${accountNumber.slice(-4)}`,
-    };
-
-    setBalance((prev) => prev - amountVal);
-    setTransactions((prev) => [newTx, ...prev]);
-    toast.success(`₹${amountVal.toFixed(2)} withdrawal requested successfully!`);
-
-    // Reset form
-    setWithdrawAmount("");
-    setBankName("");
-    setAccountNumber("");
-    setIfscCode("");
-    setShowWithdrawMoney(false);
+    const bankDetails = { bankName, accountNumber, ifscCode };
+    const res = await withdrawFunds(amountVal, bankDetails);
+    if (res.success) {
+      toast.success(`₹${amountVal.toFixed(2)} withdrawal requested successfully!`);
+      // Reset form
+      setWithdrawAmount("");
+      setBankName("");
+      setAccountNumber("");
+      setIfscCode("");
+      setShowWithdrawMoney(false);
+    }
   };
 
   const filteredTransactions = transactions.filter((tx) => {
@@ -291,22 +206,21 @@ const MobileWallet = () => {
             {createPortal(
               <AnimatePresence>
                 {showAddMoney && (
-                  <>
+                  <div className="fixed inset-0 z-[10000] flex items-start justify-center pt-10 px-4 pb-4">
                     {/* Backdrop */}
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       onClick={() => setShowAddMoney(false)}
-                      className="fixed inset-0 bg-black/40 z-[10000] backdrop-blur-sm"
+                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                     />
                     {/* Content Sheet */}
                     <motion.div
-                      initial={{ y: "100%" }}
-                      animate={{ y: 0 }}
-                      exit={{ y: "100%" }}
-                      transition={{ type: "spring", damping: 25 }}
-                      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1A1A1A] border-t border-gray-100 dark:border-white/10 rounded-t-3xl p-5 pb-6 z-[10001] shadow-2xl max-w-4xl mx-auto"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      className="relative bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 pb-6 w-full max-w-md shadow-2xl z-10"
                     >
                       <div className="flex justify-between items-center mb-3">
                         <h3 className="text-base font-extrabold text-gray-800 dark:text-white">Add Money</h3>
@@ -412,7 +326,7 @@ const MobileWallet = () => {
                         </button>
                       </form>
                     </motion.div>
-                  </>
+                  </div>
                 )}
               </AnimatePresence>,
               document.body
@@ -422,22 +336,21 @@ const MobileWallet = () => {
             {createPortal(
               <AnimatePresence>
                 {showSendMoney && (
-                  <>
+                  <div className="fixed inset-0 z-[10000] flex items-start justify-center pt-10 px-4 pb-4">
                     {/* Backdrop */}
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       onClick={() => setShowSendMoney(false)}
-                      className="fixed inset-0 bg-black/40 z-[10000] backdrop-blur-sm"
+                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                     />
                     {/* Content Sheet */}
                     <motion.div
-                      initial={{ y: "100%" }}
-                      animate={{ y: 0 }}
-                      exit={{ y: "100%" }}
-                      transition={{ type: "spring", damping: 25 }}
-                      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1A1A1A] border-t border-gray-100 dark:border-white/10 rounded-t-3xl p-5 pb-6 z-[10001] shadow-2xl max-w-4xl mx-auto"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      className="relative bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 pb-6 w-full max-w-md shadow-2xl z-10"
                     >
                       <div className="flex justify-between items-center mb-3">
                         <h3 className="text-base font-extrabold text-gray-800 dark:text-white">Transfer Balance</h3>
@@ -488,7 +401,7 @@ const MobileWallet = () => {
                         </button>
                       </form>
                     </motion.div>
-                  </>
+                  </div>
                 )}
               </AnimatePresence>,
               document.body
@@ -498,22 +411,21 @@ const MobileWallet = () => {
             {createPortal(
               <AnimatePresence>
                 {showWithdrawMoney && (
-                  <>
+                  <div className="fixed inset-0 z-[10000] flex items-start justify-center pt-10 px-4 pb-4">
                     {/* Backdrop */}
                     <motion.div
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
                       onClick={() => setShowWithdrawMoney(false)}
-                      className="fixed inset-0 bg-black/40 z-[10000] backdrop-blur-sm"
+                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                     />
                     {/* Content Sheet */}
                     <motion.div
-                      initial={{ y: "100%" }}
-                      animate={{ y: 0 }}
-                      exit={{ y: "100%" }}
-                      transition={{ type: "spring", damping: 25 }}
-                      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#1A1A1A] border-t border-gray-100 dark:border-white/10 rounded-t-3xl p-5 pb-6 z-[10001] shadow-2xl max-w-4xl mx-auto"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      className="relative bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 pb-6 w-full max-w-md shadow-2xl z-10"
                     >
                       <div className="flex justify-between items-center mb-3">
                         <h3 className="text-base font-extrabold text-gray-800 dark:text-white">Withdraw Funds</h3>
@@ -594,7 +506,7 @@ const MobileWallet = () => {
                         </button>
                       </form>
                     </motion.div>
-                  </>
+                  </div>
                 )}
               </AnimatePresence>,
               document.body

@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { FiSearch, FiLayers, FiAlertCircle, FiCheckCircle, FiXCircle, FiTrendingUp, FiSettings, FiEdit, FiTrash2 } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import api from "../../../shared/utils/api";
 
 const ProductRequestsDashboard = () => {
   const [requests, setRequests] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   
   // Status modification state
@@ -16,9 +18,19 @@ const ProductRequestsDashboard = () => {
     loadRequests();
   }, []);
 
-  const loadRequests = () => {
-    const loaded = JSON.parse(localStorage.getItem("ple_product_requests") || "[]");
-    setRequests(loaded);
+  const loadRequests = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get('/admin/product-requests');
+      if (response.success || response.statusCode === 200) {
+        setRequests(response.data || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch product requests:", error);
+      toast.error("Failed to fetch requests.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getStats = () => {
@@ -41,37 +53,35 @@ const ProductRequestsDashboard = () => {
     );
   };
 
-  const submitStatusChange = () => {
-    const updated = requests.map((r) => {
-      if (r.id === selectedReq.id) {
-        return {
-          ...r,
-          status: nextStatus,
-          timeline: [
-            ...r.timeline,
-            {
-              status: nextStatus,
-              date: new Date().toISOString(),
-              comment: adminComment || `Request status updated to ${nextStatus} by Admin.`,
-            }
-          ]
-        };
+  const submitStatusChange = async () => {
+    try {
+      const response = await api.put(`/admin/product-requests/${selectedReq.id}/status`, {
+        status: nextStatus,
+        comment: adminComment
+      });
+      if (response.success || response.statusCode === 200) {
+        toast.success(`Updated request status to ${nextStatus}`);
+        loadRequests();
+        setSelectedReq(null);
       }
-      return r;
-    });
-
-    localStorage.setItem("ple_product_requests", JSON.stringify(updated));
-    setRequests(updated);
-    toast.success(`Updated request status to ${nextStatus}`);
-    setSelectedReq(null);
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to update status');
+    }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this request record?")) {
-      const updated = requests.filter((r) => r.id !== id);
-      localStorage.setItem("ple_product_requests", JSON.stringify(updated));
-      setRequests(updated);
-      toast.success("Request record deleted.");
+      try {
+        const response = await api.delete(`/admin/product-requests/${id}`);
+        if (response.success || response.statusCode === 200) {
+          toast.success("Request record deleted.");
+          loadRequests();
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error('Failed to delete request');
+      }
     }
   };
 
@@ -110,24 +120,26 @@ const ProductRequestsDashboard = () => {
       </div>
 
       {/* Analytics Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Total Requests", value: stats.total, icon: FiLayers, color: "text-blue-600 bg-blue-50" },
-          { label: "Pending Requests", value: stats.pending, icon: FiAlertCircle, color: "text-amber-600 bg-amber-50" },
-          { label: "Accepted Requests", value: stats.accepted, icon: FiCheckCircle, color: "text-emerald-600 bg-emerald-50" },
-          { label: "Rejected Requests", value: stats.rejected, icon: FiXCircle, color: "text-red-650 bg-red-50" },
-        ].map((card, i) => (
-          <div key={i} className="bg-white rounded-3xl p-6 border border-gray-150 shadow-sm flex items-center justify-between">
-            <div>
-              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{card.label}</span>
-              <h2 className="text-3xl font-black text-gray-800 mt-1">{card.value}</h2>
+      {!isLoading && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            { label: "Total Requests", value: stats.total, icon: FiLayers, color: "text-blue-600 bg-blue-50" },
+            { label: "Pending Requests", value: stats.pending, icon: FiAlertCircle, color: "text-amber-600 bg-amber-50" },
+            { label: "Accepted Requests", value: stats.accepted, icon: FiCheckCircle, color: "text-emerald-600 bg-emerald-50" },
+            { label: "Rejected Requests", value: stats.rejected, icon: FiXCircle, color: "text-red-650 bg-red-50" },
+          ].map((card, i) => (
+            <div key={i} className="bg-white rounded-3xl p-6 border border-gray-150 shadow-sm flex items-center justify-between">
+              <div>
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">{card.label}</span>
+                <h2 className="text-3xl font-black text-gray-800 mt-1">{card.value}</h2>
+              </div>
+              <div className={`p-4 rounded-2xl ${card.color}`}>
+                <card.icon className="text-2xl" />
+              </div>
             </div>
-            <div className={`p-4 rounded-2xl ${card.color}`}>
-              <card.icon className="text-2xl" />
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {/* Requests table control */}
       <div className="bg-white rounded-3xl border border-gray-150 overflow-hidden shadow-sm">
@@ -148,7 +160,12 @@ const ProductRequestsDashboard = () => {
 
         {/* Desktop Table View */}
         <div className="overflow-x-auto">
-          {filteredRequests.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-600 mb-4"></div>
+              <p className="text-gray-500 font-semibold">Loading requests...</p>
+            </div>
+          ) : filteredRequests.length === 0 ? (
             <div className="text-center py-12 text-gray-400">
               <FiLayers className="mx-auto text-4xl mb-2" />
               <span>No requests found matching criteria.</span>

@@ -3,6 +3,7 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import B2BCompany from '../../../models/B2BCompany.model.js';
 import User from '../../../models/User.model.js';
+import Settings from '../../../models/Settings.model.js';
 import { generateTokens } from '../../../utils/generateToken.js';
 import crypto from 'crypto';
 import { sendEmail } from '../../../services/email.service.js';
@@ -36,6 +37,17 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'A user with this admin email already exists.');
     }
 
+    // Fetch autoApprove setting
+    let verificationStatus = 'Pending Verification';
+    try {
+        const b2bSettingsDoc = await Settings.findOne({ key: 'b2b' });
+        if (b2bSettingsDoc && b2bSettingsDoc.value && b2bSettingsDoc.value.autoApprove) {
+            verificationStatus = 'Approved';
+        }
+    } catch (err) {
+        console.error('Failed to fetch B2B settings during registration:', err);
+    }
+
     // 1. Create Company
     const b2bCompany = await B2BCompany.create({
         companyName,
@@ -45,7 +57,7 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         companyAddress: businessAddress,
         companyType: businessType,
         website,
-        verificationStatus: 'Pending Verification'
+        verificationStatus
     });
 
     // 2. Create Admin
@@ -63,14 +75,21 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
 
     // Send email to Admin
     try {
+        let subject = 'B2B Registration Received - Pending Verification';
+        let statusMessage = "Your company <strong>${companyName}</strong> has been successfully registered and is currently pending verification.</p><p>We will review your application and notify you once it's approved.</p>";
+        
+        if (verificationStatus === 'Approved') {
+            subject = 'B2B Registration Successful - Account Approved';
+            statusMessage = "Your company <strong>${companyName}</strong> has been successfully registered and your account is automatically approved.</p><p>You can now log in and start using our platform.</p>";
+        }
+
         await sendEmail({
             to: adminEmail,
-            subject: 'B2B Registration Received - Pending Verification',
+            subject,
             html: `
                 <h2>Welcome to our B2B Platform!</h2>
                 <p>Dear ${adminName},</p>
-                <p>Your company <strong>${companyName}</strong> has been successfully registered and is currently pending verification.</p>
-                <p>We will review your application and notify you once it's approved.</p>
+                <p>${statusMessage}
                 <br>
                 <p>Thank you!</p>
             `,
@@ -138,7 +157,11 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
     const adminObj = b2bAdmin.toObject();
     delete adminObj.password;
 
-    res.status(201).json(new ApiResponse(201, { company: b2bCompany, admin: adminObj }, 'B2B Registration successful. Awaiting admin approval.'));
+    const responseMessage = verificationStatus === 'Approved' 
+        ? 'B2B Registration successful. Your account is approved.'
+        : 'B2B Registration successful. Awaiting admin approval.';
+
+    res.status(201).json(new ApiResponse(201, { company: b2bCompany, admin: adminObj }, responseMessage));
 });
 
 // POST /api/b2b-user/auth/login

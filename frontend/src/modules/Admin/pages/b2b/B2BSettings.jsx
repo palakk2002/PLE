@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   FiSettings,
@@ -11,8 +11,12 @@ import {
 } from "react-icons/fi";
 import AnimatedSelect from "../../components/AnimatedSelect";
 import toast from "react-hot-toast";
+import { getSettingByKey, updateSettingByKey } from "../../services/adminService";
+import { useNavigate } from "react-router-dom";
 
 const B2BSettings = () => {
+  const navigate = useNavigate();
+
   // Verification Settings
   const [autoApprove, setAutoApprove] = useState(false);
   const [requireGST, setRequireGST] = useState(true);
@@ -34,13 +38,57 @@ const B2BSettings = () => {
 
   const [saving, setSaving] = useState(false);
 
-  const handleSave = (e) => {
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await getSettingByKey("b2b");
+        if (response?.data?.value) {
+          const s = response.data.value;
+          if (s.autoApprove !== undefined) setAutoApprove(s.autoApprove);
+          if (s.requireGST !== undefined) setRequireGST(s.requireGST);
+          if (s.requirePAN !== undefined) setRequirePAN(s.requirePAN);
+          if (s.requireTradeLicense !== undefined) setRequireTradeLicense(s.requireTradeLicense);
+          if (s.defaultCreditTerms !== undefined) setDefaultCreditTerms(s.defaultCreditTerms);
+          if (s.minWholesaleDiscount !== undefined) setMinWholesaleDiscount(s.minWholesaleDiscount);
+          if (s.allowBulkSlabs !== undefined) setAllowBulkSlabs(s.allowBulkSlabs);
+          if (s.minOrderValue !== undefined) setMinOrderValue(s.minOrderValue);
+          if (s.autoInvoice !== undefined) setAutoInvoice(s.autoInvoice);
+          if (s.notifyNewSignup !== undefined) setNotifyNewSignup(s.notifyNewSignup);
+          if (s.notifyNewOrder !== undefined) setNotifyNewOrder(s.notifyNewOrder);
+        }
+      } catch (error) {
+        console.warn("Could not fetch B2B settings:", error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSave = async (e) => {
     e.preventDefault();
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
+    try {
+      await updateSettingByKey("b2b", {
+        value: {
+          autoApprove,
+          requireGST,
+          requirePAN,
+          requireTradeLicense,
+          defaultCreditTerms,
+          minWholesaleDiscount,
+          allowBulkSlabs,
+          minOrderValue,
+          autoInvoice,
+          notifyNewSignup,
+          notifyNewOrder,
+        }
+      });
       toast.success("B2B Settings updated successfully!");
-    }, 1000);
+      setTimeout(() => navigate(-1), 1500);
+    } catch (error) {
+      toast.error("Failed to update B2B Settings.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

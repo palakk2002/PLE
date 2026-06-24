@@ -406,3 +406,92 @@ When B2B Admin clicks "Approve & Issue PO":
   - Allowed B2B Admins to edit company details on the "Company Profile" tab.
   - Linked the "Team Management" tab actions (Add, Edit, Delete, Toggle Status) and employee list data source to live backend database endpoints using `useB2BAdminStore` hooks, syncing changes to the backend.
 
+
+## 2026-06-23
+
+### Added
+* Backend Seed Script: Created `backend/testing_scripts/seed-b2b-products.js` to seed realistic B2B products with wholesale pricing slabs into MongoDB.
+* Frontend Success Screen: Implemented a full-screen interstitial success modal in `frontend/src/modules/UserApp/pages/Checkout.jsx` that displays before redirecting to the order confirmation page.
+
+### Updated
+* Frontend Store: Modified `frontend/src/shared/store/productStore.js` to remove the `mockCatalog` fallback. It now strictly relies on API data from MongoDB to ensure valid `ObjectId` usage for orders.
+* Frontend Data: Cleared out static mock products from `frontend/src/data/products.js`, enforcing dynamic backend usage globally.
+
+### Removed
+* Mock/Static catalog data to ensure the B2B order flow strictly uses live database items with valid MongoDB identifiers.
+
+
+### Fixed
+* **B2B Checkout 400 Error:**
+  - Updated \ackend/src/modules/user/validators/order.validator.js\ to include \'bulk'\ as a valid \shippingOption\ to prevent Joi validation errors during B2B admin checkout.
+* **B2B Bulk Pricing Schema:**
+  - Added missing B2B fields (\2bEnabled\, \2bWholesalePrice\, \2bMinOrderQty\, \2bBulkPricingSlabs\) to \ackend/src/models/Product.model.js\ so that Mongoose correctly saves B2B pricing data during seeding.
+* **B2B Order Pricing Logic:**
+  - Modified \ackend/src/modules/user/controllers/order.controller.js\ (\placeOrder\ endpoint) to dynamically calculate \itemPrice\ using the B2B wholesale price and quantity-based bulk slabs when the customer is a \2bAdmin\ or \2bEmployee\.
+* **Seed Script Environment Fix:**
+  - Updated \ackend/testing_scripts/seed-b2b-products.js\ to correctly connect to the live MongoDB Atlas cluster via \process.env.MONGO_URI\ instead of falling back to localhost, ensuring products are added to the correct database. Added two new B2B products (Executive Leather Briefcase, Bulk Wireless Mouse).
+
+
+### Added
+* **Bulk Product Generation:**
+  - Created a new script \ackend/testing_scripts/seed-30-b2b-products.js\ and ran it to automatically populate the MongoDB database with 30 realistic, high-quality B2B products (10 Electronics, 10 Office Furniture, and 10 Corporate Gifts).
+  - Ensured all generated products strictly map to the newly updated \Product.model.js\ schema, carrying valid \2bEnabled\, \2bWholesalePrice\, and tiered \2bBulkPricingSlabs\ settings.
+
+
+* **B2B User Token Scope Fix (Missing Orders):**
+  - Updated the request interceptor in rontend/src/shared/utils/api.js to correctly prioritize and attach the 2bAdminToken when a B2B admin/employee accesses shared endpoints like /user/orders. Previously, it was using an old cached regular 	oken from another session, which caused orders placed by the B2B Admin to be accidentally attached to the wrong user account and not show up on the My Orders page.
+
+* **Bulk Product Generation Expansion:**
+  - Expanded the database seed script to ackend/testing_scripts/seed-100-b2b-products.js to ensure the exact 10 categories requested by the user are fully populated.
+  - Automatically generated and inserted 100 high-quality products (10 products for each of the 10 categories: Electronics, Office Supplies, Corporate Gifts, Office Furniture, Clothing, Footwear, Bags, Jewelry, Accessories, Athletic) with valid B2B bulk pricing slabs, 2bEnabled flag, and category associations.
+
+* **Frontend Category Products Rendering Fix:**
+  - Fixed a critical bug in the frontend pi.js response interceptor where the deduplication filter was inadvertently discarding products returned from the backend if they did not explicitly have an id virtual property (relying only on _id). This was causing the Categories page to mistakenly display only 1 product per category despite the database returning 10+ products. It now properly maps and displays all items accurately.
+
+* **Checkout UI & Orders Bug Fixes:**
+  - Fixed an issue where placing an order would flash a Your cart is empty screen for 2 seconds before redirecting to the Order Confirmation page. The empty cart screen is now properly suppressed when a successful order is in progress.
+  - Fixed a critical bug on the My Orders page where B2B Admins and Employees would see No orders found. The page was previously only looking for regular customer IDs, but it now correctly checks the b2bAdminStore to retrieve and display B2B user orders.
+
+* **Order Details Bug Fix:**
+  - Fixed an Authentication Error on the Order Details page that occurred for B2B Admins. The page was incorrectly attempting to fetch return requests via the Admin Dashboard API instead of the Customer API, which caused a token mismatch. It now correctly retrieves return requests using the proper user-scoped route.
+
+* **Real-time Order Status Updates:**
+  - Implemented real-time Socket.io events for order status updates. Now, whenever an admin (or superadmin) changes the status of an order, the user who placed it (regular user, B2B admin, or employee) will instantly see the update on their screen via a toast notification, and the Orders and Order Details pages will automatically refresh to reflect the new status in real-time.
+
+* **Real-time Admin Payment Tracking:**
+  - Added real-time tracking for payment status updates directly to the Superadmin dashboard. Whenever a B2B Admin or Employee pays for a Purchase Order, the Superadmin receives an instant push notification on the B2B Orders page, and the payment status dynamically changes to 'Paid' without requiring a page refresh.
+
+* **Fixed Retail/Bulk Order Payment Status:**
+  - Fixed a bug where completed mock payments (Card/UPI) on the checkout and bulk order pages were incorrectly being saved to the database as pending instead of paid.
+  - Existing non-COD orders have been retrospectively updated to paid status in the database so they appear correctly on the Super Admin Dashboard.
+
+* **Checkout UI Upgrade:**
+  - Fixed a styling issue where the Order Success popup was not showing correctly across the full screen. Upgraded the visual design of the success modal with premium animations, a modern loading bar, and utilized React Portals to guarantee it always renders perfectly on top of any layout.
+
+* **Category UI Fix:**
+  - Fixed a visual bug on the Category page where it would briefly flash 'No products found' while loading products from the database. Added a dedicated 'Loading products...' spinner state to improve UX.
+
+* **My Returns Fix:**
+  - Fixed an issue on the My Returns page where users would see an Authentication error and static dummy data. The returnStore now dynamically fetches data from the correct role-based endpoint (/returns for users, /admin/return-requests for admins, and /vendor/return-requests for vendors) instead of hardcoding the admin endpoint.
+
+* **My Returns Fix Part 2:**
+  - Fixed a 404 Route Not Found error on the My Returns page by correcting the API endpoint path. The User API is mounted on /user/returns instead of /returns, so the frontend store has been updated to use the correct path.
+
+* **Return Request Submit Fix:**
+  - Fixed "Invalid Server Response" error when submitting a return request. The createReturnRequest function in returnStore.js was expecting response.data.data instead of response.data.
+* **Super Admin Returns UI Fix:**
+  - Fixed a React Error Boundary crash ("Oops! Something went wrong") on the Super Admin /admin/return-requests page. Added optional chaining (value?.name) and fallback strings to prevent crashes when the UI encounters raw, un-normalized MongoDB documents fetched from local storage.
+
+* **Super Admin Return Request Detail Fix:**
+  - Fixed a React Error Boundary crash ("Oops! Something went wrong") on the Super Admin Return Request Detail page. Added optional chaining (eturnRequest.customer?.name, eturnRequest.customer?.email, eturnRequest.customer?.phone) and fallbacks. This prevents the UI from crashing if raw un-normalized MongoDB documents without nested customer objects are fetched from local storage fallback after an API status update.
+
+* **Real-time Return Status Notifications:**
+  - Added WebSocket emission in the backend (updateReturnRequestStatus) to send a "return_status_updated" event when an admin approves/rejects a return.
+  - Created a global WebSocket listener in AppBootstrap.jsx to show a real-time Toast notification to the B2BAdmin or Employee who made the return request.
+  - Updated Returns.jsx and ReturnDetail.jsx in the frontend to automatically refresh data when the live status update is received via the socket.
+
+* **Customer List Display Clarification/Fix:**
+  - Verified that the Customers page intentionally only shows retail B2C users (ole: 'customer'). B2B Admins and Employees are visible under the B2B Marketplace -> B2B Users section.
+
+* **Admin Return Request Endpoint Fix:**
+  - Fixed a routing error where the shared eturnStore.js was hitting /api/user/returns/... instead of /api/admin/return-requests/... when logged in as a Super Admin. The store now accurately detects the active role across all auth stores (useAdminAuthStore, useVendorAuthStore, useB2BAdminStore, and useAuthStore).

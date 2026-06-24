@@ -6,17 +6,22 @@ import MobileLayout from "../components/Layout/MobileLayout";
 import MobileOrderCard from '../components/Mobile/MobileOrderCard';
 import { useOrderStore } from '../../../shared/store/orderStore';
 import { useAuthStore } from '../../../shared/store/authStore';
+import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
 import PageTransition from '../../../shared/components/PageTransition';
 import usePullToRefresh from '../hooks/usePullToRefresh';
 import toast from 'react-hot-toast';
+import socketService from '../../../shared/utils/socket';
 
 const MobileOrders = () => {
   const navigate = useNavigate();
   const { getAllOrders, fetchUserOrders, isLoading, orderPagination } = useOrderStore();
   const { user } = useAuthStore();
+  const { adminProfile } = useB2BAdminStore();
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showFilter, setShowFilter] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const activeUserId = user?.id || adminProfile?.id || adminProfile?._id || null;
 
   const statusOptions = [
     { value: 'all', label: 'All Orders' },
@@ -27,13 +32,28 @@ const MobileOrders = () => {
     { value: 'cancelled', label: 'Cancelled' },
   ];
 
-  const allOrders = getAllOrders(user?.id || null);
+  const allOrders = getAllOrders(activeUserId);
 
   useEffect(() => {
-    if (user?.id) {
+    if (activeUserId) {
       fetchUserOrders(1, 20).catch(() => null);
+
+      const socket = socketService.getSocket();
+      socket.emit('join_user_room', activeUserId);
+
+      const handleStatusUpdate = (data) => {
+        toast(`Order #${data.orderId} status updated to ${data.status}`);
+        fetchUserOrders(1, 20).catch(() => null);
+      };
+
+      socket.on('order_status_updated', handleStatusUpdate);
+
+      return () => {
+        socket.off('order_status_updated', handleStatusUpdate);
+        socket.emit('leave_user_room', activeUserId);
+      };
     }
-  }, [user?.id, fetchUserOrders]);
+  }, [activeUserId, fetchUserOrders]);
 
   const filteredOrders = useMemo(() => {
     if (selectedStatus === 'all') return allOrders;
@@ -42,7 +62,7 @@ const MobileOrders = () => {
 
   // Pull to refresh handler
   const handleRefresh = async () => {
-    if (!user?.id) return;
+    if (!activeUserId) return;
     await fetchUserOrders(1, 20);
     toast.success('Orders refreshed');
   };
@@ -50,7 +70,7 @@ const MobileOrders = () => {
   const hasMore = orderPagination.page < orderPagination.pages;
 
   const handleLoadMore = async () => {
-    if (!user?.id || !hasMore || isLoadingMore) return;
+    if (!activeUserId || !hasMore || isLoadingMore) return;
     setIsLoadingMore(true);
     try {
       await fetchUserOrders(orderPagination.page + 1, 20);
