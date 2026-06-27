@@ -196,6 +196,10 @@ export const useDeliveryAuthStore = create(
 
           return { success: true, deliveryBoy: enriched };
         } catch (error) {
+          if (error.response) {
+            set({ isLoading: false });
+            throw error;
+          }
           console.warn("Delivery API login failed, falling back to mock authentication:", error);
           
           const mockDeliveryBoy = normalizeDeliveryBoy({

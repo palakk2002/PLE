@@ -137,82 +137,10 @@ const MobileHeader = () => {
   // Memoize gradient background style to prevent unnecessary re-renders
   const headerBackground = useMemo(() => {
     if (theme === "dark") {
-      if (currentCategoryId) {
-        const darkCategoryGradients = {
-          1: "linear-gradient(to bottom, #1A0A0A 0%, #110606 50%, #0D0D0D 100%)", // Pinkish dark
-          2: "linear-gradient(to bottom, #1A0D0A 0%, #110806 50%, #0D0D0D 100%)", // Amber dark
-          3: "linear-gradient(to bottom, #1A0E0A 0%, #110906 50%, #0D0D0D 100%)", // Orange dark
-          4: "linear-gradient(to bottom, #0A1A0E 0%, #06110A 50%, #0D0D0D 100%)", // Greenish dark
-          5: "linear-gradient(to bottom, #120A1A 0%, #0C0611 50%, #0D0D0D 100%)", // Purple dark
-          6: "linear-gradient(to bottom, #0A0E1A 0%, #060911 50%, #0D0D0D 100%)", // Blue dark
-        };
-        return darkCategoryGradients[currentCategoryId] || "linear-gradient(to bottom, #1A0A0A 0%, #0D0D0D 100%)";
-      }
-
-      const pageDarkGradients = {
-        home: "linear-gradient(to bottom, #1A0A0A 0%, #140808 30%, #0D0D0D 100%)", // Home red-black
-        product: "linear-gradient(to bottom, #1A0A0A 0%, #0D0D0D 100%)",
-        search: "linear-gradient(to bottom, #1A0A0A 0%, #110606 50%, #0D0D0D 100%)",
-        wishlist: "linear-gradient(to bottom, #200808 0%, #160404 50%, #0D0D0D 100%)",
-        profile: "linear-gradient(to bottom, #0A1A0E 0%, #060B09 50%, #0D0D0D 100%)",
-        orders: "linear-gradient(to bottom, #1A0A0A 0%, #0C0404 50%, #0D0D0D 100%)",
-        orderDetail: "linear-gradient(to bottom, #1A0A0A 0%, #0C0404 50%, #0D0D0D 100%)",
-        checkout: "linear-gradient(to bottom, #0A1A0E 0%, #060B09 50%, #0D0D0D 100%)",
-        offers: "linear-gradient(to bottom, #1A0A0A 0%, #110606 50%, #0D0D0D 100%)",
-        dailyDeals: "linear-gradient(to bottom, #1A1200 0%, #110C00 50%, #0D0D0D 100%)",
-        flashSale: "linear-gradient(to bottom, #200808 0%, #160404 50%, #0D0D0D 100%)",
-        vendor: "linear-gradient(to bottom, #120A1A 0%, #0C0611 50%, #0D0D0D 100%)",
-        default: "linear-gradient(to bottom, #1A0A0A 0%, #0D0D0D 100%)",
-      };
-      return pageDarkGradients[currentPage] || pageDarkGradients.default;
+      return "linear-gradient(to bottom, #1A0A0A 0%, #140808 30%, #0D0D0D 100%)";
     }
-
-    // Category pages - keep existing category-specific gradients
-    if (currentCategoryId) {
-      const gradientMap = {
-        1: "linear-gradient(to bottom, rgb(252, 231, 243) 0%, rgb(255, 240, 245) 50%, rgb(255, 255, 255) 100%)", // Pink - moderate
-        2: "linear-gradient(to bottom, rgb(254, 243, 199) 0%, rgb(255, 248, 220) 50%, rgb(255, 255, 255) 100%)", // Brown/Amber - moderate
-        3: "linear-gradient(to bottom, rgb(255, 237, 213) 0%, rgb(255, 245, 230) 50%, rgb(255, 255, 255) 100%)", // Orange - moderate
-        4: "linear-gradient(to bottom, rgb(209, 250, 229) 0%, rgb(236, 253, 245) 50%, rgb(255, 255, 255) 100%)", // Green - moderate
-        5: "linear-gradient(to bottom, rgb(243, 232, 255) 0%, rgb(250, 245, 255) 50%, rgb(255, 255, 255) 100%)", // Purple - moderate
-        6: "linear-gradient(to bottom, rgb(219, 234, 254) 0%, rgb(239, 246, 255) 50%, rgb(255, 255, 255) 100%)", // Blue - moderate
-      };
-      return (
-        gradientMap[currentCategoryId] ||
-        "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)"
-      );
-    }
-
-    // Page-specific gradients
-    const pageGradients = {
-      home: "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
-      product:
-        "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
-      search:
-        "linear-gradient(to bottom, rgb(249, 115, 22) 0%, rgb(251, 146, 60) 30%, rgb(255, 237, 213) 60%, rgb(255, 255, 255) 100%)", // Orange gradient
-      wishlist:
-        "linear-gradient(to bottom, rgb(239, 68, 68) 0%, rgb(248, 113, 113) 30%, rgb(254, 226, 226) 60%, rgb(255, 255, 255) 100%)", // Red/pink gradient
-      profile:
-        "linear-gradient(to bottom, rgb(16, 185, 129) 0%, rgb(52, 211, 153) 30%, rgb(209, 250, 229) 60%, rgb(255, 255, 255) 100%)", // Green gradient
-      orders:
-        "linear-gradient(to bottom, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
-      orderDetail:
-        "linear-gradient(to bottom, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
-      checkout:
-        "linear-gradient(to bottom, rgb(16, 185, 129) 0%, rgb(52, 211, 153) 30%, rgb(209, 250, 229) 60%, rgb(255, 255, 255) 100%)", // Green gradient
-      offers: "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
-      dailyDeals:
-        "linear-gradient(to bottom, rgb(234, 179, 8) 0%, rgb(250, 204, 21) 30%, rgb(254, 243, 199) 60%, rgb(255, 255, 255) 100%)", // Yellow gradient
-      flashSale:
-        "linear-gradient(to bottom, rgb(239, 68, 68) 0%, rgb(248, 113, 113) 30%, rgb(254, 226, 226) 60%, rgb(255, 255, 255) 100%)", // Red gradient
-      vendor:
-        "linear-gradient(to bottom, rgb(185, 28, 28) 0%, rgb(239, 68, 68) 30%, rgb(254, 226, 226) 60%, rgb(255, 255, 255) 100%)", // Premium brand red gradient
-      default:
-        "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)", // Brand red gradient
-    };
-
-    return pageGradients[currentPage] || pageGradients.default;
-  }, [currentCategoryId, currentPage, location.pathname, theme]);
+    return "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)";
+  }, [theme]);
 
   // Close menus when clicking outside
   useEffect(() => {

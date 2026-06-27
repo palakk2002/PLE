@@ -123,6 +123,12 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         order.cancelledAt = null;
     } else if (nextStatus === 'cancelled') {
         order.cancelledAt = new Date();
+    } else if (nextStatus === 'shipped') {
+        order.shippedAt = new Date();
+        order.cancelledAt = null;
+    } else if (nextStatus === 'processing') {
+        order.processingAt = new Date();
+        order.cancelledAt = null;
     } else if (nextStatus === 'returned') {
         order.cancelledAt = null;
     } else {
@@ -298,6 +304,7 @@ export const assignDeliveryBoy = asyncHandler(async (req, res) => {
     order.deliveryBoyId = deliveryBoyId;
     if (order.status === 'pending') {
         order.status = 'processing';
+        order.processingAt = new Date();
         // Keep vendor-facing status in sync with order lifecycle.
         order.vendorItems = (order.vendorItems || []).map((vi) => {
             const current = String(vi?.status || 'pending');

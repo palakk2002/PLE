@@ -46,13 +46,19 @@ const normalizeBrand = (raw) => ({
 });
 
 const AppBootstrap = () => {
+  const user = useAuthStore((state) => state.user);
+  const mainAuthIsAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const b2bAuthIsAuthenticated = useB2BAdminStore((state) => state.isAuthenticated);
+
   useEffect(() => {
     // Initialize authentication stores to synchronize tokens and clear stale loading flags
     try { useAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useVendorAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useDeliveryAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useAdminAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
+  }, []);
 
+  useEffect(() => {
     // Self-healing synchronization for B2B session states
     try {
       const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -83,16 +89,20 @@ const AppBootstrap = () => {
       }
 
       // Synchronize the B2B store portal role to business_buyer if authenticated as a B2B user
-      if (isB2BUser && (mainAuth.isAuthenticated || b2bAuth.isAuthenticated)) {
+      if (mainAuth.isAuthenticated || b2bAuth.isAuthenticated) {
         const b2bStore = useB2bStore.getState();
-        if (b2bStore.userRole !== 'business_buyer') {
-          b2bStore.setUserRole('business_buyer');
+        if (!isB2BUser) {
+          if (b2bStore.userRole !== 'customer') {
+            b2bStore.setUserRole('customer');
+          }
         }
       }
     } catch (e) {
       console.warn("B2B self-healing sync failed:", e);
     }
+  }, [mainAuthIsAuthenticated, b2bAuthIsAuthenticated, user]);
 
+  useEffect(() => {
     let cancelled = false;
 
     const syncCatalog = async () => {
@@ -150,7 +160,6 @@ const AppBootstrap = () => {
     };
   }, []);
 
-  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     if (!user?.id) return;

@@ -14,6 +14,7 @@ import Wallet from '../../../models/Wallet.model.js';
 import WalletTransaction from '../../../models/WalletTransaction.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { calculateVendorShippingForGroups } from '../../../services/vendorShipping.service.js';
+import { getIO } from '../../../config/socket.js';
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
 const normalizeAxisName = (value) =>
@@ -507,6 +508,55 @@ export const placeOrder = asyncHandler(async (req, res) => {
     const responseMessage = idempotentReplay
         ? 'Duplicate order request ignored. Returning existing order.'
         : 'Order placed successfully.';
+
+    if (!idempotentReplay && order) {
+        // Trigger real-time notifications to vendors
+        (async () => {
+            try {
+                let io;
+                try {
+                    io = getIO();
+                } catch (err) {
+                    console.warn("Socket.io is not initialized yet:", err.message);
+                }
+
+                if (order.vendorItems && order.vendorItems.length > 0) {
+                    for (const v of order.vendorItems) {
+                        // Create Database notification
+                        await createNotification({
+                            recipientId: v.vendorId,
+                            recipientType: 'vendor',
+                            title: 'New Order Received',
+                            message: `You have received a new order ${order.orderId} for Rs.${v.subtotal}`,
+                            type: 'order',
+                            data: {
+                                orderId: String(order.orderId || order._id),
+                                dbOrderId: String(order._id),
+                                vendorId: String(v.vendorId),
+                                subtotal: String(v.subtotal)
+                            }
+                        }).catch(e => console.error("Error creating database notification for vendor:", e));
+
+                        // Emit socket event to the vendor's room
+                        if (io) {
+                            io.to(`user_${v.vendorId}`).emit('new_order_placed', {
+                                orderId: order.orderId,
+                                dbOrderId: order._id,
+                                total: v.subtotal,
+                                items: v.items,
+                                customerName: order.shippingAddress?.name || 'Guest',
+                                shippingAddress: order.shippingAddress,
+                                createdAt: order.createdAt
+                            });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Error in sending order notifications to vendors:", err);
+            }
+        })();
+    }
+
     res.status(responseStatus).json(
         new ApiResponse(
             responseStatus,

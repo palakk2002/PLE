@@ -39,13 +39,13 @@ export const B2BCartSummary = ({ cartItems, subtotal }) => {
   });
 
   return (
-    <div className="bg-primary-50/50 rounded-2xl p-4 border border-primary-100/80 space-y-3.5 mt-2 mb-4">
-      <div className="flex items-center justify-between border-b border-primary-100/50 pb-2">
-        <span className="text-xs font-bold text-primary-800 uppercase tracking-wider flex items-center gap-1.5">
+    <div className="bg-red-50/30 rounded-2xl p-4 border border-red-200/40 space-y-3.5 mt-2 mb-4">
+      <div className="flex items-center justify-between border-b border-red-100/50 pb-2">
+        <span className="text-xs font-bold text-red-800 uppercase tracking-wider flex items-center gap-1.5">
           <FiTrendingDown />
           <span>Business Order Summary</span>
         </span>
-        <span className="text-[10px] font-extrabold bg-primary-100 text-primary-700 px-2 py-0.5 rounded-full uppercase">
+        <span className="text-[10px] font-extrabold bg-red-100 text-[#7B0A0A] px-2 py-0.5 rounded-full uppercase">
           Wholesale Active
         </span>
       </div>
@@ -65,22 +65,22 @@ export const B2BCartSummary = ({ cartItems, subtotal }) => {
       )}
 
       <div className="space-y-1.5 text-xs">
-        <div className="flex justify-between text-gray-600">
+        <div className="flex justify-between text-gray-650">
           <span>Gross Subtotal:</span>
           <span>{formatPrice(subtotal)}</span>
         </div>
-        <div className="flex justify-between text-primary-600 font-semibold">
+        <div className="flex justify-between text-red-650 font-semibold">
           <span className="flex items-center gap-1">
             <FiPercent />
             <span>GST Input Tax Credit (Claimable):</span>
           </span>
           <span>{formatPrice(totalGST)}</span>
         </div>
-        <div className="flex justify-between text-emerald-600 font-bold">
+        <div className="flex justify-between text-red-700 font-bold">
           <span>Estimated Business Savings:</span>
           <span>-{formatPrice(totalSavings)}</span>
         </div>
-        <div className="flex justify-between text-gray-700 pt-1 border-t border-dashed border-primary-100 font-medium">
+        <div className="flex justify-between text-gray-700 pt-1 border-t border-dashed border-red-100 font-medium">
           <span className="flex items-center gap-1 text-[11px]">
             <FiClock />
             <span>Payment Terms:</span>

@@ -16,7 +16,7 @@ const decodeJwtPayload = (token) => {
 const DeliveryProtectedRoute = ({ children }) => {
   const { isAuthenticated, token } = useDeliveryAuthStore();
   const location = useLocation();
-  const accessToken = token || localStorage.getItem('delivery-token');
+  const accessToken = token || sessionStorage.getItem('delivery-token') || localStorage.getItem('delivery-token');
   const payload = decodeJwtPayload(accessToken);
   const role = String(payload?.role || '').toLowerCase();
   const tokenExpiryMs =

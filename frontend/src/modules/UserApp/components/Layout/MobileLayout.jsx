@@ -25,6 +25,29 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
   const isCheckoutPage = pathname === '/checkout';
   const isReturnsPage = pathname === '/returns';
   const isLocationSelectorOpen = useUIStore((state) => state.isLocationSelectorOpen);
+
+  const isProfileOptionPage = 
+    pathname === '/profile' ||
+    pathname === '/orders' ||
+    pathname.startsWith('/orders/') ||
+    pathname === '/returns' ||
+    pathname.startsWith('/returns/') ||
+    pathname === '/wishlist' ||
+    pathname === '/addresses' ||
+    pathname === '/notifications' ||
+    pathname === '/wallet' ||
+    pathname === '/settings' ||
+    pathname === '/help-support' ||
+    pathname === '/support-tickets' ||
+    pathname.startsWith('/support-chat/') ||
+    pathname.startsWith('/product-requests') ||
+    pathname.startsWith('/product-request/') ||
+    pathname.startsWith('/rfq/') ||
+    pathname === '/privacy-policy' ||
+    pathname === '/terms-and-conditions' ||
+    pathname === '/user-agreement' ||
+    pathname === '/return-policy' ||
+    pathname === '/about-us';
   
   // Respect the showBottomNav prop and hide on auth pages or when location selector is open
   const shouldShowBottomNav = showBottomNav && !isAuthPage && !isLocationSelectorOpen;
@@ -32,10 +55,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
   const shouldShowHeader = !isAuthPage &&
     pathname !== '/categories' &&
     pathname !== '/search' &&
-    pathname !== '/wishlist' &&
-    pathname !== '/profile' &&
-    pathname !== '/orders' &&
-    !isReturnsPage &&
+    !isProfileOptionPage &&
     !isCheckoutPage;
 
   // Ensure body scroll is restored when component mounts
@@ -48,7 +68,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
 
   return (
     <>
-      {!isAuthPage && !isCheckoutPage && !isReturnsPage && <DesktopHeader />}
+      {!isAuthPage && !isCheckoutPage && !isReturnsPage && !isProfileOptionPage && <DesktopHeader />}
       {shouldShowHeader && <MobileHeader />}
       <main
         className={`min-h-screen w-full overflow-x-hidden md:container md:mx-auto md:px-12 lg:px-24 xl:px-40 ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}

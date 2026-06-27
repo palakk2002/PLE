@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import https from 'https';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import Admin from '../models/Admin.model.js';
+import DeliveryBoy from '../models/DeliveryBoy.model.js';
 
 let mongoServer;
 
@@ -26,21 +27,40 @@ const getPublicIP = () => {
 
 const autoSeedAdmin = async () => {
   try {
-    const existing = await Admin.findOne({ email: 'admin@admin.com' });
-    if (!existing) {
+    let admin = await Admin.findOne({ email: 'admin@admin.com' });
+    if (!admin) {
       await Admin.create({
         name: 'Super Admin',
         email: 'admin@admin.com',
-        password: 'admin123',
+        password: 'admin@123',
         role: 'superadmin',
         isActive: true,
       });
-      console.log('✅ DATABASE AUTO-SEED SUCCESS: Admin account created (admin@admin.com / admin123)');
-    } else {
-      console.log('ℹ️ DATABASE AUTO-SEED: Admin account already exists.');
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: Admin account created (admin@admin.com / admin@123)');
     }
   } catch (err) {
     console.error('⚠️ DATABASE AUTO-SEED FAILED:', err.message);
+  }
+};
+
+const autoSeedDeliveryBoy = async () => {
+  try {
+    let deliveryBoy = await DeliveryBoy.findOne({ email: 'delivery@delivery.com' });
+    if (!deliveryBoy) {
+      await DeliveryBoy.create({
+        name: 'Rahul Kumar',
+        email: 'delivery@delivery.com',
+        password: 'delivery123',
+        phone: '+91 98765 43210',
+        applicationStatus: 'approved',
+        isActive: true,
+        isAvailable: true,
+        status: 'available',
+      });
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: Delivery boy account created (delivery@delivery.com / delivery123)');
+    }
+  } catch (err) {
+    console.error('⚠️ DATABASE AUTO-SEED FAILED for DeliveryBoy:', err.message);
   }
 };
 
@@ -101,6 +121,7 @@ const connectDB = async () => {
     });
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     await autoSeedAdmin();
+    await autoSeedDeliveryBoy();
     await autoMigrateCategories();
   } catch (error) {
     const publicIP = await getPublicIP();
@@ -125,12 +146,35 @@ Error Details: ${error.message}
 ========================================================================
     `);
 
-    console.log('🔄 Attempting to spin up an in-memory MongoDB fallback server...');
+    console.log('🔄 Attempting to connect to local MongoDB fallback (mongodb://127.0.0.1:27017/ple)...');
     try {
-      mongoServer = await MongoMemoryServer.create();
-      const mongoUri = mongoServer.getUri();
-      const conn = await mongoose.connect(mongoUri);
+      const conn = await mongoose.connect('mongodb://127.0.0.1:27017/ple', {
+        serverSelectionTimeoutMS: 3000
+      });
       console.log(`
+========================================================================
+⚠️ SUCCESS: LOCAL MONGODB FALLBACK CONFIGURED
+========================================================================
+Backend is now running with your local MongoDB instance!
+
+👉 What this means:
+   1. The backend is running, and you can test all features!
+   2. All operations (User, Vendor, Delivery, Products, etc.) will work.
+   
+Whenever you're ready, whitelist your IP (${publicIP}) on MongoDB Atlas
+to switch back to your persistent remote cluster.
+========================================================================
+      `);
+      await autoSeedAdmin();
+      await autoSeedDeliveryBoy();
+      await autoMigrateCategories();
+    } catch (localError) {
+      console.log('❌ Local MongoDB is not running. Attempting to spin up an in-memory MongoDB fallback server...');
+      try {
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        const conn = await mongoose.connect(mongoUri);
+        console.log(`
 ========================================================================
 ⚠️ SUCCESS: IN-MEMORY MONGODB FALLBACK CONFIGURED
 ========================================================================
@@ -144,12 +188,14 @@ Backend is now running with a local, zero-config in-memory MongoDB!
 Whenever you're ready, whitelist your IP (${publicIP}) on MongoDB Atlas
 to switch back to your persistent remote cluster.
 ========================================================================
-      `);
-      await autoSeedAdmin();
-      await autoMigrateCategories();
-    } catch (fallbackError) {
-      console.error('❌ Failed to start in-memory MongoDB server:', fallbackError.message);
-      process.exit(1);
+        `);
+        await autoSeedAdmin();
+        await autoSeedDeliveryBoy();
+        await autoMigrateCategories();
+      } catch (fallbackError) {
+        console.error('❌ Failed to start in-memory MongoDB server:', fallbackError.message);
+        process.exit(1);
+      }
     }
   }
 };

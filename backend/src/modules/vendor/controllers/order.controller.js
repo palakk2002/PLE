@@ -93,7 +93,19 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
     order.vendorItems = order.vendorItems.map((vi) =>
         vi.vendorId.toString() === req.user.id ? { ...vi.toObject(), status } : vi
     );
+    const oldStatus = order.status;
     order.status = deriveTopLevelOrderStatus(order.vendorItems, order.status);
+    if (order.status !== oldStatus) {
+        if (order.status === 'processing' && !order.processingAt) {
+            order.processingAt = new Date();
+        } else if (order.status === 'shipped' && !order.shippedAt) {
+            order.shippedAt = new Date();
+        } else if (order.status === 'delivered' && !order.deliveredAt) {
+            order.deliveredAt = new Date();
+        } else if (order.status === 'cancelled' && !order.cancelledAt) {
+            order.cancelledAt = new Date();
+        }
+    }
     await order.save();
 
     const notificationTasks = [];

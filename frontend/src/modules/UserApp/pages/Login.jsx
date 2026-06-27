@@ -32,6 +32,7 @@ const MobileLogin = () => {
     const { adminProfile } = useB2BAdminStore.getState();
     const isActuallyAdmin = isB2BAuthenticated && adminProfile && !adminProfile.isEmployee;
     const isActuallyEmployee = isB2BAuthenticated && adminProfile && adminProfile.isEmployee;
+    const b2bStore = useB2bStore.getState();
 
     if (isB2BAuthenticated && adminProfile) {
       // Sync authStore to match the active B2B session
@@ -44,10 +45,16 @@ const MobileLogin = () => {
       }
     }
 
-    if (isActuallyAdmin) {
-      setShowB2BOptionModal(true);
-    } else if (isActuallyEmployee || (isAuthenticated && !isActuallyAdmin)) {
-      navigate('/home', { replace: true });
+    if (b2bStore.userRole === 'customer') {
+      if (isAuthenticated) {
+        navigate('/home', { replace: true });
+      }
+    } else {
+      if (isActuallyAdmin) {
+        setShowB2BOptionModal(true);
+      } else if (isActuallyEmployee || (isAuthenticated && !isActuallyAdmin)) {
+        navigate('/home', { replace: true });
+      }
     }
   }, [isAuthenticated, isB2BAuthenticated, navigate]);
   const [showPassword, setShowPassword] = useState(false);
@@ -126,9 +133,13 @@ const MobileLogin = () => {
                });
              }
            }
-           if (userRole === 'b2bEmployee' || result?.user?.isEmployee || isMockEmployee) {
-             b2bState.setUserRole('business_buyer');
+           if (b2bState.userRole !== 'customer') {
+             if (userRole === 'b2bEmployee' || result?.user?.isEmployee || isMockEmployee) {
+               b2bState.setUserRole('business_buyer');
+             }
            }
+        } else {
+          b2bState.setUserRole('customer');
         }
         
         replayPendingAction();

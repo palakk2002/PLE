@@ -249,6 +249,12 @@ export const useB2BAdminStore = create(
         }
       }).catch(() => {});
     } catch (e) {}
+
+    try {
+      import('../../../shared/store/b2bStore').then(({ useB2bStore }) => {
+        useB2bStore.getState().resetB2b();
+      }).catch(() => {});
+    } catch (e) {}
   },
 
   fetchNotifications: async (page = 1) => {

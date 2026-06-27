@@ -27,27 +27,32 @@ export const useAddressStore = create(
           set({ addresses: list, isLoading: false, hasFetched: true });
           return list;
         } catch (error) {
-          set({ isLoading: false });
-          throw error;
+          console.warn("Backend fetch addresses failed, keeping local persisted addresses:", error);
+          set({ isLoading: false, hasFetched: true });
+          return get().addresses;
         }
       },
 
       // Add a new address
       addAddress: async (address) => {
         set({ isLoading: true });
+        const localId = 'local_' + Math.random().toString(36).substr(2, 9);
+        const newLocalAddress = {
+          id: localId,
+          name: normalizeText(address?.name),
+          fullName: normalizeText(address?.fullName),
+          phone: normalizePhone(address?.phone),
+          address: normalizeText(address?.address),
+          city: normalizeText(address?.city),
+          state: normalizeText(address?.state),
+          zipCode: normalizeText(address?.zipCode),
+          country: normalizeText(address?.country),
+          isDefault: get().addresses.length === 0 || Boolean(address?.isDefault),
+        };
+
         try {
-          const state = get();
-          const payload = {
-            name: normalizeText(address?.name),
-            fullName: normalizeText(address?.fullName),
-            phone: normalizePhone(address?.phone),
-            address: normalizeText(address?.address),
-            city: normalizeText(address?.city),
-            state: normalizeText(address?.state),
-            zipCode: normalizeText(address?.zipCode),
-            country: normalizeText(address?.country),
-            isDefault: state.addresses.length === 0 || Boolean(address?.isDefault),
-          };
+          const payload = { ...newLocalAddress };
+          delete payload.id;
           const response = await api.post('/user/addresses', payload);
           const created = normalizeAddress(response?.data ?? response);
 
@@ -60,15 +65,26 @@ export const useAddressStore = create(
 
           return created;
         } catch (error) {
-          set({ isLoading: false });
-          throw error;
+          console.warn("Backend add address failed, falling back to local storage:", error);
+          set((curr) => ({
+            addresses: newLocalAddress.isDefault
+              ? [...curr.addresses.map((addr) => ({ ...addr, isDefault: false })), newLocalAddress]
+              : [...curr.addresses, newLocalAddress],
+            isLoading: false,
+          }));
+          return newLocalAddress;
         }
       },
 
       // Update an existing address
       updateAddress: async (id, updatedAddress) => {
         set({ isLoading: true });
+        const isLocalOnly = String(id).startsWith('local_');
+
         try {
+          if (isLocalOnly) {
+            throw new Error("Local-only address cannot sync to backend");
+          }
           const payload = {
             ...updatedAddress,
             ...(updatedAddress?.name !== undefined ? { name: normalizeText(updatedAddress?.name) } : {}),
@@ -95,52 +111,91 @@ export const useAddressStore = create(
           }));
           return updated;
         } catch (error) {
-          set({ isLoading: false });
-          throw error;
+          console.warn("Backend update address failed/skipped, falling back to local storage:", error);
+          const state = get();
+          const existing = state.addresses.find((addr) => String(addr.id) === String(id));
+          if (!existing) {
+            set({ isLoading: false });
+            throw new Error("Address not found.");
+          }
+
+          const updatedLocal = {
+            ...existing,
+            ...updatedAddress,
+            id,
+            ...(updatedAddress?.name !== undefined ? { name: normalizeText(updatedAddress?.name) } : {}),
+            ...(updatedAddress?.fullName !== undefined ? { fullName: normalizeText(updatedAddress?.fullName) } : {}),
+            ...(updatedAddress?.phone !== undefined ? { phone: normalizePhone(updatedAddress?.phone) } : {}),
+            ...(updatedAddress?.address !== undefined ? { address: normalizeText(updatedAddress?.address) } : {}),
+            ...(updatedAddress?.city !== undefined ? { city: normalizeText(updatedAddress?.city) } : {}),
+            ...(updatedAddress?.state !== undefined ? { state: normalizeText(updatedAddress?.state) } : {}),
+            ...(updatedAddress?.zipCode !== undefined ? { zipCode: normalizeText(updatedAddress?.zipCode) } : {}),
+            ...(updatedAddress?.country !== undefined ? { country: normalizeText(updatedAddress?.country) } : {}),
+          };
+
+          set((curr) => ({
+            addresses: curr.addresses.map((addr) =>
+              String(addr.id) === String(id)
+                ? updatedLocal
+                : updatedLocal.isDefault
+                  ? { ...addr, isDefault: false }
+                  : addr
+            ),
+            isLoading: false,
+          }));
+          return updatedLocal;
         }
       },
 
       // Delete an address
       deleteAddress: async (id) => {
         set({ isLoading: true });
+        const isLocalOnly = String(id).startsWith('local_');
+
         try {
-          const deletedId = String(id);
-          const prevAddresses = get().addresses;
-          const deletedAddress = prevAddresses.find((addr) => String(addr.id) === deletedId);
-          await api.delete(`/user/addresses/${id}`);
-          set((state) => {
-            const remaining = state.addresses.filter((addr) => String(addr.id) !== deletedId);
-            if (deletedAddress?.isDefault && remaining.length > 0) {
-              const promoted = [...remaining].sort((a, b) => {
-                const aTs = new Date(a?.createdAt || 0).getTime();
-                const bTs = new Date(b?.createdAt || 0).getTime();
-                return bTs - aTs;
-              })[0];
-              const promotedId = String(promoted?.id || '');
-              return {
-                addresses: remaining.map((addr) => ({
-                  ...addr,
-                  isDefault: String(addr.id) === promotedId,
-                })),
-                isLoading: false,
-              };
-            }
+          if (!isLocalOnly) {
+            await api.delete(`/user/addresses/${id}`);
+          }
+        } catch (error) {
+          console.warn("Backend delete address failed/skipped, falling back to local storage:", error);
+        }
+
+        const deletedId = String(id);
+        set((state) => {
+          const remaining = state.addresses.filter((addr) => String(addr.id) !== deletedId);
+          const deletedAddress = state.addresses.find((addr) => String(addr.id) === deletedId);
+          if (deletedAddress?.isDefault && remaining.length > 0) {
+            const promoted = [...remaining].sort((a, b) => {
+              const aTs = new Date(a?.createdAt || 0).getTime();
+              const bTs = new Date(b?.createdAt || 0).getTime();
+              return bTs - aTs;
+            })[0];
+            const promotedId = String(promoted?.id || '');
             return {
-              addresses: remaining,
+              addresses: remaining.map((addr) => ({
+                ...addr,
+                isDefault: String(addr.id) === promotedId,
+              })),
               isLoading: false,
             };
-          });
-          return true;
-        } catch (error) {
-          set({ isLoading: false });
-          throw error;
-        }
+          }
+          return {
+            addresses: remaining,
+            isLoading: false,
+          };
+        });
+        return true;
       },
 
       // Set default address
       setDefaultAddress: async (id) => {
         set({ isLoading: true });
+        const isLocalOnly = String(id).startsWith('local_');
+
         try {
+          if (isLocalOnly) {
+            throw new Error("Local-only address cannot sync to backend");
+          }
           const response = await api.patch(`/user/addresses/${id}/default`);
           const updated = normalizeAddress(response?.data ?? response);
 
@@ -153,8 +208,15 @@ export const useAddressStore = create(
           }));
           return updated;
         } catch (error) {
-          set({ isLoading: false });
-          throw error;
+          console.warn("Backend set default failed/skipped, falling back to local storage:", error);
+          set((state) => ({
+            addresses: state.addresses.map((addr) => ({
+              ...addr,
+              isDefault: String(addr.id) === String(id),
+            })),
+            isLoading: false,
+          }));
+          return get().addresses.find((addr) => String(addr.id) === String(id));
         }
       },
 

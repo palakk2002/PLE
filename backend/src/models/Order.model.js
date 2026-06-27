@@ -73,6 +73,8 @@ const orderSchema = new mongoose.Schema(
         deliveryOtpVerifiedAt: Date,
         deliveryOtpAttempts: { type: Number, default: 0, select: false },
         estimatedDelivery: Date,
+        processingAt: Date,
+        shippedAt: Date,
         deliveredAt: Date,
         isCashSettled: { type: Boolean, default: false },
         settledAt: Date,

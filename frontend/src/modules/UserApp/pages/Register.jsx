@@ -10,13 +10,14 @@ import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from '../../../shared/components/PageTransition';
 import { useB2bStore } from '../../../shared/store/b2bStore';
 import { useB2BAdminStore } from '../../B2BAdmin/store/b2bAdminStore';
+import { useBusinessBuyer } from '../hooks/useBusinessBuyer';
 import api from '../../../shared/utils/api';
 import { useEffect } from 'react';
 
 const MobileRegister = () => {
   const navigate = useNavigate();
   const { register: registerUser, login, isLoading } = useAuthStore();
-  const isBusiness = true; // Always B2B Company Registration
+  const { isBusiness, setUserRole } = useBusinessBuyer();
   const registerCompany = useB2bStore((state) => state.registerCompany);
 
   const [showPassword, setShowPassword] = useState(false);
@@ -147,9 +148,8 @@ const MobileRegister = () => {
     try {
       const fullName = `${data.firstName} ${data.lastName}`;
       await registerUser(fullName, data.email, data.password, data.phone);
-      toast.success('Registration successful! Logging in...');
-      await login(data.email, data.password);
-      navigate('/home');
+      toast.success('Registration successful! A verification OTP has been sent to your email.');
+      navigate('/verification', { state: { email: data.email } });
     } catch (error) {
       toast.error(error.message || 'Registration failed. Please try again.');
     }

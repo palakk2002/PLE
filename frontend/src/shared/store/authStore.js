@@ -316,6 +316,10 @@ export const useAuthStore = create(
             b2bAuth.logout();
           }
         } catch (e) {}
+
+        try {
+          useB2bStore.getState().resetB2b();
+        } catch (e) {}
       },
 
       // Update user profile

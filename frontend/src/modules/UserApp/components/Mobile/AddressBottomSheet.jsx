@@ -42,10 +42,10 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
   } = useForm();
 
   useEffect(() => {
-    if (isOpen && isAuthenticated) {
+    if (isOpen) {
       fetchAddresses().catch(() => null);
     }
-  }, [isOpen, isAuthenticated, fetchAddresses]);
+  }, [isOpen, fetchAddresses]);
 
   // Handle Form Submit
   const onSubmit = async (data) => {
@@ -134,30 +134,7 @@ const AddressBottomSheet = ({ isOpen, onClose }) => {
 
                 {/* Content area */}
                 <div className="flex-1 overflow-y-auto px-6 pb-8">
-                  {!isAuthenticated ? (
-                    /* Guest view */
-                    <div className="text-center py-8 flex flex-col items-center">
-                      <div className="w-16 h-16 rounded-full bg-rose-50 dark:bg-rose-950/30 flex items-center justify-center mb-4 text-[#AE020B]">
-                        <FiMapPin className="text-3xl" />
-                      </div>
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">
-                        Login to save addresses
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-xs mx-auto">
-                        Please log in to manage your addresses and get faster checkout.
-                      </p>
-                      <button
-                        onClick={() => {
-                          onClose();
-                          navigate("/login");
-                        }}
-                        className="w-full flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-[#AE020B] to-[#7B0A0A] hover:opacity-90 text-white font-extrabold rounded-xl shadow-md transition-all"
-                      >
-                        <FiLogIn className="text-lg" />
-                        <span>Login / Register</span>
-                      </button>
-                    </div>
-                  ) : isFormOpen ? (
+                  {isFormOpen ? (
                     /* Inline Add/Edit Address Form */
                     <div>
                       <div className="flex items-center gap-3 mb-6">

@@ -51,7 +51,7 @@ const MobileOrderDetail = () => {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      if (!order && orderId) {
+      if (orderId) {
         await fetchOrderById(orderId);
       }
       if (mounted) setIsResolving(false);
@@ -59,7 +59,7 @@ const MobileOrderDetail = () => {
     return () => {
       mounted = false;
     };
-  }, [order, orderId, fetchOrderById]);
+  }, [orderId, fetchOrderById]);
 
   useEffect(() => {
     if (order?.userId) {
