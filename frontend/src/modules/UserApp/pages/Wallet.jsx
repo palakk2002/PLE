@@ -26,9 +26,22 @@ import WalletTransactionCard from "../components/Wallet/WalletTransactionCard";
 const MobileWallet = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { balance, transactions, fetchWallet, addFunds, transferFunds, withdrawFunds, isLoading } = useWalletStore();
+  const { 
+    balance, 
+    totalCredit, 
+    totalDebit, 
+    transactions, 
+    pagination, 
+    fetchWallet, 
+    fetchTransactions, 
+    addFunds, 
+    transferFunds, 
+    withdrawFunds, 
+    isLoading 
+  } = useWalletStore();
 
   const [activeTab, setActiveTab] = useState("all"); // 'all', 'credit', 'debit', 'refunds'
+  const [page, setPage] = useState(1);
   const [showAddMoney, setShowAddMoney] = useState(false);
   const [showSendMoney, setShowSendMoney] = useState(false);
   const [showWithdrawMoney, setShowWithdrawMoney] = useState(false);
@@ -48,6 +61,15 @@ const MobileWallet = () => {
   useEffect(() => {
     fetchWallet();
   }, [fetchWallet]);
+
+  useEffect(() => {
+    fetchTransactions(page, 10, activeTab);
+  }, [page, activeTab, fetchTransactions]);
+
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setPage(1);
+  };
 
   const handleAddMoney = async (e) => {
     e.preventDefault();
@@ -133,13 +155,6 @@ const MobileWallet = () => {
     }
   };
 
-  const filteredTransactions = transactions.filter((tx) => {
-    if (activeTab === "credit") return tx.type === "credit";
-    if (activeTab === "debit") return tx.type === "debit";
-    if (activeTab === "refunds") return tx.type === "Refund Credit" || tx.title.toLowerCase().includes("refund");
-    return true;
-  });
-
   return (
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
@@ -161,6 +176,8 @@ const MobileWallet = () => {
             {/* Visual Balance Card */}
             <WalletBalanceCard
               balance={balance}
+              totalCredit={totalCredit}
+              totalDebit={totalDebit}
               userName={user?.name}
               onAddMoney={() => setShowAddMoney(true)}
               onTransfer={() => setShowSendMoney(true)}
@@ -174,7 +191,7 @@ const MobileWallet = () => {
                 {["all", "credit", "debit", "refunds"].map((tab) => (
                   <button
                     key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    onClick={() => handleTabChange(tab)}
                     className={`px-3 py-1.5 text-xs font-bold capitalize rounded-lg transition-all ${
                       activeTab === tab
                         ? "bg-white dark:bg-[#252525] text-[#7B0A0A] shadow-sm"
@@ -190,9 +207,9 @@ const MobileWallet = () => {
             {/* Transaction Log */}
             <div className="space-y-3">
               <AnimatePresence mode="popLayout">
-                {filteredTransactions.length > 0 ? (
-                  filteredTransactions.map((tx) => (
-                    <WalletTransactionCard key={tx.id} tx={tx} />
+                {transactions.length > 0 ? (
+                  transactions.map((tx) => (
+                    <WalletTransactionCard key={tx.id || tx._id} tx={tx} />
                   ))
                 ) : (
                   <div className="text-center py-12 bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
@@ -201,6 +218,29 @@ const MobileWallet = () => {
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Pagination Controls */}
+            {pagination && pagination.pages > 1 && (
+              <div className="flex justify-center items-center gap-4 pt-2">
+                <button
+                  disabled={page <= 1 || isLoading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className="px-3 py-1.5 text-xs font-bold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/10 rounded-xl text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-50"
+                >
+                  Previous
+                </button>
+                <span className="text-xs font-bold text-gray-500">
+                  Page {page} of {pagination.pages}
+                </span>
+                <button
+                  disabled={page >= pagination.pages || isLoading}
+                  onClick={() => setPage((p) => p + 1)}
+                  className="px-3 py-1.5 text-xs font-bold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/10 rounded-xl text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-50"
+                >
+                  Next
+                </button>
+              </div>
+            )}
 
             {/* Simulated Add Money Drawer */}
             {createPortal(

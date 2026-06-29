@@ -1,33 +1,68 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FiSave, FiSettings, FiAward } from "react-icons/fi";
-import { useLoyaltyStore } from "../../../../shared/store/loyaltyStore";
+import api from "../../../../shared/utils/api";
 import toast from "react-hot-toast";
 
 const LoyaltyRules = () => {
-  const { rules, updateRules } = useLoyaltyStore();
   const [formData, setFormData] = useState({
-    pointsPerOrder: rules.pointsPerOrder,
-    pointsPerAmountSpent: Math.round(rules.pointsPerAmountSpent * 100), // convert 0.05 to 5%
-    redemptionRatio: rules.redemptionRatio,
+    pointsPerOrder: 50,
+    pointsPerAmountSpent: 5,
+    redemptionRatio: 0.2,
+    minRedeemPoints: 50,
+    maxRedemptionPercent: 50,
+    enabled: true,
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRules = async () => {
+      try {
+        const res = await api.get("/admin/loyalty/config");
+        if (res && res.data) {
+          const rules = res.data;
+          setFormData({
+            pointsPerOrder: rules.pointsPerOrder ?? 0,
+            pointsPerAmountSpent: rules.purchaseToPointsRatio ?? 5,
+            redemptionRatio: rules.redemptionRatio ?? 0.2,
+            minRedeemPoints: rules.minRedeemPoints ?? 50,
+            maxRedemptionPercent: rules.maxRedemptionPercent ?? 50,
+            enabled: rules.enabled ?? true,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load rules", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRules();
+  }, []);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: parseFloat(value) || 0,
+      [name]: type === "checkbox" ? checked : (parseFloat(value) || 0),
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    updateRules({
-      pointsPerOrder: formData.pointsPerOrder,
-      pointsPerAmountSpent: formData.pointsPerAmountSpent / 100, // convert 5% back to 0.05
-      redemptionRatio: formData.redemptionRatio,
-    });
-    toast.success("Loyalty Program rules updated successfully!");
+    try {
+      await api.put("/admin/loyalty/config", {
+        pointsPerOrder: formData.pointsPerOrder,
+        purchaseToPointsRatio: formData.pointsPerAmountSpent,
+        purchaseAmountUnit: 100, // Fixed unit representation
+        redemptionRatio: formData.redemptionRatio,
+        minRedeemPoints: formData.minRedeemPoints,
+        maxRedemptionPercent: formData.maxRedemptionPercent,
+        enabled: formData.enabled,
+      });
+      toast.success("Loyalty Program rules updated successfully!");
+    } catch (err) {
+      toast.error("Failed to save loyalty rules");
+    }
   };
 
   return (
@@ -134,13 +169,13 @@ const LoyaltyRules = () => {
               <div className="bg-white p-3.5 rounded-xl border border-amber-100 shadow-sm text-center">
                 <span className="text-gray-400 block font-medium mb-1 text-[10px]">User earns</span>
                 <span className="text-sm font-black text-emerald-600">
-                  +{Math.round(1000 * (formData.pointsPerAmountSpent / 100)) + formData.pointsPerOrder} Pts
+                  +{Math.round((1000 / 100) * formData.pointsPerAmountSpent)} Pts
                 </span>
               </div>
               <div className="bg-white p-3.5 rounded-xl border border-amber-100 shadow-sm text-center">
                 <span className="text-gray-400 block font-medium mb-1 text-[10px]">Points value</span>
                 <span className="text-sm font-black text-amber-600">
-                  ₹{((Math.round(1000 * (formData.pointsPerAmountSpent / 100)) + formData.pointsPerOrder) * formData.redemptionRatio).toFixed(2)}
+                  ₹{(Math.round((1000 / 100) * formData.pointsPerAmountSpent) * formData.redemptionRatio).toFixed(2)}
                 </span>
               </div>
             </div>

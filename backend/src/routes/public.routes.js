@@ -13,6 +13,19 @@ import { calculateVendorShippingForGroups } from '../services/vendorShipping.ser
 
 const router = Router();
 
+router.get('/loyalty/config', asyncHandler(async (req, res) => {
+    const loyaltyService = await import('../services/loyalty.service.js');
+    const config = await loyaltyService.getLoyaltyConfig();
+    res.status(200).json(new ApiResponse(200, {
+        enabled: config.enabled,
+        purchaseToPointsRatio: config.purchaseToPointsRatio,
+        purchaseAmountUnit: config.purchaseAmountUnit,
+        redemptionRatio: config.redemptionRatio,
+        minRedeemPoints: config.minRedeemPoints,
+        maxRedemptionPercent: config.maxRedemptionPercent
+    }, 'Public loyalty config fetched.'));
+}));
+
 const toPublicVendor = (vendorDoc) => {
     const vendor = typeof vendorDoc?.toObject === 'function'
         ? vendorDoc.toObject()

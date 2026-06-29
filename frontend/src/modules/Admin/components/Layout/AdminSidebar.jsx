@@ -27,6 +27,7 @@ import {
   FiRefreshCw,
   FiInbox,
   FiAward,
+  FiCreditCard,
 } from "react-icons/fi";
 import { useAdminAuthStore } from "../../store/adminStore";
 import adminMenu from "../../config/adminMenu.json";
@@ -60,6 +61,7 @@ const iconMap = {
   "Loyalty Program": FiAward,
   "Landing Page": FiGlobe,
   "B2B Users": FiUsers,
+  "Wallet Management": FiCreditCard,
 };
 
 // Helper function to convert child name to route path

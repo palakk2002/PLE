@@ -16,6 +16,7 @@ import * as uploadController from '../controllers/upload.controller.js';
 import * as refurbishedController from '../controllers/refurbished.controller.js';
 import * as loyaltyController from '../controllers/loyalty.controller.js';
 import * as settingsController from '../controllers/settings.controller.js';
+import * as walletController from '../controllers/wallet.controller.js';
 import b2bUserRoutes from './b2bUser.routes.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
@@ -197,6 +198,24 @@ router.get('/refurbished-stats', ...adminAuth, refurbishedController.getRefurbis
 // Loyalty Program
 router.get('/loyalty/stats', ...adminAuth, loyaltyController.getLoyaltyStats);
 router.get('/loyalty/transactions', ...adminAuth, loyaltyController.getLoyaltyTransactions);
+router.get('/loyalty/users', ...adminAuth, loyaltyController.getLoyaltyUsers);
+router.get('/loyalty/users/:userId', ...adminAuth, loyaltyController.getUserLoyalty);
+router.post('/loyalty/users/:userId/credit', ...adminAuth, loyaltyController.creditUserPoints);
+router.post('/loyalty/users/:userId/debit', ...adminAuth, loyaltyController.debitUserPoints);
+router.post('/loyalty/users/:userId/reset', ...adminAuth, loyaltyController.resetUserPoints);
+router.get('/loyalty/users/:userId/history', ...adminAuth, loyaltyController.getUserLoyaltyHistory);
+router.get('/loyalty/config', ...adminAuth, loyaltyController.getLoyaltyConfig);
+router.put('/loyalty/config', ...adminAuth, loyaltyController.updateLoyaltyConfig);
+
+// ─── Wallet Management ──────────────────────────────────────────────────────────
+router.get('/wallet/dashboard', ...adminAuth, walletController.getWalletDashboard);
+router.get('/wallet/users', ...adminAuth, walletController.searchWalletUsers);
+router.get('/wallet/users/:userId', ...adminAuth, walletController.getUserWallet);
+router.get('/wallet/users/:userId/transactions', ...adminAuth, walletController.getUserTransactions);
+router.post('/wallet/users/:userId/credit', ...adminAuth, walletController.creditUserWallet);
+router.post('/wallet/users/:userId/debit', ...adminAuth, walletController.debitUserWallet);
+router.post('/wallet/users/:userId/freeze', ...adminAuth, walletController.freezeUserWallet);
+router.post('/wallet/users/:userId/unfreeze', ...adminAuth, walletController.unfreezeUserWallet);
 
 // Settings (Logistics, etc)
 router.get('/settings/:key', ...adminAuth, settingsController.getSettings);

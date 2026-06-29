@@ -38,6 +38,7 @@ import Badge from "../../../shared/components/Badge";
 import ProductCard from "../../../shared/components/ProductCard";
 import { getVariantSignature } from "../../../shared/utils/variant";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
+import { useLoyaltyStore } from "../../../shared/store/loyaltyStore";
 import {
   B2BBulkQuantitySelector,
   B2BProductDetailSections,
@@ -213,6 +214,12 @@ const MobileProductDetail = () => {
 
   const { isBusiness, getWholesaleSpecs, getWholesalePriceForQty } =
     useBusinessBuyer();
+  
+  const { rules: loyaltyConfig, fetchConfig } = useLoyaltyStore();
+
+  useEffect(() => {
+    fetchConfig();
+  }, []);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [isStockRequestModalOpen, setIsStockRequestModalOpen] = useState(false);
   const [isEnquiryModalOpen, setIsEnquiryModalOpen] = useState(false);
@@ -794,6 +801,20 @@ const MobileProductDetail = () => {
                           </span>
                         </div>
                       )
+                    )}
+                    
+                    {/* Loyalty Points Earn Message */}
+                    {!isBusiness && loyaltyConfig?.enabled && (
+                      <div className="mt-4 pt-3 border-t border-gray-200/60 flex items-center gap-2 text-xs font-semibold text-emerald-800">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>
+                          Buy this product & earn{" "}
+                          <strong className="font-extrabold text-emerald-700">
+                            {Math.floor((activePrice / (loyaltyConfig.purchaseAmountUnit || 100)) * (loyaltyConfig.purchaseToPointsRatio || 5))}
+                          </strong>{" "}
+                          Loyalty Points
+                        </span>
+                      </div>
                     )}
                   </div>
 

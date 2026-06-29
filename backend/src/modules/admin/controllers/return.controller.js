@@ -1,9 +1,8 @@
 import ReturnRequest from '../../../models/ReturnRequest.model.js';
 import Order from '../../../models/Order.model.js';
 import Product from '../../../models/Product.model.js';
-import Wallet from '../../../models/Wallet.model.js';
-import WalletTransaction from '../../../models/WalletTransaction.model.js';
 import User from '../../../models/User.model.js';
+import * as walletService from '../../../services/wallet.service.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { ApiError } from '../../../utils/ApiError.js';
 import { ApiResponse } from '../../../utils/ApiResponse.js';
@@ -256,26 +255,34 @@ export const updateReturnRequestStatus = asyncHandler(async (req, res) => {
         }
     }
 
-    // Process Refund to Wallet
+    // Process Refund to Wallet or Original payment source
     if (refundStatus === 'processed' && request.refundStatus === 'processed' && currentRefundStatus !== 'processed') {
-        // Only credit if it just changed to processed
-        let wallet = await Wallet.findOne({ userId: request.userId._id || request.userId });
-        if (!wallet) {
-            wallet = await Wallet.create({ userId: request.userId._id || request.userId, balance: 0 });
-        }
         const amount = Number(request.refundAmount || 0);
-        if (amount > 0) {
-            wallet.balance += amount;
-            await wallet.save();
-
-            await WalletTransaction.create({
-                walletId: wallet._id,
+        
+        if (request.refundDestination === 'Wallet' && amount > 0) {
+            await walletService.creditWallet({
                 userId: request.userId._id || request.userId,
                 amount: amount,
-                type: 'credit',
+                category: 'refund',
                 description: `Refund processed for Return Request #${request._id}`,
-                status: 'completed'
+                returnRequestId: request._id,
+                idempotencyKey: `refund_request_${request._id}`
             });
+        }
+
+        // Revert loyalty points for B2C customer
+        const user = await User.findById(request.userId._id || request.userId);
+        if (user && user.role === 'customer') {
+            const loyaltyService = await import('../../../services/loyalty.service.js');
+            const orderObj = await Order.findById(request.orderId?._id || request.orderId);
+            if (orderObj) {
+                if (orderObj.loyaltyPointsEarned > 0) {
+                    await loyaltyService.reverseEarnedPoints(user._id, orderObj._id);
+                }
+                if (orderObj.loyaltyPointsRedeemed > 0) {
+                    await loyaltyService.restoreRedeemedPoints(user._id, orderObj._id);
+                }
+            }
         }
     }
 
@@ -394,26 +401,15 @@ export const updateRefurbishedReturn = asyncHandler(async (req, res) => {
     if (status === 'refund_processed' && returnReq.refundStatus !== 'processed') {
         returnReq.refundStatus = 'processed';
         
-        // Find wallet and add money
-        let wallet = await Wallet.findOne({ userId: returnReq.userId });
-        if (!wallet) {
-            wallet = await Wallet.create({ userId: returnReq.userId, balance: 0 });
-        }
-        
-        // In real scenario, refundAmount should be properly calculated based on the returned items
-        // Since we are migrating from mock data, we will just use a default or the order's item price
         const amount = Number(returnReq.refundAmount) || 1000; // Mock amount if not set
         
-        wallet.balance += amount;
-        await wallet.save();
-
-        await WalletTransaction.create({
-            walletId: wallet._id,
+        await walletService.creditWallet({
             userId: returnReq.userId,
             amount: amount,
-            type: 'credit',
+            category: 'refund',
             description: `Refund processed for Refurbished Return #${returnReq._id}`,
-            status: 'completed'
+            returnRequestId: returnReq._id,
+            idempotencyKey: `refurbished_refund_${returnReq._id}`
         });
     }
 

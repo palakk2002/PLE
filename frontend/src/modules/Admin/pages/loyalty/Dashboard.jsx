@@ -41,7 +41,7 @@ const LoyaltyDashboard = () => {
     {
       title: "Total Points Issued",
       value: totalIssued,
-      change: "+15% this month",
+      change: "Lifetime points credited",
       icon: FiTrendingUp,
       color: "from-blue-500 to-indigo-650",
       bg: "bg-blue-50 text-blue-700 border-blue-100",
@@ -49,7 +49,7 @@ const LoyaltyDashboard = () => {
     {
       title: "Total Points Redeemed",
       value: totalRedeemed,
-      change: "+8% this month",
+      change: "Lifetime points debited",
       icon: FiRotateCcw,
       color: "from-emerald-500 to-teal-600",
       bg: "bg-emerald-50 text-emerald-700 border-emerald-100",
@@ -57,15 +57,15 @@ const LoyaltyDashboard = () => {
     {
       title: "Active Members",
       value: activeMembers,
-      change: "4 registered accounts",
+      change: "Registered B2C accounts",
       icon: FiUsers,
       color: "from-purple-500 to-indigo-600",
       bg: "bg-purple-50 text-purple-700 border-purple-100",
     },
     {
-      title: "Outstanding Points",
-      value: outstandingPoints,
-      change: "Liability value",
+      title: "Discount Given",
+      value: `₹${(statsData.totalDiscountGiven || 0).toLocaleString()}`,
+      change: `across ${(statsData.totalTransactions || 0).toLocaleString()} transactions`,
       icon: FiAward,
       color: "from-amber-500 to-orange-600",
       bg: "bg-amber-50 text-amber-700 border-amber-100",

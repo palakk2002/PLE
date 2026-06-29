@@ -1,33 +1,47 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiSearch, FiEdit, FiX, FiCheck } from "react-icons/fi";
-import { useLoyaltyStore } from "../../../../shared/store/loyaltyStore";
+import api from "../../../../shared/utils/api";
 import toast from "react-hot-toast";
 
 const UserPoints = () => {
-  const { users, updateUserPoints } = useLoyaltyStore();
   const [searchTerm, setSearchTerm] = useState("");
+  const [usersList, setUsersList] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [adjustAmount, setAdjustAmount] = useState("");
   const [adjustType, setAdjustType] = useState("add"); // "add" | "deduct"
+  const [adjustReason, setAdjustReason] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const fetchUsers = async (query = "") => {
+    try {
+      const res = await api.get(`/admin/loyalty/users?search=${query}`);
+      if (res && res.data) {
+        setUsersList(res.data.users || []);
+      }
+    } catch (err) {
+      console.error("Failed to load users", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers(searchTerm);
+  }, [searchTerm]);
 
   const handleOpenModal = (user) => {
     setSelectedUser(user);
     setAdjustAmount("");
     setAdjustType("add");
+    setAdjustReason("");
   };
 
   const handleCloseModal = () => {
     setSelectedUser(null);
   };
 
-  const handleAdjustPoints = (e) => {
+  const handleAdjustPoints = async (e) => {
     e.preventDefault();
     const amount = parseInt(adjustAmount, 10);
     if (Number.isNaN(amount) || amount <= 0) {
@@ -35,18 +49,25 @@ const UserPoints = () => {
       return;
     }
 
-    const diff = adjustType === "add" ? amount : -amount;
-    
     if (adjustType === "deduct" && amount > selectedUser.currentPoints) {
       toast.error(`Cannot deduct more than the user's current points (${selectedUser.currentPoints} Pts)`);
       return;
     }
 
-    updateUserPoints(selectedUser.id, diff, "adjust");
-    toast.success(
-      `Successfully ${adjustType === "add" ? "added" : "deducted"} ${amount} points for ${selectedUser.name}`
-    );
-    handleCloseModal();
+    try {
+      const action = adjustType === "add" ? "credit" : "debit";
+      await api.post(`/admin/loyalty/users/${selectedUser.id}/${action}`, {
+        points: amount,
+        reason: adjustReason || `Admin manual adjustment`,
+      });
+      toast.success(
+        `Successfully ${adjustType === "add" ? "added" : "deducted"} ${amount} points for ${selectedUser.name}`
+      );
+      fetchUsers(searchTerm);
+      handleCloseModal();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to adjust points balance.");
+    }
   };
 
   return (
@@ -90,7 +111,7 @@ const UserPoints = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-gray-700">
-              {filteredUsers.map((user) => (
+              {usersList.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50/70 transition-colors">
                   <td className="py-4 px-6">
                     <div className="font-semibold text-gray-850">{user.name}</div>
@@ -116,7 +137,7 @@ const UserPoints = () => {
                   </td>
                 </tr>
               ))}
-              {filteredUsers.length === 0 && (
+              {usersList.length === 0 && (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-gray-400 font-semibold">
                     No users matching search filters.
@@ -194,6 +215,18 @@ const UserPoints = () => {
                   <p className="text-[10px] text-gray-400 font-semibold mt-1">
                     Current Balance: {selectedUser.currentPoints} Pts
                   </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide">Adjustment Reason</label>
+                  <input
+                    type="text"
+                    value={adjustReason}
+                    onChange={(e) => setAdjustReason(e.target.value)}
+                    placeholder="Reason for manual adjustment"
+                    required
+                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-250 focus:outline-none focus:border-amber-500 text-base"
+                  />
                 </div>
 
                 <div className="flex gap-3 pt-3">

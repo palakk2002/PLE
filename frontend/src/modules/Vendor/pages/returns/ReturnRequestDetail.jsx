@@ -307,6 +307,12 @@ const ReturnRequestDetail = () => {
                   {returnRequest.refundStatus}
                 </Badge>
               </div>
+              <div>
+                <p className="text-xs text-gray-500 mb-0.5">Refund Destination</p>
+                <Badge variant="default" className="text-xs">
+                  {returnRequest.refundDestination || "Original Payment Method"}
+                </Badge>
+              </div>
             </div>
           </div>
 

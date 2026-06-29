@@ -27,6 +27,7 @@ const returnRequestSchema = new mongoose.Schema(
         photoUrl: { type: String, default: '' },
         refundAmount: Number,
         refundStatus: { type: String, enum: ['pending', 'processed', 'failed'] },
+        refundDestination: { type: String, enum: ['Wallet', 'Original Payment Method'], default: 'Original Payment Method' },
         adminNote: String,
         rejectionReason: String,
         images: [String],

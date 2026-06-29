@@ -1,27 +1,38 @@
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
-import Wallet from '../../../models/Wallet.model.js';
-import WalletTransaction from '../../../models/WalletTransaction.model.js';
 import User from '../../../models/User.model.js';
+import * as walletService from '../../../services/wallet.service.js';
 
 // GET /api/user/wallet
 export const getWallet = asyncHandler(async (req, res) => {
-    let wallet = await Wallet.findOne({ userId: req.user.id });
-    
-    if (!wallet) {
-        wallet = await Wallet.create({ userId: req.user.id, balance: 0 });
-    }
-
-    const transactions = await WalletTransaction.find({ walletId: wallet._id })
-        .sort({ createdAt: -1 })
-        .limit(50); // Get latest 50 transactions
+    const summary = await walletService.getWalletSummary(req.user.id);
+    const { transactions } = await walletService.getTransactionHistory(req.user.id, { page: 1, limit: 50 });
 
     res.status(200).json(new ApiResponse(200, {
-        balance: wallet.balance,
-        currency: wallet.currency,
+        balance: summary.balance,
+        totalCredit: summary.totalCredit,
+        totalDebit: summary.totalDebit,
+        isFrozen: summary.isFrozen,
+        currency: summary.currency,
         transactions
     }, 'Wallet fetched successfully.'));
+});
+
+// GET /api/user/wallet/summary
+export const getWalletSummary = asyncHandler(async (req, res) => {
+    const summary = await walletService.getWalletSummary(req.user.id);
+    res.status(200).json(new ApiResponse(200, summary, 'Wallet summary fetched successfully.'));
+});
+
+// GET /api/user/wallet/transactions
+export const getWalletTransactions = asyncHandler(async (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const category = req.query.category || null;
+
+    const data = await walletService.getTransactionHistory(req.user.id, { page, limit, category });
+    res.status(200).json(new ApiResponse(200, data, 'Wallet transaction history fetched successfully.'));
 });
 
 // POST /api/user/wallet/add
@@ -32,23 +43,11 @@ export const addFunds = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Invalid amount to add.');
     }
 
-    let wallet = await Wallet.findOne({ userId: req.user.id });
-    if (!wallet) {
-        wallet = await Wallet.create({ userId: req.user.id, balance: 0 });
-    }
-
-    // Update balance
-    wallet.balance += Number(amount);
-    await wallet.save();
-
-    // Create transaction record
-    const transaction = await WalletTransaction.create({
-        walletId: wallet._id,
+    const { wallet, transaction } = await walletService.creditWallet({
         userId: req.user.id,
-        amount: Number(amount),
-        type: 'credit',
-        description: `Added funds via ${paymentMethod || 'Online Payment'}`,
-        status: 'completed'
+        amount,
+        category: 'recharge',
+        description: `Added funds via ${paymentMethod || 'Online Payment'}`
     });
 
     res.status(200).json(new ApiResponse(200, {
@@ -81,42 +80,19 @@ export const transferFunds = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Cannot transfer funds to yourself.');
     }
 
-    let senderWallet = await Wallet.findOne({ userId: req.user.id });
-    if (!senderWallet || senderWallet.balance < amount) {
-        throw new ApiError(400, 'Insufficient wallet balance.');
-    }
-
-    let recipientWallet = await Wallet.findOne({ userId: recipient._id });
-    if (!recipientWallet) {
-        recipientWallet = await Wallet.create({ userId: recipient._id, balance: 0 });
-    }
-
-    // Debit Sender
-    senderWallet.balance -= Number(amount);
-    await senderWallet.save();
-
-    // Credit Recipient
-    recipientWallet.balance += Number(amount);
-    await recipientWallet.save();
-
-    // Create Sender Transaction (Debit)
-    const debitTx = await WalletTransaction.create({
-        walletId: senderWallet._id,
+    // Perform debit & credit in transaction inside walletService
+    const { wallet: senderWallet, transaction: debitTx } = await walletService.debitWallet({
         userId: req.user.id,
-        amount: Number(amount),
-        type: 'debit',
-        description: `Transferred to ${recipient.name || recipientEmailOrPhone}`,
-        status: 'completed'
+        amount,
+        category: 'transfer_out',
+        description: `Transferred to ${recipient.name || recipientEmailOrPhone}`
     });
 
-    // Create Recipient Transaction (Credit)
-    await WalletTransaction.create({
-        walletId: recipientWallet._id,
+    await walletService.creditWallet({
         userId: recipient._id,
-        amount: Number(amount),
-        type: 'credit',
-        description: `Received from ${req.user.name || 'User'}`,
-        status: 'completed'
+        amount,
+        category: 'transfer_in',
+        description: `Received from ${req.user.name || 'User'}`
     });
 
     res.status(200).json(new ApiResponse(200, {
@@ -137,24 +113,17 @@ export const withdrawFunds = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Valid bank details are required.');
     }
 
-    let wallet = await Wallet.findOne({ userId: req.user.id });
-    if (!wallet || wallet.balance < amount) {
-        throw new ApiError(400, 'Insufficient wallet balance for withdrawal.');
-    }
-
-    // Deduct immediately, mark as pending
-    wallet.balance -= Number(amount);
-    await wallet.save();
-
-    const transaction = await WalletTransaction.create({
-        walletId: wallet._id,
+    const { wallet, transaction } = await walletService.debitWallet({
         userId: req.user.id,
-        amount: Number(amount),
-        type: 'debit',
-        description: `Withdrawal request to ${bankDetails.bankName || 'Bank'}`,
-        status: 'pending',
-        bankDetails: bankDetails
+        amount,
+        category: 'withdrawal',
+        description: `Withdrawal request to ${bankDetails.bankName || 'Bank'}`
     });
+
+    // Note: The transaction schema already has bankDetails support. Update status if required.
+    transaction.bankDetails = bankDetails;
+    transaction.status = 'pending';
+    await transaction.save();
 
     res.status(200).json(new ApiResponse(200, {
         balance: wallet.balance,

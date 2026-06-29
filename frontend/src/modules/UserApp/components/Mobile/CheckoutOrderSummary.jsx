@@ -1,6 +1,7 @@
 import { FiShoppingBag } from "react-icons/fi";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import { formatVariantLabel, getVariantSignature } from "../../../../shared/utils/variant";
+import { useLoyaltyStore } from "../../../../shared/store/loyaltyStore";
 
 const OrderSummary = ({ itemsByVendor, total, discount, shipping, tax, finalTotal, pointsDiscount = 0 }) => {
   return (
@@ -73,6 +74,24 @@ const OrderSummary = ({ itemsByVendor, total, discount, shipping, tax, finalTota
           <span className="text-red-700">{formatPrice(finalTotal)}</span>
         </div>
       </div>
+      
+      {/* Estimated loyalty points earned */}
+      <LoyaltyEarnEstimate totalToEarnFrom={Math.max(0, total - discount)} />
+    </div>
+  );
+};
+
+const LoyaltyEarnEstimate = ({ totalToEarnFrom }) => {
+  const { rules } = useLoyaltyStore();
+  if (!rules?.enabled || totalToEarnFrom <= 0) return null;
+  const points = Math.floor((totalToEarnFrom / (rules.purchaseAmountUnit || 100)) * (rules.purchaseToPointsRatio || 5));
+  if (points <= 0) return null;
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-150 text-center text-xs text-emerald-800 font-semibold flex items-center justify-center gap-1">
+      <span>🎯 You will earn:</span>
+      <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-black">
+        {points} Points
+      </span>
     </div>
   );
 };

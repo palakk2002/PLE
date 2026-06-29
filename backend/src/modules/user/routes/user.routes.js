@@ -63,6 +63,8 @@ router.delete('/wishlist/:productId', ...customerAuth, wishlistController.remove
 
 // Wallet routes (protected)
 router.get('/wallet', ...customerAuth, walletController.getWallet);
+router.get('/wallet/summary', ...customerAuth, walletController.getWalletSummary);
+router.get('/wallet/transactions', ...customerAuth, walletController.getWalletTransactions);
 router.post('/wallet/add', ...customerAuth, walletController.addFunds);
 router.post('/wallet/transfer', ...customerAuth, walletController.transferFunds);
 router.post('/wallet/withdraw', ...customerAuth, walletController.withdrawFunds);
@@ -80,6 +82,13 @@ router.patch('/orders/:id/cancel', ...customerAuth, orderController.cancelOrder)
 router.post('/orders/:id/returns', ...customerAuth, validate(createReturnRequestSchema), orderController.createReturnRequest);
 router.get('/returns', ...customerAuth, orderController.getUserReturnRequests);
 router.get('/returns/:id', ...customerAuth, orderController.getUserReturnRequestById);
+
+// Loyalty routes
+import * as loyaltyController from '../controllers/loyalty.controller.js';
+router.get('/loyalty/balance', ...customerAuth, loyaltyController.getBalance);
+router.get('/loyalty/history', ...customerAuth, loyaltyController.getHistory);
+router.post('/loyalty/validate-redemption', ...customerAuth, loyaltyController.validateRedemption);
+router.get('/loyalty/config', loyaltyController.getConfig);
 
 // Notification routes (protected)
 router.get('/notifications', ...customerAuth, notificationController.getUserNotifications);
