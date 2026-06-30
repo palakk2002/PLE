@@ -10,6 +10,7 @@ import { uploadVendorImage, uploadVendorImages } from "../../services/vendorServ
 import CategorySelector from "../../../Admin/components/CategorySelector";
 import AnimatedSelect from "../../../Admin/components/AnimatedSelect";
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
 import {
   parseVariantAxis,
   buildVariantCombinations,

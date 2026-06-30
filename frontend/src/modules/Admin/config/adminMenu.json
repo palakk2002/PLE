@@ -225,6 +225,11 @@
     ]
   },
   {
+    "title": "Wallet Management",
+    "route": "/admin/wallet-management",
+    "children": []
+  },
+  {
     "title": "Landing Page",
     "route": "/admin/landing-page",
     "children": [

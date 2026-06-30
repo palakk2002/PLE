@@ -99,6 +99,7 @@ export const useOrderStore = create(
             paymentMethod: orderData.paymentMethod,
             couponCode: orderData.couponCode || undefined,
             shippingOption: orderData.shippingOption || "standard",
+            loyaltyPointsToRedeem: orderData.loyaltyPointsToRedeem || undefined,
           };
           const idempotencyKey = buildIdempotencyKey(payload, orderData.userId);
 

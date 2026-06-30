@@ -59,19 +59,23 @@ const DeliveryOrderDetail = () => {
 
   useEffect(() => {
     if (order) {
-      setLocalTimeline(order.timeline || [
-        { stage: "Order Confirmed", date: new Date().toISOString(), completed: true },
-        { stage: "Packed", date: null, completed: false },
-        { stage: "Ready for Dispatch", date: null, completed: false },
-        { stage: "Local Hub Handover", date: null, completed: false },
-        { stage: "Out for Delivery", date: null, completed: false },
-        { stage: "Delivered", date: null, completed: false }
+      const isProcessingOrLater = ['processing', 'shipped', 'delivered'].includes(order.rawStatus);
+      const isShippedOrLater = ['shipped', 'delivered'].includes(order.rawStatus);
+      const isDelivered = order.rawStatus === 'delivered';
+
+      setLocalTimeline([
+        { stage: "Order Confirmed", date: order.createdAt || order.date || new Date().toISOString(), completed: true },
+        { stage: "Packed", date: isProcessingOrLater ? (order.processingAt || order.updatedAt) : null, completed: isProcessingOrLater },
+        { stage: "Ready for Dispatch", date: isProcessingOrLater ? (order.processingAt || order.updatedAt) : null, completed: isProcessingOrLater },
+        { stage: "Local Hub Handover", date: isProcessingOrLater ? (order.processingAt || order.updatedAt) : null, completed: isProcessingOrLater },
+        { stage: "Out for Delivery", date: isShippedOrLater ? (order.shippedAt || order.deliveryOtpSentAt) : null, completed: isShippedOrLater },
+        { stage: "Delivered", date: isDelivered ? order.deliveredAt : null, completed: isDelivered }
       ]);
     }
   }, [order]);
 
-  const advanceTimelineStep = (otpChecked = false) => {
-    if (!localTimeline || localTimeline.length === 0) return;
+  const advanceTimelineStep = async (otpChecked = false) => {
+    if (!localTimeline || localTimeline.length === 0 || !order) return;
 
     // Find first incomplete stage
     const nextStepIndex = localTimeline.findIndex(step => !step.completed);
@@ -82,47 +86,46 @@ const DeliveryOrderDetail = () => {
 
     const nextStepName = localTimeline[nextStepIndex].stage;
 
-    // If Delivered, prompt for OTP (mock OTP hint)
-    if (nextStepName === "Delivered" && !otpChecked) {
-      const otp = window.prompt("Enter 6-digit delivery OTP shared by customer (hint: 123456):");
+    if (nextStepName === "Out for Delivery") {
+      // Advance to Out for Delivery = Accept Order (moves status to shipped)
+      await handleAcceptOrder();
+    } else if (nextStepName === "Delivered") {
+      // Advance to Delivered = Prompt for OTP and Complete Order
+      const otp = window.prompt("Enter 6-digit delivery OTP shared by customer:");
       if (otp === null) return;
-      if (String(otp).trim() !== "123456" && String(otp).trim() !== "888888") {
-        toast.error("Invalid delivery OTP. Please try again.");
+      const normalizedOtp = String(otp).trim();
+      if (!/^\d{6}$/.test(normalizedOtp)) {
+        toast.error("Please enter a valid 6-digit OTP");
         return;
       }
-    }
-
-    // Update timeline stages
-    const updatedTimeline = localTimeline.map((step, idx) => {
-      if (idx === nextStepIndex) {
-        return {
-          ...step,
-          completed: true,
-          date: new Date().toISOString()
-        };
+      
+      try {
+        const updated = await completeOrder(order.id, normalizedOtp);
+        setOrder(updated);
+        toast.success('Order marked as delivered');
+      } catch (err) {
+        console.error("Complete order failed:", err);
       }
-      return step;
-    });
-
-    setLocalTimeline(updatedTimeline);
-    
-    // Dynamically update order status mapping
-    let newStatus = order.status;
-    if (nextStepName === "Packed" || nextStepName === "Ready for Dispatch" || nextStepName === "Local Hub Handover") {
-      newStatus = "pending";
-    } else if (nextStepName === "Out for Delivery") {
-      newStatus = "in-transit";
-    } else if (nextStepName === "Delivered") {
-      newStatus = "completed";
+    } else {
+      // For Packed, Ready, Hub Handover, if status is pending, trigger handleAcceptOrder
+      if (order.status === 'pending') {
+        await handleAcceptOrder();
+      } else {
+        // Just simulate since backend doesn't have intermediate states
+        const updatedTimeline = localTimeline.map((step, idx) => {
+          if (idx === nextStepIndex) {
+            return {
+              ...step,
+              completed: true,
+              date: new Date().toISOString()
+            };
+          }
+          return step;
+        });
+        setLocalTimeline(updatedTimeline);
+        toast.success(`Fulfillment pipeline advanced to: ${nextStepName}!`);
+      }
     }
-
-    setOrder(prev => ({
-      ...prev,
-      status: newStatus,
-      timeline: updatedTimeline
-    }));
-
-    toast.success(`Fulfillment pipeline advanced to: ${nextStepName}!`);
   };
 
   const getStatusColor = (status) => {

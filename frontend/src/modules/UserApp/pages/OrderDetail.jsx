@@ -51,7 +51,7 @@ const MobileOrderDetail = () => {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      if (!order && orderId) {
+      if (orderId) {
         await fetchOrderById(orderId);
       }
       if (mounted) setIsResolving(false);
@@ -59,7 +59,7 @@ const MobileOrderDetail = () => {
     return () => {
       mounted = false;
     };
-  }, [order, orderId, fetchOrderById]);
+  }, [orderId, fetchOrderById]);
 
   useEffect(() => {
     if (order?.userId) {
@@ -358,10 +358,16 @@ const MobileOrderDetail = () => {
                     <span>Subtotal</span>
                     <span>{formatPrice(order.subtotal)}</span>
                   </div>
-                  {order.discount > 0 && (
+                  {order.discount - (order.loyaltyDiscount || 0) > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Discount</span>
-                      <span>-{formatPrice(order.discount)}</span>
+                      <span>Coupon Discount</span>
+                      <span>-{formatPrice(order.discount - (order.loyaltyDiscount || 0))}</span>
+                    </div>
+                  )}
+                  {order.loyaltyDiscount > 0 && (
+                    <div className="flex justify-between text-amber-600">
+                      <span>Loyalty Discount ({order.loyaltyPointsRedeemed} Pts)</span>
+                      <span>-{formatPrice(order.loyaltyDiscount)}</span>
                     </div>
                   )}
                   <div className="flex justify-between text-gray-600">
@@ -376,6 +382,14 @@ const MobileOrderDetail = () => {
                     <span>Total</span>
                     <span className="text-[#7B0A0A]">{formatPrice(order.total)}</span>
                   </div>
+                  {order.loyaltyPointsEarned > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-150 text-center text-xs text-emerald-800 font-semibold flex items-center justify-center gap-1">
+                      <span>🎯 Earned:</span>
+                      <span className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full font-black">
+                        {order.loyaltyPointsEarned} Loyalty Points
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -14,7 +14,12 @@ import {
 export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    const admin = await Admin.findOne({ email }).select('+password');
+    const admin = await Admin.findOne({
+        $or: [
+            { email: String(email).toLowerCase() },
+            { role: String(email).toLowerCase() }
+        ]
+    }).select('+password');
     if (!admin) throw new ApiError(401, 'Invalid credentials.');
     if (!admin.isActive) throw new ApiError(403, 'Admin account is deactivated.');
 

@@ -40,12 +40,19 @@ const MobileCheckout = () => {
   const { addresses, getDefaultAddress, addAddress, fetchAddresses } = useAddressStore();
   const { createOrder } = useOrderStore();
   
-  const { availablePoints, rules, earnPoints, redeemPoints } = useLoyaltyStore();
+  const { availablePoints, rules: loyaltyConfig, fetchBalance, fetchConfig } = useLoyaltyStore();
   const [pointsToApply, setPointsToApply] = useState("");
   const [appliedPoints, setAppliedPoints] = useState(0);
   
   const { isBusiness } = useBusinessBuyer();
   const { balance: walletBalance, fetchWallet } = useWalletStore();
+
+  useEffect(() => {
+    if (isAuthenticated && !isBusiness) {
+      fetchBalance();
+      fetchConfig();
+    }
+  }, [isAuthenticated, isBusiness]);
 
   // Group items by vendor
   const itemsByVendor = useMemo(
@@ -81,6 +88,9 @@ const MobileCheckout = () => {
     country: "",
     paymentMethod: "card",
   });
+
+  const [useWallet, setUseWallet] = useState(false);
+  const [walletAmountToUse, setWalletAmountToUse] = useState(0);
 
   useEffect(() => {
     if (isBusiness) {
@@ -197,7 +207,7 @@ const MobileCheckout = () => {
   const shipping = calculateShippingFallback();
   const couponDiscount = appliedCoupon ? appliedDiscount : 0;
   const prePointsTotal = total + shipping + taxAmount(total, couponDiscount);
-  const maxRedeemableCash = Math.min(prePointsTotal, appliedPoints * rules.redemptionRatio);
+  const maxRedeemableCash = Math.min(prePointsTotal, appliedPoints * (loyaltyConfig?.redemptionRatio || 0.2));
   const pointsDiscount = maxRedeemableCash;
   const discount = couponDiscount + pointsDiscount;
   const taxableAmount = Math.max(0, total - couponDiscount);
@@ -417,11 +427,15 @@ const MobileCheckout = () => {
 
       setIsPlacingOrder(true);
       try {
+        const appliedWalletAmount = useWallet ? Math.min(walletBalance, finalTotal) : 0;
+        const remainder = Math.max(0, finalTotal - appliedWalletAmount);
+        const finalPaymentMethod = remainder === 0 ? 'wallet' : formData.paymentMethod;
+
         const order = await createOrder({
           userId: isAuthenticated ? user?.id : null,
           items: items,
           shippingAddress: normalizedShipping,
-          paymentMethod: formData.paymentMethod,
+          paymentMethod: finalPaymentMethod,
           subtotal: total,
           shipping: shipping,
           tax: tax,
@@ -429,19 +443,17 @@ const MobileCheckout = () => {
           total: finalTotal,
           couponCode: appliedCoupon ? (appliedCoupon.code || couponCode.trim().toUpperCase()) : null,
           shippingOption,
+          loyaltyPointsToRedeem: appliedPoints > 0 ? appliedPoints : undefined,
+          walletAmountToUse: appliedWalletAmount,
         });
 
-        if (appliedPoints > 0) {
-          redeemPoints(appliedPoints, order.id);
-        }
-        const ptsEarned = earnPoints(finalTotal, order.id);
-        localStorage.setItem(`earned_points_${order.id}`, ptsEarned.toString());
-        localStorage.setItem(`applied_points_${order.id}`, appliedPoints.toString());
+        localStorage.setItem(`earned_points_${order.orderId || order.id}`, order.loyaltyPointsEarned?.toString() || "0");
+        localStorage.setItem(`applied_points_${order.orderId || order.id}`, appliedPoints.toString());
 
         clearCart();
         setOrderSuccess(true);
         setTimeout(() => {
-          navigate(`/order-confirmation/${order.id}`);
+          navigate(`/order-confirmation/${order.orderId || order.id}`);
         }, 2000);
       } catch (error) {
         toast.error(error?.message || "Failed to place order");
@@ -455,11 +467,15 @@ const MobileCheckout = () => {
     if (isPlacingOrder) return;
     setIsPlacingOrder(true);
     try {
+      const appliedWalletAmount = useWallet ? Math.min(walletBalance, finalTotal) : 0;
+      const remainder = Math.max(0, finalTotal - appliedWalletAmount);
+      const finalPaymentMethod = remainder === 0 ? 'wallet' : 'upi';
+
       const order = await createOrder({
         userId: isAuthenticated ? user?.id : null,
         items: items,
         shippingAddress: shippingDetails,
-        paymentMethod: 'upi',
+        paymentMethod: finalPaymentMethod,
         subtotal: total,
         shipping: shipping,
         tax: tax,
@@ -467,6 +483,7 @@ const MobileCheckout = () => {
         total: finalTotal,
         couponCode: appliedCoupon ? (appliedCoupon.code || couponCode.trim().toUpperCase()) : null,
         shippingOption,
+        walletAmountToUse: appliedWalletAmount,
       });
 
       if (appliedPoints > 0) {
@@ -754,47 +771,76 @@ const MobileCheckout = () => {
                       <FiCreditCard className="text-primary-600" />
                       Payment Method
                     </h2>
-                    <div className="space-y-3 mb-6">
-                      {["card", "upi", "cash", "bank", "wallet"].map((method) => {
-                        const isWallet = method === "wallet";
-                        const isDisabled = isWallet && walletBalance < finalTotal;
-                        return (
-                        <label
-                          key={method}
-                          className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all ${isDisabled ? "opacity-50 cursor-not-allowed border-gray-100 bg-gray-50" : "cursor-pointer"} ${!isDisabled && formData.paymentMethod === method
-                            ? "border-primary-500 bg-primary-50"
-                            : "border-gray-200"
-                            }`}>
-                          <input
-                            type="radio"
-                            name="paymentMethod"
-                            value={method}
-                            checked={formData.paymentMethod === method}
-                            onChange={handleInputChange}
-                            disabled={isDisabled}
-                            className="w-5 h-5 text-primary-500"
-                          />
-                          <span className="font-semibold text-gray-800 capitalize text-base flex flex-col">
-                            <span>
-                            {method === "card"
-                              ? "Credit/Debit Card"
-                              : method === "upi"
-                                ? "UPI Payment (GPay / PhonePe / Paytm)"
-                                : method === "cash"
-                                  ? "Cash on Delivery"
-                                  : method === "wallet"
-                                    ? "My Wallet"
-                                    : "Bank Transfer"}
-                            </span>
-                            {isWallet && (
-                              <span className={`text-xs mt-1 ${isDisabled ? 'text-red-500' : 'text-green-600'}`}>
-                                Balance: {formatPrice(walletBalance)} {isDisabled && "(Insufficient)"}
-                              </span>
+
+                    {/* Wallet Apply Card */}
+                    {walletBalance > 0 && (
+                      <div className="bg-red-50/55 dark:bg-red-950/10 border-2 border-[#7B0A0A]/20 rounded-xl p-4 mb-5 flex flex-col gap-3">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="checkbox"
+                              id="useWalletCheck"
+                              checked={useWallet}
+                              onChange={(e) => {
+                                setUseWallet(e.target.checked);
+                                if (e.target.checked && walletBalance >= finalTotal) {
+                                  setFormData({ ...formData, paymentMethod: 'wallet' });
+                                }
+                              }}
+                              className="w-5 h-5 accent-[#7B0A0A]"
+                            />
+                            <label htmlFor="useWalletCheck" className="font-bold text-gray-800 dark:text-gray-200 text-sm cursor-pointer select-none">
+                              Apply Wallet Balance (Available: {formatPrice(walletBalance)})
+                            </label>
+                          </div>
+                        </div>
+                        {useWallet && (
+                          <div className="text-xs font-semibold text-[#7B0A0A] flex flex-col gap-1 pl-8">
+                            <span>Applied from Wallet: {formatPrice(Math.min(walletBalance, finalTotal))}</span>
+                            {walletBalance < finalTotal ? (
+                              <span>Remaining to Pay: {formatPrice(Math.max(0, finalTotal - walletBalance))}</span>
+                            ) : (
+                              <span>Paying full amount using wallet!</span>
                             )}
-                          </span>
-                        </label>
-                      )})}
-                    </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {(!useWallet || walletBalance < finalTotal) && (
+                      <div className="space-y-3 mb-6">
+                        {["card", "upi", "cash", "bank"].map((method) => (
+                          <label
+                            key={method}
+                            className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                              formData.paymentMethod === method
+                                ? "border-primary-500 bg-primary-50"
+                                : "border-gray-200"
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="paymentMethod"
+                              value={method}
+                              checked={formData.paymentMethod === method}
+                              onChange={handleInputChange}
+                              className="w-5 h-5 text-primary-500"
+                            />
+                            <span className="font-semibold text-gray-800 capitalize text-base flex flex-col">
+                              <span>
+                                {method === "card"
+                                  ? "Credit/Debit Card"
+                                  : method === "upi"
+                                    ? "UPI Payment (GPay / PhonePe / Paytm)"
+                                    : method === "cash"
+                                      ? "Cash on Delivery"
+                                      : "Bank Transfer"}
+                              </span>
+                            </span>
+                          </label>
+                        ))}
+                      </div>
+                    )}
 
                     {formData.paymentMethod === "upi" && (
                       <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-6 space-y-4">
@@ -940,55 +986,69 @@ const MobileCheckout = () => {
                       </p>
                     </div>
 
-                    {/* Loyalty Points Redemption */}
-                    <div className="mb-6 bg-white p-4 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                      <div className="flex items-center gap-2 text-amber-600">
-                        <FiAward className="text-lg" />
-                        <h3 className="text-base font-bold text-gray-800">
-                          Redeem Loyalty Points
-                        </h3>
-                      </div>
-                      
-                      {appliedPoints === 0 ? (
-                        <div className="space-y-3">
-                          <p className="text-xs text-gray-500">
-                            Available Points: <span className="font-extrabold text-amber-600">{availablePoints}</span> (worth {formatPrice(availablePoints * rules.redemptionRatio)})
-                          </p>
-                          <div className="flex gap-2">
+                    {/* Loyalty Points Redemption (B2C Only, Flipkart Style Toggle) */}
+                    {!isBusiness && loyaltyConfig?.enabled && (() => {
+                      const redemptionRatio = loyaltyConfig?.redemptionRatio || 0.2;
+                      const minRedeemPoints = loyaltyConfig?.minRedeemPoints || 50;
+                      const maxRedemptionPercent = loyaltyConfig?.maxRedemptionPercent || 50;
+
+                      // Calculate max discount allowed (up to maxRedemptionPercent% of subtotal after coupon)
+                      const maxDiscountAllowed = ((total - couponDiscount) * maxRedemptionPercent) / 100;
+                      const maxPointsNeeded = Math.floor(maxDiscountAllowed / redemptionRatio);
+                      const autoPointsToApply = Math.min(availablePoints, maxPointsNeeded);
+                      const potentialSavings = autoPointsToApply * redemptionRatio;
+
+                      const handleCheckboxChange = (e) => {
+                        if (e.target.checked) {
+                          if (availablePoints < minRedeemPoints) {
+                            toast.error(`Minimum redemption amount is ${minRedeemPoints} points.`);
+                            e.target.checked = false;
+                            return;
+                          }
+                          setAppliedPoints(autoPointsToApply);
+                          toast.success(`Applied ${autoPointsToApply} loyalty points! Saved ${formatPrice(potentialSavings)}`);
+                        } else {
+                          setAppliedPoints(0);
+                          toast.success("Loyalty points removed");
+                        }
+                      };
+
+                      return (
+                        <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6 flex items-center justify-between">
+                          <label htmlFor="loyalty-checkbox" className="flex items-center gap-3 cursor-pointer select-none flex-1">
+                            <div className="p-2.5 bg-amber-50 rounded-xl text-amber-600 shrink-0">
+                              <FiAward className="text-xl" />
+                            </div>
+                            <div>
+                              <h3 className="text-sm font-bold text-gray-800">
+                                Use Loyalty Points
+                              </h3>
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                Balance: <strong className="text-amber-700">{availablePoints} Points</strong> (worth {formatPrice(availablePoints * redemptionRatio)})
+                              </p>
+                              {availablePoints >= minRedeemPoints ? (
+                                <p className="text-xs text-emerald-600 font-semibold mt-1">
+                                  Check to save {formatPrice(potentialSavings)} using {autoPointsToApply} points
+                                </p>
+                              ) : (
+                                <p className="text-xs text-red-500 mt-1">
+                                  Min {minRedeemPoints} points required to redeem
+                                </p>
+                              )}
+                            </div>
+                          </label>
+                          <div className="flex items-center justify-center pl-4">
                             <input
-                              type="number"
-                              value={pointsToApply}
-                              onChange={(e) => setPointsToApply(e.target.value)}
-                              placeholder={`Enter points (Max ${availablePoints})`}
-                              className="flex-1 px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary-500 text-base"
+                              type="checkbox"
+                              id="loyalty-checkbox"
+                              checked={appliedPoints > 0}
+                              onChange={handleCheckboxChange}
+                              className="w-5 h-5 rounded border-gray-300 text-amber-600 focus:ring-amber-500 cursor-pointer"
                             />
-                            <button
-                              type="button"
-                              onClick={handleApplyPoints}
-                              className="px-4 py-3 bg-amber-500 text-white rounded-xl font-semibold hover:bg-amber-600 transition-colors shadow-sm">
-                              Apply
-                            </button>
                           </div>
                         </div>
-                      ) : (
-                        <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-xl">
-                          <div>
-                            <p className="text-sm font-semibold text-amber-800">
-                              Applied {appliedPoints} Loyalty Points
-                            </p>
-                            <p className="text-xs text-amber-600">
-                              Saved {formatPrice(pointsDiscount)}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={handleRemovePoints}
-                            className="text-red-600 hover:text-red-700 font-semibold text-sm">
-                            Remove
-                          </button>
-                        </div>
-                      )}
-                    </div>
+                      );
+                    })()}
 
                     {/* Coupon Code */}
                     <div className="mb-6">

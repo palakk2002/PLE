@@ -27,6 +27,7 @@ import {
   FiRefreshCw,
   FiInbox,
   FiAward,
+  FiCreditCard,
   FiLayout,
 } from "react-icons/fi";
 import { useAdminAuthStore } from "../../store/adminStore";
@@ -62,6 +63,7 @@ const iconMap = {
   "Loyalty Program": FiAward,
   "Landing Page": FiGlobe,
   "B2B Users": FiUsers,
+  "Wallet Management": FiCreditCard,
   "About Page": FiLayout,
   "Portfolio Page": FiImage,
 };

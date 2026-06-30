@@ -44,7 +44,18 @@ const isValidDeliveryDocToken = (relativePath, rawToken) => {
 // ─── Security Middleware ─────────────────────────────────────────────────────
 app.use(helmet());
 app.use(mongoSanitize());
-app.use(cors({ origin: true, credentials: true }));
+app.use(cors({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-idempotency-key']
+}));
+app.options('*', cors({
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-idempotency-key']
+}));
 
 // ─── Body Parsing ────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));

@@ -11,6 +11,25 @@ const walletSchema = new mongoose.Schema({
     type: Number, 
     default: 0 
   },
+  totalCredit: {
+    type: Number,
+    default: 0
+  },
+  totalDebit: {
+    type: Number,
+    default: 0
+  },
+  isFrozen: {
+    type: Boolean,
+    default: false
+  },
+  frozenAt: {
+    type: Date
+  },
+  frozenBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Admin'
+  },
   currency: { 
     type: String, 
     default: 'INR' 

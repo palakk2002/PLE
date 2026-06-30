@@ -94,12 +94,20 @@ const MobileProfile = () => {
   const isB2BAdmin = user?.role === 'b2bAdmin';
   const isB2BEmployee = user?.role === 'b2bEmployee';
   const isB2BUser = isB2BAdmin || isB2BEmployee;
+  const isB2CUser = user?.role === 'customer';
 
   const company = isB2BUser
     ? dbCompanyProfile
     : companies?.find(c => c.id === user?.companyId || c.companyName === user?.companyName || c.admin?.email?.toLowerCase() === user?.email?.toLowerCase());
 
   const { balance: walletBalance, fetchWallet } = useWalletStore();
+
+  useEffect(() => {
+    if (isB2CUser && user) {
+      fetchBalance();
+      fetchConfig();
+    }
+  }, [user, isB2CUser]);
 
   useEffect(() => {
     if (isB2BUser) {
@@ -192,7 +200,14 @@ const MobileProfile = () => {
     setEditingEmployee(null);
     setEmpForm({ name: '', email: '', phone: '', designation: '' });
   };
-  const { availablePoints, totalEarned, totalRedeemed, pendingPoints, history: loyaltyHistory } = useLoyaltyStore();
+  const { availablePoints, lifetimeEarned: totalEarned, lifetimeRedeemed: totalRedeemed, history: loyaltyHistory, fetchBalance, fetchConfig, fetchHistory } = useLoyaltyStore();
+  const pendingPoints = 0;
+
+  useEffect(() => {
+    if (activeTab === "loyalty") {
+      fetchHistory(1, 20);
+    }
+  }, [activeTab]);
   const ensureNotificationHydrated = useUserNotificationStore(
     (state) => state.ensureHydrated,
   );
@@ -1886,6 +1901,12 @@ const MobileProfile = () => {
                         <h3 className="font-extrabold text-gray-800 text-base">Points Transaction History</h3>
                         <p className="text-xs text-gray-500 mt-0.5">Track your points lifecycle updates</p>
                       </div>
+                      <Link
+                        to="/loyalty-history"
+                        className="text-xs font-bold text-[#7B0A0A] hover:underline"
+                      >
+                        View Full History →
+                      </Link>
                     </div>
 
                     <div className="overflow-x-auto">

@@ -3,6 +3,8 @@ import { FiPlus, FiSend, FiRotateCcw } from "react-icons/fi";
 
 const WalletBalanceCard = ({
   balance,
+  totalCredit = 0,
+  totalDebit = 0,
   userName,
   onAddMoney,
   onTransfer,
@@ -21,6 +23,10 @@ const WalletBalanceCard = ({
           <h2 className="text-3xl font-extrabold tracking-tight">
             ₹{balance.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </h2>
+          <div className="flex gap-4 mt-2 text-[10px] text-red-200 font-semibold">
+            <span>Total Credit: ₹{totalCredit.toFixed(2)}</span>
+            <span>Total Debit: ₹{totalDebit.toFixed(2)}</span>
+          </div>
         </div>
         <div className="w-12 h-8 bg-white/20 rounded-lg flex items-center justify-center font-bold text-xs tracking-wider border border-white/10 backdrop-blur-sm">
           PLE

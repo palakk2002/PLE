@@ -20,7 +20,7 @@ const DeliveryLogin = () => {
 
   // Redirect if already authenticated
   useEffect(() => {
-    const hasDeliveryToken = Boolean(localStorage.getItem('delivery-token'));
+    const hasDeliveryToken = Boolean(sessionStorage.getItem('delivery-token') || localStorage.getItem('delivery-token'));
     if (isAuthenticated && hasDeliveryToken) {
       const from = location.state?.from?.pathname || '/delivery/dashboard';
       navigate(from, { replace: true });
@@ -47,7 +47,7 @@ const DeliveryLogin = () => {
       toast.success('Login successful!');
       // Redirect is handled by auth effect above to avoid duplicate navigation.
     } catch (error) {
-      toast.error(error.message || 'Invalid credentials');
+      toast.error(error.response?.data?.message || error.message || 'Invalid credentials');
     }
   };
 

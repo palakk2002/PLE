@@ -90,13 +90,25 @@ const MobileOrderCard = ({ order }) => {
         </div>
 
         <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-          <span
-            className={`px-3 py-1 rounded-lg text-xs font-semibold ${getStatusColor(
-              order.status
-            )}`}
-          >
-            {order.status || 'Pending'}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span
+              className={`px-3 py-1 rounded-lg text-xs font-semibold ${getStatusColor(
+                order.status
+              )}`}
+            >
+              {order.status || 'Pending'}
+            </span>
+            {order.loyaltyPointsEarned > 0 && (
+              <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2 py-0.5 rounded-lg text-[10px] font-black">
+                +{order.loyaltyPointsEarned} Pts
+              </span>
+            )}
+            {order.loyaltyPointsRedeemed > 0 && (
+              <span className="bg-rose-50 text-rose-700 border border-rose-100 px-2 py-0.5 rounded-lg text-[10px] font-black">
+                -{order.loyaltyPointsRedeemed} Pts
+              </span>
+            )}
+          </div>
           <span className="text-xs text-gray-500">View Details</span>
         </div>
       </Link>

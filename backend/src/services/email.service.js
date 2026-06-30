@@ -1,15 +1,31 @@
 import 'dotenv/config';
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT) || 587,
-    secure: false,
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
+const transporterConfig = process.env.SMTP_HOST === 'smtp.gmail.com' 
+  ? {
+      service: 'gmail',
+      auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+      },
+      tls: {
+          rejectUnauthorized: false
+      }
+    }
+  : {
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false,
+      auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+      },
+      tls: {
+          rejectUnauthorized: false
+      }
+    };
+
+const transporter = nodemailer.createTransport(transporterConfig);
 
 /**
  * Send an email

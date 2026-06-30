@@ -1,11 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import B2BSidebar from './B2BSidebar';
 import B2BHeader from './B2BHeader';
 
 const B2BDashboardLayout = () => {
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const pathname = location.pathname.toLowerCase();
+  
+  const isB2BProfileOptionPage = 
+    pathname === '/b2b-dashboard/company-profile' ||
+    pathname === '/b2b-dashboard/admin-profile' ||
+    pathname === '/b2b-dashboard/settings';
 
   useEffect(() => {
     const checkMobile = () => {
@@ -40,9 +47,11 @@ const B2BDashboardLayout = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="print:hidden">
-          <B2BHeader toggleSidebar={toggleSidebar} />
-        </div>
+        {!isB2BProfileOptionPage && (
+          <div className="print:hidden">
+            <B2BHeader toggleSidebar={toggleSidebar} />
+          </div>
+        )}
 
         {/* Main section */}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4 lg:p-6">

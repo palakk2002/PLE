@@ -6,6 +6,7 @@ import mongoose from 'mongoose';
 import crypto from 'crypto';
 import { sendEmail } from '../../../services/email.service.js';
 import { createNotification } from '../../../services/notification.service.js';
+import User from '../../../models/User.model.js';
 
 const DELIVERY_OTP_TTL_MS = 10 * 60 * 1000;
 const DELIVERY_OTP_MAX_ATTEMPTS = 5;
@@ -19,15 +20,25 @@ const hashDeliveryOtp = (otp) => {
 
 const generateDeliveryOtp = () => String(Math.floor(100000 + Math.random() * 900000));
 
-const getCustomerEmail = (order) => {
-    return (
-        String(order?.shippingAddress?.email || '').trim().toLowerCase() ||
-        String(order?.guestInfo?.email || '').trim().toLowerCase()
-    );
+const getCustomerEmail = async (order) => {
+    let email = String(order?.shippingAddress?.email || '').trim().toLowerCase() ||
+                String(order?.guestInfo?.email || '').trim().toLowerCase();
+
+    if (!email && order?.userId) {
+        try {
+            const user = await User.findById(order.userId).select('email').lean();
+            if (user?.email) {
+                email = user.email.trim().toLowerCase();
+            }
+        } catch (err) {
+            console.error("Error fetching user email in getCustomerEmail:", err);
+        }
+    }
+    return email;
 };
 
 const sendDeliveryOtpEmail = async (order, otp) => {
-    const to = getCustomerEmail(order);
+    const to = await getCustomerEmail(order);
     if (!to) return false;
 
     await sendEmail({
@@ -299,6 +310,7 @@ export const updateDeliveryStatus = asyncHandler(async (req, res) => {
     order.status = status;
     // Keep vendor sub-order statuses aligned with delivery progression.
     if (status === 'shipped') {
+        order.shippedAt = new Date();
         order.vendorItems = (order.vendorItems || []).map((vi) => {
             const current = String(vi?.status || 'pending');
             if (current === 'cancelled' || current === 'delivered') return vi;
@@ -306,14 +318,12 @@ export const updateDeliveryStatus = asyncHandler(async (req, res) => {
         });
     }
     if (status === 'delivered') {
+        order.deliveredAt = new Date();
         order.vendorItems = (order.vendorItems || []).map((vi) => {
             const current = String(vi?.status || 'pending');
             if (current === 'cancelled') return vi;
             return { ...vi.toObject(), status: 'delivered' };
         });
-    }
-    if (status === 'delivered') {
-        order.deliveredAt = new Date();
     }
     await order.save();
 

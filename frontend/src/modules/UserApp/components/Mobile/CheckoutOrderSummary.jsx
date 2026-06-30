@@ -1,6 +1,7 @@
 import { FiShoppingBag } from "react-icons/fi";
 import { formatPrice } from "../../../../shared/utils/helpers";
 import { formatVariantLabel, getVariantSignature } from "../../../../shared/utils/variant";
+import { useLoyaltyStore } from "../../../../shared/store/loyaltyStore";
 
 const OrderSummary = ({ itemsByVendor, total, discount, shipping, tax, finalTotal, pointsDiscount = 0 }) => {
   return (
@@ -9,12 +10,12 @@ const OrderSummary = ({ itemsByVendor, total, discount, shipping, tax, finalTota
       <div className="space-y-3 mb-4">
         {itemsByVendor.map((vendorGroup) => (
           <div key={vendorGroup.vendorId} className="space-y-2 mb-4">
-            <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-primary-50 to-primary-100 rounded-lg border border-primary-200/50 shadow-sm">
-              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center flex-shrink-0">
+            <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-red-50 to-red-100 rounded-lg border border-red-200/50 shadow-sm">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-red-400 to-red-650 flex items-center justify-center flex-shrink-0">
                 <FiShoppingBag className="text-white text-[10px]" />
               </div>
-              <span className="text-sm font-bold text-primary-700 flex-1">{vendorGroup.vendorName}</span>
-              <span className="text-xs font-semibold text-primary-600 bg-white px-2 py-0.5 rounded-md">
+              <span className="text-sm font-bold text-red-700 flex-1">{vendorGroup.vendorName}</span>
+              <span className="text-xs font-semibold text-red-600 bg-white px-2 py-0.5 rounded-md">
                 {formatPrice(vendorGroup.subtotal)}
               </span>
             </div>
@@ -70,9 +71,27 @@ const OrderSummary = ({ itemsByVendor, total, discount, shipping, tax, finalTota
         </div>
         <div className="flex justify-between text-lg font-bold text-gray-800 pt-2 border-t border-gray-200">
           <span>Total</span>
-          <span className="text-primary-600">{formatPrice(finalTotal)}</span>
+          <span className="text-red-700">{formatPrice(finalTotal)}</span>
         </div>
       </div>
+      
+      {/* Estimated loyalty points earned */}
+      <LoyaltyEarnEstimate totalToEarnFrom={Math.max(0, total - discount)} />
+    </div>
+  );
+};
+
+const LoyaltyEarnEstimate = ({ totalToEarnFrom }) => {
+  const { rules } = useLoyaltyStore();
+  if (!rules?.enabled || totalToEarnFrom <= 0) return null;
+  const points = Math.floor((totalToEarnFrom / (rules.purchaseAmountUnit || 100)) * (rules.purchaseToPointsRatio || 5));
+  if (points <= 0) return null;
+  return (
+    <div className="mt-3 pt-3 border-t border-gray-150 text-center text-xs text-emerald-800 font-semibold flex items-center justify-center gap-1">
+      <span>🎯 You will earn:</span>
+      <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-black">
+        {points} Points
+      </span>
     </div>
   );
 };

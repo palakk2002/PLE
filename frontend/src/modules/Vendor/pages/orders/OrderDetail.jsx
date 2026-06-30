@@ -106,8 +106,8 @@ const OrderDetail = () => {
         allowedStatuses.includes(option.value)
     );
 
-    const earnedPoints = order ? parseInt(localStorage.getItem(`earned_points_${order.orderId || order._id || id}`) || "0", 10) : 0;
-    const redeemedPoints = order ? parseInt(localStorage.getItem(`applied_points_${order.orderId || order._id || id}`) || "0", 10) : 0;
+    const earnedPoints = order?.loyaltyPointsEarned ?? 0;
+    const redeemedPoints = order?.loyaltyPointsRedeemed ?? 0;
 
     // Items this vendor sold in this order
     const vendorItems = vendorItem?.items ?? [];

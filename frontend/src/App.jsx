@@ -116,6 +116,9 @@ const AdminLoyaltyDashboard = lazy(() => import("./modules/Admin/pages/loyalty/D
 const AdminLoyaltyRules = lazy(() => import("./modules/Admin/pages/loyalty/Rules"));
 const AdminLoyaltyUsers = lazy(() => import("./modules/Admin/pages/loyalty/Users"));
 
+// Admin Wallet Management
+const AdminWalletDashboard = lazy(() => import("./modules/Admin/pages/wallet/AdminWalletDashboard"));
+
 // Product Requests System Pages
 const UserProductRequestForm = lazy(() => import("./modules/UserApp/pages/ProductRequestForm"));
 const UserProductRequestHistory = lazy(() => import("./modules/UserApp/pages/ProductRequestHistory"));
@@ -190,6 +193,7 @@ const MobileWallet = lazy(() => import("./modules/UserApp/pages/Wallet"));
 const UserNotifications = lazy(() => import("./modules/UserApp/pages/Notifications"));
 const MobileOrders = lazy(() => import("./modules/UserApp/pages/Orders"));
 const MobileOrderDetail = lazy(() => import("./modules/UserApp/pages/OrderDetail"));
+const LoyaltyHistory = lazy(() => import("./modules/UserApp/pages/LoyaltyHistory"));
 const MobileRFQDetail = lazy(() => import("./modules/UserApp/pages/RFQDetail"));
 const MobileAddresses = lazy(() => import("./modules/UserApp/pages/Addresses"));
 const MobileWishlist = lazy(() => import("./modules/UserApp/pages/Wishlist"));
@@ -553,6 +557,16 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/loyalty-history"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <LoyaltyHistory />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
         path="/help-support"
         element={
           <RouteWrapper>
@@ -892,6 +906,9 @@ const AppRoutes = () => {
         <Route path="loyalty/dashboard" element={<AdminLoyaltyDashboard />} />
         <Route path="loyalty/rules" element={<AdminLoyaltyRules />} />
         <Route path="loyalty/users" element={<AdminLoyaltyUsers />} />
+
+        {/* Wallet Management Route */}
+        <Route path="wallet-management" element={<AdminWalletDashboard />} />
 
         {/* Landing Page CMS Routes */}
         <Route path="landing-page" element={<LandingPageCMSLayout />}>

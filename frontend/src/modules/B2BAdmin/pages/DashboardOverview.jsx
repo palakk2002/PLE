@@ -15,6 +15,7 @@ import api from '../../../shared/utils/api';
 import toast from 'react-hot-toast';
 import Badge from '../../../shared/components/Badge';
 import { formatPrice } from '../../../shared/utils/helpers';
+import { useWalletStore } from '../../../shared/store/walletStore';
 
 const COLORS = ['#C07A3D', '#D18B4A', '#6366f1', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -38,6 +39,7 @@ const DashboardOverview = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [data, setData] = useState(null);
+  const { balance: walletBalance, fetchWallet } = useWalletStore();
 
   const fetchDashboardData = async (isRefresh = false) => {
     try {
@@ -53,7 +55,10 @@ const DashboardOverview = () => {
     }
   };
 
-  useEffect(() => { fetchDashboardData(); }, []);
+  useEffect(() => { 
+    fetchDashboardData(); 
+    fetchWallet();
+  }, []);
 
   const statCards = data ? [
     {
@@ -103,6 +108,14 @@ const DashboardOverview = () => {
       icon: <FiUsers className="w-5 h-5 text-amber-600" />,
       bg: 'bg-amber-50',
       onClick: () => navigate('/b2b-dashboard/employees')
+    },
+    {
+      title: 'Wallet Balance',
+      value: formatPrice(walletBalance),
+      sub: 'Click to view wallet page',
+      icon: <FiDollarSign className="w-5 h-5 text-red-600" />,
+      bg: 'bg-red-50',
+      onClick: () => navigate('/wallet')
     }
   ] : [];
 

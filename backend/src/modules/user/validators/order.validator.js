@@ -22,6 +22,7 @@ export const placeOrderSchema = Joi.object({
     paymentMethod: Joi.string().valid('card', 'cash', 'cod', 'bank', 'wallet', 'upi').required(),
     couponCode: Joi.string().optional().allow(''),
     shippingOption: Joi.string().valid('standard', 'express', 'bulk').default('standard'),
+    loyaltyPointsToRedeem: Joi.number().integer().min(0).optional(),
 });
 
 export const createReturnRequestSchema = Joi.object({

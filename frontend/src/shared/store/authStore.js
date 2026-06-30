@@ -6,7 +6,7 @@ import { useB2bStore } from './b2bStore';
 import { useB2BAdminStore } from '../../modules/B2BAdmin/store/b2bAdminStore';
 
 // Helper for API race timeout
-const withTimeout = (promise, ms = 2000) => {
+const withTimeout = (promise, ms = 15000) => {
   return Promise.race([
     promise,
     new Promise((_, reject) =>
@@ -66,7 +66,7 @@ export const useAuthStore = create(
           
           const response = await withTimeout(
             api.post(endpoint, payloadData),
-            2000
+            15000
           );
           const payload = response?.data?.data || response?.data || response;
           const accessToken = payload?.accessToken;
@@ -127,7 +127,7 @@ export const useAuthStore = create(
             ...(normalizedPhone ? { phone: normalizedPhone } : {}),
           };
 
-          await withTimeout(api.post('/user/auth/register', payload), 2000);
+          await withTimeout(api.post('/user/auth/register', payload), 15000);
 
           set({
             user: null,
@@ -188,7 +188,7 @@ export const useAuthStore = create(
           const normalizedEmail = String(email || '').trim().toLowerCase();
           const response = await withTimeout(
             api.post('/user/auth/verify-otp', { email: normalizedEmail, otp }),
-            2000
+            15000
           );
           const payload = response?.data ?? response;
           const accessToken = payload?.accessToken;
@@ -315,6 +315,10 @@ export const useAuthStore = create(
           if (b2bAuth.isAuthenticated) {
             b2bAuth.logout();
           }
+        } catch (e) {}
+
+        try {
+          useB2bStore.getState().resetB2b();
         } catch (e) {}
       },
 

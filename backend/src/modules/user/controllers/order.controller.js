@@ -12,8 +12,11 @@ import { generateTrackingNumber } from '../../../utils/generateTrackingNumber.js
 import mongoose from 'mongoose';
 import Wallet from '../../../models/Wallet.model.js';
 import WalletTransaction from '../../../models/WalletTransaction.model.js';
+import * as walletService from '../../../services/wallet.service.js';
+import LoyaltyTransaction from '../../../models/LoyaltyTransaction.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { calculateVendorShippingForGroups } from '../../../services/vendorShipping.service.js';
+import { getIO } from '../../../config/socket.js';
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
 const normalizeAxisName = (value) =>
@@ -197,7 +200,7 @@ const resolveOrderItemVariantKey = (product, orderItem) => {
 
 // POST /api/user/orders
 export const placeOrder = asyncHandler(async (req, res) => {
-    const { items, shippingAddress, paymentMethod, couponCode, shippingOption } = req.body;
+    const { items, shippingAddress, paymentMethod, couponCode, shippingOption, loyaltyPointsToRedeem = 0, walletAmountToUse = 0 } = req.body;
     const normalizedPaymentMethod = paymentMethod === 'cash' ? 'cod' : paymentMethod;
     const userId = req.user?.id || null;
     const rawIdempotencyKey = String(req.get('x-idempotency-key') || '').trim();
@@ -335,9 +338,25 @@ export const placeOrder = asyncHandler(async (req, res) => {
         couponType: appliedCoupon?.type || null,
     });
 
+    // 4. Calculate loyalty discount (server-side validation)
+    let loyaltyDiscount = 0;
+    const isB2C = req.user?.role === 'customer';
+    
+    // Import dynamically or at top of file
+    const loyaltyService = await import('../../../services/loyalty.service.js');
+    
+    if (isB2C && loyaltyPointsToRedeem > 0) {
+        const config = await loyaltyService.getLoyaltyConfig();
+        if (config.enabled && loyaltyPointsToRedeem >= config.minRedeemPoints) {
+            const potentialDiscount = parseFloat((loyaltyPointsToRedeem * config.redemptionRatio).toFixed(2));
+            const maxDiscount = ((subtotal - couponDiscount) * config.maxRedemptionPercent) / 100;
+            loyaltyDiscount = Math.min(potentialDiscount, maxDiscount);
+        }
+    }
+
     // 4. Calculate tax (18%)
-    const tax = parseFloat(((subtotal - couponDiscount) * 0.18).toFixed(2));
-    const total = parseFloat((subtotal - couponDiscount + shipping + tax).toFixed(2));
+    const tax = parseFloat(((subtotal - couponDiscount - loyaltyDiscount) * 0.18).toFixed(2));
+    const total = parseFloat(Math.max(0, subtotal - couponDiscount - loyaltyDiscount + shipping + tax).toFixed(2));
 
     // 5. Build vendor item groups
     const vendorItems = Object.values(vendorMap).map((v) => ({
@@ -369,23 +388,46 @@ export const placeOrder = asyncHandler(async (req, res) => {
             }
 
             // Wallet Payment Validation & Deduction
-            if (normalizedPaymentMethod === 'wallet') {
-                const wallet = await Wallet.findOne({ userId }).session(session);
-                if (!wallet || wallet.balance < total) {
-                    throw new ApiError(400, 'Insufficient wallet balance for this order.');
-                }
-                
-                wallet.balance -= total;
-                await wallet.save({ session });
+            let walletTxId = null;
+            let walletUsed = 0;
 
-                await WalletTransaction.create([{
-                    walletId: wallet._id,
-                    userId,
-                    amount: total,
-                    type: 'debit',
-                    description: 'Payment for order placement',
-                    status: 'completed'
-                }], { session });
+            if (normalizedPaymentMethod === 'wallet' || walletAmountToUse > 0) {
+                const wallet = await walletService.getOrCreateWallet(userId, session);
+                const maxAmount = normalizedPaymentMethod === 'wallet' ? total : Math.min(walletAmountToUse, total);
+                
+                if (maxAmount > 0) {
+                    if (wallet.balance < maxAmount) {
+                        throw new ApiError(400, 'Insufficient wallet balance for this order.');
+                    }
+                    
+                    const { transaction } = await walletService.debitWallet({
+                        userId,
+                        amount: maxAmount,
+                        category: 'order_payment',
+                        description: `Payment for order placement`,
+                        session
+                    });
+                    
+                    walletTxId = transaction._id;
+                    walletUsed = maxAmount;
+                }
+            }
+
+            // Loyalty Point Redemption deduction
+            let actualPointsRedeemed = 0;
+            if (isB2C && loyaltyDiscount > 0) {
+                // Determine exact points matching this discount
+                const config = await loyaltyService.getLoyaltyConfig();
+                actualPointsRedeemed = Math.round(loyaltyDiscount / config.redemptionRatio);
+                if (actualPointsRedeemed > 0) {
+                    await loyaltyService.redeemPoints(userId, null, actualPointsRedeemed, session);
+                }
+            }
+
+            // Award new points
+            let pointsToEarn = 0;
+            if (isB2C) {
+                pointsToEarn = await loyaltyService.calculateEarnablePoints(subtotal - couponDiscount - loyaltyDiscount);
             }
 
             const [createdOrder] = await Order.create([{
@@ -396,20 +438,39 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 shippingAddress,
                 paymentMethod: normalizedPaymentMethod,
                 // Automatically set payment status to 'paid' for mock card/UPI payments.
-                paymentStatus: normalizedPaymentMethod === 'cod' ? 'pending' : 'paid',
+                paymentStatus: (normalizedPaymentMethod === 'cod') ? 'pending' : 'paid',
                 subtotal,
                 shipping,
                 tax,
-                discount: couponDiscount,
+                discount: couponDiscount + loyaltyDiscount,
                 total,
                 couponCode: couponCode?.toUpperCase(),
                 couponDiscount,
+                loyaltyPointsEarned: pointsToEarn,
+                loyaltyPointsRedeemed: actualPointsRedeemed,
+                loyaltyDiscount: loyaltyDiscount,
+                walletAmountUsed: walletUsed,
+                walletTransactionId: walletTxId || undefined,
                 trackingNumber: generateTrackingNumber(),
                 estimatedDelivery: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // +5 days
                 idempotencyKey: idempotencyKey || undefined,
                 idempotencyScope: idempotencyKey ? idempotencyScope : undefined,
             }], { session });
             order = createdOrder;
+
+            // Associate order with transaction log if any points were redeemed
+            if (actualPointsRedeemed > 0) {
+                await LoyaltyTransaction.updateOne(
+                    { userId, type: 'redeem', orderId: null },
+                    { $set: { orderId: order._id } },
+                    { session }
+                );
+            }
+
+            // Record earn transaction log
+            if (pointsToEarn > 0) {
+                await loyaltyService.earnPoints(userId, order._id, subtotal - couponDiscount - loyaltyDiscount, session);
+            }
 
             // 7. Deduct stock atomically to prevent oversell under concurrent checkout.
             for (const item of enrichedItems) {
@@ -507,6 +568,55 @@ export const placeOrder = asyncHandler(async (req, res) => {
     const responseMessage = idempotentReplay
         ? 'Duplicate order request ignored. Returning existing order.'
         : 'Order placed successfully.';
+
+    if (!idempotentReplay && order) {
+        // Trigger real-time notifications to vendors
+        (async () => {
+            try {
+                let io;
+                try {
+                    io = getIO();
+                } catch (err) {
+                    console.warn("Socket.io is not initialized yet:", err.message);
+                }
+
+                if (order.vendorItems && order.vendorItems.length > 0) {
+                    for (const v of order.vendorItems) {
+                        // Create Database notification
+                        await createNotification({
+                            recipientId: v.vendorId,
+                            recipientType: 'vendor',
+                            title: 'New Order Received',
+                            message: `You have received a new order ${order.orderId} for Rs.${v.subtotal}`,
+                            type: 'order',
+                            data: {
+                                orderId: String(order.orderId || order._id),
+                                dbOrderId: String(order._id),
+                                vendorId: String(v.vendorId),
+                                subtotal: String(v.subtotal)
+                            }
+                        }).catch(e => console.error("Error creating database notification for vendor:", e));
+
+                        // Emit socket event to the vendor's room
+                        if (io) {
+                            io.to(`user_${v.vendorId}`).emit('new_order_placed', {
+                                orderId: order.orderId,
+                                dbOrderId: order._id,
+                                total: v.subtotal,
+                                items: v.items,
+                                customerName: order.shippingAddress?.name || 'Guest',
+                                shippingAddress: order.shippingAddress,
+                                createdAt: order.createdAt
+                            });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Error in sending order notifications to vendors:", err);
+            }
+        })();
+    }
+
     res.status(responseStatus).json(
         new ApiResponse(
             responseStatus,
@@ -603,6 +713,18 @@ export const cancelOrder = asyncHandler(async (req, res) => {
                 },
                 { session }
             );
+
+            // Revert B2C loyalty points transactions
+            const isB2C = req.user?.role === 'customer';
+            if (isB2C) {
+                const loyaltyService = await import('../../../services/loyalty.service.js');
+                if (order.loyaltyPointsEarned > 0) {
+                    await loyaltyService.reverseEarnedPoints(req.user.id, order._id, session);
+                }
+                if (order.loyaltyPointsRedeemed > 0) {
+                    await loyaltyService.restoreRedeemedPoints(req.user.id, order._id, session);
+                }
+            }
         });
     } finally {
         await session.endSession();
@@ -710,6 +832,7 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
         status: 'pending',
         refundAmount: Number(refundAmount.toFixed(2)),
         refundStatus: 'pending',
+        refundDestination: req.body.refundDestination || 'Original Payment Method',
         images: Array.isArray(req.body.images) ? req.body.images : [],
     });
 

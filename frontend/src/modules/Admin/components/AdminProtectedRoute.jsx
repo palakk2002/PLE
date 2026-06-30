@@ -16,7 +16,7 @@ const decodeJwtPayload = (token) => {
 const AdminProtectedRoute = ({ children }) => {
   const { isAuthenticated, token } = useAdminAuthStore();
   const location = useLocation();
-  const accessToken = token || localStorage.getItem('adminToken');
+  const accessToken = token || localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
   const payload = decodeJwtPayload(accessToken);
   const role = String(payload?.role || '').toLowerCase();
   const tokenExpiryMs =

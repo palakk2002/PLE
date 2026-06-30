@@ -16,6 +16,22 @@ const RouteWrapper = ({ children }) => {
       window.removeEventListener('catalog-cache-updated', onCatalogUpdate);
     };
   }, []);
+
+  useEffect(() => {
+    // 1. Instant scroll reset
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+
+    // 2. Microtask delay scroll reset to handle async renders/animations
+    const timer = setTimeout(() => {
+      window.scrollTo(0, 0);
+      document.documentElement.scrollTo(0, 0);
+      document.body.scrollTo(0, 0);
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
   
   // Return children with location key to force remount on route change
   // For home page, we don't want search parameter changes to force a remount (this breaks tab animations)
