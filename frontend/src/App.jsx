@@ -136,6 +136,7 @@ const EditOffer = lazy(() => import("./modules/offers/pages/EditOffer"));
 const OfferDetails = lazy(() => import("./modules/offers/pages/OfferDetails"));
 
 // Landing Page CMS Pages
+const LandingPageCMSLayout = lazy(() => import("./modules/Admin/pages/landing-page/LandingPageCMSLayout"));
 const LandingPageDashboard = lazy(() => import("./modules/Admin/pages/landing-page/LandingPageDashboard"));
 const HeroEditor = lazy(() => import("./modules/Admin/pages/landing-page/HeroEditor"));
 const ServicesEditor = lazy(() => import("./modules/Admin/pages/landing-page/ServicesEditor"));
@@ -152,6 +153,17 @@ const FooterEditor = lazy(() => import("./modules/Admin/pages/landing-page/Foote
 const SEOSettingsEditor = lazy(() => import("./modules/Admin/pages/landing-page/SEOSettingsEditor"));
 const BlogEditor = lazy(() => import("./modules/Admin/pages/landing-page/BlogEditor"));
 const AdLandingPagesEditor = lazy(() => import("./modules/Admin/pages/landing-page/AdLandingPagesEditor"));
+
+// About Page CMS Pages
+const AboutPageDashboard = lazy(() => import("./modules/Admin/pages/about-page/AboutPageDashboard"));
+const AboutHeroEditor = lazy(() => import("./modules/Admin/pages/about-page/HeroEditor"));
+const AboutCompanyEditor = lazy(() => import("./modules/Admin/pages/about-page/CompanyEditor"));
+const AboutWhatWeDoEditor = lazy(() => import("./modules/Admin/pages/about-page/WhatWeDoEditor"));
+const AboutVisionMissionEditor = lazy(() => import("./modules/Admin/pages/about-page/VisionMissionEditor"));
+const AboutOurEdgeEditor = lazy(() => import("./modules/Admin/pages/about-page/OurEdgeEditor"));
+
+// Portfolio Page CMS Pages
+const PortfolioPageDashboard = lazy(() => import("./modules/Admin/pages/portfolio-page/PortfolioPageDashboard"));
 
 // Core Mobile/UserApp Pages (Statically Imported for Quick Opening)
 import MobileHome from "./modules/UserApp/pages/Home";
@@ -882,22 +894,30 @@ const AppRoutes = () => {
         <Route path="loyalty/users" element={<AdminLoyaltyUsers />} />
 
         {/* Landing Page CMS Routes */}
-        <Route path="landing-page" element={<LandingPageDashboard />} />
-        <Route path="landing-page/hero" element={<HeroEditor />} />
-        <Route path="landing-page/services" element={<ServicesEditor />} />
-        <Route path="landing-page/features" element={<FeaturesEditor />} />
-        <Route path="landing-page/comparison" element={<ComparisonEditor />} />
-        <Route path="landing-page/stats" element={<StatsEditor />} />
-        <Route path="landing-page/testimonials" element={<TestimonialsEditor />} />
-        <Route path="landing-page/products" element={<ProductShowcaseEditor />} />
-        <Route path="landing-page/pricing" element={<PricingEditor />} />
-        <Route path="landing-page/faq" element={<FAQEditor />} />
-        <Route path="landing-page/gallery" element={<GalleryEditor />} />
-        <Route path="landing-page/contact" element={<ContactEditor />} />
-        <Route path="landing-page/footer" element={<FooterEditor />} />
-        <Route path="landing-page/seo" element={<SEOSettingsEditor />} />
-        <Route path="landing-page/blogs" element={<BlogEditor />} />
-        <Route path="landing-page/ad-landing-pages" element={<AdLandingPagesEditor />} />
+        <Route path="landing-page" element={<LandingPageCMSLayout />}>
+          <Route index element={<LandingPageDashboard />} />
+          <Route path="hero" element={<HeroEditor />} />
+          <Route path="services" element={<ServicesEditor />} />
+          <Route path="features" element={<FeaturesEditor />} />
+          <Route path="comparison" element={<ComparisonEditor />} />
+          <Route path="stats" element={<StatsEditor />} />
+          <Route path="testimonials" element={<TestimonialsEditor />} />
+          <Route path="products" element={<ProductShowcaseEditor />} />
+          <Route path="pricing" element={<PricingEditor />} />
+          <Route path="faq" element={<FAQEditor />} />
+          <Route path="gallery" element={<GalleryEditor />} />
+          <Route path="contact" element={<ContactEditor />} />
+          <Route path="footer" element={<FooterEditor />} />
+          <Route path="seo" element={<SEOSettingsEditor />} />
+          <Route path="blogs" element={<BlogEditor />} />
+          <Route path="ad-landing-pages" element={<AdLandingPagesEditor />} />
+        </Route>
+
+        {/* About Page CMS Routes */}
+        <Route path="about-page/*" element={<AboutPageDashboard />} />
+
+        {/* Portfolio Page CMS Routes */}
+        <Route path="portfolio-page/*" element={<PortfolioPageDashboard />} />
       </Route>
       {/* Delivery Routes */}
       <Route path="/delivery/login" element={<DeliveryLogin />} />

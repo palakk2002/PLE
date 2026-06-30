@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Loader
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { EncryptedText } from '../components/ui/encrypted-text';
 import { OptimizedLazyImage } from '../components/ui/lazy-image';
 import { SpotlightHover } from '../components/ui/spotlight-hover';
@@ -71,12 +72,6 @@ const ICON_MAP = {
 };
 
 // Success parameters displaying hard-proof outcomes of PLE projects with numeric values for count-up triggers
-const METRICS_LIST = [
-  { numericValue: 140, suffix: '+', label: 'E-commerce Hubs Launched', desc: 'Secure digital storefronts and multivendor marketplaces.', icon: Zap },
-  { numericValue: 99, suffix: '%', label: 'Order Delivery Success Rate', desc: 'Smooth shipping updates from checkout to doorstep.', icon: Award },
-  { numericValue: 300, suffix: '%+', label: 'Average Conversions Growth', desc: 'Acquisition increase across digital shopping funnels.', icon: Share2 },
-  { numericValue: 25, suffix: ' Hrs', label: 'Saved per Week', desc: 'Through automated logistics, shipping and stock sync.', icon: Database }
-];
 
 const MOCK_PORTFOLIO = [
   {
@@ -139,11 +134,27 @@ export default function Portfolio() {
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [pageContent, setPageContent] = useState(null);
   const limit = 4;
 
   useEffect(() => {
     fetchPortfolioItems();
   }, [activeFilter, page]);
+
+  useEffect(() => {
+    fetchPageContent();
+  }, []);
+
+  const fetchPageContent = async () => {
+    try {
+      const res = await api.get('/portfolio-page');
+      if (res.data?.success) {
+        setPageContent(res.data.data);
+      }
+    } catch (error) {
+      console.error('Error fetching Portfolio Page content:', error);
+    }
+  };
 
   const fetchPortfolioItems = async () => {
     try {
@@ -156,9 +167,14 @@ export default function Portfolio() {
         params.append('category', activeFilter);
       }
       const res = await api.get(`/portfolio?${params.toString()}`);
-      if (res.data.success && res.data.data.length > 0) {
-        setPortfolioItems(res.data.data);
-        setTotalPages(res.data.pagination.totalPages);
+      
+      // Handle the new nested response format { data: { data: [], pagination: {} } }
+      const items = res.data?.data?.data || res.data?.data || [];
+      const pagination = res.data?.data?.pagination || res.data?.pagination || {};
+
+      if (res.data.success && items.length > 0) {
+        setPortfolioItems(items);
+        setTotalPages(pagination.totalPages || 1);
       } else {
         const filteredMock = MOCK_PORTFOLIO.filter(item => activeFilter === 'all' || item.category === activeFilter);
         setPortfolioItems(filteredMock.slice((page - 1) * limit, page * limit));
@@ -225,19 +241,19 @@ export default function Portfolio() {
           {/* Subtitle Accent */}
           <motion.div variants={scrollFadeUp} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-extrabold uppercase tracking-widest rounded-md">
             <Sparkles className="w-3 h-3" />
-            <span>Success Showcases</span>
+            <span>{pageContent?.hero?.subtitle}</span>
           </motion.div>
 
           {/* Heading with Cryptographic Encryption Typing Reveal */}
           <h1 className="text-3xl md:text-4xl font-black font-heading text-app-text leading-tight tracking-tight flex flex-col gap-0.5">
             <EncryptedText 
-              text="Proven Engineering Standards" 
+              text={pageContent?.hero?.title1 || ""} 
               revealedClassName="text-app-text"
               encryptedClassName="text-primary/50 font-mono"
               revealDelayMs={20}
             />
             <EncryptedText 
-              text="& Strategic Growth" 
+              text={pageContent?.hero?.title2 || ""} 
               revealedClassName="text-primary text-gradient-orange"
               encryptedClassName="text-primary/50 font-mono"
               revealDelayMs={10}
@@ -249,7 +265,7 @@ export default function Portfolio() {
             variants={scrollFadeUp}
             className="text-sm sm:text-base text-app-text-muted leading-relaxed max-w-xl mx-auto font-medium"
           >
-            Explore our real-world portfolio of partnerships across India. From full-scale multivendor e-commerce hubs and automated inventory sync tools, to organic shopping SEO domination and high-converting retail user experience (UX) pipelines.
+            {pageContent?.hero?.description}
           </motion.p>
         </motion.div>
 
@@ -485,20 +501,24 @@ export default function Portfolio() {
             className="max-w-lg"
           >
             <span className="text-[9px] font-extrabold text-primary uppercase tracking-widest bg-primary/10 px-2 py-0.5 rounded">
-              Demonstrated Proof
+              {pageContent?.metrics?.subtitle}
             </span>
             <h2 className="text-xl sm:text-2xl font-black font-heading text-app-text leading-tight mt-2.5">
-              Concrete Metrics. Exceptional Outcomes.
+              {pageContent?.metrics?.title}
             </h2>
             <p className="text-[11px] text-app-text-muted leading-relaxed mt-1">
-              We focus on measurable statistics. From performance scores and user acquisition speeds, to manual administrative hours eliminated.
+              {pageContent?.metrics?.description}
             </p>
           </motion.div>
 
           {/* Cards for metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {METRICS_LIST.map((m, mIdx) => {
-              const MetricIcon = m.icon;
+            {(pageContent?.metrics?.list || []).map((m, mIdx) => {
+              // Ensure we load the right icon depending on if it's dynamic string or static imported object
+              const MetricIcon = typeof m.iconName === 'string' 
+                ? LucideIcons[m.iconName] || LucideIcons.Check 
+                : m.icon || Zap;
+
               return (
                 <motion.div
                   key={mIdx}
@@ -551,22 +571,18 @@ export default function Portfolio() {
                 <div className="flex">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-primary/10 border border-primary/20 text-primary text-[10px] font-extrabold uppercase tracking-widest rounded-md">
                     <Sparkles className="w-3 h-3" />
-                    <span>Let's Collaborate</span>
+                    <span>{pageContent?.cta?.subtitle}</span>
                   </span>
                 </div>
                 
                 <h3 className="text-2xl sm:text-3xl font-black font-heading text-app-text leading-tight">
-                  Ready to Build Your <span className="text-primary text-gradient-orange">Digital Legacy?</span>
+                  {pageContent?.cta?.title1} <span className="text-primary text-gradient-orange">{pageContent?.cta?.title2}</span>
                 </h3>
 
                 {/* Micro benefits cards with UPGRADED text sizes for perfect visibility */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1.5">
-                  {[
-                    { text: 'Free Visual Mockup Draft', icon: Sparkles },
-                    { text: 'Direct Engineering Channel', icon: Laptop },
-                    { text: 'High-Performance Launch', icon: Zap }
-                  ].map((feat, fIdx) => {
-                    const FeatIcon = feat.icon;
+                  {(pageContent?.cta?.features || []).map((feat, fIdx) => {
+                    const FeatIcon = LucideIcons[feat.iconName] || LucideIcons.Check;
                     return (
                       <div 
                         key={fIdx} 
@@ -584,11 +600,11 @@ export default function Portfolio() {
 
               <div className="shrink-0 flex justify-center lg:justify-end">
                 <Link
-                  to="/get-quote"
+                  to={pageContent?.cta?.buttonLink || "/get-quote"}
                   className="relative inline-flex items-center gap-2 px-7 py-3.5 bg-primary hover:bg-primary-hover text-black font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all duration-300 hover:shadow-[0_0_25px_rgba(215,25,32,0.4)] group cursor-pointer overflow-hidden"
                 >
                   <span className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-                  <span>Start a Project</span>
+                  <span>{pageContent?.cta?.buttonText}</span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </div>

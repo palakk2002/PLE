@@ -35,34 +35,8 @@ export const useAdminAuthStore = create(
 
           return { success: true, admin };
         } catch (error) {
-          console.warn("Admin API login failed, falling back to mock authentication:", error);
-          
-          // Fallback to mock session for admin@admin.com / admin123
-          const mockAdmin = {
-            id: "admin_mock_12345",
-            _id: "admin_mock_12345",
-            name: "Super Admin",
-            email: email || "admin@admin.com",
-            role: "super_admin",
-          };
-
-          const accessToken = "mock.eyJyb2xlIjoiYWRtaW4iLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-          const refreshToken = "mock.eyJyb2xlIjoiYWRtaW4iLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-
-          sessionStorage.setItem('adminToken', accessToken);
-          sessionStorage.setItem('adminRefreshToken', refreshToken);
-          localStorage.removeItem('adminToken');
-          localStorage.removeItem('adminRefreshToken');
-
-          set({
-            admin: mockAdmin,
-            token: accessToken,
-            refreshToken,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-
-          return { success: true, admin: mockAdmin };
+          set({ isLoading: false });
+          throw error;
         }
       },
 

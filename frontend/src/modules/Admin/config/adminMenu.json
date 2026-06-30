@@ -245,5 +245,28 @@
       "Blogs",
       "Ad Landing Pages"
     ]
+  },
+  {
+    "title": "About Page",
+    "route": "/admin/about-page",
+    "children": [
+      "Dashboard",
+      "Hero Section",
+      "About Company",
+      "What We Do",
+      "Vision & Mission",
+      "Our Edge"
+    ]
+  },
+  {
+    "title": "Portfolio Page",
+    "route": "/admin/portfolio-page",
+    "children": [
+      "Dashboard",
+      "Hero Section",
+      "Metrics Section",
+      "Call to Action",
+      "Portfolio Projects"
+    ]
   }
 ]

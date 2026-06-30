@@ -1,8 +1,11 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
+import { useCMS } from '../../hooks/useCMS';
 
 export default function CTABanner() {
+  const { ctaBanner } = useCMS();
+  
   const containerVariants = {
     hidden: { opacity: 0, y: 30, scale: 0.98 },
     visible: {
@@ -53,13 +56,13 @@ export default function CTABanner() {
                 variants={itemVariants} 
                 className="text-2xl sm:text-3xl md:text-4xl font-black font-heading text-white tracking-tight leading-tight"
               >
-                Ready to Fill Your Cart?
+                {ctaBanner.heading}
               </motion.h2>
               <motion.p 
                 variants={itemVariants} 
                 className="text-white/85 text-xs sm:text-sm font-medium leading-relaxed max-w-md mx-auto lg:mx-0"
               >
-                Explore fresh deals, trusted sellers, and everyday essentials in one smooth shopping experience.
+                {ctaBanner.description}
               </motion.p>
             </div>
 
@@ -70,10 +73,10 @@ export default function CTABanner() {
             >
               {/* Primary Call */}
               <Link
-                to="/get-quote"
+                to={ctaBanner.primaryBtnLink}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-4 pl-6 pr-11 py-3 bg-[#0B0B14] hover:bg-black text-white font-black text-xs uppercase tracking-wider rounded-full transition-all duration-300 shadow-xl hover:shadow-black/25 hover:-translate-y-0.5 group cursor-pointer border border-white/5 relative h-11"
               >
-                <span>Shop today's deals</span>
+                <span>{ctaBanner.primaryBtnText}</span>
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gradient-to-b from-white to-neutral-200 shadow-[inset_0_-2px_4px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.25)] flex items-center justify-center group-hover:scale-105 transition-transform">
                   <ArrowRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 transition-transform duration-300" />
                 </div>
@@ -81,10 +84,10 @@ export default function CTABanner() {
 
               {/* Secondary Call */}
               <Link
-                to="/services"
+                to={ctaBanner.secondaryBtnLink}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-4 pl-6 pr-11 py-3 bg-[#0B0B14] hover:bg-black text-white font-black text-xs uppercase tracking-wider rounded-full transition-all duration-300 shadow-xl hover:shadow-black/25 hover:-translate-y-0.5 group cursor-pointer border border-white/5 relative h-11"
               >
-                <span>Explore categories</span>
+                <span>{ctaBanner.secondaryBtnText}</span>
                 <div className="absolute right-1.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-gradient-to-b from-white to-neutral-200 shadow-[inset_0_-2px_4px_rgba(0,0,0,0.15),0_2px_4px_rgba(0,0,0,0.25)] flex items-center justify-center group-hover:scale-105 transition-transform">
                   <ArrowRight className="w-3.5 h-3.5 text-black group-hover:translate-x-0.5 transition-transform duration-300" />
                 </div>

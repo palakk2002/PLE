@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import * as LucideIcons from 'lucide-react';
-import { contentService } from '../../services/contentService';
+import { useCMS } from '../../hooks/useCMS';
 
 // Fallback icon if the one provided is invalid
 const FallbackIcon = LucideIcons.HelpCircle;
@@ -15,7 +15,16 @@ const Counter = ({ value, suffix = "" }) => {
     if (isInView) {
       let startTimestamp = null;
       const duration = 2000;
-      const finalValue = parseInt(value) || 0;
+      
+      // Attempt to extract numeric value from string (e.g., "15,000+" -> 15000)
+      const cleanValue = typeof value === 'string' ? value.replace(/[^0-9]/g, '') : value;
+      const finalValue = parseInt(cleanValue) || 0;
+
+      if (finalValue === 0 && isNaN(parseInt(value))) {
+        // If it's not a number at all (e.g., "24/7"), just set it directly to avoid animation glitches
+        setCount(value);
+        return;
+      }
 
       const step = (timestamp) => {
         if (!startTimestamp) startTimestamp = timestamp;
@@ -36,45 +45,19 @@ const Counter = ({ value, suffix = "" }) => {
     }
   }, [isInView, value]);
 
+  // If the value isn't purely numeric and can't be animated properly, just render the value
+  const cleanValue = typeof value === 'string' ? value.replace(/[^0-9]/g, '') : value;
+  const isPureText = isNaN(parseInt(cleanValue)) || cleanValue === '';
+  
   return (
     <span ref={ref}>
-      {count}{suffix}
+      {isPureText ? value : count}{!isPureText ? suffix : ''}
     </span>
   );
 };
 
 export default function StatsCounter() {
-  const [stats, setStats] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Fallback initial data so it looks exactly the same during load/errors
-  const defaultStats = [
-    { value: 5000, suffix: "+", label: "Products Listed", icon: "ShoppingBag" },
-    { value: 25, suffix: "+", label: "Categories", icon: "Layers" },
-    { value: 100, suffix: "%", label: "Secure Checkout", icon: "ShieldCheck" },
-    { value: 24, suffix: "/7", label: "Customer Support", icon: "Headphones" }
-  ];
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await contentService.getStatsCounterPublic();
-        if (response?.data?.length > 0) {
-          setStats(response.data);
-        } else {
-          setStats(defaultStats);
-        }
-      } catch (error) {
-        console.error("Failed to fetch stats:", error);
-        setStats(defaultStats);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchStats();
-  }, []);
-
-  const displayStats = stats.length > 0 ? stats : defaultStats;
+  const { stats } = useCMS();
 
   return (
     <section className="py-8 px-4 relative z-10">
@@ -83,11 +66,12 @@ export default function StatsCounter() {
       
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {displayStats.map((stat, index) => {
-            const IconComponent = LucideIcons[stat.icon] || FallbackIcon;
+          {stats.map((stat, index) => {
+            // Note: Use a default icon since the CMS schema might not have an 'icon' field
+            const IconComponent = LucideIcons[stat.icon] || LucideIcons.Activity || FallbackIcon;
             return (
               <motion.div 
-                key={stat._id || index}
+                key={stat.id || index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-50px" }}
@@ -105,7 +89,7 @@ export default function StatsCounter() {
                 {/* Text & Counter */}
                 <div className="space-y-0.5 sm:space-y-1 relative z-10">
                   <div className="text-lg sm:text-2xl md:text-3xl font-bold font-heading text-primary transition-colors flex items-center justify-center sm:justify-start tracking-tight">
-                    <Counter value={stat.value} suffix={stat.suffix} />
+                    <Counter value={stat.value} suffix={stat.suffix || ''} />
                   </div>
                   <div className="text-slate-800 dark:text-app-text text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.05em] sm:tracking-[0.15em] leading-tight px-1 sm:px-0">
                     {stat.label}

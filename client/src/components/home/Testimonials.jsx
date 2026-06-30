@@ -1,28 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote, MessageSquarePlus } from 'lucide-react';
-import axios from 'axios';
 import ReviewModal from './ReviewModal';
+import { useCMS } from '../../hooks/useCMS';
 
 export default function Testimonials() {
   const [index, setIndex] = useState(0);
-  const [testimonials, setTestimonials] = useState([]);
+  const { testimonials } = useCMS();
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchDynamic = async () => {
-      try {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-        const res = await axios.get(`${apiUrl}/testimonials/approved`);
-        if (res.data && res.data.data) {
-          setTestimonials(res.data.data);
-        }
-      } catch (err) {
-        console.error('Failed to load testimonials', err);
-      }
-    };
-    fetchDynamic();
-  }, []);
 
   // Auto-advance carousel every 5 seconds
   useEffect(() => {

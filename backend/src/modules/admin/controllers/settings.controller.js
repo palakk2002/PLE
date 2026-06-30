@@ -23,7 +23,7 @@ export const getSettings = asyncHandler(async (req, res) => {
  */
 export const updateSettings = asyncHandler(async (req, res) => {
     const { key } = req.params;
-    const value = req.body;
+    const value = req.body.value !== undefined ? req.body.value : req.body;
     
     let setting = await Settings.findOne({ key });
     

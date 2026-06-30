@@ -357,3 +357,15 @@ export const deleteB2BUser = async (id) => {
   const res = await api.delete(`/admin/b2b-users/${id}`);
   return res.data;
 };
+
+// ─── CMS ──────────────────────────────────────────────────────────────────────
+export const getAboutContent = () => api.get('/admin/cms/about');
+export const updateAboutContent = (data) => api.put('/admin/cms/about', data);
+
+export const getPortfolios = (params) => api.get('/admin/cms/portfolio', { params });
+export const createPortfolio = (data) => api.post('/admin/cms/portfolio', data);
+export const updatePortfolio = (id, data) => api.put(`/admin/cms/portfolio/${id}`, data);
+export const deletePortfolio = (id) => api.delete(`/admin/cms/portfolio/${id}`);
+
+export const getPortfolioPage = () => api.get('/admin/cms/portfolio-page');
+export const updatePortfolioPage = (data) => api.put('/admin/cms/portfolio-page', data);

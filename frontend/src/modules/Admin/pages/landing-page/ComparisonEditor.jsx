@@ -44,12 +44,16 @@ const ComparisonEditor = () => {
     setRows((prev) => prev.filter((_, idx) => idx !== index));
   };
 
-  const handleSave = () => {
-    updateComparison({
-      header: headerData,
-      rows
-    });
-    toast.success('Comparison Table updated successfully!');
+  const handleSave = async () => {
+    try {
+      await updateComparison({
+        header: headerData,
+        rows
+      });
+      toast.success('Comparison Table updated successfully!');
+    } catch (error) {
+      toast.error('Failed to update: Your admin session might have expired. Please refresh the page and log in again.');
+    }
   };
 
   return (

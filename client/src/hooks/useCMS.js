@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 // Shared fallback defaults matching the CMS editor defaults
 const FALLBACK_DEFAULTS = {
@@ -89,40 +90,43 @@ const FALLBACK_DEFAULTS = {
 
 export const useCMS = () => {
   const [cmsState, setCmsState] = useState(FALLBACK_DEFAULTS);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleSync = () => {
+    const fetchCMS = async () => {
       try {
-        const raw = localStorage.getItem('ple-landing-page-cms-storage');
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && parsed.state) {
-            setCmsState((prev) => ({
-              ...prev,
-              ...parsed.state,
-              // Fallback deep objects to prevent runtime errors
-              hero: { ...prev.hero, ...parsed.state.hero },
-              comparison: { ...prev.comparison, ...parsed.state.comparison },
-              presenceMap: { ...prev.presenceMap, ...parsed.state.presenceMap },
-              ctaBanner: { ...prev.ctaBanner, ...parsed.state.ctaBanner },
-              contact: { ...prev.contact, ...parsed.state.contact },
-              social: { ...prev.social, ...parsed.state.social },
-              footer: { ...prev.footer, ...parsed.state.footer },
-              seo: { ...prev.seo, ...parsed.state.seo },
-            }));
-          }
+        const response = await api.get('/settings/landingPageCms');
+        let parsed = response?.data?.data || response?.data;
+        
+        // Auto-heal legacy nested data from previous bug
+        if (parsed && parsed.value && !parsed.hero) {
+          parsed = parsed.value;
+        }
+
+        if (parsed) {
+          setCmsState((prev) => ({
+            ...prev,
+            ...parsed,
+            // Fallback deep objects to prevent runtime errors
+            hero: { ...prev.hero, ...parsed.hero },
+            comparison: { ...prev.comparison, ...parsed.comparison },
+            presenceMap: { ...prev.presenceMap, ...parsed.presenceMap },
+            ctaBanner: { ...prev.ctaBanner, ...parsed.ctaBanner },
+            contact: { ...prev.contact, ...parsed.contact },
+            social: { ...prev.social, ...parsed.social },
+            footer: { ...prev.footer, ...parsed.footer },
+            seo: { ...prev.seo, ...parsed.seo },
+          }));
         }
       } catch (e) {
-        console.warn('Failed to parse CMS local storage data, using defaults:', e);
+        console.warn('Failed to fetch CMS data from backend, using defaults:', e);
+      } finally {
+        setLoading(false);
       }
     };
 
-    handleSync();
-    
-    // Listen for storage event in case edited in another window/tab
-    window.addEventListener('storage', handleSync);
-    return () => window.removeEventListener('storage', handleSync);
+    fetchCMS();
   }, []);
 
-  return cmsState;
+  return { ...cmsState, loading };
 };

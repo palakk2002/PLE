@@ -40,7 +40,7 @@ export default function Home() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
-      className="bg-app-bg text-app-text-muted min-h-screen"
+      className="bg-app-bg text-app-text-muted min-h-screen relative"
     >
       {visibleSections.map((sec) => componentMap[sec.id] || null)}
     </motion.div>

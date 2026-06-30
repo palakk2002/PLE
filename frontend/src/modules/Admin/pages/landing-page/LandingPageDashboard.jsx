@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
@@ -14,7 +14,11 @@ import { useLandingPageStore } from '../../store/landingPageStore';
 
 const LandingPageDashboard = () => {
   const navigate = useNavigate();
-  const { sections, updateSectionVisibility, updateSectionsOrder, resetToDefaults } = useLandingPageStore();
+  const { sections, updateSectionVisibility, updateSectionsOrder, resetToDefaults, fetchInitialData } = useLandingPageStore();
+
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   const handleToggleVisibility = (id, currentVisible) => {
     updateSectionVisibility(id, !currentVisible);

@@ -27,6 +27,7 @@ import {
   FiRefreshCw,
   FiInbox,
   FiAward,
+  FiLayout,
 } from "react-icons/fi";
 import { useAdminAuthStore } from "../../store/adminStore";
 import adminMenu from "../../config/adminMenu.json";
@@ -54,12 +55,15 @@ const iconMap = {
   "Support Desk": FiMessageCircle,
   Reports: FiFileText,
   "Analytics & Finance": FiBarChart2,
+  "About & Portfolio Content": FiFileText,
   Settings: FiSettings,
   Policies: FiShield,
   Firebase: FiDatabase,
   "Loyalty Program": FiAward,
   "Landing Page": FiGlobe,
   "B2B Users": FiUsers,
+  "About Page": FiLayout,
+  "Portfolio Page": FiImage,
 };
 
 // Helper function to convert child name to route path
@@ -196,6 +200,21 @@ const getChildRoute = (parentRoute, childName) => {
       "SEO Settings": "/admin/landing-page/seo",
       "Blogs": "/admin/landing-page/blogs",
       "Ad Landing Pages": "/admin/landing-page/ad-landing-pages",
+    },
+    "/admin/about-page": {
+      "Dashboard": "/admin/about-page",
+      "Hero Section": "/admin/about-page/hero",
+      "About Company": "/admin/about-page/company",
+      "What We Do": "/admin/about-page/what-we-do",
+      "Vision & Mission": "/admin/about-page/vision-mission",
+      "Our Edge": "/admin/about-page/our-edge",
+    },
+    "/admin/portfolio-page": {
+      "Dashboard": "/admin/portfolio-page",
+      "Hero Section": "/admin/portfolio-page/hero",
+      "Metrics Section": "/admin/portfolio-page/metrics",
+      "Call to Action": "/admin/portfolio-page/cta",
+      "Portfolio Projects": "/admin/portfolio-page/projects",
     },
   };
 

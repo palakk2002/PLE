@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion';
 import { MapPin } from 'lucide-react';
-
-const locations = [
-  { name: 'Karnataka', top: '64%', left: '29%', delay: 0 },
-];
+import { useCMS } from '../../hooks/useCMS';
 
 export default function PresenceMap() {
+  const { presenceMap } = useCMS();
+  const { heading, description, locations } = presenceMap;
+
   return (
     <section className="py-24 relative overflow-hidden bg-app-bg dark:bg-[#0d1117] text-app-text">
       {/* Background Glow */}
@@ -21,7 +21,7 @@ export default function PresenceMap() {
             transition={{ duration: 0.6 }}
             className="text-4xl md:text-5xl font-black mb-6 tracking-tight"
           >
-            Our <span className="text-primary text-gradient-orange">Presence</span>
+            {heading.split(' ')[0]} <span className="text-primary text-gradient-orange">{heading.split(' ').slice(1).join(' ')}</span>
           </motion.h2>
           <motion.p 
             initial={{ opacity: 0, x: -50 }}
@@ -30,7 +30,7 @@ export default function PresenceMap() {
             transition={{ delay: 0.2, duration: 0.6 }}
             className="text-app-text-muted text-lg max-w-xl"
           >
-            From thriving startup ecosystems to rapidly growing business hubs, our network spans across the nation—helping us deliver innovation, collaboration, and technology without boundaries.
+            {description}
           </motion.p>
         </div>
 
@@ -85,7 +85,7 @@ export default function PresenceMap() {
               initial={{ opacity: 0, scale: 0, y: 20 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
               viewport={{ once: true, amount: 0.8 }}
-              transition={{ delay: 0.4 + loc.delay, type: 'spring', bounce: 0.5 }}
+              transition={{ delay: 0.4 + (loc.delay || 0), type: 'spring', bounce: 0.5 }}
             >
               <div className="relative">
                 {/* Ping Animation */}
@@ -98,7 +98,7 @@ export default function PresenceMap() {
                 initial={{ opacity: 0, y: -10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: 0.8 + loc.delay }}
+                transition={{ delay: 0.8 + (loc.delay || 0) }}
                 className={`absolute top-full mt-2 whitespace-nowrap bg-primary/90 border border-primary/50 px-3 py-1.5 rounded-lg shadow-xl backdrop-blur-md text-sm font-bold z-20 ${
                   loc.name.toLowerCase() === 'indore' ? 'text-white' : 'text-white'
                 }`}

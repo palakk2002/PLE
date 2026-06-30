@@ -1,13 +1,29 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Check, ArrowRight, Code, Share2, Megaphone, Palette, Calculator, BarChart3, Cpu, Play, Tv } from 'lucide-react';
+import { Check, ArrowRight } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { EncryptedText } from '@/components/ui/encrypted-text';
-
-const teamImg = '/sho5.jpg';
-const compImg1 = '/sho1.jpg';
-const compImg2 = '/sho.jpg';
-import { ShieldCheck, Award as AwardIcon } from 'lucide-react';
+import api from '../services/api';
 
 export default function About() {
+  const [content, setContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const res = await api.get('/about');
+        if (res.data.success) {
+          setContent(res.data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch about content', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchContent();
+  }, []);
   const staggerContainer = {
     hidden: {},
     visible: {
@@ -53,43 +69,15 @@ export default function About() {
     }
   };
 
-  const whatWeDoServices = [
-    {
-      title: 'Smart Shopping Experience',
-      desc: 'A fast, mobile-friendly shopping journey built for browsing, comparing, saving, and checking out with confidence.',
-      icon: Code,
-    },
-    {
-      title: 'Curated Product Categories',
-      desc: 'Electronics, fashion, home, beauty, wellness, sports, and daily essentials organized for quick discovery.',
-      icon: Share2,
-    },
-    {
-      title: 'Deals & Savings',
-      desc: 'Daily offers, seasonal drops, bundle savings, and clear pricing so shoppers can find better value faster.',
-      icon: Megaphone,
-    },
-    {
-      title: 'Verified Sellers',
-      desc: 'Trusted seller listings, product clarity, ratings, and transparent details for a safer marketplace experience.',
-      icon: Palette,
-    },
-    {
-      title: 'Secure Payments',
-      desc: 'Protected checkout flows and clear order confirmation designed to make every purchase feel safe.',
-      icon: Calculator,
-    },
-    {
-      title: 'Order Tracking',
-      desc: 'Simple delivery updates from cart to doorstep, with support when an order needs extra attention.',
-      icon: BarChart3,
-    },
-    {
-      title: 'Easy Returns & Support',
-      desc: 'Clear return guidance and helpful customer support for payments, delivery, product issues, and replacements.',
-      icon: Cpu,
-    }
-  ];
+  const renderMarkdown = (text) => {
+    if (!text) return text;
+    return text.split(/(\*\*.*?\*\*)/g).map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={i} className="text-app-text font-black">{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
 
   return (
     <div className="bg-app-bg text-app-text-muted min-h-screen pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8 mesh-grid relative overflow-hidden">
@@ -127,13 +115,13 @@ export default function About() {
             {/* Bottom Text Reveal Title on scroll */}
             <h1 className="text-4xl md:text-5xl font-black font-heading text-app-text leading-tight tracking-tight flex flex-col gap-1.5">
               <EncryptedText 
-                text="Shopping Made Simple" 
+                text={content?.hero?.title || "Shopping Made Simple"} 
                 revealedClassName="text-app-text"
                 encryptedClassName="text-primary/60 font-mono"
                 revealDelayMs={30}
               />
               <EncryptedText 
-                text="Powered by Trust & Convenience" 
+                text={content?.hero?.subtitle || "Powered by Trust & Convenience"} 
                 revealedClassName="text-primary text-gradient-orange"
                 encryptedClassName="text-primary/60 font-mono"
                 revealDelayMs={20}
@@ -145,7 +133,7 @@ export default function About() {
               variants={scrollFadeUp}
               className="text-xs md:text-sm text-app-text leading-relaxed"
             >
-              PLE (Peoples League of Electronics) is a customer-first shopping app built to bring electronics, fashion, home essentials, beauty, wellness, sports, and daily needs into one smooth marketplace.
+              {content?.hero?.description || 'PLE (Peoples League of Electronics) is a customer-first shopping app built to bring electronics, fashion, home essentials, beauty, wellness, sports, and daily needs into one smooth marketplace.'}
             </motion.p>
 
             {/* Structured Capabilities checklist on scroll */}
@@ -211,7 +199,7 @@ export default function About() {
                 className="relative w-full h-full rounded-full border-[6px] sm:border-[10px] border-primary overflow-hidden shadow-[0_20px_50px_rgba(215,25,32,0.25)] group transition-transform duration-500 hover:scale-[1.02] z-10"
               >
                 <img
-                  src={teamImg}
+                  src={content?.hero?.teamImg || '/sho5.jpg'}
                   alt="PLE Creative Team"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -228,11 +216,11 @@ export default function About() {
                 className="absolute top-4 -left-8 sm:top-10 sm:-left-12 bg-app-card backdrop-blur-md border border-app-border rounded-2xl p-3 sm:p-4 shadow-xl flex items-center gap-2 sm:gap-3 orange-glow-sm hover:border-primary/40 transition-colors z-20"
               >
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs sm:text-sm">
-                  99%
+                  {content?.hero?.secureStatValue || '99%'}
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] sm:text-[10px] font-extrabold text-primary uppercase tracking-wider">Secure</p>
-                  <p className="text-[11px] sm:text-xs font-black text-app-text">Checkout</p>
+                  <p className="text-[9px] sm:text-[10px] font-extrabold text-primary uppercase tracking-wider">{content?.hero?.secureStatLabel1 || 'Secure'}</p>
+                  <p className="text-[11px] sm:text-xs font-black text-app-text">{content?.hero?.secureStatLabel2 || 'Checkout'}</p>
                 </div>
               </motion.div>
 
@@ -245,11 +233,11 @@ export default function About() {
                 className="absolute bottom-4 -right-8 sm:bottom-10 sm:-right-12 bg-app-card backdrop-blur-md border border-app-border rounded-2xl p-3 sm:p-4 shadow-xl flex items-center gap-2 sm:gap-3 orange-glow-sm hover:border-primary/40 transition-colors z-20"
               >
                 <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-black text-xs sm:text-sm">
-                  25+
+                  {content?.hero?.categoryStatValue || '25+'}
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] sm:text-[10px] font-extrabold text-primary uppercase tracking-wider">Product</p>
-                  <p className="text-[11px] sm:text-xs font-black text-app-text">Categories</p>
+                  <p className="text-[9px] sm:text-[10px] font-extrabold text-primary uppercase tracking-wider">{content?.hero?.categoryStatLabel1 || 'Product'}</p>
+                  <p className="text-[11px] sm:text-xs font-black text-app-text">{content?.hero?.categoryStatLabel2 || 'Categories'}</p>
                 </div>
               </motion.div>
             </div>
@@ -282,13 +270,13 @@ export default function About() {
               className="text-3xl md:text-4xl font-black font-heading text-app-text leading-tight flex flex-col gap-1"
             >
               <EncryptedText 
-                text="Helping People Shop" 
+                text={content?.aboutCompany?.title1 || "Helping People Shop"} 
                 revealedClassName="text-app-text"
                 encryptedClassName="text-primary/60 font-mono"
                 revealDelayMs={25}
               />
               <EncryptedText 
-                text="With Better Deals & Trusted Sellers" 
+                text={content?.aboutCompany?.title2 || "With Better Deals & Trusted Sellers"} 
                 revealedClassName="text-primary text-gradient-orange"
                 encryptedClassName="text-primary/60 font-mono"
                 revealDelayMs={15}
@@ -381,7 +369,7 @@ export default function About() {
                 className="absolute top-0 left-0 w-[68%] aspect-[4/3] rounded-3xl overflow-hidden border-4 border-app-card shadow-2xl z-10 transition-all duration-300 group cursor-pointer"
               >
                 <img 
-                  src={compImg1} 
+                  src={content?.aboutCompany?.compImg1 || '/sho1.jpg'} 
                   alt="PLE Engineering Team" 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
@@ -397,7 +385,7 @@ export default function About() {
                 className="absolute bottom-0 right-0 w-[68%] aspect-[4/3] rounded-3xl overflow-hidden border-4 border-app-card shadow-2xl z-20 hover:z-30 transition-all duration-300 group cursor-pointer"
               >
                 <img 
-                  src={compImg2} 
+                  src={content?.aboutCompany?.compImg2 || '/sho.jpg'} 
                   alt="PLE Strategy Team" 
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                 />
@@ -418,7 +406,7 @@ export default function About() {
                   viewport={{ once: true }}
                   className="glass-panel bg-app-card backdrop-blur-xl border border-app-border rounded-2xl p-6 shadow-[0_20px_50px_rgba(215,25,32,0.22)] flex flex-col items-center justify-center text-center w-36 h-36 orange-glow-sm hover:border-primary/50 transition-colors duration-300"
                 >
-                  <div className="text-3xl md:text-4xl font-black text-primary font-heading leading-none">5+</div>
+                  <div className="text-3xl md:text-4xl font-black text-primary font-heading leading-none">{content?.aboutCompany?.yearsOfExcellence || '5+'}</div>
                   <div className="text-[9px] font-extrabold text-app-text uppercase tracking-widest mt-1">Years Of</div>
                   <div className="text-xs font-black text-app-text-muted">Excellence</div>
                 </motion.div>
@@ -440,18 +428,27 @@ export default function About() {
               variants={scrollFadeUp}
               className="space-y-4 text-xs md:text-sm text-app-text leading-relaxed"
             >
-              <p>
-                At <strong className="text-app-text font-black">PLE (Peoples League of Electronics)</strong>, we believe technology isn't just about code — it's about creating meaningful impact.
-              </p>
-              <p>
-                We are a <strong className="text-primary font-bold">next-generation shopping marketplace</strong> helping customers discover quality products, compare better deals, and buy from trusted sellers with secure checkout.
-              </p>
-              <p>
-                Founded with a vision to <strong className="text-app-text font-black">bring everyday shopping into one reliable app</strong>, PLE connects shoppers with electronics, lifestyle, home, wellness, sports, and essential products.
-              </p>
-              <p>
-                Our team works to make product discovery, payments, delivery updates, returns, and support smoother from the first search to the final doorstep delivery.
-              </p>
+              {content?.aboutCompany?.paragraphs?.map((p, i) => (
+                <p key={i}>
+                  {renderMarkdown(p)}
+                </p>
+              ))}
+              {!content?.aboutCompany?.paragraphs && (
+                <>
+                  <p>
+                    At <strong className="text-app-text font-black">PLE (Peoples League of Electronics)</strong>, we believe technology isn't just about code — it's about creating meaningful impact.
+                  </p>
+                  <p>
+                    We are a <strong className="text-primary font-bold">next-generation shopping marketplace</strong> helping customers discover quality products, compare better deals, and buy from trusted sellers with secure checkout.
+                  </p>
+                  <p>
+                    Founded with a vision to <strong className="text-app-text font-black">bring everyday shopping into one reliable app</strong>, PLE connects shoppers with electronics, lifestyle, home, wellness, sports, and essential products.
+                  </p>
+                  <p>
+                    Our team works to make product discovery, payments, delivery updates, returns, and support smoother from the first search to the final doorstep delivery.
+                  </p>
+                </>
+              )}
             </motion.div>
 
             {/* Checklist items (First image details) */}
@@ -459,28 +456,22 @@ export default function About() {
               variants={scrollFadeUp} 
               className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2"
             >
-              <div className="flex items-start gap-3 group hover:-translate-y-1 transition-all duration-300 cursor-default">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/15 text-primary flex items-center justify-center shrink-0 orange-glow-sm group-hover:bg-primary group-hover:text-white group-hover:scale-110 transition-all duration-300">
-                  <ShieldCheck className="w-4.5 h-4.5 stroke-[2.5]" />
-                </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs md:text-sm font-extrabold text-app-text font-heading group-hover:text-primary transition-colors duration-300">Trusted Shopping</h4>
-                  <p className="text-[10px] md:text-xs text-app-text-muted leading-relaxed">
-                    Secure checkout, verified seller listings, and clear product information.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3 group hover:-translate-y-1 transition-all duration-300 cursor-default">
-                <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/15 text-primary flex items-center justify-center shrink-0 orange-glow-sm group-hover:bg-primary group-hover:text-white group-hover:scale-110 transition-all duration-300">
-                  <AwardIcon className="w-4.5 h-4.5 stroke-[2.5]" />
-                </div>
-                <div className="space-y-0.5">
-                  <h4 className="text-xs md:text-sm font-extrabold text-app-text font-heading group-hover:text-primary transition-colors duration-300">Customer Value</h4>
-                  <p className="text-[10px] md:text-xs text-app-text-muted leading-relaxed">
-                    Daily deals, easy returns, and helpful support for a better shopping journey.
-                  </p>
-                </div>
-              </div>
+              {content?.aboutCompany?.features?.map((feature, i) => {
+                const Icon = LucideIcons[feature.iconName] || LucideIcons.Check;
+                return (
+                  <div key={i} className="flex items-start gap-3 group hover:-translate-y-1 transition-all duration-300 cursor-default">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/15 text-primary flex items-center justify-center shrink-0 orange-glow-sm group-hover:bg-primary group-hover:text-white group-hover:scale-110 transition-all duration-300">
+                      <Icon className="w-4.5 h-4.5 stroke-[2.5]" />
+                    </div>
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs md:text-sm font-extrabold text-app-text font-heading group-hover:text-primary transition-colors duration-300">{feature.title}</h4>
+                      <p className="text-[10px] md:text-xs text-app-text-muted leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </motion.div>
 
             {/* Signature Badge Founder Detail */}
@@ -490,8 +481,8 @@ export default function About() {
             >
 
               <div className="text-right space-y-0.5">
-                <h5 className="text-xs md:text-sm font-extrabold text-app-text font-heading">Rakesh Kumar</h5>
-                <p className="text-[10px] md:text-xs text-app-text-muted">Founder, PLE Shopping Marketplace</p>
+                <h5 className="text-xs md:text-sm font-extrabold text-app-text font-heading">{content?.aboutCompany?.founderName || 'Rakesh Kumar'}</h5>
+                <p className="text-[10px] md:text-xs text-app-text-muted">{content?.aboutCompany?.founderRole || 'Founder, PLE Shopping Marketplace'}</p>
               </div>
             </motion.div>
 
@@ -514,10 +505,10 @@ export default function About() {
               What We Do
             </span>
             <h2 className="text-3xl md:text-4xl font-black font-heading text-app-text leading-tight">
-              Everything A Shopping App Needs
+              {content?.whatWeDoTitle || 'Everything A Shopping App Needs'}
             </h2>
             <p className="text-xs md:text-sm text-app-text-muted leading-relaxed">
-              PLE (Peoples League of Electronics) brings product discovery, trusted sellers, secure payments, delivery updates, deals, and support together in one shopping app.
+              {content?.whatWeDoDescription || 'PLE (Peoples League of Electronics) brings product discovery, trusted sellers, secure payments, delivery updates, deals, and support together in one shopping app.'}
             </p>
           </motion.div>
 
@@ -528,8 +519,8 @@ export default function About() {
             variants={staggerContainer}
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           >
-            {whatWeDoServices.map((service, idx) => {
-              const ServiceIcon = service.icon;
+            {(content?.whatWeDo?.services || []).map((service, idx) => {
+              const ServiceIcon = LucideIcons[service.icon] || LucideIcons.Check;
               return (
                 <motion.div 
                   key={idx} 
@@ -548,7 +539,7 @@ export default function About() {
                         {service.title}
                       </h3>
                       <p className="text-[11px] md:text-xs text-app-text-muted leading-relaxed">
-                        {service.desc}
+                        {service.description || service.desc}
                       </p>
                     </div>
                   </div>
@@ -582,10 +573,10 @@ export default function About() {
               Our Vision
             </span>
             <h3 className="text-2xl font-black font-heading text-app-text mt-4 mb-3 leading-snug">
-              Make Everyday Shopping Easier
+              {content?.vision?.title || 'Make Everyday Shopping Easier'}
             </h3>
             <p className="text-xs md:text-sm text-app-text-muted leading-relaxed">
-              To become a trusted shopping app where customers can discover quality products, compare better deals, and shop confidently from verified sellers.
+              {content?.vision?.description || 'To become a trusted shopping app where customers can discover quality products, compare better deals, and shop confidently from verified sellers.'}
             </p>
           </motion.div>
 
@@ -610,10 +601,10 @@ export default function About() {
               Our Mission
             </span>
             <h3 className="text-2xl font-black font-heading text-app-text mt-4 mb-3 leading-snug">
-              Bringing Value To Every Cart
+              {content?.mission?.title || 'Bringing Value To Every Cart'}
             </h3>
             <p className="text-xs md:text-sm text-app-text-muted leading-relaxed">
-              To make online shopping faster, safer, and more transparent through curated categories, secure payments, delivery updates, easy returns, and helpful support.
+              {content?.mission?.description || 'To make online shopping faster, safer, and more transparent through curated categories, secure payments, delivery updates, easy returns, and helpful support.'}
             </p>
           </motion.div>
 
@@ -633,10 +624,10 @@ export default function About() {
               Our Edge
             </span>
             <h2 className="text-2xl md:text-3xl font-black font-heading text-app-text leading-tight">
-              Why Shoppers Trust PLE (Peoples League of Electronics)
+              {content?.ourEdge?.title || 'Why Shoppers Trust PLE (Peoples League of Electronics)'}
             </h2>
             <p className="text-xs text-app-text-muted leading-relaxed">
-              We make shopping simpler by combining curated products, verified sellers, clear pricing, secure checkout, and reliable support under one marketplace.
+              {content?.ourEdge?.description || 'We make shopping simpler by combining curated products, verified sellers, clear pricing, secure checkout, and reliable support under one marketplace.'}
             </p>
           </motion.div>
 
@@ -647,12 +638,12 @@ export default function About() {
             variants={staggerContainer}
             className="lg:col-span-7 flex flex-col relative w-full"
           >
-            {[
-              { step: '01', title: 'Curated Categories', desc: 'Shop electronics, fashion, home, beauty, wellness, sports, and essentials in one app.' },
-              { step: '02', title: 'Verified Sellers', desc: 'Clear product listings, trusted seller information, and transparent buying details.' },
-              { step: '03', title: 'Secure Checkout', desc: 'Protected payments, order confirmation, and smooth tracking after purchase.' },
-              { step: '04', title: 'Easy Support', desc: 'Helpful assistance for delivery updates, returns, replacements, and order questions.' }
-            ].map((box, bidx) => {
+            {(content?.ourEdge?.steps || [
+              { step: '01', title: 'Curated Categories', description: 'Shop electronics, fashion, home, beauty, wellness, sports, and essentials in one app.' },
+              { step: '02', title: 'Verified Sellers', description: 'Clear product listings, trusted seller information, and transparent buying details.' },
+              { step: '03', title: 'Secure Checkout', description: 'Protected payments, order confirmation, and smooth tracking after purchase.' },
+              { step: '04', title: 'Easy Support', description: 'Helpful assistance for delivery updates, returns, replacements, and order questions.' }
+            ]).map((box, bidx) => {
               // Staircase horizontal offsets for desktop, staggering left to use left-side space
               const mlClass = bidx === 0 ? 'lg:ml-72' : bidx === 1 ? 'lg:ml-48' : bidx === 2 ? 'lg:ml-24' : 'ml-0';
               const zIndexClass = bidx === 0 ? 'z-10' : bidx === 1 ? 'z-20' : bidx === 2 ? 'z-30' : 'z-40';
@@ -673,7 +664,7 @@ export default function About() {
                         <span>{box.title}</span>
                       </h4>
                       <p className="text-[10px] md:text-[11px] text-app-text-muted leading-relaxed max-w-[380px]">
-                        {box.desc}
+                        {box.description || box.desc}
                       </p>
                     </div>
 

@@ -196,38 +196,8 @@ export const useDeliveryAuthStore = create(
 
           return { success: true, deliveryBoy: enriched };
         } catch (error) {
-          console.warn("Delivery API login failed, falling back to mock authentication:", error);
-          
-          const mockDeliveryBoy = normalizeDeliveryBoy({
-            id: "delivery_mock_12345",
-            _id: "delivery_mock_12345",
-            name: "Rahul Kumar",
-            email: email || "delivery@delivery.com",
-            phone: "+91 98765 43210",
-            vehicleType: "Bike",
-            vehicleNumber: "DL-3C-AB-1234",
-            isAvailable: true,
-            status: "available",
-            joinDate: new Date().toISOString(),
-          });
-
-          const accessToken = "mock.eyJyb2xlIjoiZGVsaXZlcnkiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-          const refreshToken = "mock.eyJyb2xlIjoiZGVsaXZlcnkiLCJleHAiOjI1MjQ2MDgwMDB9.signature";
-
-          sessionStorage.setItem('delivery-token', accessToken);
-          sessionStorage.setItem('delivery-refresh-token', refreshToken);
-          localStorage.removeItem('delivery-token');
-          localStorage.removeItem('delivery-refresh-token');
-
-          set({
-            deliveryBoy: mockDeliveryBoy,
-            token: accessToken,
-            refreshToken,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-
-          return { success: true, deliveryBoy: mockDeliveryBoy };
+          set({ isLoading: false });
+          throw error;
         }
       },
 

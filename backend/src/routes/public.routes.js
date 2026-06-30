@@ -4,12 +4,17 @@ import ApiResponse from '../utils/ApiResponse.js';
 import ApiError from '../utils/ApiError.js';
 import Product from '../models/Product.model.js';
 import Category from '../models/Category.model.js';
+
 import Brand from '../models/Brand.model.js';
 import Vendor from '../models/Vendor.model.js';
 import Coupon from '../models/Coupon.model.js';
 import Banner from '../models/Banner.model.js';
 import Campaign from '../models/Campaign.model.js';
 import { calculateVendorShippingForGroups } from '../services/vendorShipping.service.js';
+import AboutPage from '../models/AboutPage.model.js';
+import Portfolio from '../models/Portfolio.model.js';
+import PortfolioPage from '../models/PortfolioPage.model.js';
+import { getPortfolioPage } from '../modules/admin/controllers/cms.controller.js';
 
 const router = Router();
 
@@ -526,5 +531,46 @@ router.get('/settings/:key', asyncHandler(async (req, res) => {
     const setting = await Settings.findOne({ key: req.params.key });
     res.status(200).json(new ApiResponse(200, setting ? setting.value : null, `Settings for ${req.params.key} fetched.`));
 }));
+
+// GET /api/about (public CMS)
+router.get('/about', asyncHandler(async (req, res) => {
+    let about = await AboutPage.findOne();
+    if (!about) {
+        about = await AboutPage.create({});
+    }
+    res.status(200).json(new ApiResponse(200, about, 'About page content fetched successfully'));
+}));
+
+// GET /api/portfolio (public CMS)
+router.get('/portfolio', asyncHandler(async (req, res) => {
+    const limit = parseInt(req.query.limit) || 12;
+    const page = parseInt(req.query.page) || 1;
+    const skip = (page - 1) * limit;
+
+    const filter = {};
+    if (req.query.category && req.query.category !== 'all') {
+        filter.category = req.query.category;
+    }
+
+    const portfolios = await Portfolio.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+    const total = await Portfolio.countDocuments(filter);
+
+    res.json(new ApiResponse(200, {
+        data: portfolios,
+        pagination: {
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        }
+    }, 'Portfolios fetched successfully'));
+}));
+
+// Portfolio Page content
+router.get('/portfolio-page', getPortfolioPage);
 
 export default router;

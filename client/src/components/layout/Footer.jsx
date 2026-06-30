@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Phone, Mail, ArrowRight, MapPin, ArrowUpRight } from 'lucide-react';
-import { CONTACT_INFO, SERVICES } from '../../constants';
+import { SERVICES } from '../../constants';
 import { useTheme } from '../../context/ThemeContext';
+import { useCMS } from '../../hooks/useCMS';
 const lightLogo = '/PLE-logo-light-transparent.png';
 const darkLogo = '/PLE-logo-dark-transparent.png';
 
@@ -37,6 +38,8 @@ const YoutubeIcon = (props) => (
 
 export default function Footer() {
   const { theme } = useTheme();
+  const { footer, contact, social } = useCMS();
+
   return (
     <footer className="relative text-app-text-muted mt-6 sm:mt-12 font-sans theme-transition">
       {/* Wave Divider with light orange glow at the top of the footer */}
@@ -108,7 +111,7 @@ export default function Footer() {
                 />
               </Link>
               <p className="text-xs sm:text-sm text-app-text-muted leading-relaxed max-w-sm">
-                PLE (Peoples League of Electronics) is a full-service digital agency. We specialize in building responsive website development, strategic organic SEO, digital branding, accounting solutions, and automated dashboards to actively turn operations into revenue.
+                {footer.text}
               </p>
               <div className="flex items-start gap-2.5 text-xs sm:text-sm text-app-text">
                 <MapPin className="w-4 h-4 text-primary shrink-0 mt-0.5" />
@@ -209,13 +212,13 @@ export default function Footer() {
                 Contact Info
               </h4>
               <div className="space-y-2 text-xs sm:text-sm">
-                <a href={`tel:${CONTACT_INFO.phone}`} className="flex items-center gap-2.5 text-app-text hover:text-primary transition-colors group">
+                <a href={`tel:${contact.phone}`} className="flex items-center gap-2.5 text-app-text hover:text-primary transition-colors group">
                   <Phone className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
-                  <span>{CONTACT_INFO.phoneDisplay}</span>
+                  <span>{contact.phoneDisplay}</span>
                 </a>
-                <a href={`mailto:${CONTACT_INFO.email}`} className="flex items-center gap-2.5 text-app-text hover:text-primary transition-colors group">
+                <a href={`mailto:${contact.email}`} className="flex items-center gap-2.5 text-app-text hover:text-primary transition-colors group">
                   <Mail className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
-                  <span>{CONTACT_INFO.email}</span>
+                  <span>{contact.email}</span>
                 </a>
               </div>
 
@@ -234,19 +237,19 @@ export default function Footer() {
               {/* High-fidelity custom Social Icons */}
               <div className="flex items-center gap-3 pt-0.5">
                 {[
-                  { icon: FacebookIcon, link: 'https://www.facebook.com/Vedhunt6' },
-                  { icon: InstagramIcon, link: 'https://www.instagram.com/vedhunt/' },
-                  { icon: LinkedinIcon, link: 'https://www.linkedin.com/company/vedhunt-infotech' },
-                  { icon: YoutubeIcon, link: 'https://www.youtube.com/@vedhuntinfotech1326' }
-                ].map((social, idx) => (
+                  { icon: FacebookIcon, link: social.facebook },
+                  { icon: InstagramIcon, link: social.instagram },
+                  { icon: LinkedinIcon, link: social.linkedin },
+                  { icon: YoutubeIcon, link: social.youtube }
+                ].filter(s => s.link).map((socialItem, idx) => (
                   <a
                     key={idx}
-                    href={social.link}
+                    href={socialItem.link}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-8 h-8 rounded-lg bg-app-bg border border-app-border hover:border-primary/40 text-app-text-muted hover:text-primary hover:bg-primary/5 transition-all duration-300 flex items-center justify-center group"
                   >
-                    <social.icon className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                    <socialItem.icon className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
                   </a>
                 ))}
               </div>
@@ -287,10 +290,10 @@ export default function Footer() {
           <div className="pt-4 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-app-text-muted">
             <div className="text-center md:text-left space-y-0.5 max-w-xl">
               <p className="text-app-text-muted/80 text-[11px] sm:text-xs">
-                {CONTACT_INFO.copyright}
+                {footer.copyright || contact.copyright}
               </p>
               <p className="text-app-text-muted/60 text-[9px] sm:text-[10px]">
-                {CONTACT_INFO.registration}
+                {contact.registration}
               </p>
             </div>
             

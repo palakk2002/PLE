@@ -17,6 +17,7 @@ import * as refurbishedController from '../controllers/refurbished.controller.js
 import * as loyaltyController from '../controllers/loyalty.controller.js';
 import * as settingsController from '../controllers/settings.controller.js';
 import b2bUserRoutes from './b2bUser.routes.js';
+import cmsRoutes from './cms.routes.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -98,6 +99,7 @@ router.patch('/vendors/:id/commission', ...adminAuth, validate(vendorIdParamSche
 
 // ─── Customers ────────────────────────────────────────────────────────────────
 router.use('/b2b-users', b2bUserRoutes);
+router.use('/cms', ...adminAuth, cmsRoutes);
 router.get('/b2b/users', ...adminAuth, customerController.getB2BUsers);
 router.patch('/b2b/users/:id/verify', ...adminAuth, customerController.verifyB2BUser);
 router.get('/customers', ...adminAuth, validate(customerListQuerySchema, 'query'), customerController.getAllCustomers);

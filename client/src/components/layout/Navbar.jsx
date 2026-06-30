@@ -6,11 +6,13 @@ import { NAV_LINKS as DEFAULT_NAV_LINKS, SERVICES } from '../../constants';
 import { contentService } from '../../services/contentService';
 import ThemeToggle from '../common/ThemeToggle';
 import { useTheme } from '../../context/ThemeContext';
+import { useCMS } from '../../hooks/useCMS';
 const lightLogo = '/PLE-logo-light-transparent.png';
 const darkLogo = '/PLE-logo-dark-transparent.png';
 
 export default function Navbar() {
   const { theme } = useTheme();
+  const { contact } = useCMS();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isServicesExpanded, setIsServicesExpanded] = useState(false);
@@ -28,24 +30,7 @@ export default function Navbar() {
 
   const [navLinks, setNavLinks] = useState(DEFAULT_NAV_LINKS);
 
-  useEffect(() => {
-    const fetchNavLinks = async () => {
-      try {
-        const response = await contentService.getNavbarLinksPublic();
-        if (response.data && response.data.length > 0) {
-          const filtered = response.data.filter(link => 
-            link.path !== '/blog' && 
-            link.path !== '/pricing' && 
-            link.path !== '/career'
-          );
-          setNavLinks(filtered);
-        }
-      } catch (error) {
-        console.error('Failed to fetch navbar links, using defaults.', error);
-      }
-    };
-    fetchNavLinks();
-  }, []);
+  // Navbar links are now managed statically or via the main CMS endpoint in the future.
 
   // Prevent background scrolling when mobile menu is open
   useEffect(() => {
@@ -65,15 +50,15 @@ export default function Navbar() {
       <div className="w-full bg-app-bg border-b border-app-border text-app-text-muted py-2 px-4 md:px-8 z-50 relative hidden sm:block">
         <div className="max-w-6xl mx-auto flex justify-between items-center text-[11px] font-medium tracking-wide">
           <div className="flex gap-6">
-            <span className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer">
-              <Phone className="w-3.5 h-3.5" /> +91 98765 43210
-            </span>
-            <span className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer">
-              <Mail className="w-3.5 h-3.5" /> support@ple.in
-            </span>
+            <a href={`tel:${contact.phone}`} className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer">
+              <Phone className="w-3.5 h-3.5" /> {contact.phoneDisplay}
+            </a>
+            <a href={`mailto:${contact.email}`} className="flex items-center gap-1.5 hover:text-primary transition-colors cursor-pointer">
+              <Mail className="w-3.5 h-3.5" /> {contact.email}
+            </a>
           </div>
           <div className="flex items-center gap-1.5">
-            <Clock className="w-3.5 h-3.5" /> Mon – Fri: 8:00am – 7:00pm
+            <Clock className="w-3.5 h-3.5" /> {contact.hours}
           </div>
         </div>
       </div>
