@@ -299,6 +299,7 @@ export const useAuthStore = create(
         localStorage.removeItem('b2bAdminToken');
         localStorage.removeItem('b2bAdminRefreshToken');
         localStorage.removeItem('b2badmin-auth-storage');
+        localStorage.removeItem('fcm_token_web');
 
         sessionStorage.removeItem('token');
         sessionStorage.removeItem('refresh-token');
@@ -308,6 +309,7 @@ export const useAuthStore = create(
         sessionStorage.removeItem('b2bAdminToken');
         sessionStorage.removeItem('b2bAdminRefreshToken');
         sessionStorage.removeItem('b2badmin-auth-storage');
+        sessionStorage.removeItem('fcm_token_web');
 
         // Also logout B2B store if it is still authenticated
         try {

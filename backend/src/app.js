@@ -13,6 +13,7 @@ import adminRoutes from './modules/admin/routes/admin.routes.js';
 import vendorRoutes from './modules/vendor/routes/vendor.routes.js';
 import deliveryRoutes from './modules/delivery/routes/delivery.routes.js';
 import b2bUserRoutes from './modules/b2bUser/routes/index.js';
+import fcmTokenRoutes from './routes/fcmTokenRoutes.js';
 
 // Middleware imports
 import { apiLimiter } from './middlewares/rateLimiter.js';
@@ -103,6 +104,8 @@ app.use('/api/admin', adminRoutes);       // Admin: auth, vendors, orders, catal
 app.use('/api/vendor', vendorRoutes);     // Vendor: auth, products, orders, earnings
 app.use('/api/delivery', deliveryRoutes); // Delivery: auth, orders
 app.use('/api/b2b-user', b2bUserRoutes);  // B2B User: auth, employee management
+app.use('/api/fcm-tokens', fcmTokenRoutes); // FCM Tokens
+
 
 // ─── Error Handling ──────────────────────────────────────────────────────────
 app.use(notFound);

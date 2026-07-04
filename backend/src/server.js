@@ -1,3 +1,4 @@
+import "./loadEnv.js";
 import dns from "dns";
 
 try {
@@ -12,7 +13,6 @@ try {
   // Ignore error if DNS servers cannot be set
 }
 
-import "dotenv/config";
 import http from "http";
 import app from "./app.js";
 import { initSocket } from "./config/socket.js";

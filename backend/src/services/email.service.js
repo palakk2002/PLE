@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import "../loadEnv.js";
 import nodemailer from 'nodemailer';
 
 const transporterConfig = process.env.SMTP_HOST === 'smtp.gmail.com' 

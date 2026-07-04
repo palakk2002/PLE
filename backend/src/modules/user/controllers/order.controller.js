@@ -17,6 +17,7 @@ import LoyaltyTransaction from '../../../models/LoyaltyTransaction.model.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { calculateVendorShippingForGroups } from '../../../services/vendorShipping.service.js';
 import { getIO } from '../../../config/socket.js';
+import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js';
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
 const normalizeAxisName = (value) =>
@@ -597,7 +598,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
                             }
                         }).catch(e => console.error("Error creating database notification for vendor:", e));
 
-                        // Emit socket event to the vendor's room
+                // Emit socket event to the vendor's room
                         if (io) {
                             io.to(`user_${v.vendorId}`).emit('new_order_placed', {
                                 orderId: order.orderId,
@@ -610,6 +611,19 @@ export const placeOrder = asyncHandler(async (req, res) => {
                             });
                         }
                     }
+                }
+
+                // Send push notification to buyer
+                if (order.userId) {
+                    await sendNotificationToUser(order.userId, {
+                        title: 'Order Confirmed! 🎉',
+                        body: `Your order ${order.orderId} of Rs.${order.total} has been successfully placed.`,
+                        data: {
+                            type: 'order',
+                            orderId: String(order.orderId || order._id),
+                            link: `/orders/${order.orderId}`
+                        }
+                    });
                 }
             } catch (err) {
                 console.error("Error in sending order notifications to vendors:", err);

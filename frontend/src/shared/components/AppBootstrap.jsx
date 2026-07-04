@@ -8,6 +8,12 @@ import { useB2BAdminStore } from "../../modules/B2BAdmin/store/b2bAdminStore";
 import { useB2bStore } from "../store/b2bStore";
 import socketService from "../utils/socket";
 import toast from "react-hot-toast";
+import { 
+  initializePushNotifications, 
+  registerFCMToken, 
+  setupForegroundNotificationHandler, 
+  unregisterFCMToken 
+} from "../../services/pushNotificationService";
 
 const PRODUCTS_CACHE_KEY = "user-catalog-products-cache";
 const VENDORS_CACHE_KEY = "user-catalog-vendors-cache";
@@ -56,6 +62,9 @@ const AppBootstrap = () => {
     try { useVendorAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useDeliveryAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
     try { useAdminAuthStore.getState().initialize(); } catch (e) { console.warn(e); }
+    
+    // Initialize FCM Service Worker
+    initializePushNotifications();
   }, []);
 
   useEffect(() => {
@@ -162,8 +171,26 @@ const AppBootstrap = () => {
 
 
   useEffect(() => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      // Unregister token on logout
+      unregisterFCMToken();
+      return;
+    }
     
+    // Register FCM Token for logged-in user
+    registerFCMToken(true).catch(err => console.warn('FCM registration skipped or failed:', err));
+    
+    // Setup foreground notifications listener
+    const unsubscribeForeground = setupForegroundNotificationHandler((payload) => {
+      console.log('Foreground push notification received in AppBootstrap:', payload);
+      // Optional in-app toast for push notification
+      toast(payload.notification.title + '\n' + payload.notification.body, {
+        icon: '📬',
+        duration: 5000,
+        position: 'top-right'
+      });
+    });
+
     const socket = socketService.getSocket();
     socket.emit('join_user_room', user.id);
     
@@ -179,6 +206,9 @@ const AppBootstrap = () => {
     socket.on('return_status_updated', handleReturnUpdate);
     
     return () => {
+      if (typeof unsubscribeForeground === 'function') {
+        unsubscribeForeground();
+      }
       socket.off('return_status_updated', handleReturnUpdate);
       socket.emit('leave_user_room', user.id);
     };
