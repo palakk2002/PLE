@@ -1,4 +1,5 @@
-import admin from 'firebase-admin';
+import { initializeApp, cert, getApps } from 'firebase-admin/app';
+import { getMessaging } from 'firebase-admin/messaging';
 
 let app;
 try {
@@ -7,10 +8,15 @@ try {
         console.warn('⚠️ FIREBASE_SERVICE_ACCOUNT environment variable is not defined.');
     } else {
         const serviceAccount = JSON.parse(serviceAccountJson);
-        app = admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount)
-        });
-        console.log('✅ Firebase Admin initialized successfully.');
+        const apps = getApps();
+        if (apps.length === 0) {
+            app = initializeApp({
+                credential: cert(serviceAccount)
+            });
+            console.log('✅ Firebase Admin initialized successfully.');
+        } else {
+            app = apps[0];
+        }
     }
 } catch (error) {
     console.error('❌ Error initializing Firebase Admin SDK:', error);
@@ -35,7 +41,8 @@ export async function sendPushNotification(tokens, payload) {
             tokens: tokens,
         };
 
-        const response = await admin.messaging().sendEachForMulticast(message);
+        const messaging = getMessaging(app);
+        const response = await messaging.sendEachForMulticast(message);
         console.log(`[FCM] Successfully sent: ${response.successCount} messages. Failed: ${response.failureCount} messages.`);
         return response;
     } catch (error) {
@@ -44,4 +51,3 @@ export async function sendPushNotification(tokens, payload) {
     }
 }
 
-export default admin;

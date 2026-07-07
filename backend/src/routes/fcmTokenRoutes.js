@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { authenticate } from '../middlewares/authenticate.js';
 import User from '../models/User.model.js';
+import { Vendor } from '../models/Vendor.model.js';
+import DeliveryBoy from '../models/DeliveryBoy.model.js';
+import { Admin } from '../models/Admin.model.js';
 import { sendPushNotification } from '../services/firebaseAdmin.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import ApiError from '../utils/ApiError.js';
@@ -8,15 +11,31 @@ import asyncHandler from '../utils/asyncHandler.js';
 
 const router = Router();
 
+// Helper to find target user model dynamically based on token role
+async function findUserByRole(userId, role) {
+    if (!userId) return null;
+    if (role === 'vendor') {
+        return await Vendor.findById(userId);
+    } else if (role === 'delivery') {
+        return await DeliveryBoy.findById(userId);
+    } else if (role === 'admin' || role === 'superadmin') {
+        return await Admin.findById(userId);
+    } else {
+        return await User.findById(userId);
+    }
+}
+
 // Save FCM Token
 router.post('/save', authenticate, asyncHandler(async (req, res) => {
     const { token, platform = 'web' } = req.body;
     const userId = req.user?.id;
+    const role = req.user?.role;
+
     if (!token) {
         throw new ApiError(400, 'FCM Token is required');
     }
 
-    const user = await User.findById(userId);
+    const user = await findUserByRole(userId, role);
     if (!user) {
         throw new ApiError(404, 'User not found');
     }
@@ -47,11 +66,13 @@ router.post('/save', authenticate, asyncHandler(async (req, res) => {
 router.delete('/remove', authenticate, asyncHandler(async (req, res) => {
     const { token, platform = 'web' } = req.body;
     const userId = req.user?.id;
+    const role = req.user?.role;
+
     if (!token) {
         throw new ApiError(400, 'FCM Token is required');
     }
 
-    const user = await User.findById(userId);
+    const user = await findUserByRole(userId, role);
     if (!user) {
         throw new ApiError(404, 'User not found');
     }
@@ -69,7 +90,9 @@ router.delete('/remove', authenticate, asyncHandler(async (req, res) => {
 // Test FCM push notification
 router.post('/test', authenticate, asyncHandler(async (req, res) => {
     const userId = req.user?.id;
-    const user = await User.findById(userId);
+    const role = req.user?.role;
+
+    const user = await findUserByRole(userId, role);
     if (!user) {
         throw new ApiError(404, 'User not found');
     }
