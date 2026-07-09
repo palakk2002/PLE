@@ -197,7 +197,7 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
                 Help & Support
               </Link>
               <Link
-                to="/search?condition=refurbished"
+                to="/refurbished-categories"
                 onClick={onClose}
                 className="flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors"
               >

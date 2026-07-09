@@ -128,12 +128,18 @@ const MobileCategory = () => {
 
       setIsFetchingProducts(true);
       try {
+        const { useAuthStore } = await import("../../../shared/store/authStore");
+        const { getChannelParam } = await import("../../../shared/utils/salesChannel");
+        const userRole = useAuthStore.getState().user?.role;
+        const channel = getChannelParam(userRole);
+
         const response = await api.get("/products", {
           params: {
             category: categoryId,
             page: 1,
             limit: 200,
             sort: "newest",
+            channel,
           },
         });
         const payload = response?.data ?? response;

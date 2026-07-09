@@ -194,7 +194,7 @@ const calculateVariantAggregateStock = (variants = {}) => {
 };
 
 const sanitizeCategoryPayload = (payload = {}) => {
-    const allowed = ['name', 'description', 'image', 'icon', 'parentId', 'order', 'isActive'];
+    const allowed = ['name', 'description', 'image', 'icon', 'parentId', 'order', 'isActive', 'isRefurbishedCategory'];
     const sanitized = {};
     for (const key of allowed) {
         if (Object.prototype.hasOwnProperty.call(payload, key)) {
@@ -244,7 +244,7 @@ const sanitizeBrandPayload = (payload = {}) => {
 
 // GET /api/admin/products
 export const getAllProducts = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20, search, vendorId, categoryId, status, includeInactive = 'false', b2bOnly } = req.query;
+    const { page = 1, limit = 20, search, vendorId, categoryId, status, includeInactive = 'false', b2bOnly, salesChannel } = req.query;
     const numericPage = Number(page) || 1;
     const numericLimit = Number(limit) || 20;
     const skip = (numericPage - 1) * numericLimit;
@@ -258,6 +258,9 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     }
     if (String(b2bOnly) === 'true') {
         filter.b2bEnabled = true;
+    }
+    if (salesChannel) {
+        filter.salesChannel = salesChannel;
     }
 
     const products = await Product.find(filter)
@@ -353,8 +356,10 @@ export const updateProduct = asyncHandler(async (req, res) => {
         }
     }
 
-    const product = await Product.findByIdAndUpdate(req.params.id, payload, { new: true, runValidators: true });
+    const product = await Product.findById(req.params.id);
     if (!product) throw new ApiError(404, 'Product not found.');
+    Object.assign(product, payload);
+    await product.save();
     res.status(200).json(new ApiResponse(200, product, 'Product updated.'));
 });
 

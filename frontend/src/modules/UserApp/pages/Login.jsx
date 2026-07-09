@@ -18,12 +18,23 @@ import MobileLayout from '../components/Layout/MobileLayout';
 import PageTransition from '../../../shared/components/PageTransition';
 import { useBusinessBuyer } from '../hooks/useBusinessBuyer';
 
-const MobileLogin = () => {
+const MobileLogin = ({ isB2BRoute }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, isAuthenticated } = useAuthStore();
   const { login: loginB2B, isLoading: isB2BLoading, isAuthenticated: isB2BAuthenticated } = useB2BAdminStore();
-  const { isBusiness } = useBusinessBuyer();
+  const { setUserRole } = useBusinessBuyer();
+
+  const isBusinessMode = isB2BRoute || location.pathname.startsWith('/b2b/');
+
+  // Sync portal mode from route/path parameters
+  useEffect(() => {
+    if (isBusinessMode) {
+      setUserRole('business_buyer');
+    } else {
+      setUserRole('customer');
+    }
+  }, [isBusinessMode, setUserRole]);
 
   // Auto-redirect when authentication state changes
   const [showB2BOptionModal, setShowB2BOptionModal] = useState(false);
@@ -50,9 +61,7 @@ const MobileLogin = () => {
         navigate('/home', { replace: true });
       }
     } else {
-      if (isActuallyAdmin) {
-        setShowB2BOptionModal(true);
-      } else if (isActuallyEmployee || (isAuthenticated && !isActuallyAdmin)) {
+      if (isB2BAuthenticated || isAuthenticated) {
         navigate('/home', { replace: true });
       }
     }
@@ -85,7 +94,7 @@ const MobileLogin = () => {
 
   const onSubmit = async (data) => {
     try {
-      if (isBusiness) {
+      if (isBusinessMode) {
         const result = await loginB2B({ businessEmail: data.email, password: data.password });
         if (result?.success || result === true) {
           const { adminProfile } = useB2BAdminStore.getState();
@@ -101,11 +110,7 @@ const MobileLogin = () => {
             useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
           }
 
-          if (adminProfile?.isEmployee) {
-            navigate('/home', { replace: true });
-          } else {
-            setShowB2BOptionModal(true);
-          }
+          navigate('/home', { replace: true });
         }
         return;
       }
@@ -133,14 +138,12 @@ const MobileLogin = () => {
                });
              }
            }
-           if (b2bState.userRole !== 'customer') {
-             if (userRole === 'b2bEmployee' || result?.user?.isEmployee || isMockEmployee) {
-               b2bState.setUserRole('business_buyer');
-             }
-           }
-        } else {
-          b2bState.setUserRole('customer');
-        }
+           b2bState.setUserRole('business_buyer');
+         } else {
+          if (!isBusinessMode) {
+            b2bState.setUserRole('customer');
+          }
+         }
         
         replayPendingAction();
         toast.success('Login successful!');
@@ -230,7 +233,7 @@ const MobileLogin = () => {
               </div>
 
               {/* B2B Info Message */}
-              {isBusiness && (
+              {isBusinessMode && (
                 <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-xl text-center">
                   <p className="text-xs text-[#AE020B] dark:text-red-400 font-bold">
                     ✨ Business mode: unlock wholesale prices, tier discounts, MOQ, GST credit, and credit terms.
@@ -322,10 +325,10 @@ const MobileLogin = () => {
                 {/* Submit Button */}
                 <button
                   type="submit"
-                  disabled={isBusiness ? isB2BLoading : isLoading}
+                  disabled={isBusinessMode ? isB2BLoading : isLoading}
                   className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold text-base transition-all duration-300 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {(isBusiness ? isB2BLoading : isLoading) ? 'Logging in...' : 'Log In'}
+                  {isBusinessMode ? (isB2BLoading ? 'Logging in...' : 'Log In') : (isLoading ? 'Logging in...' : 'Log In')}
                 </button>
               </form>
 
@@ -334,7 +337,7 @@ const MobileLogin = () => {
                 <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Don't have an account?{' '}
                   <Link
-                    to="/register"
+                    to={isBusinessMode ? "/b2b/register" : "/register"}
                     className="text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-semibold"
                   >
                     Sign Up
@@ -380,7 +383,10 @@ const MobileLogin = () => {
               </p>
               <div className="space-y-3">
                 <button
-                  onClick={() => navigate('/home', { replace: true })}
+                  onClick={() => {
+                    useB2bStore.getState().setUserRole('business_buyer');
+                    navigate('/home', { replace: true });
+                  }}
                   className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold transition-colors shadow-sm"
                 >
                   Bulk Order (Home)

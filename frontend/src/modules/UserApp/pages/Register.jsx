@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiPhone, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useAuthStore } from '../../../shared/store/authStore';
@@ -14,11 +14,23 @@ import { useBusinessBuyer } from '../hooks/useBusinessBuyer';
 import api from '../../../shared/utils/api';
 import { useEffect } from 'react';
 
-const MobileRegister = () => {
+const MobileRegister = ({ isB2BRoute }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { register: registerUser, login, isLoading } = useAuthStore();
-  const { isBusiness, setUserRole } = useBusinessBuyer();
+  const { setUserRole } = useBusinessBuyer();
   const registerCompany = useB2bStore((state) => state.registerCompany);
+
+  const isBusinessMode = isB2BRoute || location.pathname.startsWith('/b2b/');
+
+  // Sync portal mode from route/path parameters
+  useEffect(() => {
+    if (isBusinessMode) {
+      setUserRole('business_buyer');
+    } else {
+      setUserRole('customer');
+    }
+  }, [isBusinessMode, setUserRole]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -177,12 +189,38 @@ const MobileRegister = () => {
         employees
       };
 
-      const { register: registerB2BAdminAPI } = useB2BAdminStore.getState();
+      const { register: registerB2BAdminAPI, login: loginB2B } = useB2BAdminStore.getState();
       const success = await registerB2BAdminAPI(payload);
 
       if (success) {
-        toast.success('Company Registration Submitted Successfully! Awaiting Admin Approval.');
-        navigate('/login');
+        toast.success('Company Registration Successful! Logging you in...');
+        try {
+          const loginResult = await loginB2B({ 
+            businessEmail: b2bData.adminEmail, 
+            password: b2bData.password 
+          });
+          
+          if (loginResult?.success || loginResult === true) {
+            const { adminProfile } = useB2BAdminStore.getState();
+            useB2bStore.getState().setUserRole('business_buyer');
+
+            // Sync authStore tokens
+            const token = localStorage.getItem('b2bAdminToken') || sessionStorage.getItem('b2bAdminToken');
+            if (token) {
+              localStorage.setItem('token', token);
+              sessionStorage.setItem('token', token);
+              useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
+            }
+
+            navigate('/home', { replace: true });
+            return;
+          }
+        } catch (loginErr) {
+          console.error("Auto login after B2B registration failed:", loginErr);
+        }
+        
+        // Fallback to B2B login page if auto-login fails
+        navigate('/b2b/login', { replace: true });
       }
     } catch (error) {
       toast.error(error.message || 'Registration failed. Please try again.');
@@ -204,7 +242,7 @@ const MobileRegister = () => {
             <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-sm relative border dark:border-zinc-800 transition-colors duration-500">
               <button
                 onClick={() => {
-                  if (isBusiness && b2bStep > 1) {
+                  if (isBusinessMode && b2bStep > 1) {
                     setB2bStep(b2bStep - 1);
                   } else {
                     navigate(-1);
@@ -223,7 +261,7 @@ const MobileRegister = () => {
 
 
 
-              {isBusiness && (
+              {isBusinessMode && (
                 <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-xl text-center">
                   <p className="text-xs text-[#AE020B] dark:text-red-400 font-bold">
                     ✨ Step {b2bStep} of 3: {b2bStep === 1 ? 'Company Details' : b2bStep === 2 ? 'Company Admin Details' : 'Add Employees (Optional)'}
@@ -237,7 +275,7 @@ const MobileRegister = () => {
                 </div>
               )}
 
-              {!isBusiness && (
+              {!isBusinessMode && (
                 <form onSubmit={handleSubmitB2C(onB2CSubmit)} className="space-y-5">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-2">First Name</label>
@@ -341,7 +379,7 @@ const MobileRegister = () => {
                 </form>
               )}
 
-              {isBusiness && (
+              {isBusinessMode && (
                 <form onSubmit={handleB2BSubmit} className="space-y-5">
                   {b2bStep === 1 && (
                     <div className="space-y-4">
@@ -526,7 +564,7 @@ const MobileRegister = () => {
               <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600 dark:text-zinc-400">
                   Already have an account?{' '}
-                  <Link to="/login" className="text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-semibold">Sign In</Link>
+                  <Link to={isBusinessMode ? "/b2b/login" : "/login"} className="text-[#AE020B] dark:text-red-400 hover:text-[#8d0208] font-semibold">Sign In</Link>
                 </p>
               </div>
 

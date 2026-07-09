@@ -26,6 +26,10 @@ const startServer = async () => {
     validateEnv();
     await connectDB();
     
+    // Run DB migrations
+    const { migrateSalesChannel } = await import('./utils/migrateSalesChannel.js');
+    await migrateSalesChannel();
+    
     const server = http.createServer(app);
     initSocket(server);
 

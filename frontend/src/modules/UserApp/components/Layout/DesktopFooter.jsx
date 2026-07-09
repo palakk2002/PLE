@@ -3,11 +3,14 @@ import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin, FiMail, FiPhone, FiMapP
 import appLogoBlack from "../../../../assets/PLELOGOBLACK.jpg";
 import appLogoWhite from "../../../../assets/PLEwhite.png";
 import { useThemeStore } from "../../../../shared/store/themeStore";
+import { useB2bStore } from "../../../../shared/store/b2bStore";
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 const DesktopFooter = () => {
   const { theme } = useThemeStore();
+  const userRole = useB2bStore((state) => state.userRole);
+  const isB2b = userRole === 'business_buyer';
   const [email, setEmail] = useState('');
 
   const appLogo = {
@@ -41,20 +44,20 @@ const DesktopFooter = () => {
               )}
             </Link>
             <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
-              Your ultimate destination for curated premium fashion, tech, baby care, and everyday essentials. Experience quality and luxury delivered to your doorstep.
+              Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
             </p>
             {/* Social Icons */}
             <div className="flex items-center gap-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
+              <a href="https://www.facebook.com/share/1EaNrat2yr/" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
                 <FiFacebook className="text-lg" />
               </a>
-              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
+              <a href="https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
                 <FiInstagram className="text-lg" />
               </a>
-              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
+              <a href="https://x.com/PeoplesE9405" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
                 <FiTwitter className="text-lg" />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
+              <a href="https://www.linkedin.com/company/ple-electronics" target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-full bg-gray-100 hover:bg-red-50 text-gray-600 hover:text-[#7B0A0A] dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-all duration-300">
                 <FiLinkedin className="text-lg" />
               </a>
             </div>
@@ -82,7 +85,7 @@ const DesktopFooter = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/search?condition=refurbished" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
+                <Link to="/refurbished-categories" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   Refurbished
                 </Link>
               </li>
@@ -164,15 +167,15 @@ const DesktopFooter = () => {
             <div className="flex flex-col gap-3 text-sm text-gray-500 dark:text-gray-400">
               <div className="flex items-center gap-2">
                 <FiMail className="flex-shrink-0 text-gray-400" />
-                <span>support@ple.com</span>
+                <span>{isB2b ? 'support@plebusiness.com' : 'support@peoplesleagueofelectronics.com'}</span>
               </div>
               <div className="flex items-center gap-2">
                 <FiPhone className="flex-shrink-0 text-gray-400" />
-                <span>+1 (555) 019-2834</span>
+                <span>{isB2b ? '+91 9071149100' : '+91 9071149300'}</span>
               </div>
-              <div className="flex items-center gap-2">
-                <FiMapPin className="flex-shrink-0 text-gray-400" />
-                <span>100 E-Commerce Way, Suite 400</span>
+              <div className="flex items-start gap-2">
+                <FiMapPin className="mt-0.5 flex-shrink-0 text-gray-400" />
+                <span>SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016</span>
               </div>
             </div>
           </div>

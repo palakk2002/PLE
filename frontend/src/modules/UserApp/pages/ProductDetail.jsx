@@ -212,8 +212,16 @@ const MobileProductDetail = () => {
   // Get active offers for this specific product
   const { offers: productOffers } = useOffers({ productId: product?.id, categoryId: product?.categoryId });
 
-  const { isBusiness, getWholesaleSpecs, getWholesalePriceForQty } =
+  const { isBusiness: rawIsBusiness, getWholesaleSpecs, getWholesalePriceForQty } =
     useBusinessBuyer();
+  
+  const isBusiness = useMemo(() => {
+    if (!product) return rawIsBusiness;
+    const channel = product.salesChannel || (product.b2bEnabled ? "BOTH" : "B2C");
+    if (channel === 'B2C') return false;
+    if (channel === 'B2B') return true;
+    return rawIsBusiness;
+  }, [product, rawIsBusiness]);
   
   const { rules: loyaltyConfig, fetchConfig } = useLoyaltyStore();
 

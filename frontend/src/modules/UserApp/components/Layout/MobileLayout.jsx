@@ -20,7 +20,9 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
   // Hide header and bottom nav on login, register, and verification pages
   const isAuthPage = pathname === '/login' ||
     pathname === '/register' ||
-    pathname === '/verification';
+    pathname === '/verification' ||
+    pathname === '/b2b/login' ||
+    pathname === '/b2b/register';
 
   const isCheckoutPage = pathname === '/checkout';
   const isOrderConfirmationPage = pathname.startsWith('/order-confirmation');

@@ -79,6 +79,7 @@ const ProductForm = () => {
     relatedProducts: [],
     faqs: [],
     b2bEnabled: false,
+    salesChannel: "B2C",
     b2bWholesalePrice: "",
     b2bMinOrderQty: "",
     b2bUnitsPerCarton: "",
@@ -198,6 +199,7 @@ const ProductForm = () => {
       relatedProducts: product.relatedProducts || [],
       faqs: Array.isArray(product.faqs) ? product.faqs : [],
       b2bEnabled: product.b2bEnabled || false,
+      salesChannel: product.salesChannel || (product.b2bEnabled ? "BOTH" : "B2C"),
       b2bWholesalePrice: product.b2bWholesalePrice || "",
       b2bMinOrderQty: product.b2bMinOrderQty || "",
       b2bUnitsPerCarton: product.b2bUnitsPerCarton || "",
@@ -508,14 +510,25 @@ const ProductForm = () => {
       return;
     }
 
-    if (!formData.name || !formData.price || !formData.stockQuantity || !formData.categoryId) {
+    // Validate required fields based on channel
+    const isB2c = formData.salesChannel === 'B2C' || formData.salesChannel === 'BOTH';
+    const isB2b = formData.salesChannel === 'B2B' || formData.salesChannel === 'BOTH';
+
+    if (!formData.name || !formData.stockQuantity || !formData.categoryId) {
       toast.error("Please fill in all required fields");
+      return;
+    }
+
+    if (isB2c && !formData.price) {
+      toast.error("Please enter retail price");
       return;
     }
 
     const finalCategoryId = formData.subcategoryId ?? formData.categoryId ?? null;
 
-    const parsedPrice = parseFloat(formData.price);
+    // Default price to B2B price for pure B2B products to satisfy DB non-negative constraint
+    const rawPrice = isB2c ? formData.price : (formData.b2bWholesalePrice || 0);
+    const parsedPrice = parseFloat(rawPrice);
     const parsedOriginalPrice = formData.originalPrice
       ? parseFloat(formData.originalPrice)
       : null;
@@ -549,7 +562,7 @@ const ProductForm = () => {
       ? parseInt(formData.b2bMinOrderQty, 10)
       : null;
 
-    if (formData.b2bEnabled) {
+    if (isB2b) {
       if (
         formData.b2bWholesalePrice === "" ||
         formData.b2bMinOrderQty === ""
@@ -565,7 +578,7 @@ const ProductForm = () => {
         return;
       }
       
-      if (b2bSettings?.minWholesaleDiscount) {
+      if (isB2c && b2bSettings?.minWholesaleDiscount) {
         const requiredDiscount = b2bSettings.minWholesaleDiscount;
         const discountPercentage = ((parsedPrice - parsedB2bWholesalePrice) / parsedPrice) * 100;
         if (discountPercentage < requiredDiscount) {
@@ -592,7 +605,8 @@ const ProductForm = () => {
         }))
         .filter((faq) => faq.question && faq.answer),
       variants: buildVariantPayload(formData.variants || {}),
-      b2bEnabled: formData.b2bEnabled,
+      b2bEnabled: isB2b,
+      salesChannel: formData.salesChannel,
       b2bWholesalePrice: parsedB2bWholesalePrice,
       b2bMinOrderQty: parsedB2bMinOrderQty,
       b2bUnitsPerCarton: formData.b2bUnitsPerCarton ? parseInt(formData.b2bUnitsPerCarton, 10) : 1,
@@ -633,6 +647,30 @@ const ProductForm = () => {
       <form
         onSubmit={handleSubmit}
         className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200 space-y-4">
+        
+        {/* Sales Channel Selector */}
+        <div className="border-b border-gray-100 pb-4">
+          <label className="block text-sm font-bold text-gray-800 mb-2">
+            Sales Channel
+          </label>
+          <div className="flex gap-2">
+            {['B2C', 'B2B', 'BOTH'].map((channel) => (
+              <button
+                key={channel}
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, salesChannel: channel }))}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${
+                  formData.salesChannel === channel
+                    ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                {channel}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Basic Information */}
         <div>
           <h2 className="text-base font-bold text-gray-800 mb-2">
@@ -676,6 +714,7 @@ const ProductForm = () => {
                 value={formData.categoryId}
                 subcategoryId={formData.subcategoryId}
                 onChange={handleChange}
+                isRefurbished={formData.condition && formData.condition !== 'brand_new'}
                 required
               />
             </div>
@@ -714,44 +753,46 @@ const ProductForm = () => {
           </div>
         </div>
 
-        {/* Pricing */}
-        <div>
-          <h2 className="text-base font-bold text-gray-800 mb-2">Pricing</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Price <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                required
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                placeholder="0.00"
-              />
-            </div>
+        {/* Pricing (Retail) - Visible for B2C and BOTH */}
+        {(formData.salesChannel === 'B2C' || formData.salesChannel === 'BOTH') && (
+          <div>
+            <h2 className="text-base font-bold text-gray-800 mb-2">Pricing</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Price <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  required
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  placeholder="0.00"
+                />
+              </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Original Price (for discount)
-              </label>
-              <input
-                type="number"
-                name="originalPrice"
-                value={formData.originalPrice}
-                onChange={handleChange}
-                min="0"
-                step="0.01"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
-                placeholder="0.00"
-              />
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  Original Price (for discount)
+                </label>
+                <input
+                  type="number"
+                  name="originalPrice"
+                  value={formData.originalPrice}
+                  onChange={handleChange}
+                  min="0"
+                  step="0.01"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  placeholder="0.00"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Product Condition & Refurbished Settings */}
         <RefurbishedFieldsSection
@@ -759,10 +800,10 @@ const ProductForm = () => {
           onChange={handleChange}
         />
 
-        {/* B2B / Wholesale Settings */}
-        <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-            <div>
+        {/* B2B / Wholesale Settings - Visible for B2B and BOTH */}
+        {(formData.salesChannel === 'B2B' || formData.salesChannel === 'BOTH') && (
+          <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm space-y-4">
+            <div className="border-b border-gray-100 pb-3">
               <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
                 B2B / Wholesale Settings
               </h2>
@@ -770,19 +811,7 @@ const ProductForm = () => {
                 Configure wholesale pricing, bulk packaging, and volume discount tiers for business buyers.
               </p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                name="b2bEnabled"
-                checked={formData.b2bEnabled}
-                onChange={handleChange}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-            </label>
-          </div>
 
-          {formData.b2bEnabled && (
             <div className="space-y-4 pt-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -793,8 +822,15 @@ const ProductForm = () => {
                     type="number"
                     name="b2bWholesalePrice"
                     value={formData.b2bWholesalePrice}
-                    onChange={handleChange}
-                    required={formData.b2bEnabled}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      handleChange(e);
+                      // Auto-populate retail price for pure B2B channel
+                      if (formData.salesChannel === 'B2B') {
+                        setFormData(prev => ({ ...prev, price: val }));
+                      }
+                    }}
+                    required
                     min="0"
                     step="0.01"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
@@ -811,7 +847,7 @@ const ProductForm = () => {
                     name="b2bMinOrderQty"
                     value={formData.b2bMinOrderQty}
                     onChange={handleChange}
-                    required={formData.b2bEnabled}
+                    required
                     min="1"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                     placeholder="e.g., 50"
@@ -819,8 +855,8 @@ const ProductForm = () => {
                 </div>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Product Media */}
         <div className="bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl p-3 sm:p-4 border-2 border-primary-200 shadow-lg">

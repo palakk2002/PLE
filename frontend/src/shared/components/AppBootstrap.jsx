@@ -97,10 +97,15 @@ const AppBootstrap = () => {
         try { b2bAuth.logout(); } catch (e) {}
       }
 
-      // Synchronize the B2B store portal role to business_buyer if authenticated as a B2B user
+      // Synchronize the B2B store portal role to business_buyer if authenticated as a B2B user,
+      // or to customer if the authenticated user is a standard B2C customer.
       if (mainAuth.isAuthenticated || b2bAuth.isAuthenticated) {
         const b2bStore = useB2bStore.getState();
-        if (!isB2BUser) {
+        if (isB2BUser) {
+          if (b2bStore.userRole !== 'business_buyer') {
+            b2bStore.setUserRole('business_buyer');
+          }
+        } else {
           if (b2bStore.userRole !== 'customer') {
             b2bStore.setUserRole('customer');
           }

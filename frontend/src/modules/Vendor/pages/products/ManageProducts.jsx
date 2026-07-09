@@ -62,11 +62,8 @@ const ManageProducts = () => {
 
     if (selectedType !== "all") {
       filtered = filtered.filter((product) => {
-        if (selectedType === "b2b") {
-          return product.b2bEnabled === true;
-        } else {
-          return !product.b2bEnabled;
-        }
+        const chan = product.salesChannel || (product.b2bEnabled ? "BOTH" : "B2C");
+        return chan === selectedType;
       });
     }
 
@@ -157,23 +154,27 @@ const ManageProducts = () => {
       }
     },
     {
-      key: "b2bEnabled",
-      label: "Type",
+      key: "salesChannel",
+      label: "Sales Channel",
       sortable: true,
-      render: (value, row) => (
-        <div className="flex gap-1.5 flex-wrap items-center">
-          <Badge variant="success">B2C</Badge>
-          {value && <Badge variant="warning">B2B</Badge>}
-          {row.condition && row.condition !== "brand_new" && (
-            <RefurbishedBadge
-              condition={row.condition}
-              grade={row.refurbishedGrade}
-              warranty={row.refurbishedWarrantyDuration}
-              showDetails={false}
-            />
-          )}
-        </div>
-      ),
+      render: (_, row) => {
+        const channel = row.salesChannel || (row.b2bEnabled ? "BOTH" : "B2C");
+        return (
+          <div className="flex gap-1.5 flex-wrap items-center">
+            {channel === 'B2C' && <Badge variant="success">B2C</Badge>}
+            {channel === 'B2B' && <Badge variant="warning">B2B</Badge>}
+            {channel === 'BOTH' && <Badge variant="info">BOTH</Badge>}
+            {row.condition && row.condition !== "brand_new" && (
+              <RefurbishedBadge
+                condition={row.condition}
+                grade={row.refurbishedGrade}
+                warranty={row.refurbishedWarrantyDuration}
+                showDetails={false}
+              />
+            )}
+          </div>
+        );
+      },
     },
     {
       key: "actions",
@@ -276,9 +277,10 @@ const ManageProducts = () => {
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
               options={[
-                { value: "all", label: "All Types" },
-                { value: "b2c", label: "B2C Only" },
-                { value: "b2b", label: "B2B Wholesale" },
+                { value: "all", label: "All Channels" },
+                { value: "B2C", label: "B2C" },
+                { value: "B2B", label: "B2B" },
+                { value: "BOTH", label: "Both" },
               ]}
               className="w-full sm:w-auto min-w-[140px]"
             />

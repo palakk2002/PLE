@@ -215,6 +215,16 @@ const MobileSearch = () => {
       if (filters.minRating) query.minRating = filters.minRating;
       if (filters.condition) query.condition = filters.condition;
 
+      // Include sales channel constraint based on user role context
+      try {
+        const { useAuthStore } = require('../../../shared/store/authStore');
+        const { getChannelParam } = require('../../../shared/utils/salesChannel');
+        const userRole = useAuthStore.getState().user?.role;
+        query.channel = getChannelParam(userRole);
+      } catch (err) {
+        // Fallback if store is imported inside browser asynchronously
+      }
+
       return query;
     },
     [filters.category, filters.vendor, filters.minPrice, filters.maxPrice, filters.minRating, filters.condition, sortBy, searchParams]

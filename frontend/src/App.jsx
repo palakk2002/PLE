@@ -175,6 +175,7 @@ import MobileCategories from "./modules/UserApp/pages/categories";
 import MobileSearch from "./modules/UserApp/pages/Search";
 
 // Secondary Mobile/UserApp Pages (Lazy Loaded)
+const RefurbishedCatalog = lazy(() => import("./modules/UserApp/pages/RefurbishedCatalog"));
 const MobileSeller = lazy(() => import("./modules/UserApp/pages/Seller"));
 const MobileCategory = lazy(() => import("./modules/UserApp/pages/Category"));
 const MobileBrand = lazy(() => import("./modules/UserApp/pages/Brand"));
@@ -372,6 +373,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/refurbished-categories"
+        element={
+          <RouteWrapper>
+            <RefurbishedCatalog />
+          </RouteWrapper>
+        }
+      />
+      <Route
         path="/search"
         element={
           <RouteWrapper>
@@ -394,7 +403,15 @@ const AppRoutes = () => {
         path="/login"
         element={
           <RouteWrapper>
-            <MobileLogin />
+            <MobileLogin isB2BRoute={false} />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/b2b/login"
+        element={
+          <RouteWrapper>
+            <MobileLogin isB2BRoute={true} />
           </RouteWrapper>
         }
       />
@@ -402,7 +419,15 @@ const AppRoutes = () => {
         path="/register"
         element={
           <RouteWrapper>
-            <MobileRegister />
+            <MobileRegister isB2BRoute={false} />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/b2b/register"
+        element={
+          <RouteWrapper>
+            <MobileRegister isB2BRoute={true} />
           </RouteWrapper>
         }
       />

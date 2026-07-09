@@ -20,7 +20,7 @@ export const useBusinessBuyer = () => {
 
   const { user } = useAuthStore();
   const isB2BUser = user?.role === 'b2bAdmin' || user?.role === 'b2bEmployee' || user?.isEmployee;
-  const isBusiness = userRole === "business_buyer";
+  const isBusiness = userRole === "business_buyer" && (!user || isB2BUser);
 
   /**
    * Get B2B specifications for a given product

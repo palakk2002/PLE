@@ -107,7 +107,7 @@ const DesktopHeader = () => {
                             ✨ {activeFestivalCampaign.name}
                         </Link>
                     )}
-                    <Link to="/search?condition=refurbished" className="text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-medium text-sm lg:text-base">Refurbished</Link>
+                    <Link to="/refurbished-categories" className="text-gray-600 dark:text-gray-300 hover:text-[#7B0A0A] dark:hover:text-[#FF4D4D] font-medium text-sm lg:text-base">Refurbished</Link>
                 </nav>
 
                 {/* Search Bar */}

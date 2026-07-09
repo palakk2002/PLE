@@ -39,6 +39,7 @@ const productBaseSchema = {
     brandId: objectId.allow(null, '').optional(),
     vendorId: objectId.allow(null, '').optional(),
     stock: Joi.string().valid('in_stock', 'low_stock', 'out_of_stock').optional(),
+    salesChannel: Joi.string().valid('B2C', 'B2B', 'BOTH').optional(),
     stockQuantity: Joi.number().integer().min(0).optional(),
     totalAllowedQuantity: Joi.number().integer().min(0).allow(null).optional(),
     minimumOrderQuantity: Joi.number().integer().min(1).allow(null).optional(),

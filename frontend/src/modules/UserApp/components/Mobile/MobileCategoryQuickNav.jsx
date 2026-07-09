@@ -38,23 +38,23 @@ const MobileCategoryQuickNav = () => {
   const isAllActive = (location.pathname === "/" || location.pathname === "/home") && !activeQueryId;
 
   return (
-    <div className="bg-[#7B0A0A] md:bg-transparent dark:bg-[#0D0D0D] md:dark:bg-transparent py-2 px-4 select-none relative z-10 overflow-hidden">
-      <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-0.5 -mx-4 px-4 items-center">
+    <div className="bg-[#7B0A0A] md:bg-transparent dark:bg-[#0D0D0D] md:dark:bg-transparent py-1 px-4 select-none relative z-10 overflow-hidden">
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-0.5 -mx-4 px-4 items-center">
         {/* "All" Category */}
         <Link
           to="/home"
-          className="flex flex-col items-center gap-1.5 min-w-[56px] relative pb-1.5 cursor-pointer flex-shrink-0"
+          className="flex flex-col items-center gap-1 min-w-[48px] relative pb-1 cursor-pointer flex-shrink-0"
         >
           <LucideIcon
             name="ShoppingBag"
-            size={20}
+            size={18}
             className={`transition-colors duration-200 ${
               isAllActive 
                 ? "text-white dark:text-white md:text-primary-600 md:dark:text-white" 
                 : "text-white/70 dark:text-white/60 md:text-gray-500 md:dark:text-gray-400"
             }`}
           />
-          <span className={`text-[11px] font-bold text-center transition-colors duration-200 ${
+          <span className={`text-[10px] font-bold text-center transition-colors duration-200 ${
             isAllActive 
               ? "text-white dark:text-white md:text-primary-600 md:dark:text-white" 
               : "text-white/70 dark:text-white/60 md:text-gray-500 md:dark:text-gray-400"
@@ -64,7 +64,7 @@ const MobileCategoryQuickNav = () => {
           {isAllActive && (
             <motion.div
               layoutId="quickNavUnderline"
-              className="absolute bottom-0 left-2 right-2 h-[3px] bg-white dark:bg-white md:bg-primary-600 md:dark:bg-white"
+              className="absolute bottom-0 left-1.5 right-1.5 h-[2.5px] bg-white dark:bg-white md:bg-primary-600 md:dark:bg-white"
               transition={{ type: "spring", stiffness: 380, damping: 30 }}
             />
           )}
@@ -81,14 +81,14 @@ const MobileCategoryQuickNav = () => {
             <Link
               key={category.id}
               to={`/home?category=${category.id}`}
-              className="flex flex-col items-center gap-1.5 min-w-[56px] relative pb-1.5 cursor-pointer flex-shrink-0"
+              className="flex flex-col items-center gap-1 min-w-[48px] relative pb-1 cursor-pointer flex-shrink-0"
             >
               <LucideIcon
                 name={category.icon}
-                size={20}
+                size={18}
                 className={`transition-colors duration-200 ${iconColorClass}`}
               />
-              <span className={`text-[11px] font-bold text-center transition-colors duration-200 ${
+              <span className={`text-[10px] font-bold text-center transition-colors duration-200 ${
                 isActive 
                   ? "text-white dark:text-white md:text-primary-600 md:dark:text-white" 
                   : "text-white/70 dark:text-white/60 md:text-gray-500 md:dark:text-gray-400"
@@ -98,7 +98,7 @@ const MobileCategoryQuickNav = () => {
               {isActive && (
                 <motion.div
                   layoutId="quickNavUnderline"
-                  className="absolute bottom-0 left-2 right-2 h-[3px] bg-white dark:bg-white md:bg-primary-600 md:dark:bg-white"
+                  className="absolute bottom-0 left-1.5 right-1.5 h-[2.5px] bg-white dark:bg-white md:bg-primary-600 md:dark:bg-white"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
                 />
               )}

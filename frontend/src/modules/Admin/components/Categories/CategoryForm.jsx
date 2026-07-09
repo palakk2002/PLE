@@ -32,6 +32,7 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
     parentId: null,
     isActive: true,
     order: 0,
+    isRefurbishedCategory: false,
   });
 
   useEffect(() => {
@@ -44,6 +45,7 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
         parentId: category.parentId || null,
         isActive: category.isActive !== undefined ? category.isActive : true,
         order: category.order || 0,
+        isRefurbishedCategory: !!category.isRefurbishedCategory,
       });
     } else if (parentId !== null) {
       setFormData({
@@ -54,9 +56,10 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
         parentId: parentId,
         isActive: true,
         order: 0,
+        isRefurbishedCategory: parentCategory?.isRefurbishedCategory || false,
       });
     }
-  }, [category, parentId]);
+  }, [category, parentId, parentCategory]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -427,6 +430,19 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
                     />
                     <span className="text-sm font-semibold text-gray-700">
                       Active
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2 mt-2">
+                    <input
+                      type="checkbox"
+                      name="isRefurbishedCategory"
+                      checked={formData.isRefurbishedCategory}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                    />
+                    <span className="text-sm font-semibold text-gray-700">
+                      Refurbished Category (Flag for Refurbished Catalog)
                     </span>
                   </label>
                 </div>

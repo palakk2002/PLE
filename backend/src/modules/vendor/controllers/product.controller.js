@@ -206,13 +206,14 @@ const calculateVariantAggregateStock = (variants = {}) => {
 
 // GET /api/vendor/products
 export const getVendorProducts = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20, search, stock } = req.query;
+    const { page = 1, limit = 20, search, stock, salesChannel } = req.query;
     const numericPage = Math.max(1, Number(page) || 1);
     const numericLimit = Math.max(1, Number(limit) || 20);
     const skip = (numericPage - 1) * numericLimit;
     const filter = { vendorId: req.user.id };
     if (search) filter.$text = { $search: search };
     if (stock) filter.stock = stock;
+    if (salesChannel) filter.salesChannel = salesChannel;
 
     const products = await Product.find(filter).populate('categoryId', 'name').populate('brandId', 'name').sort({ createdAt: -1 }).skip(skip).limit(numericLimit);
     const total = await Product.countDocuments(filter);

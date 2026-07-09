@@ -121,7 +121,8 @@ const listProducts = asyncHandler(async (req, res) => {
         isNewArrival,
         minPrice,
         maxPrice,
-        minRating
+        minRating,
+        condition
     } = req.query;
     const skip = (page - 1) * limit;
     const filter = { isActive: true };
@@ -138,6 +139,20 @@ const listProducts = asyncHandler(async (req, res) => {
     if (isNewArrival === 'true') filter.isNewArrival = true;
     if (minPrice || maxPrice) filter.price = { ...(minPrice && { $gte: Number(minPrice) }), ...(maxPrice && { $lte: Number(maxPrice) }) };
     if (minRating) filter.rating = { $gte: Number(minRating) };
+    if (condition === 'refurbished') {
+        filter.isRefurbished = true;
+    } else if (condition === 'brand_new') {
+        filter.isRefurbished = { $ne: true };
+    }
+    
+    // Channel filter based on user type context
+    const channelQuery = req.query.channel;
+    if (channelQuery === 'b2c') {
+        filter.salesChannel = { $in: ['B2C', 'BOTH'] };
+    } else if (channelQuery === 'b2b') {
+        filter.salesChannel = { $in: ['B2B', 'BOTH'] };
+    }
+
     const searchQuery = String(search || q || '').trim();
     if (searchQuery) filter.$text = { $search: searchQuery };
 
@@ -154,7 +169,14 @@ router.get('/products', listProducts);
 
 // GET /api/products/flash-sale
 router.get('/flash-sale', asyncHandler(async (req, res) => {
-    const products = await Product.find({ isActive: true, flashSale: true }).limit(20);
+    const filter = { isActive: true, flashSale: true };
+    const channelQuery = req.query.channel;
+    if (channelQuery === 'b2c') {
+        filter.salesChannel = { $in: ['B2C', 'BOTH'] };
+    } else if (channelQuery === 'b2b') {
+        filter.salesChannel = { $in: ['B2B', 'BOTH'] };
+    }
+    const products = await Product.find(filter).limit(20);
     res.status(200).json(new ApiResponse(200, products, 'Flash sale products.'));
 }));
 
@@ -176,6 +198,15 @@ router.get('/new-arrivals', asyncHandler(async (req, res) => {
     const skip = (numericPage - 1) * numericLimit;
 
     const filter = { isActive: true, isNewArrival: true };
+    
+    // Channel filter based on user type context
+    const channelQuery = req.query.channel;
+    if (channelQuery === 'b2c') {
+        filter.salesChannel = { $in: ['B2C', 'BOTH'] };
+    } else if (channelQuery === 'b2b') {
+        filter.salesChannel = { $in: ['B2B', 'BOTH'] };
+    }
+
     const searchQuery = String(search || q || '').trim();
     if (searchQuery) filter.$text = { $search: searchQuery };
     if (minPrice || maxPrice) {
@@ -218,7 +249,14 @@ router.get('/new-arrivals', asyncHandler(async (req, res) => {
 
 // GET /api/products/popular
 router.get('/popular', asyncHandler(async (req, res) => {
-    const products = await Product.find({ isActive: true }).sort({ reviewCount: -1, rating: -1 }).limit(10);
+    const filter = { isActive: true };
+    const channelQuery = req.query.channel;
+    if (channelQuery === 'b2c') {
+        filter.salesChannel = { $in: ['B2C', 'BOTH'] };
+    } else if (channelQuery === 'b2b') {
+        filter.salesChannel = { $in: ['B2B', 'BOTH'] };
+    }
+    const products = await Product.find(filter).sort({ reviewCount: -1, rating: -1 }).limit(10);
     res.status(200).json(new ApiResponse(200, products, 'Popular products.'));
 }));
 
@@ -226,7 +264,16 @@ router.get('/popular', asyncHandler(async (req, res) => {
 router.get('/similar/:id', asyncHandler(async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) throw new ApiError(404, 'Product not found.');
-    const similar = await Product.find({ isActive: true, _id: { $ne: product._id }, categoryId: product.categoryId }).limit(6);
+    
+    const filter = { isActive: true, _id: { $ne: product._id }, categoryId: product.categoryId };
+    const channelQuery = req.query.channel;
+    if (channelQuery === 'b2c') {
+        filter.salesChannel = { $in: ['B2C', 'BOTH'] };
+    } else if (channelQuery === 'b2b') {
+        filter.salesChannel = { $in: ['B2B', 'BOTH'] };
+    }
+
+    const similar = await Product.find(filter).limit(6);
     res.status(200).json(new ApiResponse(200, similar, 'Similar products.'));
 }));
 
@@ -323,6 +370,13 @@ router.get('/vendors/:id/products', asyncHandler(async (req, res) => {
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
 
     const filter = { isActive: true, vendorId: req.params.id };
+    const channelQuery = req.query.channel;
+    if (channelQuery === 'b2c') {
+        filter.salesChannel = { $in: ['B2C', 'BOTH'] };
+    } else if (channelQuery === 'b2b') {
+        filter.salesChannel = { $in: ['B2B', 'BOTH'] };
+    }
+
     const products = await Product.find(filter)
         .populate('categoryId', 'name')
         .populate('brandId', 'name')

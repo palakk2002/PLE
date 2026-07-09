@@ -22,6 +22,7 @@ const ManageProducts = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
+  const [selectedChannel, setSelectedChannel] = useState("all");
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     productId: null,
@@ -91,8 +92,15 @@ const ManageProducts = () => {
       );
     }
 
+    if (selectedChannel !== "all") {
+      filtered = filtered.filter((product) => {
+        const chan = product.salesChannel || (product.b2bEnabled ? "BOTH" : "B2C");
+        return chan === selectedChannel;
+      });
+    }
+
     return filtered;
-  }, [products, searchQuery, selectedStatus, selectedCategory, selectedBrand]);
+  }, [products, searchQuery, selectedStatus, selectedCategory, selectedBrand, selectedChannel]);
 
   const columns = [
     {
@@ -146,6 +154,19 @@ const ManageProducts = () => {
           {value.replace("_", " ").toUpperCase()}
         </Badge>
       ),
+    },
+    {
+      key: "salesChannel",
+      label: "Sales Channel",
+      sortable: true,
+      render: (_, row) => {
+        const channel = row.salesChannel || (row.b2bEnabled ? "BOTH" : "B2C");
+        return (
+          <Badge variant={channel === 'B2C' ? 'success' : channel === 'B2B' ? 'warning' : 'info'}>
+            {channel}
+          </Badge>
+        );
+      },
     },
     {
       key: "actions",
@@ -257,6 +278,18 @@ const ManageProducts = () => {
                   .map((brand) => ({ value: String(brand.id), label: brand.name })),
               ]}
               className="w-full sm:w-auto min-w-[160px]"
+            />
+
+            <AnimatedSelect
+              value={selectedChannel}
+              onChange={(e) => setSelectedChannel(e.target.value)}
+              options={[
+                { value: "all", label: "All Channels" },
+                { value: "B2C", label: "B2C" },
+                { value: "B2B", label: "B2B" },
+                { value: "BOTH", label: "Both" },
+              ]}
+              className="w-full sm:w-auto min-w-[140px]"
             />
 
 

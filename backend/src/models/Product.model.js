@@ -59,6 +59,12 @@ const productSchema = new mongoose.Schema(
         reviewCount: { type: Number, default: 0 },
         taxRate: { type: Number, default: 18 },
         b2bEnabled: { type: Boolean, default: false },
+        salesChannel: {
+            type: String,
+            enum: ['B2C', 'B2B', 'BOTH'],
+            default: 'B2C',
+            index: true,
+        },
         b2bWholesalePrice: { type: Number },
         b2bMinOrderQty: { type: Number, default: 1 },
         b2bBulkPricingSlabs: [{
@@ -93,13 +99,76 @@ const productSchema = new mongoose.Schema(
         relatedProducts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
         faqs: [{ question: String, answer: String }],
         tags: [String],
+
+        // Flat refurbished fields sent from frontend forms
+        condition: { type: String, default: 'brand_new' },
+        refurbishedGrade: { type: String },
+        refurbishedWarrantyDuration: { type: String },
+        deviceHealthBattery: { type: Number },
+        deviceHealthCosmetic: { type: String },
+        deviceHealthFunctional: { type: String },
+        isTested: { type: Boolean },
+        isFullyFunctional: { type: Boolean },
+        isCertified: { type: Boolean },
+        refurbishedOriginalMrp: { type: Number },
+        refurbishedSellingPrice: { type: Number },
+        accessoryCharger: { type: Boolean },
+        accessoryBox: { type: Boolean },
+        accessoryOthers: { type: Boolean },
+        cosmeticDamageNotes: { type: String },
+        productAgeMonths: { type: String },
+        purchaseYear: { type: Number },
+        repairHistory: { type: String },
+        refurbishedApprovalStatus: { type: String },
     },
     { timestamps: true }
 );
 
 productSchema.index({ vendorId: 1, isActive: 1 });
 productSchema.index({ categoryId: 1, isActive: 1 });
+productSchema.index({ salesChannel: 1, isActive: 1 });
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
+
+productSchema.pre('save', function (next) {
+    // Sync b2bEnabled from salesChannel for backward compatibility
+    if (this.isModified('salesChannel') || this.isNew) {
+        this.b2bEnabled = (this.salesChannel === 'B2B' || this.salesChannel === 'BOTH');
+    }
+
+    const cond = this.get('condition');
+    if (cond && cond !== 'brand_new') {
+        this.isRefurbished = true;
+        
+        const details = this.refurbishedDetails || {};
+        details.condition = cond;
+        
+        if (this.get('refurbishedGrade')) details.grade = this.get('refurbishedGrade');
+        if (this.get('productAgeMonths')) details.usageAge = String(this.get('productAgeMonths'));
+        if (this.get('purchaseYear')) details.purchaseYear = Number(this.get('purchaseYear'));
+        if (this.get('deviceHealthBattery')) details.batteryHealth = Number(this.get('deviceHealthBattery'));
+        if (this.get('deviceHealthCosmetic')) details.cosmeticCondition = String(this.get('deviceHealthCosmetic'));
+        if (this.get('deviceHealthFunctional')) details.functionalCondition = String(this.get('deviceHealthFunctional'));
+        if (this.get('repairHistory')) details.repairDetails = String(this.get('repairHistory'));
+        if (this.get('refurbishedWarrantyDuration')) details.warrantyDuration = String(this.get('refurbishedWarrantyDuration'));
+        
+        const accs = [];
+        if (this.get('accessoryCharger')) accs.push('Charger');
+        if (this.get('accessoryBox')) accs.push('Box');
+        if (this.get('accessoryOthers')) accs.push('Others');
+        details.accessories = accs;
+        
+        details.tested = !!this.get('isTested');
+        details.certified = !!this.get('isCertified');
+        details.qualityChecked = true;
+        details.approvalStatus = this.get('refurbishedApprovalStatus') || 'approved';
+        
+        this.refurbishedDetails = details;
+    } else if (cond === 'brand_new') {
+        this.isRefurbished = false;
+        this.refurbishedDetails = undefined;
+    }
+    next();
+});
 
 const Product = mongoose.model('Product', productSchema);
 export { Product };

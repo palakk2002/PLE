@@ -42,6 +42,7 @@ import OfferCarousel from "../../offers/components/OfferCarousel";
 import OfferModal from "../../offers/components/OfferModal";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 import B2BRequestQuoteModal from "../components/B2B/B2BRequestQuoteModal";
+import B2BHome from "../components/B2B/B2BHome";
 
 const normalizeId = (value) => String(value ?? "").trim();
 const toNumber = (value, fallback = 0) => {
@@ -274,6 +275,23 @@ const MobileHome = () => {
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const activeCategoryId = queryParams.get("category");
 
+  const refurbishedRootCategories = useMemo(() => {
+    const explicit = allCategories.filter(
+      (cat) => cat.isActive !== false && cat.isRefurbishedCategory === true
+    );
+    if (explicit.length > 0) return explicit;
+
+    // Fallback: Show categories of existing refurbished products
+    const refurbishedCategoryIds = new Set(
+      catalogProducts
+        .filter((p) => p.isRefurbished || p.condition !== "brand_new")
+        .map((p) => normalizeId(p.categoryId))
+    );
+    return allCategories.filter(
+      (cat) => cat.isActive !== false && refurbishedCategoryIds.has(normalizeId(cat.id || cat._id))
+    );
+  }, [allCategories, catalogProducts]);
+
   const activeCategory = useMemo(() => {
     if (!activeCategoryId) return null;
     return getCategoryById(activeCategoryId) || 
@@ -387,9 +405,14 @@ const MobileHome = () => {
 
   const fetchHomeData = useCallback(async () => {
     try {
-      const [productsRes, vendorsRes, brandsRes, bannersRes] =
+        const { useAuthStore } = await import("../../../shared/store/authStore");
+        const { getChannelParam } = await import("../../../shared/utils/salesChannel");
+        const userRole = useAuthStore.getState().user?.role;
+        const channel = getChannelParam(userRole);
+
+        const [productsRes, vendorsRes, brandsRes, bannersRes] =
         await Promise.allSettled([
-          api.get("/products", { params: { page: 1, limit: 120 } }),
+          api.get("/products", { params: { page: 1, limit: 120, channel } }),
           api.get("/vendors/all", {
             params: { status: "approved", page: 1, limit: 50 },
           }),
@@ -447,7 +470,7 @@ const MobileHome = () => {
         baseSlides.push({
           id: "refurbished-promo-slide",
           image: heroSlide3,
-          link: "/search?condition=refurbished",
+          link: "/refurbished-categories",
           title: "Save up to 50% on Certified Refurbished Products",
         });
         setSlides(baseSlides);
@@ -614,6 +637,28 @@ const MobileHome = () => {
     handleTouchMove,
     handleTouchEnd,
   } = usePullToRefresh(handleRefresh);
+
+  if (isBusiness) {
+    return (
+      <PageTransition>
+        <MobileLayout>
+          <B2BHome 
+            computedBrands={computedBrands}
+            computedVendors={computedVendors}
+            computedNewArrivals={computedNewArrivals}
+            computedMostPopular={computedMostPopular}
+            computedDailyDeals={computedDailyDeals}
+            computedRefurbished={computedRefurbished}
+            computedFlashSale={computedFlashSale}
+            computedTrending={computedTrending}
+            offers={offers}
+            promoBanners={promoBanners}
+            setSelectedHomeOffer={setSelectedHomeOffer}
+          />
+        </MobileLayout>
+      </PageTransition>
+    );
+  }
 
   return (
     <PageTransition>
@@ -873,7 +918,8 @@ const MobileHome = () => {
               <DailyDealsSection products={computedDailyDeals} />
 
               {/* Refurbished & Renewed Deals */}
-              {computedRefurbished && computedRefurbished.length > 0 && (
+              {/* Refurbished & Renewed Deals */}
+              {refurbishedRootCategories && refurbishedRootCategories.length > 0 && (
                 <div className="px-4 py-6 bg-gradient-to-br from-cyan-50/20 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 border-t border-b border-gray-100 dark:border-gray-900 my-4">
                   <div className="flex items-center justify-between mb-4">
                     <div>
@@ -883,20 +929,35 @@ const MobileHome = () => {
                       <p className="text-xs text-gray-500 dark:text-gray-400">Certified products in like-new condition with full warranty</p>
                     </div>
                     <Link
-                      to="/search?condition=refurbished"
+                      to="/refurbished-categories"
                       className="text-sm text-[#7B0A0A] dark:text-[#FF4D4D] font-bold hover:underline">
                       View All
                     </Link>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
-                    {computedRefurbished.map((product, index) => (
-                      <motion.div
-                        key={product.id}
-                        initial={{ opacity: 0, y: 15 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}>
-                        <ProductCard product={product} showCondition={true} />
-                      </motion.div>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4 bg-white dark:bg-gray-850 p-4 rounded-2xl shadow-sm">
+                    {refurbishedRootCategories.map((cat, index) => (
+                      <Link
+                        key={cat.id || cat._id}
+                        to={`/refurbished-categories?category=${cat.id || cat._id}`}
+                        className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
+                      >
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                          {cat.image ? (
+                            <img
+                              src={cat.image}
+                              alt={cat.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs font-bold text-gray-400">
+                              {cat.name?.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-bold text-center text-gray-700 dark:text-gray-300 leading-tight truncate w-full">
+                          {cat.name}
+                        </span>
+                      </Link>
                     ))}
                   </div>
                 </div>

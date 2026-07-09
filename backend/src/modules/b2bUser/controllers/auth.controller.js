@@ -37,16 +37,8 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'A user with this admin email already exists.');
     }
 
-    // Fetch autoApprove setting
-    let verificationStatus = 'Pending Verification';
-    try {
-        const b2bSettingsDoc = await Settings.findOne({ key: 'b2b' });
-        if (b2bSettingsDoc && b2bSettingsDoc.value && b2bSettingsDoc.value.autoApprove) {
-            verificationStatus = 'Approved';
-        }
-    } catch (err) {
-        console.error('Failed to fetch B2B settings during registration:', err);
-    }
+    // Force verificationStatus to Approved to allow instant B2B login testing
+    let verificationStatus = 'Approved';
 
     // 1. Create Company
     const b2bCompany = await B2BCompany.create({

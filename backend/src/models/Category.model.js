@@ -10,11 +10,13 @@ const categorySchema = new mongoose.Schema(
         parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', default: null, index: true },
         order: { type: Number, default: 0 },
         isActive: { type: Boolean, default: true },
+        isRefurbishedCategory: { type: Boolean, default: false },
     },
     { timestamps: true }
 );
 
 categorySchema.index({ parentId: 1, order: 1 });
+categorySchema.index({ isRefurbishedCategory: 1 });
 
 const Category = mongoose.model('Category', categorySchema);
 export { Category };

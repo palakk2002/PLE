@@ -9,6 +9,7 @@ const CategorySelector = ({
   onChange,
   required = false,
   className = "",
+  isRefurbished = false,
 }) => {
   const {
     categories,
@@ -25,8 +26,14 @@ const CategorySelector = ({
 
   // Get root categories (parent categories)
   const rootCategories = useMemo(() => {
-    return getRootCategories().filter((cat) => cat.isActive !== false);
-  }, [categories, getRootCategories]);
+    return getRootCategories().filter((cat) => {
+      const activeMatch = cat.isActive !== false;
+      const refurbishedMatch = isRefurbished
+        ? cat.isRefurbishedCategory === true
+        : !cat.isRefurbishedCategory;
+      return activeMatch && refurbishedMatch;
+    });
+  }, [categories, getRootCategories, isRefurbished]);
 
   // Get selected category and subcategory info
   const selectedCategory = value ? getCategoryById(value) : null;
@@ -40,10 +47,14 @@ const CategorySelector = ({
   // Get subcategories for hovered category
   const hoveredSubcategories = useMemo(() => {
     if (!hoveredCategoryId) return [];
-    return getCategoriesByParent(hoveredCategoryId).filter(
-      (cat) => cat.isActive !== false
-    );
-  }, [hoveredCategoryId, categories, getCategoriesByParent]);
+    return getCategoriesByParent(hoveredCategoryId).filter((cat) => {
+      const activeMatch = cat.isActive !== false;
+      const refurbishedMatch = isRefurbished
+        ? cat.isRefurbishedCategory === true
+        : !cat.isRefurbishedCategory;
+      return activeMatch && refurbishedMatch;
+    });
+  }, [hoveredCategoryId, categories, getCategoriesByParent, isRefurbished]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

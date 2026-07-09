@@ -8,6 +8,7 @@ import {
   FiUser,
   FiSearch,
   FiMenu,
+  FiFileText,
 } from "react-icons/fi";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
@@ -322,7 +323,7 @@ const MobileHeader = () => {
         damping: 30,
         mass: 0.8,
       }}>
-      <div className="px-4 py-3 overflow-visible">
+      <div className="px-4 py-1.5 overflow-visible">
         {/* First Row: Location & Actions */}
         <motion.div
           ref={topRowRef}
@@ -430,7 +431,7 @@ const MobileHeader = () => {
         </motion.div>
 
         {/* Second Row: 3 Premium Navigation Capsule Tabs (Zepto-style) */}
-        <div className="flex items-center justify-between gap-1.5 mt-2 w-full relative z-[10006]">
+        <div className="flex items-center justify-between gap-1.5 mt-2 w-full relative z-[10006] overflow-x-auto scrollbar-hide">
           {(() => {
             const tabs = [
               {
@@ -492,12 +493,12 @@ const MobileHeader = () => {
                 <Link
                   key={tab.label}
                   to={tab.path}
-                  className={`flex-1 text-center py-2 px-1.5 rounded-full transition-all duration-300 cursor-pointer select-none truncate
+                  className={`flex-1 text-center py-1 px-1 rounded-full transition-all duration-300 cursor-pointer select-none truncate
                     ${theme === "dark" 
                       ? (tab.active ? tab.style.activeDark : tab.style.inactiveDark) 
                       : (tab.active ? tab.style.activeLight : tab.style.inactiveLight)
                     }
-                    ${tab.active ? "opacity-100 scale-100" : "opacity-75 hover:opacity-100 scale-100"}
+                    ${tab.active ? "opacity-100 scale-100" : "opacity-75 hover:opacity-100 scale-95"}
                   `}
                   style={{
                     willChange: "transform",
@@ -511,7 +512,7 @@ const MobileHeader = () => {
         </div>
 
         {/* Third Row: Single Integrated Search Bar with Left Logo & Right Search Icon */}
-        <div className="flex items-center justify-between w-full bg-white dark:bg-[#1A1A1A] rounded-full border border-gray-200 dark:border-white/5 pl-4 pr-3 py-2 mt-2 relative z-[10007] shadow-sm select-none">
+        <div className="flex items-center justify-between w-full bg-white dark:bg-[#1A1A1A] rounded-full border border-gray-200 dark:border-white/5 pl-4 pr-3 py-1 mt-1 relative z-[10007] shadow-sm select-none">
           {/* Left Side: Logo & Search placeholder trigger */}
           <div
             onClick={() => navigate("/search")}
@@ -548,11 +549,86 @@ const MobileHeader = () => {
     </motion.header>
   );
 
+  const b2bHeaderContent = (
+    <motion.header
+      key="b2b-mobile-header"
+      className="fixed top-0 left-0 right-0 z-[9999] shadow-none md:hidden flex flex-col transition-colors duration-300"
+      style={{
+        background: headerBackground,
+      }}
+    >
+
+
+      {/* Row 2: Location, Theme, Profile and Cart Actions in specified B2B sequence */}
+      <div className="flex items-center justify-between px-4 py-4 bg-transparent">
+        <div className="flex items-center gap-3.5 min-w-0 flex-grow">
+          {/* 1. Hamburger Icon */}
+          <button 
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-1 hover:bg-white/10 rounded text-white shrink-0"
+          >
+            <FiMenu className="text-xl" />
+          </button>
+          
+          {/* 2. PLE Logo */}
+          <div className="flex items-center gap-0.5 shrink-0">
+            <div className="w-5 h-5 rounded-full bg-[#AE020B] flex items-center justify-center text-white text-[8px] font-black border border-white/20">
+              PLE
+            </div>
+          </div>
+
+          {/* 3. Location Selector */}
+          <div 
+            onClick={() => setIsAddressSheetOpen(true)}
+            className="flex flex-col text-left cursor-pointer min-w-0 flex-grow pr-1"
+          >
+            <span className="text-[8px] font-black text-white/70 uppercase tracking-tight truncate">SELECT LOCATION</span>
+            <span className="text-[10px] font-bold text-white flex items-center gap-0.5 leading-tight truncate">
+              {defaultAddress ? `${defaultAddress.name}` : "Click to select"}
+              <FiChevronDown className="text-[10px] text-white/80 shrink-0 mt-0.5" />
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3.5 shrink-0">
+          {/* 4. Theme Toggle */}
+          <button 
+            onClick={toggleTheme}
+            className="p-1.5 hover:bg-white/10 rounded-full text-white"
+          >
+            {theme === "light" ? <FiMoon className="text-base" /> : <FiSun className="text-base text-yellow-500" />}
+          </button>
+
+          {/* 5. Cart */}
+          <button 
+            onClick={toggleCart}
+            className="p-1.5 hover:bg-white/10 rounded-full text-white relative"
+          >
+            <FiShoppingBag className="text-base" />
+            {itemCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 bg-[#AE020B] text-white text-[7px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
+                {itemCount}
+              </span>
+            )}
+          </button>
+
+          {/* 6. Profile Icon */}
+          <button 
+            onClick={() => navigate(isAuthenticated ? "/profile" : "/login")}
+            className="p-1.5 hover:bg-white/10 rounded-full text-white"
+          >
+            <FiUser className="text-base" />
+          </button>
+        </div>
+      </div>
+    </motion.header>
+  );
+
   // Use portal to render outside of transformed containers (like PageTransition)
   return (
     <>
       {typeof document !== "undefined" &&
-        createPortal(headerContent, document.body)}
+        createPortal(isBusiness ? b2bHeaderContent : headerContent, document.body)}
       {typeof document !== "undefined" &&
         createPortal(animationContent, document.body)}
       <Sidebar

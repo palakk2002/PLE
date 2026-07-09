@@ -23,7 +23,7 @@ const PortalSelection = () => {
 
   const handleSelectB2B = () => {
     setUserRole('business_buyer');
-    navigate('/login');
+    navigate('/b2b/login');
   };
 
   return (
@@ -81,7 +81,7 @@ const PortalSelection = () => {
                   Retail Store
                 </h1>
                 <p className={`text-base leading-relaxed md:text-lg ${isDarkMode ? 'text-zinc-400' : 'text-gray-600'}`}>
-                  Direct purchase for components, peripherals, and high-end prebuilt systems with instant delivery tracking.
+                  A multi-category electronics retail portal built for discovering, sourcing, and purchasing the right tech with ease.
                 </p>
               </div>
 
@@ -91,8 +91,8 @@ const PortalSelection = () => {
                   <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${isDarkMode ? 'bg-red-950/40 text-red-400' : 'bg-red-50 text-red-600'}`}>
                     <FiUser size={24} />
                   </div>
-                  <span className={`font-bold text-sm tracking-wide ${isDarkMode ? 'text-zinc-200' : 'text-gray-800'}`}>PC BUILDER</span>
-                  <span className={`text-xs mt-1 uppercase tracking-wider font-semibold ${isDarkMode ? 'text-zinc-500' : 'text-gray-500'}`}>CUSTOM DRAG & DROP</span>
+                  <span className={`font-bold text-sm tracking-wide ${isDarkMode ? 'text-zinc-200' : 'text-gray-800'}`}>MULTI-CATEGORY STORE</span>
+                  <span className={`text-xs mt-1 tracking-wider font-semibold ${isDarkMode ? 'text-zinc-500' : 'text-gray-500'}`}>Browse electronics across categories</span>
                 </div>
 
                 <div className={`border rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col items-center text-center ${isDarkMode ? 'border-zinc-800 bg-zinc-900/40 hover:bg-zinc-900/60' : 'border-red-100 bg-white hover:shadow-md'}`}>
