@@ -881,6 +881,51 @@ const MobileHome = () => {
               {/* Featured Vendors Section */}
               <FeaturedVendorsSection vendors={computedVendors} />
 
+              {/* Refurbished & Renewed Deals */}
+              {refurbishedRootCategories && refurbishedRootCategories.length > 0 && (
+                <div className="px-4 py-6 bg-gradient-to-br from-cyan-50/20 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 border-t border-b border-gray-100 dark:border-gray-900 my-4">
+                  <div className="flex items-center justify-between gap-4 mb-4">
+                    <div className="min-w-0">
+                      <h2 className="text-xl font-black text-gray-800 dark:text-white flex items-center gap-2 truncate">
+                        <span className="bg-gradient-to-r from-red-600 to-[#7B0A0A] text-transparent bg-clip-text truncate">Refurbished & Renewed Deals</span>
+                      </h2>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">Certified products in like-new condition with full warranty</p>
+                    </div>
+                    <Link
+                      to="/refurbished-categories"
+                      className="text-sm text-[#7B0A0A] dark:text-[#FF4D4D] font-bold hover:underline whitespace-nowrap shrink-0">
+                      View All
+                    </Link>
+                  </div>
+                  <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4 bg-white dark:bg-gray-850 p-4 rounded-2xl shadow-sm">
+                    {refurbishedRootCategories.map((cat, index) => (
+                      <Link
+                        key={cat.id || cat._id}
+                        to={`/refurbished-categories?category=${cat.id || cat._id}`}
+                        className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
+                      >
+                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+                          {cat.image ? (
+                            <img
+                              src={cat.image}
+                              alt={cat.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-xs font-bold text-gray-400">
+                              {cat.name?.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-bold text-center text-gray-700 dark:text-gray-300 leading-tight truncate w-full">
+                          {cat.name}
+                        </span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Animated Banner */}
               <AnimatedBanner banners={promoBanners} />
 
@@ -916,52 +961,6 @@ const MobileHome = () => {
 
               {/* Daily Deals */}
               <DailyDealsSection products={computedDailyDeals} />
-
-              {/* Refurbished & Renewed Deals */}
-              {/* Refurbished & Renewed Deals */}
-              {refurbishedRootCategories && refurbishedRootCategories.length > 0 && (
-                <div className="px-4 py-6 bg-gradient-to-br from-cyan-50/20 to-blue-50/20 dark:from-cyan-950/10 dark:to-blue-950/10 border-t border-b border-gray-100 dark:border-gray-900 my-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h2 className="text-xl font-black text-gray-800 dark:text-white flex items-center gap-2">
-                        <span className="bg-gradient-to-r from-red-600 to-[#7B0A0A] text-transparent bg-clip-text">Refurbished & Renewed Deals</span>
-                      </h2>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Certified products in like-new condition with full warranty</p>
-                    </div>
-                    <Link
-                      to="/refurbished-categories"
-                      className="text-sm text-[#7B0A0A] dark:text-[#FF4D4D] font-bold hover:underline">
-                      View All
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-4 bg-white dark:bg-gray-850 p-4 rounded-2xl shadow-sm">
-                    {refurbishedRootCategories.map((cat, index) => (
-                      <Link
-                        key={cat.id || cat._id}
-                        to={`/refurbished-categories?category=${cat.id || cat._id}`}
-                        className="flex flex-col items-center gap-2 active:scale-95 transition-transform"
-                      >
-                        <div className="w-14 h-14 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-                          {cat.image ? (
-                            <img
-                              src={cat.image}
-                              alt={cat.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <span className="text-xs font-bold text-gray-400">
-                              {cat.name?.charAt(0)}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] font-bold text-center text-gray-700 dark:text-gray-300 leading-tight truncate w-full">
-                          {cat.name}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Flash Sale */}
               {computedFlashSale.length > 0 && (

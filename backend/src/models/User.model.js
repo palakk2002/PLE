@@ -24,6 +24,8 @@ const userSchema = new mongoose.Schema(
         loyaltyPointsBalance: { type: Number, default: 0 },
         lifetimeEarned: { type: Number, default: 0 },
         lifetimeRedeemed: { type: Number, default: 0 },
+        b2cLifetimeEarned: { type: Number, default: 0 },
+        b2bLifetimeEarned: { type: Number, default: 0 },
         otp: { type: String, select: false },
         otpExpiry: { type: Date, select: false },
         resetOtp: { type: String, select: false },

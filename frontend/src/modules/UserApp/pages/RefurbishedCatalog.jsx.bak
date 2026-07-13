@@ -60,57 +60,17 @@ const RefurbishedCatalog = () => {
     initialize();
   }, [initialize]);
 
-  const initialCategoryId = searchParams.get("category") || null;
-  const [refurbishedProductCategories, setRefurbishedProductCategories] = useState(new Set());
-
-  useEffect(() => {
-    const fetchAllRefurbishedProducts = async () => {
-      try {
-        const response = await api.get("/products", {
-          params: {
-            condition: "refurbished",
-            limit: 200
-          }
-        });
-        const payload = response?.data ?? response;
-        const products = Array.isArray(payload?.products) ? payload.products : [];
-        
-        const catIds = new Set();
-        products.forEach(p => {
-          if (p.categoryId) {
-            catIds.add(normalizeId(typeof p.categoryId === 'object' ? p.categoryId._id : p.categoryId));
-          }
-          if (p.category) {
-            catIds.add(normalizeId(typeof p.category === 'object' ? p.category._id : p.category));
-          }
-        });
-        setRefurbishedProductCategories(catIds);
-      } catch (err) {
-        console.error("Error fetching refurbished products for catalog:", err);
-      }
-    };
-    fetchAllRefurbishedProducts();
-  }, [categories]);
-
   // Filter root categories to only show Refurbished Categories (or those containing refurbished subcategories)
   const rootCategories = useMemo(() => {
     return getRootCategories().filter((cat) => {
       if (cat.isActive === false) return false;
       if (cat.isRefurbishedCategory === true) return true;
       const subcats = getCategoriesByParent(cat.id || cat._id);
-      
-      // Dynamic fallback matching Home page: check if the category or any of its subcategories has refurbished products
-      const hasRefurbishedProducts = refurbishedProductCategories.has(normalizeId(cat.id)) ||
-        subcats.some(sub => refurbishedProductCategories.has(normalizeId(sub.id)));
-      
-      if (hasRefurbishedProducts) return true;
-      if (subcats.some((sub) => sub.isActive !== false && sub.isRefurbishedCategory === true)) return true;
-      // Fallback: Always show the category that the user navigated to from the home page
-      if (normalizeId(cat.id) === normalizeId(initialCategoryId)) return true;
-      return false;
+      return subcats.some((sub) => sub.isActive !== false && sub.isRefurbishedCategory === true);
     });
-  }, [categories, getRootCategories, getCategoriesByParent, initialCategoryId, refurbishedProductCategories]);
+  }, [categories, getRootCategories, getCategoriesByParent]);
 
+  const initialCategoryId = searchParams.get("category") || null;
   const [selectedCategoryId, setSelectedCategoryId] = useState(initialCategoryId);
   const categoryListRef = useRef(null);
   const activeCategoryRef = useRef(null);
@@ -129,11 +89,8 @@ const RefurbishedCatalog = () => {
   // Get subcategories for selected category
   const subcategories = useMemo(() => {
     if (!selectedCategoryId) return [];
-    const parentCategory = categories.find(c => normalizeId(c.id) === normalizeId(selectedCategoryId));
-    const isParentRefurbished = parentCategory?.isRefurbishedCategory === true;
-
     return getCategoriesByParent(selectedCategoryId).filter(
-      (cat) => cat.isActive !== false && (isParentRefurbished || cat.isRefurbishedCategory === true)
+      (cat) => cat.isActive !== false && cat.isRefurbishedCategory === true
     );
   }, [selectedCategoryId, categories, getCategoriesByParent]);
 

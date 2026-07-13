@@ -26,6 +26,11 @@ const loyaltyTransactionSchema = new mongoose.Schema(
             type: String,
             required: true
         },
+        orderType: {
+            type: String,
+            enum: ['B2C', 'B2B'],
+            default: 'B2C'
+        },
         balanceAfterTransaction: {
             type: Number,
             required: true

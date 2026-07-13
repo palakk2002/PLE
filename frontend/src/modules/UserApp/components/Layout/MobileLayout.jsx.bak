@@ -59,7 +59,6 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
   const shouldShowHeader = !isAuthPage &&
     pathname !== '/categories' &&
     pathname !== '/search' &&
-    pathname !== '/refurbished-categories' &&
     !isProfileOptionPage &&
     !isCheckoutPage &&
     !isOrderConfirmationPage &&

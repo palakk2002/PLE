@@ -83,7 +83,13 @@ router.get('/loyalty/config', asyncHandler(async (req, res) => {
         purchaseAmountUnit: config.purchaseAmountUnit,
         redemptionRatio: config.redemptionRatio,
         minRedeemPoints: config.minRedeemPoints,
-        maxRedemptionPercent: config.maxRedemptionPercent
+        maxRedemptionPercent: config.maxRedemptionPercent,
+        b2bEnabled: config.b2bEnabled,
+        b2bPurchaseToPointsRatio: config.b2bPurchaseToPointsRatio,
+        b2bPurchaseAmountUnit: config.b2bPurchaseAmountUnit,
+        b2bRedemptionRatio: config.b2bRedemptionRatio,
+        b2bMinRedeemPoints: config.b2bMinRedeemPoints,
+        b2bMaxRedemptionPercent: config.b2bMaxRedemptionPercent
     }, 'Public loyalty config fetched.'));
 }));
 

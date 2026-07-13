@@ -327,6 +327,17 @@ export const updateDeliveryStatus = asyncHandler(async (req, res) => {
     }
     await order.save();
 
+    if (status === 'delivered') {
+        try {
+            const loyaltyService = await import('../../../services/loyalty.service.js');
+            if (order.loyaltyPointsEarned > 0 && order.userId) {
+                await loyaltyService.earnPoints(order.userId, order._id, order.subtotal - (order.couponDiscount || 0) - (order.loyaltyDiscount || 0));
+            }
+        } catch (err) {
+            console.error('Failed to credit loyalty points on delivery:', err);
+        }
+    }
+
     const statusNotificationTasks = [];
     if (order.userId) {
         statusNotificationTasks.push(

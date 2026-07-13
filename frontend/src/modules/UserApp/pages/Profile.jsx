@@ -103,11 +103,11 @@ const MobileProfile = () => {
   const { balance: walletBalance, fetchWallet } = useWalletStore();
 
   useEffect(() => {
-    if (isB2CUser && user) {
+    if ((isB2CUser || isB2BUser) && user) {
       fetchBalance();
-      fetchConfig();
+      fetchConfig(user.role);
     }
-  }, [user, isB2CUser]);
+  }, [user, isB2CUser, isB2BUser]);
 
   useEffect(() => {
     if (isB2BUser) {
@@ -200,7 +200,18 @@ const MobileProfile = () => {
     setEditingEmployee(null);
     setEmpForm({ name: '', email: '', phone: '', designation: '' });
   };
-  const { availablePoints, lifetimeEarned: totalEarned, lifetimeRedeemed: totalRedeemed, history: loyaltyHistory, fetchBalance, fetchConfig, fetchHistory } = useLoyaltyStore();
+  const {
+    availablePoints,
+    lifetimeEarned: totalEarned,
+    lifetimeRedeemed: totalRedeemed,
+    b2cLifetimeEarned,
+    b2bLifetimeEarned,
+    conversionRatio,
+    history: loyaltyHistory,
+    fetchBalance,
+    fetchConfig,
+    fetchHistory
+  } = useLoyaltyStore();
   const pendingPoints = 0;
 
   useEffect(() => {
@@ -1849,7 +1860,7 @@ const MobileProfile = () => {
                   className="space-y-6"
                 >
                   {/* Loyalty Points Overview Cards */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                     {/* Available Points */}
                     <div className="bg-gradient-to-br from-[#AE020B] to-[#7B0A0A] text-white rounded-2xl p-5 shadow-lg relative overflow-hidden flex flex-col justify-between min-h-[140px]">
                       <div className="absolute right-2 top-2 opacity-15">
@@ -1859,7 +1870,7 @@ const MobileProfile = () => {
                         <span className="text-red-100 text-xs font-bold uppercase tracking-wider">Available Points</span>
                         <p className="text-3xl font-black mt-1">{availablePoints}</p>
                       </div>
-                      <span className="text-[10px] text-red-100 font-semibold mt-4">Redeemable on next checkout</span>
+                      <span className="text-[10px] text-red-100 font-semibold mt-4">1 Rupee = {conversionRatio} Points</span>
                     </div>
 
                     {/* Total Earned Points */}
@@ -1884,13 +1895,22 @@ const MobileProfile = () => {
                       </span>
                     </div>
 
-                    {/* Pending Points */}
+                    {/* B2C Earned */}
                     <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[140px]">
                       <div>
-                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Pending Points</span>
-                        <p className="text-3xl font-black text-gray-800 mt-1">{pendingPoints}</p>
+                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">B2C Earned</span>
+                        <p className="text-3xl font-black text-gray-800 mt-1">{b2cLifetimeEarned}</p>
                       </div>
-                      <span className="text-[10px] text-gray-500 font-semibold mt-4">Calculated in transit</span>
+                      <span className="text-[10px] text-blue-600 font-semibold mt-4">B2C Shopping</span>
+                    </div>
+
+                    {/* B2B Earned */}
+                    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[140px]">
+                      <div>
+                        <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">B2B Earned</span>
+                        <p className="text-3xl font-black text-gray-800 mt-1">{b2bLifetimeEarned}</p>
+                      </div>
+                      <span className="text-[10px] text-purple-600 font-semibold mt-4">B2B Shopping</span>
                     </div>
                   </div>
 

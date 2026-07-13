@@ -512,7 +512,8 @@ const B2BHome = ({
 
       </div>
 
-      {/* Floating Request Product Button */}
+      {/* Floating Request Product Button - Hidden as requested by client */}
+      {/* 
       <button 
         onClick={() => setIsRfqOpen(true)}
         className="fixed right-4 bottom-20 z-50 flex items-center gap-1.5 px-4 py-2.5 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-xs uppercase rounded-full shadow-2xl active:scale-95 transition-all"
@@ -520,6 +521,7 @@ const B2BHome = ({
         <FiEdit3 className="text-sm shrink-0" />
         <span>Request Product</span>
       </button>
+      */}
 
       {/* General B2B Request Quote Modal */}
       <B2BRequestQuoteModal

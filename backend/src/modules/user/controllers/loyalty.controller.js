@@ -13,8 +13,11 @@ export const getBalance = asyncHandler(async (req, res) => {
     const user = await User.findById(userId);
     if (!user) throw new ApiError(404, 'User not found.');
 
+    const isB2B = user.role === 'b2bAdmin' || user.role === 'b2bEmployee';
     const config = await loyaltyService.getLoyaltyConfig();
-    const discountValue = parseFloat((user.loyaltyPointsBalance * config.redemptionRatio).toFixed(2));
+    const redemptionRatio = isB2B ? (1 / (config.b2bPointsToRupeeRatio ?? 5)) : (config.redemptionRatio ?? 0.2);
+    const pointsToRupeeRatio = isB2B ? (config.b2bPointsToRupeeRatio ?? 5) : (config.pointsToRupeeRatio ?? 5);
+    const discountValue = parseFloat((user.loyaltyPointsBalance * redemptionRatio).toFixed(2));
 
     // Simple next milestone recommendation: multiples of 500
     const currentPoints = user.loyaltyPointsBalance || 0;
@@ -24,8 +27,11 @@ export const getBalance = asyncHandler(async (req, res) => {
         availablePoints: currentPoints,
         lifetimeEarned: user.lifetimeEarned || 0,
         lifetimeRedeemed: user.lifetimeRedeemed || 0,
+        b2cLifetimeEarned: user.b2cLifetimeEarned || 0,
+        b2bLifetimeEarned: user.b2bLifetimeEarned || 0,
         discountValue,
-        nextMilestone
+        nextMilestone,
+        conversionRatio: pointsToRupeeRatio
     }, 'Loyalty balance fetched successfully.'));
 });
 
@@ -77,8 +83,14 @@ export const validateRedemption = asyncHandler(async (req, res) => {
     const user = await User.findById(userId);
     if (!user) throw new ApiError(404, 'User not found.');
 
+    const isB2B = user.role === 'b2bAdmin' || user.role === 'b2bEmployee';
     const config = await loyaltyService.getLoyaltyConfig();
-    if (!config.enabled) {
+    const enabled = isB2B ? config.b2bEnabled : config.enabled;
+    const minRedeemPoints = isB2B ? (config.b2bMinRedeemPoints ?? 50) : (config.minRedeemPoints ?? 50);
+    const redemptionRatio = isB2B ? (1 / (config.b2bPointsToRupeeRatio ?? 5)) : (config.redemptionRatio ?? 0.2);
+    const maxRedemptionPercent = isB2B ? (config.b2bMaxRedemptionPercent ?? 50) : (config.maxRedemptionPercent ?? 50);
+
+    if (!enabled) {
         throw new ApiError(400, 'Loyalty points system is currently disabled.');
     }
 
@@ -86,15 +98,15 @@ export const validateRedemption = asyncHandler(async (req, res) => {
         throw new ApiError(400, `Insufficient points. You only have ${user.loyaltyPointsBalance} points.`);
     }
 
-    if (points < config.minRedeemPoints) {
-        throw new ApiError(400, `Minimum redemption is ${config.minRedeemPoints} points.`);
+    if (points < minRedeemPoints) {
+        throw new ApiError(400, `Minimum redemption is ${minRedeemPoints} points.`);
     }
 
-    const discount = parseFloat((points * config.redemptionRatio).toFixed(2));
-    const maxDiscount = (cartSubtotal * config.maxRedemptionPercent) / 100;
+    const discount = parseFloat((points * redemptionRatio).toFixed(2));
+    const maxDiscount = (cartSubtotal * maxRedemptionPercent) / 100;
 
     if (discount > maxDiscount) {
-        throw new ApiError(400, `Maximum loyalty discount allowed is ₹${maxDiscount} (50% of subtotal).`);
+        throw new ApiError(400, `Maximum loyalty discount allowed is ₹${maxDiscount} (${maxRedemptionPercent}% of subtotal).`);
     }
 
     res.status(200).json(new ApiResponse(200, {
@@ -109,12 +121,13 @@ export const validateRedemption = asyncHandler(async (req, res) => {
 // @access  Public
 export const getConfig = asyncHandler(async (req, res) => {
     const config = await loyaltyService.getLoyaltyConfig();
+    const isB2B = req.user && (req.user.role === 'b2bAdmin' || req.user.role === 'b2bEmployee');
     res.status(200).json(new ApiResponse(200, {
-        enabled: config.enabled,
-        purchaseToPointsRatio: config.purchaseToPointsRatio,
-        purchaseAmountUnit: config.purchaseAmountUnit,
-        redemptionRatio: config.redemptionRatio,
-        minRedeemPoints: config.minRedeemPoints,
-        maxRedemptionPercent: config.maxRedemptionPercent
+        enabled: isB2B ? config.b2bEnabled : config.enabled,
+        purchaseToPointsRatio: isB2B ? config.b2bPurchaseToPointsRatio : config.purchaseToPointsRatio,
+        purchaseAmountUnit: isB2B ? config.b2bPurchaseAmountUnit : config.purchaseAmountUnit,
+        redemptionRatio: isB2B ? (1 / (config.b2bPointsToRupeeRatio ?? 5)) : config.redemptionRatio,
+        minRedeemPoints: isB2B ? config.b2bMinRedeemPoints : config.minRedeemPoints,
+        maxRedemptionPercent: isB2B ? config.b2bMaxRedemptionPercent : config.maxRedemptionPercent
     }, 'Loyalty config fetched.'));
 });

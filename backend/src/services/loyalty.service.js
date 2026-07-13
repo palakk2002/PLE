@@ -10,35 +10,55 @@ export const getLoyaltyConfig = async () => {
         purchaseToPointsRatio: 5,     // 5 Loyalty Points per unit spent ratio
         purchaseAmountUnit: 100,      // e.g. per ₹100 spent
         redemptionRatio: 0.2,         // 5 points = ₹1 Discount (1 point = ₹0.20)
+        pointsToRupeeRatio: 5,
         maxRedemptionPercent: 50,     // Max 50% discount from loyalty points
         minRedeemPoints: 50,          // Minimum points to redeem
         pointExpiry: null,
+
+        // B2B defaults
+        b2bEnabled: true,
+        b2bPurchaseToPointsRatio: 5,
+        b2bPurchaseAmountUnit: 100,
+        b2bPointsToRupeeRatio: 5,
+        b2bRedemptionRatio: 0.2,
+        b2bMaxRedemptionPercent: 50,
+        b2bMinRedeemPoints: 50,
     };
     if (setting) {
-        return { ...defaults, ...setting.value };
+        const merged = { ...defaults, ...setting.value };
+        if (setting.value.pointsToRupeeRatio) {
+            merged.redemptionRatio = 1 / setting.value.pointsToRupeeRatio;
+        }
+        if (setting.value.b2bPointsToRupeeRatio) {
+            merged.b2bRedemptionRatio = 1 / setting.value.b2bPointsToRupeeRatio;
+        }
+        return merged;
     }
     return defaults;
 };
 
-export const calculateEarnablePoints = async (orderAmount) => {
+export const calculateEarnablePoints = async (orderAmount, userRole = 'customer') => {
     const config = await getLoyaltyConfig();
-    if (!config.enabled) return 0;
+    const isB2B = userRole === 'b2bAdmin' || userRole === 'b2bEmployee';
+    const enabled = isB2B ? config.b2bEnabled : config.enabled;
+    if (!enabled) return 0;
     
-    // Purchase amount ratio calculation: e.g. ₹100 Purchase = 5 Points
-    const multiplier = orderAmount / config.purchaseAmountUnit;
-    const earned = Math.floor(multiplier * config.purchaseToPointsRatio);
+    const purchaseAmountUnit = isB2B ? (config.b2bPurchaseAmountUnit || 100) : (config.purchaseAmountUnit || 100);
+    const purchaseToPointsRatio = isB2B ? (config.b2bPurchaseToPointsRatio || 5) : (config.purchaseToPointsRatio || 5);
+
+    const multiplier = orderAmount / purchaseAmountUnit;
+    const earned = Math.floor(multiplier * purchaseToPointsRatio);
     return Math.max(0, earned);
 };
 
 export const earnPoints = async (userId, orderId, amount, session = null) => {
     const user = await User.findById(userId).session(session);
-    if (!user || user.role !== 'customer') return 0; // B2C users only
+    if (!user || !['customer', 'b2bAdmin', 'b2bEmployee'].includes(user.role)) return 0;
 
+    const isB2B = user.role === 'b2bAdmin' || user.role === 'b2bEmployee';
     const config = await getLoyaltyConfig();
-    if (!config.enabled) return 0;
-
-    const pointsToEarn = await calculateEarnablePoints(amount);
-    if (pointsToEarn <= 0) return 0;
+    const enabled = isB2B ? config.b2bEnabled : config.enabled;
+    if (!enabled) return 0;
 
     // Check for duplicate credit
     const existingTransaction = await LoyaltyTransaction.findOne({
@@ -49,8 +69,22 @@ export const earnPoints = async (userId, orderId, amount, session = null) => {
 
     if (existingTransaction) return 0; // Already credited
 
+    const Order = (await import('../models/Order.model.js')).default;
+    const order = await Order.findById(orderId).session(session);
+    
+    let pointsToEarn = order ? (order.loyaltyPointsEarned || 0) : 0;
+    if (pointsToEarn <= 0) {
+        pointsToEarn = await calculateEarnablePoints(amount, user.role);
+    }
+    if (pointsToEarn <= 0) return 0;
+
     user.loyaltyPointsBalance += pointsToEarn;
     user.lifetimeEarned += pointsToEarn;
+    if (isB2B) {
+        user.b2bLifetimeEarned = (user.b2bLifetimeEarned || 0) + pointsToEarn;
+    } else {
+        user.b2cLifetimeEarned = (user.b2cLifetimeEarned || 0) + pointsToEarn;
+    }
     await user.save({ session });
 
     await LoyaltyTransaction.create([{
@@ -59,6 +93,7 @@ export const earnPoints = async (userId, orderId, amount, session = null) => {
         points: pointsToEarn,
         type: 'earn',
         description: `Points earned on purchase of Rs.${amount.toFixed(2)}`,
+        orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
 
@@ -71,18 +106,22 @@ export const redeemPoints = async (userId, orderId, pointsToRedeem, session = nu
     const user = await User.findById(userId).session(session);
     if (!user) throw new ApiError(404, 'User not found.');
 
+    const isB2B = user.role === 'b2bAdmin' || user.role === 'b2bEmployee';
+    const config = await getLoyaltyConfig();
+    const enabled = isB2B ? config.b2bEnabled : config.enabled;
+    if (!enabled) throw new ApiError(400, 'Loyalty program is currently disabled.');
+
+    const minRedeemPoints = isB2B ? (config.b2bMinRedeemPoints ?? 50) : (config.minRedeemPoints ?? 50);
+    if (pointsToRedeem < minRedeemPoints) {
+        throw new ApiError(400, `Minimum redemption amount is ${minRedeemPoints} points.`);
+    }
+
     if (user.loyaltyPointsBalance < pointsToRedeem) {
         throw new ApiError(400, `Insufficient loyalty points balance. Available: ${user.loyaltyPointsBalance}`);
     }
 
-    const config = await getLoyaltyConfig();
-    if (!config.enabled) throw new ApiError(400, 'Loyalty program is currently disabled.');
-
-    if (pointsToRedeem < config.minRedeemPoints) {
-        throw new ApiError(400, `Minimum redemption amount is ${config.minRedeemPoints} points.`);
-    }
-
-    const discountAmount = parseFloat((pointsToRedeem * config.redemptionRatio).toFixed(2));
+    const redemptionRatio = isB2B ? (1 / (config.b2bPointsToRupeeRatio ?? 5)) : (config.redemptionRatio ?? 0.2);
+    const discountAmount = parseFloat((pointsToRedeem * redemptionRatio).toFixed(2));
 
     user.loyaltyPointsBalance = Math.max(0, user.loyaltyPointsBalance - pointsToRedeem);
     user.lifetimeRedeemed += pointsToRedeem;
@@ -94,6 +133,7 @@ export const redeemPoints = async (userId, orderId, pointsToRedeem, session = nu
         points: pointsToRedeem,
         type: 'redeem',
         description: `Redeemed points at checkout for Rs.${discountAmount} discount`,
+        orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
 
@@ -103,6 +143,8 @@ export const redeemPoints = async (userId, orderId, pointsToRedeem, session = nu
 export const reverseEarnedPoints = async (userId, orderId, session = null) => {
     const user = await User.findById(userId).session(session);
     if (!user) return;
+
+    const isB2B = user.role === 'b2bAdmin' || user.role === 'b2bEmployee';
 
     const earnTransaction = await LoyaltyTransaction.findOne({
         userId,
@@ -116,6 +158,11 @@ export const reverseEarnedPoints = async (userId, orderId, session = null) => {
     const pointsToReverse = earnTransaction.points;
     user.loyaltyPointsBalance = Math.max(0, user.loyaltyPointsBalance - pointsToReverse);
     user.lifetimeEarned = Math.max(0, user.lifetimeEarned - pointsToReverse);
+    if (isB2B) {
+        user.b2bLifetimeEarned = Math.max(0, (user.b2bLifetimeEarned || 0) - pointsToReverse);
+    } else {
+        user.b2cLifetimeEarned = Math.max(0, (user.b2cLifetimeEarned || 0) - pointsToReverse);
+    }
     await user.save({ session });
 
     await LoyaltyTransaction.create([{
@@ -124,6 +171,7 @@ export const reverseEarnedPoints = async (userId, orderId, session = null) => {
         points: pointsToReverse,
         type: 'refund_adjustment',
         description: `Reversal of earned points due to order cancellation/refund`,
+        orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
 };
@@ -131,6 +179,8 @@ export const reverseEarnedPoints = async (userId, orderId, session = null) => {
 export const restoreRedeemedPoints = async (userId, orderId, session = null) => {
     const user = await User.findById(userId).session(session);
     if (!user) return;
+
+    const isB2B = user.role === 'b2bAdmin' || user.role === 'b2bEmployee';
 
     const redeemTransaction = await LoyaltyTransaction.findOne({
         userId,
@@ -151,6 +201,7 @@ export const restoreRedeemedPoints = async (userId, orderId, session = null) => 
         points: pointsToRestore,
         type: 'reversal',
         description: `Restored redeemed points due to order cancellation/refund`,
+        orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
 };
@@ -159,8 +210,15 @@ export const adminCreditPoints = async (userId, points, adminId, reason, session
     const user = await User.findById(userId).session(session);
     if (!user) throw new ApiError(404, 'User not found');
 
+    const isB2B = user.role === 'b2bAdmin' || user.role === 'b2bEmployee';
+
     user.loyaltyPointsBalance += points;
     user.lifetimeEarned += points;
+    if (isB2B) {
+        user.b2bLifetimeEarned = (user.b2bLifetimeEarned || 0) + points;
+    } else {
+        user.b2cLifetimeEarned = (user.b2cLifetimeEarned || 0) + points;
+    }
     await user.save({ session });
 
     await LoyaltyTransaction.create([{
@@ -168,6 +226,7 @@ export const adminCreditPoints = async (userId, points, adminId, reason, session
         points,
         type: 'admin_credit',
         description: reason || `Admin Credit`,
+        orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
 
@@ -177,6 +236,8 @@ export const adminCreditPoints = async (userId, points, adminId, reason, session
 export const adminDebitPoints = async (userId, points, adminId, reason, session = null) => {
     const user = await User.findById(userId).session(session);
     if (!user) throw new ApiError(404, 'User not found');
+
+    const isB2B = user.role === 'b2bAdmin' || user.role === 'b2bEmployee';
 
     if (user.loyaltyPointsBalance < points) {
         throw new ApiError(400, `User only has ${user.loyaltyPointsBalance} points.`);
@@ -191,8 +252,9 @@ export const adminDebitPoints = async (userId, points, adminId, reason, session 
         points,
         type: 'admin_debit',
         description: reason || `Admin Debit`,
+        orderType: isB2B ? 'B2B' : 'B2C',
         balanceAfterTransaction: user.loyaltyPointsBalance
     }], { session });
 
     return user.loyaltyPointsBalance;
-};
+}

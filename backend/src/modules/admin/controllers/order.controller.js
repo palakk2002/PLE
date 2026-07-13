@@ -179,6 +179,17 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 
     await order.save();
 
+    if (nextStatus === 'delivered' && previousStatus !== 'delivered') {
+        try {
+            const loyaltyService = await import('../../../services/loyalty.service.js');
+            if (order.loyaltyPointsEarned > 0 && order.userId) {
+                await loyaltyService.earnPoints(order.userId, order._id, order.subtotal - (order.couponDiscount || 0) - (order.loyaltyDiscount || 0));
+            }
+        } catch (err) {
+            console.error('Failed to credit loyalty points on delivery:', err);
+        }
+    }
+
     if (nextStatus === 'cancelled') {
         // Reverse vendor earnings visibility for this order.
         // Keep it idempotent by only updating commissions not already cancelled.

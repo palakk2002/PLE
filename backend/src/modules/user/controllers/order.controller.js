@@ -357,15 +357,22 @@ export const placeOrder = asyncHandler(async (req, res) => {
     // 4. Calculate loyalty discount (server-side validation)
     let loyaltyDiscount = 0;
     const isB2C = req.user?.role === 'customer';
+    const isB2B = req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee';
+    const isEligibleForLoyalty = isB2C || isB2B;
     
     // Import dynamically or at top of file
     const loyaltyService = await import('../../../services/loyalty.service.js');
     
-    if (isB2C && loyaltyPointsToRedeem > 0) {
+    if (isEligibleForLoyalty && loyaltyPointsToRedeem > 0) {
         const config = await loyaltyService.getLoyaltyConfig();
-        if (config.enabled && loyaltyPointsToRedeem >= config.minRedeemPoints) {
-            const potentialDiscount = parseFloat((loyaltyPointsToRedeem * config.redemptionRatio).toFixed(2));
-            const maxDiscount = ((subtotal - couponDiscount) * config.maxRedemptionPercent) / 100;
+        const enabled = isB2B ? config.b2bEnabled : config.enabled;
+        const minRedeemPoints = isB2B ? (config.b2bMinRedeemPoints ?? 50) : (config.minRedeemPoints ?? 50);
+        const redemptionRatio = isB2B ? (1 / (config.b2bPointsToRupeeRatio ?? 5)) : (config.redemptionRatio ?? 0.2);
+        const maxRedemptionPercent = isB2B ? (config.b2bMaxRedemptionPercent ?? 50) : (config.maxRedemptionPercent ?? 50);
+
+        if (enabled && loyaltyPointsToRedeem >= minRedeemPoints) {
+            const potentialDiscount = parseFloat((loyaltyPointsToRedeem * redemptionRatio).toFixed(2));
+            const maxDiscount = ((subtotal - couponDiscount) * maxRedemptionPercent) / 100;
             loyaltyDiscount = Math.min(potentialDiscount, maxDiscount);
         }
     }
@@ -431,10 +438,11 @@ export const placeOrder = asyncHandler(async (req, res) => {
 
             // Loyalty Point Redemption deduction
             let actualPointsRedeemed = 0;
-            if (isB2C && loyaltyDiscount > 0) {
+            if (isEligibleForLoyalty && loyaltyDiscount > 0) {
                 // Determine exact points matching this discount
                 const config = await loyaltyService.getLoyaltyConfig();
-                actualPointsRedeemed = Math.round(loyaltyDiscount / config.redemptionRatio);
+                const redemptionRatio = isB2B ? (1 / (config.b2bPointsToRupeeRatio ?? 5)) : (config.redemptionRatio ?? 0.2);
+                actualPointsRedeemed = Math.round(loyaltyDiscount / redemptionRatio);
                 if (actualPointsRedeemed > 0) {
                     await loyaltyService.redeemPoints(userId, null, actualPointsRedeemed, session);
                 }
@@ -442,8 +450,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
 
             // Award new points
             let pointsToEarn = 0;
-            if (isB2C) {
-                pointsToEarn = await loyaltyService.calculateEarnablePoints(subtotal - couponDiscount - loyaltyDiscount);
+            if (isEligibleForLoyalty) {
+                pointsToEarn = await loyaltyService.calculateEarnablePoints(subtotal - couponDiscount - loyaltyDiscount, req.user?.role);
             }
 
             const [createdOrder] = await Order.create([{
@@ -483,10 +491,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 );
             }
 
-            // Record earn transaction log
-            if (pointsToEarn > 0) {
-                await loyaltyService.earnPoints(userId, order._id, subtotal - couponDiscount - loyaltyDiscount, session);
-            }
+            // Defer earn points transaction until status transitions to delivered.
+            // Saved pre-calculated points to order.loyaltyPointsEarned.
 
             // 7. Deduct stock atomically to prevent oversell under concurrent checkout.
             for (const item of enrichedItems) {
@@ -744,9 +750,10 @@ export const cancelOrder = asyncHandler(async (req, res) => {
                 { session }
             );
 
-            // Revert B2C loyalty points transactions
+            // Revert loyalty points transactions for both B2C and B2B
             const isB2C = req.user?.role === 'customer';
-            if (isB2C) {
+            const isB2B = req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee';
+            if (isB2C || isB2B) {
                 const loyaltyService = await import('../../../services/loyalty.service.js');
                 if (order.loyaltyPointsEarned > 0) {
                     await loyaltyService.reverseEarnedPoints(req.user.id, order._id, session);

@@ -270,9 +270,9 @@ export const updateReturnRequestStatus = asyncHandler(async (req, res) => {
             });
         }
 
-        // Revert loyalty points for B2C customer
+        // Revert loyalty points for B2C customer or B2B users
         const user = await User.findById(request.userId._id || request.userId);
-        if (user && user.role === 'customer') {
+        if (user && ['customer', 'b2bAdmin', 'b2bEmployee'].includes(user.role)) {
             const loyaltyService = await import('../../../services/loyalty.service.js');
             const orderObj = await Order.findById(request.orderId?._id || request.orderId);
             if (orderObj) {

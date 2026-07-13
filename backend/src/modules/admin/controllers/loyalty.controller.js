@@ -25,11 +25,11 @@ export const getLoyaltyStats = asyncHandler(async (req, res) => {
     const totalRedeemed = redeemedResult.length > 0 ? redeemedResult[0].totalRedeemed : 0;
 
     // Count active members (users with > 0 balance)
-    const activeMembers = await User.countDocuments({ loyaltyPointsBalance: { $gt: 0 }, role: 'customer' });
+    const activeMembers = await User.countDocuments({ loyaltyPointsBalance: { $gt: 0 }, role: { $in: ['customer', 'b2bAdmin', 'b2bEmployee'] } });
 
     // Aggregate outstanding points liability
     const outstandingResult = await User.aggregate([
-        { $match: { role: 'customer' } },
+        { $match: { role: { $in: ['customer', 'b2bAdmin', 'b2bEmployee'] } } },
         { $group: { _id: null, totalOutstanding: { $sum: '$loyaltyPointsBalance' } } }
     ]);
     const outstandingPoints = outstandingResult.length > 0 ? outstandingResult[0].totalOutstanding : 0;
@@ -88,7 +88,7 @@ export const getLoyaltyUsers = asyncHandler(async (req, res) => {
     const { search = '', page = 1, limit = 20 } = req.query;
     const skip = (page - 1) * limit;
 
-    const filter = { role: 'customer' };
+    const filter = { role: { $in: ['customer', 'b2bAdmin', 'b2bEmployee'] } };
     if (search) {
         filter.$or = [
             { name: new RegExp(search, 'i') },

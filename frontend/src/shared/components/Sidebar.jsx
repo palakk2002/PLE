@@ -215,7 +215,8 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
                 </Link>
               )}
 
-              {/* Categories Section */}
+              {/* Categories Section - Commented out as requested by client */}
+              {/* 
               <div className="my-4 pt-4 border-t border-gray-200 dark:border-white/10">
                 <button
                   onClick={() => setShowCategories(!showCategories)}
@@ -230,7 +231,6 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
                   </motion.div>
                 </button>
 
-                {/* Categories List */}
                 <AnimatePresence>
                   {showCategories && (
                     <motion.div
@@ -259,6 +259,7 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
                   )}
                 </AnimatePresence>
               </div>
+              */}
 
               {/* Settings & Logout */}
               <Link

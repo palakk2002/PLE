@@ -48,11 +48,11 @@ const MobileCheckout = () => {
   const { balance: walletBalance, fetchWallet } = useWalletStore();
 
   useEffect(() => {
-    if (isAuthenticated && !isBusiness) {
+    if (isAuthenticated) {
       fetchBalance();
-      fetchConfig();
+      fetchConfig(user?.role);
     }
-  }, [isAuthenticated, isBusiness]);
+  }, [isAuthenticated, user]);
 
   // Group items by vendor
   const itemsByVendor = useMemo(
