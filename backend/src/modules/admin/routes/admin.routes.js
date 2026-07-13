@@ -19,6 +19,8 @@ import * as settingsController from '../controllers/settings.controller.js';
 import * as walletController from '../controllers/wallet.controller.js';
 import b2bUserRoutes from './b2bUser.routes.js';
 import cmsRoutes from './cms.routes.js';
+import * as managedShopController from '../controllers/managedShop.controller.js';
+import * as productRequestController from '../controllers/productRequest.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -74,6 +76,7 @@ router.put('/products/tax-pricing-rules', ...adminAuth, validate(taxPricingRules
 
 router.put('/products/:id', ...adminAuth, validate(updateProductSchema), catalogController.updateProduct);
 router.delete('/products/:id', ...adminAuth, catalogController.deleteProduct);
+router.patch('/products/:id/review', ...adminAuth, catalogController.reviewProduct);
 
 // ─── Categories ───────────────────────────────────────────────────────────────
 router.get('/categories', ...adminAuth, catalogController.getAllCategories);
@@ -97,6 +100,19 @@ router.get('/vendors/:id/documents', ...adminAuth, validate(vendorIdParamSchema,
 router.patch('/vendors/documents/:docId/status', ...adminAuth, vendorController.updateDocumentStatus);
 router.patch('/vendors/:id/status', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorStatusUpdateSchema), vendorController.updateVendorStatus);
 router.patch('/vendors/:id/commission', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorCommissionUpdateSchema), vendorController.updateCommissionRate);
+
+// ─── Managed Shops & Vendors ───────────────────────────────────────────────
+router.post('/managed-shops', ...adminAuth, managedShopController.createShop);
+router.get('/managed-shops', ...adminAuth, managedShopController.getAllShops);
+router.get('/managed-shops/:id', ...adminAuth, managedShopController.getShopById);
+router.put('/managed-shops/:id', ...adminAuth, managedShopController.updateShop);
+router.patch('/managed-shops/:id/status', ...adminAuth, managedShopController.updateShopStatus);
+router.delete('/managed-shops/:id', ...adminAuth, managedShopController.deleteShop);
+
+router.post('/managed-vendors', ...adminAuth, managedShopController.createVendorUser);
+router.get('/managed-vendors', ...adminAuth, managedShopController.getVendorUsers);
+router.put('/managed-vendors/:id', ...adminAuth, managedShopController.updateVendorUser);
+router.delete('/managed-vendors/:id', ...adminAuth, managedShopController.deleteVendorUser);
 
 // ─── Customers ────────────────────────────────────────────────────────────────
 router.use('/b2b-users', b2bUserRoutes);
@@ -222,6 +238,11 @@ router.post('/wallet/users/:userId/unfreeze', ...adminAuth, walletController.unf
 // Settings (Logistics, etc)
 router.get('/settings/:key', ...adminAuth, settingsController.getSettings);
 router.put('/settings/:key', ...adminAuth, settingsController.updateSettings);
+
+// Product Requests
+router.get('/product-requests', ...adminAuth, productRequestController.getAllProductRequests);
+router.put('/product-requests/:id/status', ...adminAuth, productRequestController.updateProductRequestStatus);
+router.delete('/product-requests/:id', ...adminAuth, productRequestController.deleteProductRequest);
 
 export default router;
 

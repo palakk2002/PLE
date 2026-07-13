@@ -7,6 +7,7 @@ import {
   FiXCircle,
   FiDollarSign,
   FiBarChart2,
+  FiShoppingBag,
 } from "react-icons/fi";
 
 const Vendors = () => {
@@ -52,6 +53,26 @@ const Vendors = () => {
       shadowColor: "shadow-purple-500/20",
       hoverShadow: "hover:shadow-purple-500/30",
       description: "View vendor performance analytics",
+    },
+    {
+      path: "/admin/vendors/managed-shops",
+      label: "Managed Shops",
+      icon: FiShoppingBag,
+      gradient: "from-amber-500 via-amber-600 to-amber-700",
+      lightGradient: "from-amber-50 via-amber-100/80 to-amber-50",
+      shadowColor: "shadow-amber-500/20",
+      hoverShadow: "hover:shadow-amber-500/30",
+      description: "Manage admin-owned outlets & shops",
+    },
+    {
+      path: "/admin/vendors/product-approvals",
+      label: "Product Approvals",
+      icon: FiCheckCircle,
+      gradient: "from-rose-500 via-rose-600 to-rose-700",
+      lightGradient: "from-rose-50 via-rose-100/80 to-rose-50",
+      shadowColor: "shadow-rose-500/20",
+      hoverShadow: "hover:shadow-rose-500/30",
+      description: "Review & approve shop product submissions",
     },
   ];
 

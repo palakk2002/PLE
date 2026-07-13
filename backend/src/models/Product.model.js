@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema(
         image: { type: String }, // primary image
         categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category', required: true, index: true },
         brandId: { type: mongoose.Schema.Types.ObjectId, ref: 'Brand', index: true },
-        vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', required: true, index: true },
+        vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor', required: function() { return !this.shopId; }, index: true },
         stock: {
             type: String,
             enum: ['in_stock', 'low_stock', 'out_of_stock'],
@@ -120,6 +120,21 @@ const productSchema = new mongoose.Schema(
         purchaseYear: { type: Number },
         repairHistory: { type: String },
         refurbishedApprovalStatus: { type: String },
+        shopId: { type: mongoose.Schema.Types.ObjectId, ref: 'ManagedShop', index: true },
+        vendorUserId: { type: mongoose.Schema.Types.ObjectId, ref: 'ManagedVendorUser', index: true },
+        createdBy: { type: mongoose.Schema.Types.ObjectId },
+        updatedBy: { type: mongoose.Schema.Types.ObjectId },
+        approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+        approvalDate: { type: Date },
+        approvalStatus: { type: String, enum: ['draft', 'pending', 'approved', 'rejected', 'archived'], default: 'approved', index: true },
+        rejectionReason: { type: String },
+        auditLog: [{
+            action: { type: String },
+            userId: { type: mongoose.Schema.Types.ObjectId },
+            userType: { type: String, enum: ['admin', 'managed_vendor', 'vendor'] },
+            timestamp: { type: Date, default: Date.now },
+            reason: { type: String }
+        }],
     },
     { timestamps: true }
 );

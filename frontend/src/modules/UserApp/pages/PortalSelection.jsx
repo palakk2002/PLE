@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUser, FiGlobe, FiCheckCircle, FiSun, FiMoon } from 'react-icons/fi';
+import toast from 'react-hot-toast';
 import { useB2bStore } from '../../../shared/store/b2bStore';
 import { useThemeStore } from '../../../shared/store/themeStore';
 import pleLogo from '../../../assets/PLEwhite.png';
-import splashVideo from '../../../assets/change_the_video_background_i.mp4';
+import splashVideo from '../../../assets/splashVideo.mp4';
 
 const PortalSelection = () => {
   const navigate = useNavigate();
@@ -16,12 +17,23 @@ const PortalSelection = () => {
   const { theme, setTheme } = useThemeStore();
   const isDarkMode = theme === 'dark';
 
+  const [retailAgreed, setRetailAgreed] = useState(false);
+  const [enterpriseAgreed, setEnterpriseAgreed] = useState(false);
+
   const handleSelectB2C = () => {
+    if (!retailAgreed) {
+      toast.error('Please agree to the Terms & Conditions and Policies to proceed.');
+      return;
+    }
     setUserRole('customer');
     navigate('/login');
   };
 
   const handleSelectB2B = () => {
+    if (!enterpriseAgreed) {
+      toast.error('Please agree to the Business Terms and Policies to proceed.');
+      return;
+    }
     setUserRole('business_buyer');
     navigate('/b2b/login');
   };
@@ -75,7 +87,7 @@ const PortalSelection = () => {
             transition={{ type: 'spring', stiffness: 80, damping: 15, duration: 0.8 }}
             className={`flex-1 flex flex-col justify-between p-8 md:p-16 relative z-10 ${isDarkMode ? 'bg-zinc-950' : 'bg-white'}`}
           >
-            <div className="my-auto max-w-lg mx-auto w-full space-y-8">
+            <div className="my-auto max-w-lg mx-auto w-full space-y-6">
               <div>
                 <h1 className={`text-4xl md:text-5xl font-black tracking-tight mb-4 ${isDarkMode ? 'text-zinc-50' : 'text-gray-800'}`}>
                   Retail Store
@@ -104,10 +116,57 @@ const PortalSelection = () => {
                 </div>
               </div>
 
+              {/* Legal Consent Section B2C */}
+              <div className="flex items-start gap-3 pt-2">
+                <input
+                  type="checkbox"
+                  id="retail-consent"
+                  checked={retailAgreed}
+                  onChange={(e) => setRetailAgreed(e.target.checked)}
+                  className="mt-1 h-5 w-5 rounded border-gray-300 text-[#AE020B] focus:ring-[#AE020B] cursor-pointer accent-[#AE020B]"
+                  aria-label="I agree to the retail store terms and policies"
+                />
+                <label htmlFor="retail-consent" className={`text-xs md:text-sm leading-relaxed ${isDarkMode ? 'text-zinc-400' : 'text-gray-600'} cursor-pointer select-none font-medium`}>
+                  I agree to the{" "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/legal/terms'); }}
+                    className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                  >
+                    Terms & Conditions
+                  </button>
+                  {" • "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/legal/privacy'); }}
+                    className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                  >
+                    Privacy Policy
+                  </button>
+                  {" • "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/legal/user-agreement'); }}
+                    className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                  >
+                    User Agreement
+                  </button>
+                  {" • "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/legal/trademark'); }}
+                    className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                  >
+                    Trademark Policy
+                  </button>
+                </label>
+              </div>
+
               {/* Button */}
               <button
                 onClick={handleSelectB2C}
                 className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-4 rounded-xl font-bold tracking-widest text-sm uppercase transition-all duration-300 hover:shadow-xl transform active:scale-[0.98]"
+                aria-disabled={!retailAgreed}
               >
                 ENTER PORTAL
               </button>
@@ -143,7 +202,7 @@ const PortalSelection = () => {
             transition={{ type: 'spring', stiffness: 80, damping: 15, duration: 0.8 }}
             className={`flex-1 flex flex-col justify-between p-8 md:p-16 border-t md:border-t-0 md:border-l relative z-10 ${isDarkMode ? 'bg-zinc-950 border-zinc-900' : 'bg-white border-gray-100'}`}
           >
-            <div className="my-auto max-w-lg mx-auto w-full space-y-8">
+            <div className="my-auto max-w-lg mx-auto w-full space-y-6">
               <div>
                 <h1 className={`text-4xl md:text-5xl font-black tracking-tight mb-4 ${isDarkMode ? 'text-zinc-50' : 'text-gray-800'}`}>
                   Enterprise
@@ -175,10 +234,57 @@ const PortalSelection = () => {
                 </div>
               </div>
 
+              {/* Legal Consent Section B2B */}
+              <div className="flex items-start gap-3 pt-2">
+                <input
+                  type="checkbox"
+                  id="enterprise-consent"
+                  checked={enterpriseAgreed}
+                  onChange={(e) => setEnterpriseAgreed(e.target.checked)}
+                  className="mt-1 h-5 w-5 rounded border-gray-300 text-[#AE020B] focus:ring-[#AE020B] cursor-pointer accent-[#AE020B]"
+                  aria-label="I agree to the enterprise business terms and policies"
+                />
+                <label htmlFor="enterprise-consent" className={`text-xs md:text-sm leading-relaxed ${isDarkMode ? 'text-zinc-400' : 'text-gray-600'} cursor-pointer select-none font-medium`}>
+                  I agree to the{" "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/legal/business-terms'); }}
+                    className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                  >
+                    Business Terms
+                  </button>
+                  {" • "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/legal/privacy'); }}
+                    className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                  >
+                    Privacy Policy
+                  </button>
+                  {" • "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/legal/user-agreement'); }}
+                    className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                  >
+                    User Agreement
+                  </button>
+                  {" • "}
+                  <button
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); navigate('/legal/trademark'); }}
+                    className="text-[#AE020B] hover:underline font-bold transition-all duration-200 focus:outline-none focus:ring-1 focus:ring-[#AE020B] rounded px-0.5"
+                  >
+                    Trademark Policy
+                  </button>
+                </label>
+              </div>
+
               {/* Button */}
               <button
                 onClick={handleSelectB2B}
                 className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-4 rounded-xl font-bold tracking-widest text-sm uppercase transition-all duration-300 hover:shadow-xl transform active:scale-[0.98]"
+                aria-disabled={!enterpriseAgreed}
               >
                 BUSINESS ONBOARDING
               </button>

@@ -41,6 +41,9 @@ const VendorDashboard = () => {
     }
 
     const loadDashboardData = async () => {
+      if (vendor?.role === "managed_vendor") {
+        return; // Managed vendors cannot view orders/earnings
+      }
       setIsLoading(true);
       try {
         // Fetch orders and earnings in parallel
@@ -78,7 +81,7 @@ const VendorDashboard = () => {
     };
 
     loadDashboardData();
-  }, [vendorId, fetchProducts, products.length]);
+  }, [vendorId, fetchProducts, products.length, vendor?.role]);
 
   // Sync product counts whenever the product store updates
   useEffect(() => {
@@ -90,44 +93,63 @@ const VendorDashboard = () => {
     }));
   }, [products, totalProductsCount]);
 
-  const statCards = [
-    {
-      icon: FiPackage,
-      label: "Total Products",
-      value: stats.totalProducts,
-      color: "bg-blue-500",
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-700",
-      link: "/vendor/products",
-    },
-    {
-      icon: FiShoppingBag,
-      label: "Total Orders",
-      value: stats.totalOrders,
-      color: "bg-green-500",
-      bgColor: "bg-green-50",
-      textColor: "text-green-700",
-      link: "/vendor/orders",
-    },
-    {
-      icon: FiTrendingUp,
-      label: "Pending Orders",
-      value: stats.pendingOrders,
-      color: "bg-orange-500",
-      bgColor: "bg-orange-50",
-      textColor: "text-orange-700",
-      link: "/vendor/orders",
-    },
-    {
-      icon: FiDollarSign,
-      label: "Total Earnings",
-      value: formatPrice(stats.totalEarnings || 0),
-      color: "bg-purple-500",
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-700",
-      link: "/vendor/earnings",
-    },
-  ];
+  const statCards = useMemo(() => {
+    const base = [
+      {
+        icon: FiPackage,
+        label: "Total Products",
+        value: stats.totalProducts,
+        color: "bg-blue-500",
+        bgColor: "bg-blue-50",
+        textColor: "text-blue-700",
+        link: "/vendor/products",
+      },
+    ];
+
+    if (vendor?.role === "managed_vendor") {
+      base.push({
+        icon: FiPackage,
+        label: "In Stock Products",
+        value: stats.inStockProducts,
+        color: "bg-teal-500",
+        bgColor: "bg-teal-50",
+        textColor: "text-teal-700",
+        link: "/vendor/products",
+      });
+      return base;
+    }
+
+    return [
+      ...base,
+      {
+        icon: FiShoppingBag,
+        label: "Total Orders",
+        value: stats.totalOrders,
+        color: "bg-green-500",
+        bgColor: "bg-green-50",
+        textColor: "text-green-700",
+        link: "/vendor/orders",
+      },
+      {
+        icon: FiTrendingUp,
+        label: "Pending Orders",
+        value: stats.pendingOrders,
+        color: "bg-orange-500",
+        bgColor: "bg-orange-50",
+        textColor: "text-orange-700",
+        link: "/vendor/orders",
+      },
+      {
+        icon: FiDollarSign,
+        label: "Total Earnings",
+        value: formatPrice(stats.totalEarnings || 0),
+        color: "bg-purple-500",
+        bgColor: "bg-purple-50",
+        textColor: "text-purple-700",
+        link: "/vendor/earnings",
+      },
+    ];
+  }, [stats, vendor?.role]);
 
   const topProducts = useMemo(() => products.slice(0, 5), [products]);
 
@@ -158,7 +180,7 @@ const VendorDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${vendor?.role === 'managed_vendor' ? 'lg:grid-cols-2' : 'lg:grid-cols-4'} gap-4`}>
         {statCards.map((stat, index) => (
           <motion.div
             key={index}

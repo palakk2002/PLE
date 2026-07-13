@@ -16,7 +16,63 @@ import Portfolio from '../models/Portfolio.model.js';
 import PortfolioPage from '../models/PortfolioPage.model.js';
 import { getPortfolioPage } from '../modules/admin/controllers/cms.controller.js';
 
+import ManagedShop from '../models/ManagedShop.model.js';
+import ManagedVendorUser from '../models/ManagedVendorUser.model.js';
+import Admin from '../models/Admin.model.js';
+
 const router = Router();
+
+router.get('/setup-test-data', asyncHandler(async (req, res) => {
+    let admin = await Admin.findOne({ isActive: true });
+    if (!admin) {
+        admin = await Admin.create({
+            name: "Test Admin",
+            email: "admin@test.com",
+            password: "password123",
+            role: "admin",
+            isActive: true
+        });
+    }
+
+    let shop = await ManagedShop.findOne({ name: "Anita Mega Mart" });
+    if (!shop) {
+        shop = await ManagedShop.create({
+            name: "Anita Mega Mart",
+            logo: "https://via.placeholder.com/150",
+            address: "123 Mart Street",
+            phone: "9876543210",
+            gst: "27AAAAA1111A1Z1",
+            warehouse: "Mumbai Warehouse",
+            status: "active",
+            description: "Managed Superstore"
+        });
+    }
+
+    let vendorUser = await ManagedVendorUser.findOne({ username: "rahul" });
+    if (!vendorUser) {
+        vendorUser = await ManagedVendorUser.create({
+            name: "Rahul Kumar",
+            phone: "9999999999",
+            username: "rahul",
+            password: "password123",
+            role: "managed_vendor",
+            shopId: shop._id,
+            createdBy: admin._id,
+            status: "active"
+        });
+    }
+
+    res.status(200).json(new ApiResponse(200, {
+        shop,
+        vendorUser: {
+            id: vendorUser._id,
+            name: vendorUser.name,
+            username: vendorUser.username,
+            role: vendorUser.role,
+            status: vendorUser.status
+        }
+    }, 'Test data seeded successfully!'));
+}));
 
 router.get('/loyalty/config', asyncHandler(async (req, res) => {
     const loyaltyService = await import('../services/loyalty.service.js');
@@ -326,25 +382,85 @@ router.get('/vendors/all', asyncHandler(async (req, res) => {
         .select('-password -otp -otpExpiry')
         .sort({ rating: -1, reviewCount: -1, createdAt: -1 })
         .skip(skip)
-        .limit(numericLimit);
-    const total = await Vendor.countDocuments(filter);
+        .limit(numericLimit)
+        .lean();
+
+    const activeShops = await ManagedShop.find({ status: 'active' }).lean();
+
+    const mappedShops = await Promise.all(activeShops.map(async (shop) => {
+        const productCount = await Product.countDocuments({ shopId: shop._id, isActive: true });
+        return {
+            _id: shop._id,
+            id: String(shop._id),
+            name: shop.name,
+            storeName: shop.name,
+            storeLogo: shop.logo,
+            logo: shop.logo,
+            description: shop.description,
+            rating: 4.8,
+            reviewCount: 15,
+            isVerified: true,
+            isManagedShop: true,
+            status: 'approved',
+            totalProducts: productCount
+        };
+    }));
+
+    const mappedVendors = await Promise.all(vendors.map(async (v) => {
+        const productCount = await Product.countDocuments({ vendorId: v._id, isActive: true });
+        return {
+            ...toPublicVendor(v),
+            id: String(v._id),
+            storeName: v.storeName || v.name,
+            storeLogo: v.storeLogo || v.logo,
+            totalProducts: productCount
+        };
+    }));
+
+    const allSellers = [...mappedShops, ...mappedVendors];
 
     res.status(200).json(new ApiResponse(200, {
-        vendors: vendors.map(toPublicVendor),
-        total,
-        page: numericPage,
-        pages: Math.ceil(total / numericLimit)
-    }, 'Vendors fetched.'));
+        vendors: allSellers,
+        total: allSellers.length,
+        page: 1,
+        pages: 1
+    }, 'Sellers fetched.'));
 }));
 
 // GET /api/vendors/:id (public)
 router.get('/vendors/:id', asyncHandler(async (req, res) => {
-    const vendor = await Vendor.findOne({
+    let seller = await Vendor.findOne({
         _id: req.params.id,
         status: 'approved',
-    }).select('-password -otp -otpExpiry');
-    if (!vendor) throw new ApiError(404, 'Vendor not found.');
-    res.status(200).json(new ApiResponse(200, toPublicVendor(vendor), 'Vendor detail fetched.'));
+    }).select('-password -otp -otpExpiry').lean();
+
+    if (!seller) {
+        const shop = await ManagedShop.findOne({
+            _id: req.params.id,
+            status: 'active'
+        }).lean();
+        if (shop) {
+            const productCount = await Product.countDocuments({ shopId: shop._id, isActive: true });
+            seller = {
+                _id: shop._id,
+                id: String(shop._id),
+                name: shop.name,
+                storeName: shop.name,
+                storeLogo: shop.logo,
+                logo: shop.logo,
+                description: shop.description,
+                rating: 4.8,
+                reviewCount: 15,
+                isVerified: true,
+                isManagedShop: true,
+                status: 'approved',
+                totalProducts: productCount
+            };
+        }
+    }
+
+    if (!seller) throw new ApiError(404, 'Seller not found.');
+    res.status(200).json(new ApiResponse(200, seller, 'Seller detail fetched.'));
 }));
 
 // GET /api/vendors/:id/products (public)
@@ -363,13 +479,18 @@ router.get('/vendors/:id/products', asyncHandler(async (req, res) => {
         rating: { rating: -1 },
     };
 
-    const vendor = await Vendor.findOne({
-        _id: req.params.id,
-        status: 'approved',
-    }).select('_id');
-    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+    const isShop = await ManagedShop.exists({ _id: req.params.id, status: 'active' });
+    const isVendor = !isShop ? await Vendor.exists({ _id: req.params.id, status: 'approved' }) : false;
 
-    const filter = { isActive: true, vendorId: req.params.id };
+    if (!isShop && !isVendor) throw new ApiError(404, 'Seller not found.');
+
+    const filter = { isActive: true };
+    if (isShop) {
+        filter.shopId = req.params.id;
+    } else {
+        filter.vendorId = req.params.id;
+    }
+
     const channelQuery = req.query.channel;
     if (channelQuery === 'b2c') {
         filter.salesChannel = { $in: ['B2C', 'BOTH'] };
@@ -381,6 +502,7 @@ router.get('/vendors/:id/products', asyncHandler(async (req, res) => {
         .populate('categoryId', 'name')
         .populate('brandId', 'name')
         .populate('vendorId', 'storeName')
+        .populate('shopId', 'name logo')
         .sort(sortMap[sort] || { createdAt: -1 })
         .skip(skip)
         .limit(numericLimit);
@@ -391,7 +513,7 @@ router.get('/vendors/:id/products', asyncHandler(async (req, res) => {
         total,
         page: numericPage,
         pages: Math.ceil(total / numericLimit)
-    }, 'Vendor products fetched.'));
+    }, 'Seller products fetched.'));
 }));
 
 // POST /api/coupons/validate
@@ -466,7 +588,8 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
 
     const products = await Product.find({ _id: { $in: productIds }, isActive: true })
         .populate('vendorId', 'shippingEnabled defaultShippingRate freeShippingThreshold')
-        .select('_id vendorId price variants.prices')
+        .populate('shopId', 'name logo')
+        .select('_id vendorId shopId price variants.prices')
         .lean();
 
     const productMap = new Map(products.map((product) => [String(product._id), product]));
@@ -474,9 +597,13 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
 
     items.forEach((item) => {
         const product = productMap.get(String(item?.productId || ''));
-        if (!product || !product.vendorId) return;
+        if (!product) return;
 
-        const vendorId = String(product.vendorId._id || product.vendorId);
+        const isManagedShop = !!product.shopId;
+        const vendorIdObj = isManagedShop ? product.shopId._id : product.vendorId?._id;
+        if (!vendorIdObj) return;
+
+        const vendorId = String(vendorIdObj);
         const quantity = Math.max(1, Number(item?.quantity || 1));
         const price = Math.max(0, Number(resolveVariantPrice(product, item?.variant) || 0));
         const subtotal = price * quantity;
@@ -485,9 +612,9 @@ router.post('/shipping/estimate', asyncHandler(async (req, res) => {
             vendorMap[vendorId] = {
                 vendorId,
                 subtotal: 0,
-                shippingEnabled: product.vendorId.shippingEnabled !== false,
-                defaultShippingRate: product.vendorId.defaultShippingRate,
-                freeShippingThreshold: product.vendorId.freeShippingThreshold,
+                shippingEnabled: isManagedShop ? true : (product.vendorId.shippingEnabled !== false),
+                defaultShippingRate: isManagedShop ? 0 : (product.vendorId.defaultShippingRate || 0),
+                freeShippingThreshold: isManagedShop ? 0 : (product.vendorId.freeShippingThreshold || 0),
             };
         }
         vendorMap[vendorId].subtotal += subtotal;

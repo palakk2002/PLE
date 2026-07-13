@@ -55,7 +55,7 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
     // 2. Create Admin
     const b2bAdmin = await User.create({
         companyId: b2bCompany._id,
-        name: adminName,
+        name: companyName,
         email: adminEmail,
         phone: adminPhone,
         password,

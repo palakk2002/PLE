@@ -2,64 +2,62 @@ import { useState, useEffect } from "react";
 import { FiSearch, FiInbox, FiCheck, FiX, FiInfo, FiChevronDown } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import api from "../../../shared/utils/api";
+import { useVendorAuthStore } from "../store/vendorAuthStore";
 
 const VendorProductRequests = () => {
+  const { vendor } = useVendorAuthStore();
+  const vendorId = vendor?._id || vendor?.id || "";
   const [requests, setRequests] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all"); // "all", "pending", "responded"
+  const [filterType, setFilterType] = useState("All"); // All, General, Direct
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Modals state
   const [selectedReq, setSelectedReq] = useState(null);
   const [modalType, setModalType] = useState(""); // "supply", "need_info"
   const [modalData, setModalData] = useState({ price: "", days: "", comment: "" });
 
-  const vendorName = "Premium Seller Ltd"; // Simulated logged in vendor
-
   useEffect(() => {
     loadRequests();
-  }, []);
+  }, [activeTab, filterType, currentPage]);
 
-  const loadRequests = () => {
-    // If empty in localStorage, seed with some dummy initial product requests for demo purposes
-    let loaded = JSON.parse(localStorage.getItem("ple_product_requests") || "[]");
-    if (loaded.length === 0) {
-      const demoRequests = [
-        {
-          id: "REQ-987123",
-          productName: "Vintage Leather Jacket (Dark Brown)",
-          category: "Clothing & Fashion",
-          quantity: 2,
-          expectedBudget: 5500,
-          description: "Looking for a genuine leather jacket, vintage style, distressed dark brown color. Size L.",
-          image: null,
-          status: "Submitted",
-          date: new Date(Date.now() - 86400000).toISOString(),
-          timeline: [
-            { status: "Submitted", date: new Date(Date.now() - 86400000).toISOString(), comment: "Your product request has been successfully submitted." }
-          ],
-          sellerResponses: [],
-        },
-        {
-          id: "REQ-456789",
-          productName: "Wireless Mechanical Keyboard 75% Layout",
-          category: "Electronics",
-          quantity: 1,
-          expectedBudget: 3500,
-          description: "Hot-swappable red switches, wireless 2.4Ghz + Bluetooth capability, RGB backlight preferred.",
-          image: null,
-          status: "Under Review",
-          date: new Date(Date.now() - 172800000).toISOString(),
-          timeline: [
-            { status: "Submitted", date: new Date(Date.now() - 172800000).toISOString(), comment: "Your product request has been successfully submitted." },
-            { status: "Under Review", date: new Date(Date.now() - 162800000).toISOString(), comment: "Admin has set the status to Under Review." }
-          ],
-          sellerResponses: [],
+  const loadRequests = async () => {
+    setIsLoading(true);
+    try {
+      const params = {
+        page: currentPage,
+        limit: 10
+      };
+      if (activeTab === "pending") params.status = "Pending";
+      if (activeTab === "responded") params.status = "Seller Responded";
+      if (filterType !== "All") params.type = filterType;
+
+      const response = await api.get('/vendor/product-requests', { params });
+      if (response.success || response.statusCode === 200) {
+        const dataPayload = response.data;
+        const rawRequests = dataPayload?.requests || [];
+        const formatted = rawRequests.map(r => ({
+          ...r,
+          id: r.requestId,
+          date: r.createdAt
+        }));
+        setRequests(formatted);
+        if (dataPayload?.pagination) {
+          setTotalPages(dataPayload.pagination.pages || 1);
+        } else {
+          setTotalPages(1);
         }
-      ];
-      localStorage.setItem("ple_product_requests", JSON.stringify(demoRequests));
-      loaded = demoRequests;
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to load requests.");
+    } finally {
+      setIsLoading(false);
     }
-    setRequests(loaded);
   };
 
   const handleAction = (req, type) => {
@@ -68,7 +66,7 @@ const VendorProductRequests = () => {
     setModalData({ price: "", days: "", comment: "" });
   };
 
-  const submitAction = () => {
+  const submitAction = async () => {
     if (modalType === "supply") {
       if (!modalData.price || Number(modalData.price) <= 0) {
         toast.error("Please enter a valid price");
@@ -85,66 +83,41 @@ const VendorProductRequests = () => {
       }
     }
 
-    const updated = requests.map((r) => {
-      if (r.id === selectedReq.id) {
-        const responseEntry = {
-          vendorName,
-          responseType: modalType === "supply" ? "Can Supply" : "Need Info",
-          offeredPrice: modalType === "supply" ? Number(modalData.price) : null,
-          deliveryTimeline: modalType === "supply" ? Number(modalData.days) : null,
-          comments: modalData.comment || (modalType === "supply" ? "We can fulfill this product request." : ""),
-          date: new Date().toISOString(),
-        };
+    try {
+      const payload = {
+        responseType: modalType === "supply" ? "Can Supply" : "Need Info",
+        offeredPrice: modalType === "supply" ? Number(modalData.price) : undefined,
+        deliveryTimeline: modalType === "supply" ? Number(modalData.days) : undefined,
+        message: modalData.comment || (modalType === "supply" ? "We can fulfill this product request." : "")
+      };
 
-        const nextStatus = modalType === "supply" ? "Seller Responded" : "Under Review";
-        const newTimeline = [
-          ...r.timeline,
-          {
-            status: nextStatus,
-            date: new Date().toISOString(),
-            comment: modalType === "supply" 
-              ? `Seller ${vendorName} responded: Can supply at ₹${modalData.price} in ${modalData.days} days.`
-              : `Seller ${vendorName} requested more details: "${modalData.comment}"`,
-          }
-        ];
-
-        return {
-          ...r,
-          status: nextStatus,
-          timeline: newTimeline,
-          sellerResponses: [...(r.sellerResponses || []), responseEntry],
-        };
+      const response = await api.put(`/vendor/product-requests/${selectedReq.id}/respond`, payload);
+      if (response.success || response.statusCode === 200) {
+        toast.success("Response submitted successfully!");
+        loadRequests();
+        setSelectedReq(null);
       }
-      return r;
-    });
-
-    localStorage.setItem("ple_product_requests", JSON.stringify(updated));
-    setRequests(updated);
-    toast.success("Response submitted successfully!");
-    setSelectedReq(null);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Failed to submit response.");
+    }
   };
 
-  const handleCannotSupply = (req) => {
-    const updated = requests.map((r) => {
-      if (r.id === req.id) {
-        const responseEntry = {
-          vendorName,
-          responseType: "Cannot Supply",
-          comments: "We are unable to fulfill this request at this moment.",
-          date: new Date().toISOString(),
-        };
-
-        return {
-          ...r,
-          sellerResponses: [...(r.sellerResponses || []), responseEntry],
-        };
+  const handleCannotSupply = async (req) => {
+    try {
+      const payload = {
+        responseType: "Need Info",
+        message: "We are unable to fulfill this request at this moment."
+      };
+      const response = await api.put(`/vendor/product-requests/${req.id}/respond`, payload);
+      if (response.success || response.statusCode === 200) {
+        toast.success("Response submitted successfully!");
+        loadRequests();
       }
-      return r;
-    });
-
-    localStorage.setItem("ple_product_requests", JSON.stringify(updated));
-    setRequests(updated);
-    toast.success("Declined supply request.");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to submit response.");
+    }
   };
 
   const filteredRequests = requests.filter((r) => {
@@ -153,15 +126,20 @@ const VendorProductRequests = () => {
       r.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const hasVendorResponded = r.sellerResponses?.some((s) => s.vendorName === vendorName);
+    if (!matchSearch) return false;
+
+    if (filterType === "General" && r.requestType !== "GENERAL") return false;
+    if (filterType === "Direct" && r.requestType !== "SHOP_SPECIFIC") return false;
+
+    const hasVendorResponded = r.sellerResponses?.some((s) => String(s.sellerId) === String(vendorId));
 
     if (activeTab === "pending") {
-      return matchSearch && !hasVendorResponded && r.status !== "Rejected" && r.status !== "Product Added";
+      return !hasVendorResponded && r.status !== "Rejected" && r.status !== "Product Added";
     }
     if (activeTab === "responded") {
-      return matchSearch && hasVendorResponded;
+      return hasVendorResponded;
     }
-    return matchSearch;
+    return true;
   });
 
   return (
@@ -173,30 +151,49 @@ const VendorProductRequests = () => {
       </div>
 
       {/* Tabs & Search */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex flex-col sm:flex-row gap-4 items-center justify-between">
-        <div className="flex bg-gray-100 rounded-xl p-1 w-full sm:w-auto">
-          {["all", "pending", "responded"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 sm:flex-initial px-6 py-2 text-xs font-bold capitalize rounded-lg transition-all ${
-                activeTab === tab ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab} Requests
-            </button>
-          ))}
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="flex bg-gray-100 rounded-xl p-1 w-full sm:w-auto">
+            {["all", "pending", "responded"].map((tab) => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`flex-1 sm:flex-initial px-6 py-2 text-xs font-bold capitalize rounded-lg transition-all ${
+                  activeTab === tab ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {tab} Requests
+              </button>
+            ))}
+          </div>
+
+          <div className="relative w-full sm:max-w-xs">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search requests..."
+              className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+            />
+          </div>
         </div>
 
-        <div className="relative w-full sm:max-w-xs">
-          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search requests..."
-            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-          />
+        {/* Sourcing Channel Filter */}
+        <div className="flex gap-2 border-t border-gray-100 pt-3">
+          {["All", "General", "Direct"].map((type) => (
+            <button
+              key={type}
+              onClick={() => setFilterType(type)}
+              className={`px-3 py-1 text-xs font-bold rounded-full transition-all border ${
+                filterType === type
+                  ? "bg-indigo-600 text-white border-indigo-650"
+                  : "bg-gray-50 text-gray-500 border-gray-250 hover:bg-gray-100"
+              }`}
+            >
+              {type === "All" ? "All Channels" : type === "General" ? "Marketplace Requests" : "Direct Requests"}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -210,7 +207,7 @@ const VendorProductRequests = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredRequests.map((req) => {
-            const myResponse = req.sellerResponses?.find((s) => s.vendorName === vendorName);
+            const myResponse = req.sellerResponses?.find((s) => String(s.sellerId) === String(vendorId));
 
             return (
               <motion.div
@@ -231,9 +228,21 @@ const VendorProductRequests = () => {
                   </div>
 
                   <h3 className="font-extrabold text-gray-800 text-base mb-1">{req.productName}</h3>
-                  <span className="text-xs text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md font-semibold inline-block mb-3">
-                    {req.category}
-                  </span>
+                  
+                  <div className="flex items-center gap-2 mb-3 flex-wrap">
+                    <span className="text-xs text-indigo-650 bg-indigo-50 px-2 py-0.5 rounded-md font-bold">
+                      {req.category}
+                    </span>
+                    {req.requestType === 'SHOP_SPECIFIC' ? (
+                      <span className="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold border border-amber-105">
+                        🏪 Direct Shop Request
+                      </span>
+                    ) : (
+                      <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full font-bold border border-gray-150">
+                        🌐 Marketplace Request
+                      </span>
+                    )}
+                  </div>
 
                   <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mb-4 bg-gray-50 p-3 rounded-xl">
                     <div>Quantity: <strong className="text-gray-700">{req.quantity}</strong></div>

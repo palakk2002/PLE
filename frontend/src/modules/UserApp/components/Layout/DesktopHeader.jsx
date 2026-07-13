@@ -71,7 +71,7 @@ const DesktopHeader = () => {
 
     return (
         <header className="hidden md:block sticky top-0 z-[999] bg-[#ffffff] dark:!bg-black shadow-sm border-b border-gray-100 dark:!border-black">
-            <div className="container mx-auto px-4 md:px-12 lg:px-24 xl:px-40 h-20 flex items-center justify-between gap-8">
+            <div className="w-full px-4 md:px-8 lg:px-12 xl:px-16 h-20 flex items-center justify-between gap-4 lg:gap-8">
                 {/* Logo */}
                 <Link to="/home" className="flex-shrink-0 flex items-center gap-2">
                     {appLogo.src ? (
@@ -111,7 +111,7 @@ const DesktopHeader = () => {
                 </nav>
 
                 {/* Search Bar */}
-                <div className="flex-1 max-w-xl">
+                <div className="flex-1 max-w-[200px] sm:max-w-[300px] md:max-w-md lg:max-w-lg xl:max-w-xl">
                     <SearchBar />
                 </div>
 

@@ -80,16 +80,16 @@ const VendorLogin = () => {
           {/* Email Field */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Email Address
+              Email or Username
             </label>
             <div className="relative">
               <FiMail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
-                type="email"
+                type="text"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="vendor@example.com"
+                placeholder="vendor@example.com or username"
                 className="w-full pl-12 pr-4 py-3 bg-white border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 text-gray-800 placeholder:text-gray-400"
                 required
               />

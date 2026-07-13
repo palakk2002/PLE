@@ -64,6 +64,48 @@ const autoSeedDeliveryBoy = async () => {
   }
 };
 
+const autoSeedB2B = async () => {
+  try {
+    const User = (await import('../models/User.model.js')).default;
+    const B2BCompany = (await import('../models/B2BCompany.model.js')).default;
+
+    let company = await B2BCompany.findOne({ businessEmail: 'procurement@apexenterprises.in' });
+    if (!company) {
+      company = await B2BCompany.create({
+        companyName: 'Apex General Enterprises',
+        gstNumber: '27AAPCG9838F1Z1',
+        businessEmail: 'procurement@apexenterprises.in',
+        businessPhone: '9876543210',
+        companyAddress: '404 Business Hub, BKC, Mumbai, MH - 400051',
+        companyType: 'Private Limited Company',
+        website: 'https://apexenterprises.in',
+        verificationStatus: 'Approved',
+        status: 'Active'
+      });
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: B2B Company created (Apex General Enterprises)');
+    }
+
+    let b2bAdmin = await User.findOne({ email: 'sarkarraj0766@gmail.com' });
+    if (!b2bAdmin) {
+      await User.create({
+        companyId: company._id,
+        name: 'Apex General Enterprises',
+        email: 'sarkarraj0766@gmail.com',
+        phone: '9876543210',
+        password: 'password123',
+        role: 'b2bAdmin',
+        b2bRole: 'Admin',
+        isVerified: true,
+        isActive: true
+      });
+      console.log('✅ DATABASE AUTO-SEED SUCCESS: B2B Admin account created (sarkarraj0766@gmail.com / password123)');
+    }
+  } catch (err) {
+    console.error('⚠️ DATABASE AUTO-SEED FAILED for B2B:', err.message);
+  }
+};
+
+
 const autoMigrateCategories = async () => {
   try {
     const { Category } = await import('../models/Category.model.js');
@@ -122,6 +164,7 @@ const connectDB = async () => {
     console.log(`MongoDB Connected: ${conn.connection.host}`);
     await autoSeedAdmin();
     await autoSeedDeliveryBoy();
+    await autoSeedB2B();
     await autoMigrateCategories();
   } catch (error) {
     const publicIP = await getPublicIP();
@@ -167,6 +210,7 @@ to switch back to your persistent remote cluster.
       `);
       await autoSeedAdmin();
       await autoSeedDeliveryBoy();
+      await autoSeedB2B();
       await autoMigrateCategories();
     } catch (localError) {
       console.log('❌ Local MongoDB is not running. Attempting to spin up an in-memory MongoDB fallback server...');
@@ -191,6 +235,7 @@ to switch back to your persistent remote cluster.
         `);
         await autoSeedAdmin();
         await autoSeedDeliveryBoy();
+        await autoSeedB2B();
         await autoMigrateCategories();
       } catch (fallbackError) {
         console.error('❌ Failed to start in-memory MongoDB server:', fallbackError.message);

@@ -2,6 +2,7 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Vendor from '../../../models/Vendor.model.js';
+import ManagedVendorUser from '../../../models/ManagedVendorUser.model.js';
 import Admin from '../../../models/Admin.model.js';
 import { generateTokens } from '../../../utils/generateToken.js';
 import { sendOTP } from '../../../services/otp.service.js';
@@ -175,36 +176,88 @@ export const resetPassword = asyncHandler(async (req, res) => {
 export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
-    const vendor = await Vendor.findOne({ email }).select('+password');
+    const isEmail = String(email).includes('@');
+    let vendor = null;
+    let isManaged = false;
+
+    if (isEmail) {
+        vendor = await Vendor.findOne({ email: String(email).toLowerCase() }).select('+password');
+    }
+
+    if (!vendor) {
+        vendor = await ManagedVendorUser.findOne({ username: String(email).toLowerCase() }).select('+password').populate('shopId');
+        if (vendor) {
+            isManaged = true;
+        }
+    }
+
     if (!vendor) throw new ApiError(401, 'Invalid credentials.');
-    if (!vendor.isVerified) throw new ApiError(403, 'Please verify your email first.');
-    if (vendor.status === 'pending') throw new ApiError(403, 'Your account is pending admin approval.');
-    if (vendor.status === 'suspended') throw new ApiError(403, `Your account has been suspended. Reason: ${vendor.suspensionReason || 'Contact support.'}`);
-    if (vendor.status === 'rejected') throw new ApiError(403, 'Your vendor application was rejected.');
+
+    if (isManaged) {
+        if (vendor.status !== 'active') {
+            throw new ApiError(403, 'Your account is deactivated. Contact admin.');
+        }
+        if (!vendor.shopId || vendor.shopId.status !== 'active') {
+            throw new ApiError(403, 'Your shop is disabled or does not exist.');
+        }
+    } else {
+        if (!vendor.isVerified) throw new ApiError(403, 'Please verify your email first.');
+        if (vendor.status === 'pending') throw new ApiError(403, 'Your account is pending admin approval.');
+        if (vendor.status === 'suspended') throw new ApiError(403, `Your account has been suspended. Reason: ${vendor.suspensionReason || 'Contact support.'}`);
+        if (vendor.status === 'rejected') throw new ApiError(403, 'Your vendor application was rejected.');
+    }
 
     const isMatch = await vendor.comparePassword(password);
     if (!isMatch) throw new ApiError(401, 'Invalid credentials.');
 
-    const { accessToken, refreshToken } = generateTokens({ id: vendor._id, role: 'vendor', email: vendor.email });
+    const tokenPayload = isManaged
+        ? { id: vendor._id, role: 'managed_vendor', email: vendor.username, shopId: vendor.shopId._id }
+        : { id: vendor._id, role: 'vendor', email: vendor.email };
+
+    const { accessToken, refreshToken } = generateTokens(tokenPayload);
     await persistRefreshSession(vendor, refreshToken);
-    res.status(200).json(new ApiResponse(200, { accessToken, refreshToken, vendor: { id: vendor._id, name: vendor.name, storeName: vendor.storeName, email: vendor.email, storeLogo: vendor.storeLogo } }, 'Login successful.'));
+
+    const resUser = isManaged
+        ? { id: vendor._id, name: vendor.name, username: vendor.username, role: 'managed_vendor', shopId: vendor.shopId._id, storeName: vendor.shopId.name, storeLogo: vendor.shopId.logo }
+        : { id: vendor._id, name: vendor.name, storeName: vendor.storeName, email: vendor.email, storeLogo: vendor.storeLogo, role: 'vendor' };
+
+    res.status(200).json(new ApiResponse(200, { accessToken, refreshToken, vendor: resUser }, 'Login successful.'));
 });
 
 // POST /api/vendor/auth/refresh
 export const refresh = asyncHandler(async (req, res) => {
     const { refreshToken } = req.body;
     const decoded = decodeRefreshTokenOrThrow(refreshToken);
-    const vendor = await Vendor.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt status isVerified suspensionReason');
+    
+    let vendor = null;
+    let isManaged = false;
+
+    if (decoded.role === 'managed_vendor') {
+        vendor = await ManagedVendorUser.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt status').populate('shopId');
+        isManaged = true;
+    } else {
+        vendor = await Vendor.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt status isVerified suspensionReason');
+    }
 
     if (!vendor) throw new ApiError(401, 'Invalid refresh token.');
-    if (!vendor.isVerified) throw new ApiError(403, 'Please verify your email first.');
-    if (vendor.status === 'pending') throw new ApiError(403, 'Your account is pending admin approval.');
-    if (vendor.status === 'suspended') throw new ApiError(403, `Your account has been suspended. Reason: ${vendor.suspensionReason || 'Contact support.'}`);
-    if (vendor.status === 'rejected') throw new ApiError(403, 'Your vendor application was rejected.');
+
+    if (isManaged) {
+        if (vendor.status !== 'active') throw new ApiError(403, 'Your account is inactive.');
+        if (!vendor.shopId || vendor.shopId.status !== 'active') throw new ApiError(403, 'Your shop is disabled.');
+    } else {
+        if (!vendor.isVerified) throw new ApiError(403, 'Please verify your email first.');
+        if (vendor.status === 'pending') throw new ApiError(403, 'Your account is pending admin approval.');
+        if (vendor.status === 'suspended') throw new ApiError(403, `Your account has been suspended. Reason: ${vendor.suspensionReason || 'Contact support.'}`);
+        if (vendor.status === 'rejected') throw new ApiError(403, 'Your vendor application was rejected.');
+    }
+
+    const tokenPayload = isManaged
+        ? { id: vendor._id, role: 'managed_vendor', email: vendor.username, shopId: vendor.shopId._id }
+        : { id: vendor._id, role: 'vendor', email: vendor.email };
 
     const tokens = await rotateRefreshSession(
         vendor,
-        { id: vendor._id, role: 'vendor', email: vendor.email },
+        tokenPayload,
         refreshToken
     );
 
@@ -217,7 +270,12 @@ export const logout = asyncHandler(async (req, res) => {
     if (refreshToken) {
         try {
             const decoded = decodeRefreshTokenOrThrow(refreshToken);
-            const vendor = await Vendor.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt');
+            let vendor = null;
+            if (decoded.role === 'managed_vendor') {
+                vendor = await ManagedVendorUser.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt');
+            } else {
+                vendor = await Vendor.findById(decoded.id).select('+refreshTokenHash +refreshTokenExpiresAt');
+            }
             if (vendor?.refreshTokenHash) {
                 await clearRefreshSession(vendor);
             }
@@ -231,6 +289,11 @@ export const logout = asyncHandler(async (req, res) => {
 
 // GET /api/vendor/auth/profile
 export const getProfile = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        const vendor = await ManagedVendorUser.findById(req.user.id).select('-password').populate('shopId');
+        if (!vendor) throw new ApiError(404, 'Vendor not found.');
+        return res.status(200).json(new ApiResponse(200, vendor, 'Profile fetched.'));
+    }
     const vendor = await Vendor.findById(req.user.id).select('-password -otp -otpExpiry');
     if (!vendor) throw new ApiError(404, 'Vendor not found.');
     res.status(200).json(new ApiResponse(200, vendor, 'Profile fetched.'));
@@ -238,6 +301,12 @@ export const getProfile = asyncHandler(async (req, res) => {
 
 // PUT /api/vendor/auth/profile
 export const updateProfile = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        const allowed = ['name', 'phone'];
+        const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
+        const vendor = await ManagedVendorUser.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true }).select('-password').populate('shopId');
+        return res.status(200).json(new ApiResponse(200, vendor, 'Profile updated.'));
+    }
     const allowed = [
         'name',
         'phone',

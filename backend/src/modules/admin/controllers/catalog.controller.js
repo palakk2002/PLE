@@ -244,7 +244,7 @@ const sanitizeBrandPayload = (payload = {}) => {
 
 // GET /api/admin/products
 export const getAllProducts = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20, search, vendorId, categoryId, status, includeInactive = 'false', b2bOnly, salesChannel } = req.query;
+    const { page = 1, limit = 20, search, vendorId, categoryId, status, includeInactive = 'false', b2bOnly, salesChannel, shopId, approvalStatus, sellerType } = req.query;
     const numericPage = Number(page) || 1;
     const numericLimit = Number(limit) || 20;
     const skip = (numericPage - 1) * numericLimit;
@@ -262,11 +262,24 @@ export const getAllProducts = asyncHandler(async (req, res) => {
     if (salesChannel) {
         filter.salesChannel = salesChannel;
     }
+    if (shopId) {
+        filter.shopId = shopId;
+    }
+    if (approvalStatus) {
+        filter.approvalStatus = approvalStatus;
+    }
+    if (sellerType === 'independent') {
+        filter.shopId = { $exists: false };
+    } else if (sellerType === 'managed') {
+        filter.shopId = { $exists: true };
+    }
 
     const products = await Product.find(filter)
         .populate('vendorId', 'storeName')
         .populate('categoryId', 'name')
         .populate('brandId', 'name')
+        .populate('shopId', 'name logo')
+        .populate('vendorUserId', 'name username')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(numericLimit);
@@ -530,4 +543,43 @@ export const deleteBrand = asyncHandler(async (req, res) => {
 
     await Brand.findByIdAndDelete(req.params.id);
     res.status(200).json(new ApiResponse(200, null, 'Brand deleted.'));
+});
+
+// PATCH /api/admin/products/:id/review
+export const reviewProduct = asyncHandler(async (req, res) => {
+    const { status, reason, price, originalPrice, name, description, images } = req.body;
+    if (!['approved', 'rejected'].includes(status)) {
+        throw new ApiError(400, 'Invalid review status. Must be approved or rejected.');
+    }
+
+    const product = await Product.findById(req.params.id);
+    if (!product) throw new ApiError(404, 'Product not found.');
+
+    product.approvalStatus = status;
+    product.approvedBy = req.user.id;
+    product.approvalDate = new Date();
+    if (status === 'rejected') {
+        product.rejectionReason = reason || '';
+    } else {
+        product.rejectionReason = undefined;
+    }
+
+    // Admin can edit product details during review
+    if (name !== undefined) product.name = name;
+    if (description !== undefined) product.description = description;
+    if (price !== undefined) product.price = price;
+    if (originalPrice !== undefined) product.originalPrice = originalPrice;
+    if (images !== undefined) product.images = images;
+
+    // Log this action in audit log
+    product.auditLog.push({
+        action: status,
+        userId: req.user.id,
+        userType: 'admin',
+        timestamp: new Date(),
+        reason: reason || ''
+    });
+
+    await product.save();
+    res.status(200).json(new ApiResponse(200, product, `Product successfully ${status}.`));
 });

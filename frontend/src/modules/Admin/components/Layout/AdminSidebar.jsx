@@ -64,6 +64,7 @@ const iconMap = {
   "Landing Page": FiGlobe,
   "B2B Users": FiUsers,
   "Wallet Management": FiCreditCard,
+  "My Shops": FiBriefcase,
   "About Page": FiLayout,
   "Portfolio Page": FiImage,
 };
@@ -126,6 +127,8 @@ const getChildRoute = (parentRoute, childName) => {
       "Pending Approvals": "/admin/vendors/pending-approvals",
       "Commission Rates": "/admin/vendors/commission-rates",
       "Vendor Analytics": "/admin/vendors/vendor-analytics",
+      "Managed Shops": "/admin/vendors/managed-shops",
+      "Product Approvals": "/admin/vendors/product-approvals",
     },
     "/admin/b2b-users": {
       "Manage B2B Users": "/admin/b2b-users/manage",

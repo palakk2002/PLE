@@ -50,7 +50,8 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
     pathname === '/terms-and-conditions' ||
     pathname === '/user-agreement' ||
     pathname === '/return-policy' ||
-    pathname === '/about-us';
+    pathname === '/about-us' ||
+    pathname.startsWith('/legal/');
   
   // Respect the showBottomNav prop and hide on auth pages or when location selector is open
   const shouldShowBottomNav = showBottomNav && !isAuthPage && !isLocationSelectorOpen;
@@ -71,23 +72,25 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
     };
   }, []);
 
-  return (
-    <>
-      {!isAuthPage && !isCheckoutPage && !isProfileOptionPage && !isOrderConfirmationPage && !isTrackOrderPage && <DesktopHeader />}
-      {shouldShowHeader && <MobileHeader />}
-      <main
-        className={`min-h-screen w-full overflow-x-hidden md:container md:mx-auto md:px-12 lg:px-24 xl:px-40 ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}
-        style={{ paddingTop: shouldShowHeader ? `${headerHeight}px` : '0px' }}
-      >
-        {children}
-      </main>
-      {!isAuthPage && !isCheckoutPage && <DesktopFooter />}
-      {shouldShowBottomNav && <MobileBottomNav />}
-      <CartDrawer />
+      const isLegalPath = pathname.startsWith('/legal/') || pathname === '/privacy-policy' || pathname === '/terms-and-conditions' || pathname === '/user-agreement' || pathname === '/return-policy';
 
-      {!isAuthPage && !isCheckoutPage && createPortal(
-        <Link
-          to="/product-request/new"
+      return (
+        <>
+          {!isAuthPage && !isCheckoutPage && !isProfileOptionPage && !isOrderConfirmationPage && !isTrackOrderPage && <DesktopHeader />}
+          {shouldShowHeader && <MobileHeader />}
+          <main
+            className={`min-h-screen w-full overflow-x-hidden px-4 md:px-8 lg:px-12 xl:px-16 ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}
+            style={{ paddingTop: shouldShowHeader ? `${headerHeight}px` : '0px' }}
+          >
+            {children}
+          </main>
+          {!isAuthPage && !isCheckoutPage && <DesktopFooter />}
+          {shouldShowBottomNav && <MobileBottomNav />}
+          <CartDrawer />
+
+          {!isAuthPage && !isCheckoutPage && !isLegalPath && createPortal(
+            <Link
+              to="/product-request/new"
           className="fixed right-4 z-[9998] safe-area-bottom px-5 py-3 rounded-full text-white shadow-2xl flex items-center justify-center gap-2 hover:scale-105 active:scale-[0.95] transition-all duration-300 group font-bold text-xs"
           style={{ 
             bottom: pathname.startsWith('/product/') ? "calc(6.5rem + 10px)" : "calc(4rem + 10px)",

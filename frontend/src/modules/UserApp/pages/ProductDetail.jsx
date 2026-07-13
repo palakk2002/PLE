@@ -558,7 +558,6 @@ const MobileProductDetail = () => {
     if (!addedToCart) return;
     triggerCartAnimation();
     toast.success("Added to cart!");
-    navigate('/checkout');
   };
 
   const handleRemoveFromCart = () => {

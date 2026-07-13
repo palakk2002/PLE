@@ -238,10 +238,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
     const vendorMap = {};
 
     for (const item of items) {
-        const product = await Product.findById(item.productId).populate(
-            'vendorId',
-            'commissionRate storeName shippingEnabled defaultShippingRate freeShippingThreshold'
-        );
+        const product = await Product.findById(item.productId)
+            .populate('vendorId', 'commissionRate storeName shippingEnabled defaultShippingRate freeShippingThreshold')
+            .populate('shopId', 'name logo');
         if (!product) throw new ApiError(404, `Product not found: ${item.productId}`);
         if (product.stock === 'out_of_stock') throw new ApiError(400, `${product.name} is out of stock.`);
         if (product.stockQuantity < item.quantity) throw new ApiError(400, `Only ${product.stockQuantity} units of ${product.name} available.`);
@@ -274,28 +273,44 @@ export const placeOrder = asyncHandler(async (req, res) => {
             variantKey
                 ? String((product?.variants?.imageMap?.get?.(variantKey) ?? product?.variants?.imageMap?.[variantKey]) || '').trim()
                 : '';
+
+        const isManagedShop = !!product.shopId;
+        const vendorIdObj = isManagedShop ? product.shopId._id : product.vendorId?._id;
+        const vendorNameStr = isManagedShop ? (product.shopId.name || "Managed Shop") : (product.vendorId?.storeName || "Unknown Vendor");
+        const commissionRateNum = isManagedShop ? 0 : (product.vendorId?.commissionRate || 10);
+        const shippingEnabledVal = isManagedShop ? true : (product.vendorId?.shippingEnabled !== false);
+        const defaultShippingRateVal = isManagedShop ? 0 : (product.vendorId?.defaultShippingRate || 0);
+        const freeShippingThresholdVal = isManagedShop ? 0 : (product.vendorId?.freeShippingThreshold || 0);
+
+        if (!vendorIdObj) {
+            throw new ApiError(400, `Vendor or Shop mapping missing for product: ${product.name}`);
+        }
+
+        const hasVariantStock = variantKey && Number.isFinite(variantStockValue);
+
         const enriched = {
             productId: product._id,
-            vendorId: product.vendorId._id,
+            vendorId: vendorIdObj,
             name: product.name,
             image: variantImage || product.image,
             price: itemPrice,
             quantity: item.quantity,
             variant: item.variant,
             variantKey: variantKey || undefined,
+            hasVariantStock: hasVariantStock || undefined,
         };
         enrichedItems.push(enriched);
 
         // Group by vendor
-        const vid = product.vendorId._id.toString();
+        const vid = vendorIdObj.toString();
         if (!vendorMap[vid]) {
             vendorMap[vid] = {
-                vendorId: product.vendorId._id,
-                vendorName: product.vendorId.storeName,
-                commissionRate: product.vendorId.commissionRate || 10,
-                shippingEnabled: product.vendorId.shippingEnabled !== false,
-                defaultShippingRate: product.vendorId.defaultShippingRate,
-                freeShippingThreshold: product.vendorId.freeShippingThreshold,
+                vendorId: vendorIdObj,
+                vendorName: vendorNameStr,
+                commissionRate: commissionRateNum,
+                shippingEnabled: shippingEnabledVal,
+                defaultShippingRate: defaultShippingRateVal,
+                freeShippingThreshold: freeShippingThresholdVal,
                 items: [],
                 subtotal: 0,
             };
@@ -475,7 +490,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
 
             // 7. Deduct stock atomically to prevent oversell under concurrent checkout.
             for (const item of enrichedItems) {
-                const variantPath = item.variantKey ? `variants.stockMap.${item.variantKey}` : null;
+                const useVariantStock = item.variantKey && item.hasVariantStock;
+                const variantPath = useVariantStock ? `variants.stockMap.${item.variantKey}` : null;
                 const baseFilter = {
                     _id: item.productId,
                     stock: { $ne: 'out_of_stock' },

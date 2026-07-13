@@ -8,15 +8,24 @@ import {
   FiDollarSign,
 } from "react-icons/fi";
 
+import { useVendorAuthStore } from "../../store/vendorAuthStore";
+
 const VendorBottomNav = () => {
   const location = useLocation();
+  const { vendor } = useVendorAuthStore();
+  const isManagedVendor = vendor?.role === "managed_vendor";
 
-  const navItems = [
-    { path: "/vendor/dashboard", icon: FiHome, label: "Home" },
-    { path: "/vendor/products", icon: FiPackage, label: "Products" },
-    { path: "/vendor/orders", icon: FiShoppingBag, label: "Orders" },
-    { path: "/vendor/earnings", icon: FiDollarSign, label: "Earnings" },
-  ];
+  const navItems = isManagedVendor
+    ? [
+        { path: "/vendor/dashboard", icon: FiHome, label: "Home" },
+        { path: "/vendor/products", icon: FiPackage, label: "Products" },
+      ]
+    : [
+        { path: "/vendor/dashboard", icon: FiHome, label: "Home" },
+        { path: "/vendor/products", icon: FiPackage, label: "Products" },
+        { path: "/vendor/orders", icon: FiShoppingBag, label: "Orders" },
+        { path: "/vendor/earnings", icon: FiDollarSign, label: "Earnings" },
+      ];
 
   const isActive = (path) => {
     if (path === "/vendor/dashboard") {

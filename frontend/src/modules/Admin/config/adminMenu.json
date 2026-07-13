@@ -103,13 +103,19 @@
     ]
   },
   {
+    "title": "My Shops",
+    "route": "/admin/vendors/managed-shops",
+    "children": []
+  },
+  {
     "title": "Vendors",
     "route": "/admin/vendors",
     "children": [
       "Manage Vendors",
       "Pending Approvals",
       "Commission Rates",
-      "Vendor Analytics"
+      "Vendor Analytics",
+      "Product Approvals"
     ]
   },
   {

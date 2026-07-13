@@ -8,6 +8,7 @@ const ProductRequestsDashboard = () => {
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("All"); // All, General, PLE Shop
   
   // Status modification state
   const [selectedReq, setSelectedReq] = useState(null);
@@ -23,7 +24,9 @@ const ProductRequestsDashboard = () => {
     try {
       const response = await api.get('/admin/product-requests');
       if (response.success || response.statusCode === 200) {
-        setRequests(response.data || []);
+        const payload = response.data;
+        const list = Array.isArray(payload) ? payload : (payload?.requests || []);
+        setRequests(list);
       }
     } catch (error) {
       console.error("Failed to fetch product requests:", error);
@@ -88,11 +91,28 @@ const ProductRequestsDashboard = () => {
   const stats = getStats();
 
   const filteredRequests = requests.filter((r) => {
-    return (
+    const matchesSearch = (
       r.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.category.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    if (!matchesSearch) return false;
+
+    if (filterType === "General") {
+      return r.requestType === "GENERAL";
+    }
+    if (filterType === "PLE Shop") {
+      return (
+        r.requestType === "SHOP_SPECIFIC" &&
+        (r.targetEntityType === "ManagedShop" || 
+         r.targetEntityId?.name === "PLE Shop" || 
+         r.targetEntityId?.storeName === "PLE Shop" || 
+         String(r.targetEntityId) === "1" ||
+         r.targetEntityName === "PLE Shop")
+      );
+    }
+    return true;
   });
 
   const getStatusBadge = (status) => {
@@ -143,10 +163,28 @@ const ProductRequestsDashboard = () => {
 
       {/* Requests table control */}
       <div className="bg-white rounded-3xl border border-gray-150 overflow-hidden shadow-sm">
-        <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <h3 className="font-extrabold text-gray-800 text-lg">All Product Requests</h3>
+        <div className="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h3 className="font-extrabold text-gray-800 text-lg">All Product Requests</h3>
+            {/* Filter Tabs */}
+            <div className="flex gap-2 mt-2">
+              {["All", "General", "PLE Shop"].map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setFilterType(type)}
+                  className={`px-3 py-1 text-xs font-bold rounded-full transition-all border ${
+                    filterType === type
+                      ? "bg-indigo-600 text-white border-indigo-650"
+                      : "bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100"
+                  }`}
+                >
+                  {type === "All" ? "All Requests" : type === "General" ? "Marketplace Sourcing" : "PLE Shop Requests"}
+                </button>
+              ))}
+            </div>
+          </div>
           
-          <div className="relative w-full sm:max-w-xs">
+          <div className="relative w-full sm:max-w-xs shrink-0">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
@@ -176,6 +214,7 @@ const ProductRequestsDashboard = () => {
                 <tr className="bg-gray-50 border-b border-gray-100 text-xs text-gray-400 font-bold uppercase">
                   <th className="p-4">Request Info</th>
                   <th className="p-4">Specifications</th>
+                  <th className="p-4">Sourcing Target</th>
                   <th className="p-4">Seller Bids</th>
                   <th className="p-4">Status</th>
                   <th className="p-4 text-center">Manage Status</th>
@@ -205,6 +244,17 @@ const ProductRequestsDashboard = () => {
                     <td className="p-4 text-xs text-gray-500">
                       <div>Cat: <strong className="text-gray-700">{req.category}</strong></div>
                       <div>Qty: <strong className="text-gray-700">{req.quantity}</strong> | Budget: <strong className="text-gray-700">₹{req.expectedBudget}</strong></div>
+                    </td>
+                    <td className="p-4">
+                      {req.requestType === 'SHOP_SPECIFIC' ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-bold border border-amber-100">
+                          🏪 {req.targetEntityId?.storeName || req.targetEntityName || 'PLE Shop'}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-gray-50 text-gray-600 text-xs font-medium border border-gray-150">
+                          🌐 General (Global)
+                        </span>
+                      )}
                     </td>
                     <td className="p-4 text-xs text-gray-500">
                       {req.sellerResponses && req.sellerResponses.length > 0 ? (

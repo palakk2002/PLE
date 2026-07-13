@@ -11,6 +11,9 @@ const ProductRequestForm = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const prefilledName = searchParams.get("name") || "";
+  const targetType = searchParams.get("targetType") || "";
+  const targetId = searchParams.get("targetId") || "";
+  const targetName = searchParams.get("targetName") || "";
 
   const [formData, setFormData] = useState({
     name: prefilledName,
@@ -125,7 +128,10 @@ const ProductRequestForm = () => {
         quantity: Number(formData.quantity),
         expectedBudget: Number(formData.budget),
         description: formData.description,
-        image: uploadedImageUrl
+        image: uploadedImageUrl,
+        requestType: targetId ? 'SHOP_SPECIFIC' : 'GENERAL',
+        targetEntityType: targetId ? targetType : undefined,
+        targetEntityId: targetId ? targetId : undefined
       };
 
       const res = await api.post('/user/product-requests', payload);
@@ -160,6 +166,17 @@ const ProductRequestForm = () => {
 
           <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
             <form onSubmit={handleSubmit} className="space-y-6">
+              {targetName && (
+                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Target Store</p>
+                    <p className="text-sm font-bold text-[#7B0A0A]">{targetName}</p>
+                  </div>
+                  <span className="text-[10px] bg-red-100 text-[#7B0A0A] px-2 py-0.5 rounded-full font-bold">
+                    Direct Request
+                  </span>
+                </div>
+              )}
               {/* Product Name */}
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">Product Name *</label>

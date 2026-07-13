@@ -37,7 +37,8 @@ import {
 import { uploadSingle, uploadMultiple, uploadDocumentSingle } from '../../../middlewares/upload.js';
 
 const router = Router();
-const vendorAuth = [authenticate, authorize('vendor'), enforceAccountStatus];
+const vendorAuth = [authenticate, authorize('vendor', 'managed_vendor'), enforceAccountStatus];
+const strictVendorAuth = [authenticate, authorize('vendor'), enforceAccountStatus];
 
 // Auth
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
@@ -51,7 +52,7 @@ router.post('/auth/refresh', validate(refreshTokenSchema), authController.refres
 router.post('/auth/logout', validate(logoutSchema), authController.logout);
 router.get('/auth/profile', ...vendorAuth, authController.getProfile);
 router.put('/auth/profile', ...vendorAuth, authController.updateProfile);
-router.put('/auth/bank-details', ...vendorAuth, authController.updateBankDetails);
+router.put('/auth/bank-details', ...strictVendorAuth, authController.updateBankDetails);
 
 // Products
 router.get('/products', ...vendorAuth, productController.getVendorProducts);
@@ -62,65 +63,63 @@ router.delete('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'pa
 router.patch('/stock/:productId', ...vendorAuth, productController.updateStock);
 
 // Orders
-router.get('/orders', ...vendorAuth, orderController.getVendorOrders);
-router.get('/orders/:id', ...vendorAuth, orderController.getVendorOrderById);
-router.patch('/orders/:id/status', ...vendorAuth, orderController.updateOrderStatus);
+router.get('/orders', ...strictVendorAuth, orderController.getVendorOrders);
+router.get('/orders/:id', ...strictVendorAuth, orderController.getVendorOrderById);
+router.patch('/orders/:id/status', ...strictVendorAuth, orderController.updateOrderStatus);
 
 // Customers
-router.get('/customers', ...vendorAuth, customerController.getVendorCustomers);
-router.get('/customers/:id', ...vendorAuth, customerController.getVendorCustomerById);
+router.get('/customers', ...strictVendorAuth, customerController.getVendorCustomers);
+router.get('/customers/:id', ...strictVendorAuth, customerController.getVendorCustomerById);
 
 // Chat
-router.get('/chat/threads', ...vendorAuth, chatController.getVendorChatThreads);
-router.get('/chat/threads/:id/messages', ...vendorAuth, chatController.getVendorChatMessages);
-router.post('/chat/threads/:id/messages', ...vendorAuth, chatController.sendVendorChatMessage);
-router.patch('/chat/threads/:id/read', ...vendorAuth, chatController.markVendorChatRead);
-router.patch('/chat/threads/:id/status', ...vendorAuth, chatController.updateVendorChatStatus);
+router.get('/chat/threads', ...strictVendorAuth, chatController.getVendorChatThreads);
+router.get('/chat/threads/:id/messages', ...strictVendorAuth, chatController.getVendorChatMessages);
+router.post('/chat/threads/:id/messages', ...strictVendorAuth, chatController.sendVendorChatMessage);
+router.patch('/chat/threads/:id/read', ...strictVendorAuth, chatController.markVendorChatRead);
+router.patch('/chat/threads/:id/status', ...strictVendorAuth, chatController.updateVendorChatStatus);
 
 // Documents
-router.get('/documents', ...vendorAuth, documentController.getVendorDocuments);
-router.post('/documents', ...vendorAuth, uploadDocumentSingle('file'), documentController.createVendorDocument);
-router.delete('/documents/:id', ...vendorAuth, documentController.deleteVendorDocument);
+router.get('/documents', ...strictVendorAuth, documentController.getVendorDocuments);
+router.post('/documents', ...strictVendorAuth, uploadDocumentSingle('file'), documentController.createVendorDocument);
+router.delete('/documents/:id', ...strictVendorAuth, documentController.deleteVendorDocument);
 
 // Notifications
-router.get('/notifications', ...vendorAuth, notificationController.getVendorNotifications);
-router.put('/notifications/:id/read', ...vendorAuth, notificationController.markVendorNotificationAsRead);
-router.put('/notifications/read-all', ...vendorAuth, notificationController.markAllVendorNotificationsAsRead);
-router.delete('/notifications/:id', ...vendorAuth, notificationController.deleteVendorNotification);
+router.get('/notifications', ...strictVendorAuth, notificationController.getVendorNotifications);
+router.put('/notifications/:id/read', ...strictVendorAuth, notificationController.markVendorNotificationAsRead);
+router.put('/notifications/read-all', ...strictVendorAuth, notificationController.markAllVendorNotificationsAsRead);
+router.delete('/notifications/:id', ...strictVendorAuth, notificationController.deleteVendorNotification);
 
 // Inventory reports
-router.get('/inventory/reports', ...vendorAuth, inventoryController.getInventoryReport);
+router.get('/inventory/reports', ...strictVendorAuth, inventoryController.getInventoryReport);
 
 // Performance metrics
-router.get('/performance/metrics', ...vendorAuth, performanceController.getPerformanceMetrics);
+router.get('/performance/metrics', ...strictVendorAuth, performanceController.getPerformanceMetrics);
 
 // Analytics
-router.get('/analytics/overview', ...vendorAuth, analyticsController.getAnalyticsOverview);
+router.get('/analytics/overview', ...strictVendorAuth, analyticsController.getAnalyticsOverview);
 
 // Earnings
-router.get('/earnings', ...vendorAuth, orderController.getEarnings);
+router.get('/earnings', ...strictVendorAuth, orderController.getEarnings);
 
 // Return requests
-router.get('/return-requests', ...vendorAuth, returnController.getVendorReturnRequests);
-router.get('/return-requests/:id', ...vendorAuth, returnController.getVendorReturnRequestById);
-router.patch('/return-requests/:id/status', ...vendorAuth, returnController.updateVendorReturnRequestStatus);
+router.get('/return-requests', ...strictVendorAuth, returnController.getVendorReturnRequests);
+router.get('/return-requests/:id', ...strictVendorAuth, returnController.getVendorReturnRequestById);
+router.patch('/return-requests/:id/status', ...strictVendorAuth, returnController.updateVendorReturnRequestStatus);
 
 // Product reviews
-router.get('/reviews', ...vendorAuth, reviewController.getVendorReviews);
-router.patch('/reviews/:id/status', ...vendorAuth, reviewController.updateVendorReviewStatus);
-router.patch('/reviews/:id/response', ...vendorAuth, reviewController.addVendorReviewResponse);
-
-
+router.get('/reviews', ...strictVendorAuth, reviewController.getVendorReviews);
+router.patch('/reviews/:id/status', ...strictVendorAuth, reviewController.updateVendorReviewStatus);
+router.patch('/reviews/:id/response', ...strictVendorAuth, reviewController.addVendorReviewResponse);
 
 // Shipping management
-router.get('/shipping/zones', ...vendorAuth, shippingController.getShippingZones);
-router.post('/shipping/zones', ...vendorAuth, shippingController.createShippingZone);
-router.put('/shipping/zones/:id', ...vendorAuth, shippingController.updateShippingZone);
-router.delete('/shipping/zones/:id', ...vendorAuth, shippingController.deleteShippingZone);
-router.get('/shipping/rates', ...vendorAuth, shippingController.getShippingRates);
-router.post('/shipping/rates', ...vendorAuth, shippingController.createShippingRate);
-router.put('/shipping/rates/:id', ...vendorAuth, shippingController.updateShippingRate);
-router.delete('/shipping/rates/:id', ...vendorAuth, shippingController.deleteShippingRate);
+router.get('/shipping/zones', ...strictVendorAuth, shippingController.getShippingZones);
+router.post('/shipping/zones', ...strictVendorAuth, shippingController.createShippingZone);
+router.put('/shipping/zones/:id', ...strictVendorAuth, shippingController.updateShippingZone);
+router.delete('/shipping/zones/:id', ...strictVendorAuth, shippingController.deleteShippingZone);
+router.get('/shipping/rates', ...strictVendorAuth, shippingController.getShippingRates);
+router.post('/shipping/rates', ...strictVendorAuth, shippingController.createShippingRate);
+router.put('/shipping/rates/:id', ...strictVendorAuth, shippingController.updateShippingRate);
+router.delete('/shipping/rates/:id', ...strictVendorAuth, shippingController.deleteShippingRate);
 
 // Uploads (Cloudinary via temp local multer upload)
 router.post('/uploads/image', ...vendorAuth, uploadSingle('image'), uploadController.uploadImage);
@@ -130,28 +129,33 @@ router.post('/uploads/images', ...vendorAuth, uploadMultiple('images', 8), uploa
 import * as vendorRfqController from '../controllers/vendorRfq.controller.js';
 import * as vendorDirectRfqController from '../controllers/vendorDirectRfq.controller.js';
 
-router.get('/rfq', ...vendorAuth, vendorRfqController.getVendorRFQs);
-router.post('/rfq/upload', ...vendorAuth, uploadDocumentSingle('file'), vendorRfqController.uploadAttachment);
-router.post('/rfq/:id/quote', ...vendorAuth, vendorRfqController.vendorSendQuote);
-router.post('/rfq/:id/reject', ...vendorAuth, vendorRfqController.vendorRejectRFQ);
-router.post('/rfq/:id/message', ...vendorAuth, vendorRfqController.sendVendorNegotiationMessage);
+router.get('/rfq', ...strictVendorAuth, vendorRfqController.getVendorRFQs);
+router.post('/rfq/upload', ...strictVendorAuth, uploadDocumentSingle('file'), vendorRfqController.uploadAttachment);
+router.post('/rfq/:id/quote', ...strictVendorAuth, vendorRfqController.vendorSendQuote);
+router.post('/rfq/:id/reject', ...strictVendorAuth, vendorRfqController.vendorRejectRFQ);
+router.post('/rfq/:id/message', ...strictVendorAuth, vendorRfqController.sendVendorNegotiationMessage);
 
 // Direct RFQ routes
-router.get('/direct-rfq', ...vendorAuth, vendorDirectRfqController.getVendorDirectRFQs);
-router.get('/direct-rfq/:id', ...vendorAuth, vendorDirectRfqController.getVendorDirectRFQDetail);
-router.post('/direct-rfq/:id/message', ...vendorAuth, vendorDirectRfqController.sendDirectMessage);
+router.get('/direct-rfq', ...strictVendorAuth, vendorDirectRfqController.getVendorDirectRFQs);
+router.get('/direct-rfq/:id', ...strictVendorAuth, vendorDirectRfqController.getVendorDirectRFQDetail);
+router.post('/direct-rfq/:id/message', ...strictVendorAuth, vendorDirectRfqController.sendDirectMessage);
 
 // Purchase Orders (B2B)
 import * as vendorB2BController from '../controllers/vendorB2B.controller.js';
-router.get('/b2b/settings', ...vendorAuth, vendorB2BController.getSettings);
-router.put('/b2b/settings', ...vendorAuth, vendorB2BController.updateSettings);
-router.get('/b2b/analytics', ...vendorAuth, vendorB2BController.getAnalytics);
-router.get('/b2b/purchase-orders', ...vendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrders);
-router.get('/b2b/purchase-orders/:id', ...vendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrderById);
+router.get('/b2b/settings', ...strictVendorAuth, vendorB2BController.getSettings);
+router.put('/b2b/settings', ...strictVendorAuth, vendorB2BController.updateSettings);
+router.get('/b2b/analytics', ...strictVendorAuth, vendorB2BController.getAnalytics);
+router.get('/b2b/purchase-orders', ...strictVendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrders);
+router.get('/b2b/purchase-orders/:id', ...strictVendorAuth, vendorPurchaseOrderController.getVendorPurchaseOrderById);
 
 // Product Enquiry routes (protected Vendor)
 import * as vendorEnquiryController from '../controllers/productEnquiry.controller.js';
-router.get('/enquiries', ...vendorAuth, vendorEnquiryController.getVendorEnquiries);
-router.put('/enquiries/:id/reply', ...vendorAuth, vendorEnquiryController.replyToEnquiry);
+router.get('/enquiries', ...strictVendorAuth, vendorEnquiryController.getVendorEnquiries);
+router.put('/enquiries/:id/reply', ...strictVendorAuth, vendorEnquiryController.replyToEnquiry);
+
+// Product Requests (protected Vendor)
+import * as vendorProductRequestController from '../controllers/productRequest.controller.js';
+router.get('/product-requests', ...strictVendorAuth, vendorProductRequestController.getVendorProductRequests);
+router.put('/product-requests/:id/respond', ...strictVendorAuth, vendorProductRequestController.respondToProductRequest);
 
 export default router;

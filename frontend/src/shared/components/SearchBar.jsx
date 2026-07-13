@@ -17,6 +17,15 @@ const SearchBar = () => {
   const [suggestions, setSuggestions] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
 
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Animated placeholder texts
   const placeholders = ["Search products...", "Find brands...", "Explore categories...", "Search deals...", "Discover new items..."];
   const [placeholderIdx, setPlaceholderIdx] = useState(0);
@@ -271,11 +280,11 @@ const SearchBar = () => {
             initial={{ opacity: 0, x: 0 }}
             animate={{ 
               opacity: searchQuery ? 0 : 1, 
-              x: typeof window !== 'undefined' && window.innerWidth < 768 ? [0, 30] : 0 
+              x: windowWidth < 768 ? [0, 30] : 0 
             }}
             transition={{
               opacity: { duration: 0.2 },
-              x: typeof window !== 'undefined' && window.innerWidth < 768 
+              x: windowWidth < 768 
                 ? { repeat: Infinity, repeatType: "loop", duration: 4, ease: "linear" } 
                 : { duration: 0 }
             }}

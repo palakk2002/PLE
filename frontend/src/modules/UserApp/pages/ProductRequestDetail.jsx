@@ -144,6 +144,41 @@ const ProductRequestDetail = () => {
                   </div>
                 </div>
 
+                {request.requestType === 'SHOP_SPECIFIC' && request.targetEntityId && (
+                  <div className="pt-4 border-t border-gray-100">
+                    <span className="text-gray-400 block font-medium text-xs mb-2">Requested From Store</span>
+                    <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
+                        <img 
+                          src={request.targetEntityId.storeLogo || request.targetEntityId.logo} 
+                          alt="Store Logo" 
+                          className="w-full h-full object-cover" 
+                          onError={(e) => { e.target.src = "https://via.placeholder.com/150?text=" + (request.targetEntityId.storeName || request.targetEntityId.name || "S").charAt(0) }}
+                        />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-800 text-sm">
+                          {request.targetEntityId.storeName || request.targetEntityId.name}
+                        </h4>
+                        <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                          {request.targetEntityId.rating !== undefined && (
+                            <span className="flex items-center gap-1 text-yellow-600 font-bold">
+                              ★ {request.targetEntityId.rating}
+                            </span>
+                          )}
+                          {request.targetEntityId.address && (
+                            <span className="truncate max-w-[200px]">
+                              {typeof request.targetEntityId.address === 'object' 
+                                ? `${request.targetEntityId.address.city || ''}, ${request.targetEntityId.address.state || ''}`
+                                : request.targetEntityId.address}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="pt-4 border-t border-gray-100">
                   <span className="text-gray-400 block font-medium text-xs mb-1">Description</span>
                   <p className="text-gray-650 text-sm whitespace-pre-wrap">

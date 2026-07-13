@@ -307,7 +307,24 @@ const VendorSidebar = ({ isOpen, onClose }) => {
 
       {/* Navigation Menu */}
       <nav className="flex-1 overflow-y-auto p-3 scrollbar-admin lg:pb-3">
-        {vendorMenu.map((item) => renderMenuItem(item))}
+        {(() => {
+          const allowedTitles = ["Dashboard", "Products", "Profile"];
+          const isManagedVendor = vendor?.role === "managed_vendor";
+          const filteredMenu = isManagedVendor
+            ? vendorMenu
+                .filter((item) => allowedTitles.includes(item.title))
+                .map((item) => {
+                  if (item.title === "Products") {
+                    return {
+                      ...item,
+                      children: item.children.filter((child) => child !== "Add Refurbished Product")
+                    };
+                  }
+                  return item;
+                })
+            : vendorMenu;
+          return filteredMenu.map((item) => renderMenuItem(item));
+        })()}
       </nav>
     </div>
   );

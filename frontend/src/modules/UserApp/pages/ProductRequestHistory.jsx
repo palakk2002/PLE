@@ -10,22 +10,44 @@ const ProductRequestHistory = () => {
   const navigate = useNavigate();
   const [requests, setRequests] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeStatus, setActiveStatus] = useState("All");
+  const [activeType, setActiveType] = useState("All");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     fetchRequests();
-  }, []);
+  }, [activeStatus, activeType, currentPage]);
 
   const fetchRequests = async () => {
     setIsLoading(true);
     try {
-      const response = await api.get('/user/product-requests');
+      const params = {
+        page: currentPage,
+        limit: 10
+      };
+      if (activeStatus !== "All") params.status = activeStatus;
+      if (activeType !== "All") params.type = activeType;
+
+      const response = await api.get('/user/product-requests', { params });
       if (response.success || response.statusCode === 200) {
-        const formatted = (response.data || []).map(r => ({
+        const dataPayload = response.data;
+        const rawRequests = Array.isArray(dataPayload) 
+          ? dataPayload 
+          : (dataPayload?.requests || []);
+        
+        const formatted = rawRequests.map(r => ({
           ...r,
           id: r.requestId,
           date: r.createdAt
         }));
         setRequests(formatted);
+
+        if (dataPayload?.pagination) {
+          setTotalPages(dataPayload.pagination.pages || 1);
+        } else {
+          setTotalPages(1);
+        }
       }
     } catch (error) {
       console.error("Failed to fetch product requests:", error);
@@ -71,6 +93,37 @@ const ProductRequestHistory = () => {
               <FiPlus />
               <span className="hidden sm:inline">New Request</span>
             </button>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-4 mb-6 bg-white p-4 rounded-3xl border border-gray-100 shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Status:</span>
+              <select 
+                value={activeStatus} 
+                onChange={(e) => { setActiveStatus(e.target.value); setCurrentPage(1); }}
+                className="text-xs bg-gray-50 border border-gray-200 rounded-xl p-2 font-bold text-gray-700 focus:outline-none"
+              >
+                <option value="All">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Type:</span>
+              <select 
+                value={activeType} 
+                onChange={(e) => { setActiveType(e.target.value); setCurrentPage(1); }}
+                className="text-xs bg-gray-50 border border-gray-200 rounded-xl p-2 font-bold text-gray-700 focus:outline-none"
+              >
+                <option value="All">All Types</option>
+                <option value="GENERAL">General Requests</option>
+                <option value="SHOP_SPECIFIC">Shop Requests</option>
+              </select>
+            </div>
           </div>
 
           {/* List or Empty State */}
@@ -124,6 +177,13 @@ const ProductRequestHistory = () => {
                       <h3 className="font-extrabold text-gray-800 text-base truncate group-hover:text-[#AE020B] transition-colors">
                         {req.productName}
                       </h3>
+                      {req.requestType === 'SHOP_SPECIFIC' && req.targetEntityId && (
+                        <div className="mt-1 flex items-center gap-1.5 bg-gray-50 border border-gray-150 rounded-lg px-2 py-0.5 w-fit">
+                          <span className="text-[10px] font-bold text-[#7B0A0A]">
+                            Shop: {req.targetEntityId.storeName || req.targetEntityId.name}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-3 text-xs text-gray-500 mt-1">
                         <span className="flex items-center gap-1">
                           <FiCalendar />
@@ -142,6 +202,29 @@ const ProductRequestHistory = () => {
                   <FiChevronRight className="text-gray-400 group-hover:text-gray-600 transition-colors text-xl shrink-0" />
                 </motion.div>
               ))}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {!isLoading && totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8">
+              <button
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 disabled:opacity-50 transition-all hover:bg-gray-50"
+              >
+                Previous
+              </button>
+              <span className="text-xs font-semibold text-gray-650">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                className="px-3 py-1.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-700 disabled:opacity-50 transition-all hover:bg-gray-50"
+              >
+                Next
+              </button>
             </div>
           )}
         </div>

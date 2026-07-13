@@ -248,7 +248,7 @@ const MobileProfile = () => {
   } = useForm({
     defaultValues: {
       name: user?.name || "",
-      email: user?.email || "",
+      email: (user?.role === 'b2bAdmin' || user?.role === 'b2bEmployee') ? (user?.companyEmail || user?.email || "") : (user?.email || ""),
       phone: user?.phone || "",
       gender: user?.gender || "",
       dob: user?.dob || "",
@@ -282,12 +282,12 @@ const MobileProfile = () => {
   useEffect(() => {
     resetPersonal({
       name: user?.name || "",
-      email: user?.email || "",
+      email: isB2BUser ? (company?.businessEmail || user?.email || "") : (user?.email || ""),
       phone: user?.phone || "",
       gender: user?.gender || "",
       dob: user?.dob || "",
     });
-  }, [user, resetPersonal]);
+  }, [user, company, isB2BUser, resetPersonal]);
 
   useEffect(() => {
     ensureNotificationHydrated();
@@ -721,7 +721,7 @@ const MobileProfile = () => {
                       {user?.name}
                     </h2>
                     <p className="text-gray-500 text-sm mb-2 font-medium">
-                      {user?.email}
+                      {isB2BUser ? (company?.businessEmail || user?.email) : user?.email}
                     </p>
 
                     {/* B2B Business Account Badge */}

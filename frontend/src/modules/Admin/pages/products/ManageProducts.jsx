@@ -13,6 +13,7 @@ import { useCategoryStore } from "../../../../shared/store/categoryStore";
 import { useBrandStore } from "../../../../shared/store/brandStore";
 import { getAllProducts, deleteProduct } from "../../services/adminService";
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
@@ -23,6 +24,9 @@ const ManageProducts = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedBrand, setSelectedBrand] = useState("all");
   const [selectedChannel, setSelectedChannel] = useState("all");
+  const [shops, setShops] = useState([]);
+  const [selectedSellerType, setSelectedSellerType] = useState("all");
+  const [selectedShop, setSelectedShop] = useState("all");
   const [deleteModal, setDeleteModal] = useState({
     isOpen: false,
     productId: null,
@@ -36,7 +40,17 @@ const ManageProducts = () => {
     initCategories();
     initBrands();
     loadProducts();
+    loadShops();
   }, []);
+
+  const loadShops = async () => {
+    try {
+      const response = await api.get("/admin/managed-shops");
+      setShops(response.data?.data || response.data || []);
+    } catch (error) {
+      console.error("Failed to load managed shops", error);
+    }
+  };
 
   const loadProducts = async () => {
     try {
@@ -99,8 +113,21 @@ const ManageProducts = () => {
       });
     }
 
+    if (selectedSellerType !== "all") {
+      filtered = filtered.filter((product) => {
+        const isManaged = !!product.shopId;
+        return selectedSellerType === "managed" ? isManaged : !isManaged;
+      });
+    }
+
+    if (selectedShop !== "all") {
+      filtered = filtered.filter(
+        (product) => String(product.shopId?._id || product.shopId) === String(selectedShop)
+      );
+    }
+
     return filtered;
-  }, [products, searchQuery, selectedStatus, selectedCategory, selectedBrand, selectedChannel]);
+  }, [products, searchQuery, selectedStatus, selectedCategory, selectedBrand, selectedChannel, selectedSellerType, selectedShop]);
 
   const columns = [
     {
@@ -125,6 +152,35 @@ const ManageProducts = () => {
           <span className="font-medium">{value}</span>
         </div>
       ),
+    },
+    {
+      key: "owner",
+      label: "Seller/Owner",
+      sortable: true,
+      render: (_, row) => {
+        if (row.shopId) {
+          return (
+            <div className="flex flex-col">
+              <span className="font-semibold text-xs text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full w-fit">
+                Managed Shop
+              </span>
+              <span className="text-sm font-medium text-gray-700 mt-1">
+                {row.shopId.name || "Managed Shop"}
+              </span>
+            </div>
+          );
+        }
+        return (
+          <div className="flex flex-col">
+            <span className="font-semibold text-xs text-blue-800 bg-blue-50 px-2 py-0.5 rounded-full w-fit">
+              Independent Seller
+            </span>
+            <span className="text-sm font-medium text-gray-700 mt-1">
+              {row.vendorId?.storeName || row.vendorId?.name || "Independent"}
+            </span>
+          </div>
+        );
+      },
     },
     {
       key: "price",
@@ -291,6 +347,32 @@ const ManageProducts = () => {
               ]}
               className="w-full sm:w-auto min-w-[140px]"
             />
+
+            <AnimatedSelect
+              value={selectedSellerType}
+              onChange={(e) => {
+                setSelectedSellerType(e.target.value);
+                setSelectedShop("all");
+              }}
+              options={[
+                { value: "all", label: "All Sellers" },
+                { value: "independent", label: "Independent Sellers" },
+                { value: "managed", label: "Managed Shops" },
+              ]}
+              className="w-full sm:w-auto min-w-[160px]"
+            />
+
+            {selectedSellerType === "managed" && (
+              <AnimatedSelect
+                value={selectedShop}
+                onChange={(e) => setSelectedShop(e.target.value)}
+                options={[
+                  { value: "all", label: "All Managed Shops" },
+                  ...shops.map((shop) => ({ value: String(shop._id), label: shop.name })),
+                ]}
+                className="w-full sm:w-auto min-w-[180px]"
+              />
+            )}
 
 
 

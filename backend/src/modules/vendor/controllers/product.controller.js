@@ -206,14 +206,19 @@ const calculateVariantAggregateStock = (variants = {}) => {
 
 // GET /api/vendor/products
 export const getVendorProducts = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 20, search, stock, salesChannel } = req.query;
+    const { page = 1, limit = 20, search, stock, salesChannel, approvalStatus } = req.query;
     const numericPage = Math.max(1, Number(page) || 1);
     const numericLimit = Math.max(1, Number(limit) || 20);
     const skip = (numericPage - 1) * numericLimit;
-    const filter = { vendorId: req.user.id };
+    
+    const filter = req.user.role === 'managed_vendor'
+        ? { shopId: req.user.shopId }
+        : { vendorId: req.user.id };
+
     if (search) filter.$text = { $search: search };
     if (stock) filter.stock = stock;
     if (salesChannel) filter.salesChannel = salesChannel;
+    if (approvalStatus) filter.approvalStatus = approvalStatus;
 
     const products = await Product.find(filter).populate('categoryId', 'name').populate('brandId', 'name').sort({ createdAt: -1 }).skip(skip).limit(numericLimit);
     const total = await Product.countDocuments(filter);
@@ -222,7 +227,11 @@ export const getVendorProducts = asyncHandler(async (req, res) => {
 
 // GET /api/vendor/products/:id
 export const getVendorProductById = asyncHandler(async (req, res) => {
-    const product = await Product.findOne({ _id: req.params.id, vendorId: req.user.id })
+    const query = req.user.role === 'managed_vendor'
+        ? { _id: req.params.id, shopId: req.user.shopId }
+        : { _id: req.params.id, vendorId: req.user.id };
+
+    const product = await Product.findOne(query)
         .populate('categoryId', 'name parentId')
         .populate('brandId', 'name');
     if (!product) throw new ApiError(404, 'Product not found or access denied.');
@@ -256,7 +265,18 @@ export const createProduct = asyncHandler(async (req, res) => {
     const product = await Product.create({
         name,
         slug,
-        vendorId: req.user.id,
+        vendorId: req.user.role === 'managed_vendor' ? undefined : req.user.id,
+        shopId: req.user.role === 'managed_vendor' ? req.user.shopId : undefined,
+        vendorUserId: req.user.role === 'managed_vendor' ? req.user.id : undefined,
+        createdBy: req.user.id,
+        approvalStatus: req.user.role === 'managed_vendor' ? 'pending' : 'approved',
+        auditLog: [{
+            action: 'created',
+            userId: req.user.id,
+            userType: req.user.role === 'managed_vendor' ? 'managed_vendor' : 'vendor',
+            timestamp: new Date(),
+            reason: 'Product created'
+        }],
         ...rest,
         price,
         variants: normalizedVariants,
@@ -270,8 +290,23 @@ export const createProduct = asyncHandler(async (req, res) => {
 
 // PUT /api/vendor/products/:id
 export const updateProduct = asyncHandler(async (req, res) => {
-    const product = await Product.findOne({ _id: req.params.id, vendorId: req.user.id });
+    const query = req.user.role === 'managed_vendor'
+        ? { _id: req.params.id, shopId: req.user.shopId }
+        : { _id: req.params.id, vendorId: req.user.id };
+
+    const product = await Product.findOne(query);
     if (!product) throw new ApiError(404, 'Product not found or access denied.');
+
+    if (req.user.role === 'managed_vendor') {
+        if (!['pending', 'rejected'].includes(product.approvalStatus)) {
+            throw new ApiError(403, 'You cannot edit approved or live products.');
+        }
+        // If product was rejected, editing resubmits it for review
+        if (product.approvalStatus === 'rejected') {
+            product.approvalStatus = 'pending';
+        }
+    }
+
     Object.assign(product, req.body);
     if (Object.prototype.hasOwnProperty.call(req.body, 'faqs')) {
         product.faqs = sanitizeFaqs(req.body.faqs);
@@ -308,12 +343,26 @@ export const updateProduct = asyncHandler(async (req, res) => {
         Number(product.stockQuantity ?? 0),
         Number(product.lowStockThreshold ?? 10)
     );
+
+    // Audit log update
+    product.updatedBy = req.user.id;
+    product.auditLog.push({
+        action: 'updated',
+        userId: req.user.id,
+        userType: req.user.role === 'managed_vendor' ? 'managed_vendor' : 'vendor',
+        timestamp: new Date(),
+        reason: 'Product details updated'
+    });
+
     await product.save();
     res.status(200).json(new ApiResponse(200, product, 'Product updated.'));
 });
 
 // DELETE /api/vendor/products/:id
 export const deleteProduct = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendors are not allowed to delete products.');
+    }
     const product = await Product.findOneAndDelete({ _id: req.params.id, vendorId: req.user.id });
     if (!product) throw new ApiError(404, 'Product not found or access denied.');
     res.status(200).json(new ApiResponse(200, null, 'Product deleted.'));
@@ -322,7 +371,11 @@ export const deleteProduct = asyncHandler(async (req, res) => {
 // PATCH /api/vendor/stock/:productId
 export const updateStock = asyncHandler(async (req, res) => {
     const { stockQuantity } = req.body;
-    const product = await Product.findOne({ _id: req.params.productId, vendorId: req.user.id });
+    const query = req.user.role === 'managed_vendor'
+        ? { _id: req.params.productId, shopId: req.user.shopId }
+        : { _id: req.params.productId, vendorId: req.user.id };
+
+    const product = await Product.findOne(query);
     if (!product) throw new ApiError(404, 'Product not found.');
 
     const numericStockQuantity = Number(stockQuantity);

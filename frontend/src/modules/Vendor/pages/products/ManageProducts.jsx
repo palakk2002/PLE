@@ -154,6 +154,35 @@ const ManageProducts = () => {
       }
     },
     {
+      key: "approvalStatus",
+      label: "Approval Status",
+      sortable: true,
+      render: (value, row) => {
+        const status = value || row.approvalStatus || (row.shopId ? "pending" : "approved");
+        return (
+          <div className="flex flex-col gap-1">
+            <Badge
+              variant={
+                status === "approved"
+                  ? "success"
+                  : status === "pending"
+                    ? "warning"
+                    : status === "rejected"
+                      ? "error"
+                      : "neutral"
+              }>
+              {status.toUpperCase()}
+            </Badge>
+            {status === "rejected" && row.rejectionReason && (
+              <span className="text-[10px] text-red-500 italic max-w-[120px] truncate" title={row.rejectionReason}>
+                Reason: {row.rejectionReason}
+              </span>
+            )}
+          </div>
+        );
+      }
+    },
+    {
       key: "salesChannel",
       label: "Sales Channel",
       sortable: true,
@@ -180,26 +209,38 @@ const ManageProducts = () => {
       key: "actions",
       label: "Actions",
       sortable: false,
-      render: (_, row) => (
-        <div className="flex items-center gap-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate(`/vendor/products/${row._id ?? row.id}`);
-            }}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-            <FiEdit />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              setDeleteModal({ isOpen: true, productId: row._id ?? row.id });
-            }}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-            <FiTrash2 />
-          </button>
-        </div>
-      ),
+      render: (_, row) => {
+        const isManagedVendor = vendor?.role === 'managed_vendor';
+        const isEditable = !isManagedVendor || ['pending', 'rejected'].includes(row.approvalStatus || 'pending');
+        return (
+          <div className="flex items-center gap-2">
+            {isEditable ? (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/vendor/products/${row._id ?? row.id}`);
+                }}
+                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                <FiEdit />
+              </button>
+            ) : (
+              <span className="p-2 text-gray-305 cursor-not-allowed" title="Live/Approved products cannot be edited">
+                <FiEdit className="opacity-40" />
+              </span>
+            )}
+            {!isManagedVendor && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteModal({ isOpen: true, productId: row._id ?? row.id });
+                }}
+                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                <FiTrash2 />
+              </button>
+            )}
+          </div>
+        );
+      },
     },
   ];
 

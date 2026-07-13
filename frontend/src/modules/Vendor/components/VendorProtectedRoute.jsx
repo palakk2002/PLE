@@ -32,7 +32,7 @@ const VendorProtectedRoute = ({ children }) => {
     return <Navigate to="/vendor/login" state={{ from: location }} replace />;
   }
 
-  if (role && role !== 'vendor') {
+  if (role && role !== 'vendor' && role !== 'managed_vendor') {
     useVendorAuthStore.getState().logout();
     return <Navigate to="/vendor/login" state={{ from: location }} replace />;
   }

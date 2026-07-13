@@ -526,6 +526,24 @@ const Seller = () => {
                                 )}
                             </>
                         )}
+                     </div>
+
+                    {/* Request Custom Product Section */}
+                    <div className="max-w-4xl mx-auto px-4 py-8 mt-12 mb-6">
+                        <div className="bg-white rounded-3xl border border-gray-150 p-6 md:p-8 text-center shadow-sm">
+                            <h3 className="text-lg md:text-xl font-extrabold text-gray-800 mb-2">
+                                Can't find the product you're looking for?
+                            </h3>
+                            <p className="text-sm text-gray-500 mb-6 max-w-md mx-auto">
+                                Request this product directly from this store, and they will get back to you with custom options.
+                            </p>
+                            <button
+                                onClick={() => navigate(`/product-request/new?targetType=Vendor&targetId=${vendorId}&targetName=${encodeURIComponent(vendor.storeName || vendor.name)}`)}
+                                className="px-6 py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-bold text-sm shadow-md transition-all active:scale-95 duration-200"
+                            >
+                                Request Product
+                            </button>
+                        </div>
                     </div>
                 </div>
             </MobileLayout>

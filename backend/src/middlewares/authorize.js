@@ -1,6 +1,7 @@
 import ApiError from '../utils/ApiError.js';
 import User from '../models/User.model.js';
 import Vendor from '../models/Vendor.model.js';
+import ManagedVendorUser from '../models/ManagedVendorUser.model.js';
 import DeliveryBoy from '../models/DeliveryBoy.model.js';
 import Admin from '../models/Admin.model.js';
 
@@ -45,6 +46,18 @@ export const enforceAccountStatus = async (req, res, next) => {
             if (!vendor.isVerified) return next(new ApiError(403, 'Please verify your email first.'));
             if (vendor.status !== 'approved') {
                 return next(new ApiError(403, `Vendor account is ${vendor.status}.`));
+            }
+            return next();
+        }
+
+        if (role === 'managed_vendor') {
+            const vendor = await ManagedVendorUser.findById(req.user.id).select('status shopId').populate('shopId').lean();
+            if (!vendor) return next(new ApiError(401, 'Account not found.'));
+            if (vendor.status !== 'active') {
+                return next(new ApiError(403, 'Managed vendor account is inactive. Contact admin.'));
+            }
+            if (!vendor.shopId || vendor.shopId.status !== 'active') {
+                return next(new ApiError(403, 'Managed shop is disabled or does not exist.'));
             }
             return next();
         }

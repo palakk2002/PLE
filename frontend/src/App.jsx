@@ -61,6 +61,9 @@ const PendingApprovals = lazy(() => import("./modules/Admin/pages/vendors/Pendin
 const VendorDetail = lazy(() => import("./modules/Admin/pages/vendors/VendorDetail"));
 const CommissionRates = lazy(() => import("./modules/Admin/pages/vendors/CommissionRates"));
 const AdminVendorAnalytics = lazy(() => import("./modules/Admin/pages/vendors/VendorAnalytics"));
+const ManagedShops = lazy(() => import("./modules/Admin/pages/vendors/ManagedShops"));
+const ManagedShopDetails = lazy(() => import("./modules/Admin/pages/vendors/ManagedShopDetails"));
+const AdminProductApprovals = lazy(() => import("./modules/Admin/pages/vendors/ProductApprovals"));
 const B2BUsersDashboard = lazy(() => import("./modules/Admin/pages/b2b-users/B2BUsersDashboard"));
 const ManageB2BUsers = lazy(() => import("./modules/Admin/pages/b2b-users/ManageB2BUsers"));
 const PendingB2BApprovals = lazy(() => import("./modules/Admin/pages/b2b-users/PendingB2BApprovals"));
@@ -211,6 +214,7 @@ const PortalSelection = lazy(() => import("./modules/UserApp/pages/PortalSelecti
 const UserPrivacyPolicy = lazy(() => import("./modules/UserApp/pages/PrivacyPolicy"));
 const UserTermsConditions = lazy(() => import("./modules/UserApp/pages/TermsConditions"));
 const UserAgreement = lazy(() => import("./modules/UserApp/pages/UserAgreement"));
+const LegalPage = lazy(() => import("./modules/UserApp/pages/LegalPage"));
 const UserReturnPolicy = lazy(() => import("./modules/UserApp/pages/ReturnPolicy"));
 const AboutUs = lazy(() => import("./modules/UserApp/pages/AboutUs"));
 const Returns = lazy(() => import("./modules/UserApp/pages/Returns"));
@@ -646,6 +650,14 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/legal/:type"
+        element={
+          <RouteWrapper>
+            <LegalPage />
+          </RouteWrapper>
+        }
+      />
+      <Route
         path="/return-policy"
         element={
           <RouteWrapper>
@@ -831,6 +843,9 @@ const AppRoutes = () => {
           element={<AdminVendorAnalytics />}
         />
         <Route path="vendors/:id" element={<VendorDetail />} />
+        <Route path="vendors/managed-shops" element={<ManagedShops />} />
+        <Route path="vendors/managed-shops/:id" element={<ManagedShopDetails />} />
+        <Route path="vendors/product-approvals" element={<AdminProductApprovals />} />
 
         {/* B2B Users Routes */}
         <Route path="b2b-users" element={<B2BUsersDashboard />} />
