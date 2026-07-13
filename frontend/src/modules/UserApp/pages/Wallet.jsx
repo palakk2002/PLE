@@ -246,7 +246,7 @@ const MobileWallet = () => {
             {createPortal(
               <AnimatePresence>
                 {showAddMoney && (
-                  <div className="fixed inset-0 z-[10000] flex items-start justify-center pt-10 px-4 pb-4">
+                  <div className="fixed inset-0 z-[10000] flex items-center justify-center px-4 pb-4">
                     {/* Backdrop */}
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -376,7 +376,7 @@ const MobileWallet = () => {
             {createPortal(
               <AnimatePresence>
                 {showSendMoney && (
-                  <div className="fixed inset-0 z-[10000] flex items-start justify-center pt-10 px-4 pb-4">
+                  <div className="fixed inset-0 z-[10000] flex items-center justify-center px-4 pb-4">
                     {/* Backdrop */}
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -451,7 +451,7 @@ const MobileWallet = () => {
             {createPortal(
               <AnimatePresence>
                 {showWithdrawMoney && (
-                  <div className="fixed inset-0 z-[10000] flex items-start justify-center pt-10 px-4 pb-4">
+                  <div className="fixed inset-0 z-[10000] flex items-center justify-center px-4 pb-4">
                     {/* Backdrop */}
                     <motion.div
                       initial={{ opacity: 0 }}

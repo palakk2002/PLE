@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiPackage, FiTruck, FiMapPin, FiCreditCard, FiRotateCw, FiArrowLeft, FiShoppingBag, FiX } from 'react-icons/fi';
+import { FiPackage, FiTruck, FiMapPin, FiCreditCard, FiRotateCw, FiArrowLeft, FiShoppingBag, FiX, FiDownload } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import MobileLayout from "../components/Layout/MobileLayout";
 import { useOrderStore } from '../../../shared/store/orderStore';
@@ -12,6 +12,17 @@ import PageTransition from '../../../shared/components/PageTransition';
 import Badge from '../../../shared/components/Badge';
 import LazyImage from '../../../shared/components/LazyImage';
 import socketService from '../../../shared/utils/socket';
+import api from '../../../shared/utils/api';
+
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const MobileOrderDetail = () => {
   const { orderId } = useParams();
@@ -45,8 +56,119 @@ const MobileOrderDetail = () => {
         id: String(group?.vendorId || ''),
         name: group?.vendorName || 'Vendor',
       }))
-      .filter((group) => group.id)
     : [];
+
+  const handleDownloadInvoice = () => {
+    if (!order) return;
+    const invoiceText = `
+INVOICE
+PLE E-Commerce Marketplace
+========================================
+Order ID: ${order.orderId || order.id}
+Tracking Number: ${order.trackingNumber || "N/A"}
+Date: ${new Date(order.date || order.createdAt).toLocaleString()}
+
+Customer Information:
+Name: ${order.shippingAddress?.name || "N/A"}
+Email: ${order.shippingAddress?.email || "N/A"}
+Phone: ${order.shippingAddress?.phone || "N/A"}
+
+Shipping Address:
+${order.shippingAddress?.address || "N/A"}
+${order.shippingAddress?.city || "N/A"}, ${order.shippingAddress?.state || "N/A"} ${order.shippingAddress?.zipCode || "N/A"}
+${order.shippingAddress?.country || "N/A"}
+
+Items:
+${orderItems.map(item => `- ${item.name} x${item.quantity} - ${formatPrice(item.price * item.quantity)}`).join("\n")}
+
+========================================
+Subtotal: ${formatPrice(order.subtotal)}
+Discount: -${formatPrice(order.discount || 0)}
+Tax: ${formatPrice(order.tax || 0)}
+Shipping: ${formatPrice(order.shipping || 0)}
+Total: ${formatPrice(order.total)}
+
+Payment Method: ${order.paymentMethod?.toUpperCase()}
+Payment Status: ${order.paymentStatus?.toUpperCase()}
+Transaction ID: ${order.paymentDetails?.razorpayPaymentId || "N/A"}
+========================================
+Thank you for shopping with us!
+`.trim();
+
+    const blob = new Blob([invoiceText], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `invoice-${order.orderId || order.id}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Invoice downloaded successfully!");
+  };
+
+  const handleRetryPayment = async () => {
+    if (!order) return;
+    const toastId = toast.loading("Initiating payment gateway...");
+    try {
+      const response = await api.post("/user/payments/retry", {
+        orderId: order.orderId || order.id
+      });
+      toast.dismiss(toastId);
+      
+      const rzpOrder = response.data?.data || response.data || response;
+      const rzpLoaded = await loadRazorpayScript();
+      if (!rzpLoaded) {
+        toast.error("Failed to load Razorpay SDK. Please check your internet connection.");
+        return;
+      }
+
+      const options = {
+        key: rzpOrder.key,
+        amount: rzpOrder.amount,
+        currency: rzpOrder.currency,
+        name: "PLE Marketplace",
+        description: "Retry Order Payment",
+        order_id: rzpOrder.id,
+        handler: async function (response) {
+          const verifyToastId = toast.loading("Verifying payment...");
+          try {
+            await api.post("/user/payments/verify", {
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              orderId: order.orderId || order.id,
+            });
+            toast.dismiss(verifyToastId);
+            toast.success("Payment verified successfully!");
+            await fetchOrderById(orderId);
+          } catch (verifyError) {
+            toast.dismiss(verifyToastId);
+            toast.error(verifyError?.response?.data?.message || verifyError?.message || "Payment verification failed.");
+          }
+        },
+        prefill: {
+          name: order.shippingAddress?.name,
+          email: order.shippingAddress?.email,
+          contact: order.shippingAddress?.phone,
+        },
+        theme: {
+          color: "#7B0A0A",
+        },
+        modal: {
+          ondismiss: function () {
+            toast.error("Payment checkout cancelled.");
+          },
+        },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast.dismiss(toastId);
+      toast.error(err?.response?.data?.message || err?.message || "Failed to retry payment.");
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -334,9 +456,23 @@ const MobileOrderDetail = () => {
                   <div className="flex justify-between">
                     <span>Payment Method:</span>
                     <span className="font-semibold text-gray-800 capitalize">
-                      {order.paymentMethod}
+                      {order.paymentMethod === 'card' ? 'Credit/Debit Card' : order.paymentMethod}
                     </span>
                   </div>
+                  <div className="flex justify-between">
+                    <span>Payment Status:</span>
+                    <Badge variant={order.paymentStatus === 'paid' ? 'delivered' : order.paymentStatus === 'pending' ? 'pending' : 'cancelled'} className="text-xs uppercase">
+                      {order.paymentStatus || 'Pending'}
+                    </Badge>
+                  </div>
+                  {(order.paymentDetails?.razorpayPaymentId || order.walletTransactionId) && (
+                    <div className="flex justify-between">
+                      <span>Transaction ID:</span>
+                      <span className="font-mono font-semibold text-gray-800 text-xs">
+                        {order.paymentDetails?.razorpayPaymentId || order.walletTransactionId}
+                      </span>
+                    </div>
+                  )}
                   {order.trackingNumber && (
                     <div className="flex justify-between">
                       <span>Tracking Number:</span>
@@ -346,6 +482,16 @@ const MobileOrderDetail = () => {
                   <div className="flex justify-between">
                     <span>Order Date:</span>
                     <span className="font-semibold text-gray-800">{formatDate(order.date)}</span>
+                  </div>
+                  <div className="pt-2 border-t border-gray-100 flex justify-between items-center">
+                    <span>Tax Invoice:</span>
+                    <button
+                      onClick={handleDownloadInvoice}
+                      className="flex items-center gap-1.5 text-xs font-bold text-[#7B0A0A] hover:text-[#AE020B]"
+                    >
+                      <FiDownload />
+                      Download Invoice
+                    </button>
                   </div>
                 </div>
               </div>
@@ -401,6 +547,15 @@ const MobileOrderDetail = () => {
                     className="w-full py-3 bg-red-50 text-red-600 rounded-xl font-semibold hover:bg-red-100 transition-colors"
                   >
                     Cancel Order
+                  </button>
+                )}
+                {order.paymentMethod === 'card' && order.paymentStatus !== 'paid' && order.status !== 'cancelled' && (
+                  <button
+                    onClick={handleRetryPayment}
+                    className="w-full py-3 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:shadow-md transition-all uppercase tracking-wide"
+                  >
+                    <FiCreditCard className="text-lg" />
+                    Retry Payment
                   </button>
                 )}
                 <button

@@ -6,6 +6,7 @@ import * as reviewController from '../controllers/review.controller.js';
 import * as orderController from '../controllers/order.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
 import * as walletController from '../controllers/wallet.controller.js';
+import * as paymentController from '../controllers/payment.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter, otpLimiter } from '../../../middlewares/rateLimiter.js';
@@ -82,6 +83,10 @@ router.patch('/orders/:id/cancel', ...customerAuth, orderController.cancelOrder)
 router.post('/orders/:id/returns', ...customerAuth, validate(createReturnRequestSchema), orderController.createReturnRequest);
 router.get('/returns', ...customerAuth, orderController.getUserReturnRequests);
 router.get('/returns/:id', ...customerAuth, orderController.getUserReturnRequestById);
+
+// Payment routes
+router.post('/payments/verify', ...customerAuth, paymentController.verifyPayment);
+router.post('/payments/retry', ...customerAuth, paymentController.retryPayment);
 
 // Loyalty routes
 import * as loyaltyController from '../controllers/loyalty.controller.js';

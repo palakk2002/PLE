@@ -1,6 +1,7 @@
 import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
+import Razorpay from 'razorpay';
 import Order from '../../../models/Order.model.js';
 import Product from '../../../models/Product.model.js';
 import Coupon from '../../../models/Coupon.model.js';
@@ -452,6 +453,23 @@ export const placeOrder = asyncHandler(async (req, res) => {
             let pointsToEarn = 0;
             if (isEligibleForLoyalty) {
                 pointsToEarn = await loyaltyService.calculateEarnablePoints(subtotal - couponDiscount - loyaltyDiscount, req.user?.role);
+            }            let razorpayOrderId = undefined;
+            if (normalizedPaymentMethod === 'card') {
+                try {
+                    const razorpayInstance = new Razorpay({
+                        key_id: process.env.RAZORPAY_KEY_ID,
+                        key_secret: process.env.RAZORPAY_KEY_SECRET,
+                    });
+                    const rzpOrder = await razorpayInstance.orders.create({
+                        amount: Math.round(total * 100), // in paise
+                        currency: 'INR',
+                        receipt: `rcpt_${Date.now()}`
+                    });
+                    razorpayOrderId = rzpOrder.id;
+                } catch (err) {
+                    console.error('Razorpay Order Creation Error:', err);
+                    throw new ApiError(500, 'Failed to create payment gateway order: ' + err.message);
+                }
             }
 
             const [createdOrder] = await Order.create([{
@@ -461,8 +479,14 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 vendorItems,
                 shippingAddress,
                 paymentMethod: normalizedPaymentMethod,
-                // Automatically set payment status to 'paid' for mock card/UPI payments.
-                paymentStatus: (normalizedPaymentMethod === 'cod') ? 'pending' : 'paid',
+                paymentStatus: (normalizedPaymentMethod === 'cod' || normalizedPaymentMethod === 'card') ? 'pending' : 'paid',
+                paymentDetails: razorpayOrderId ? {
+                    razorpayOrderId,
+                    amount: total,
+                    status: 'created',
+                    gatewayName: 'Razorpay',
+                    paymentMethod: 'card'
+                } : undefined,
                 subtotal,
                 shipping,
                 tax,
@@ -481,7 +505,6 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 idempotencyScope: idempotencyKey ? idempotencyScope : undefined,
             }], { session });
             order = createdOrder;
-
             // Associate order with transaction log if any points were redeemed
             if (actualPointsRedeemed > 0) {
                 await LoyaltyTransaction.updateOne(
@@ -591,8 +614,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
     const responseMessage = idempotentReplay
         ? 'Duplicate order request ignored. Returning existing order.'
         : 'Order placed successfully.';
-
-    if (!idempotentReplay && order) {
+    if (!idempotentReplay && order && order.paymentStatus === 'paid') {
         // Trigger real-time notifications to vendors
         (async () => {
             try {
@@ -620,7 +642,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
                             }
                         }).catch(e => console.error("Error creating database notification for vendor:", e));
 
-                // Emit socket event to the vendor's room
+                        // Emit socket event to the vendor's room
                         if (io) {
                             io.to(`user_${v.vendorId}`).emit('new_order_placed', {
                                 orderId: order.orderId,
@@ -661,6 +683,12 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 total: order.total,
                 trackingNumber: order.trackingNumber,
                 ...(idempotentReplay ? { idempotentReplay: true } : {}),
+                razorpayOrder: order.paymentDetails?.razorpayOrderId ? {
+                    id: order.paymentDetails.razorpayOrderId,
+                    amount: Math.round(order.total * 100),
+                    currency: 'INR',
+                    key: process.env.RAZORPAY_KEY_ID
+                } : null
             },
             responseMessage
         )

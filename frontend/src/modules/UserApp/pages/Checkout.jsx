@@ -31,6 +31,15 @@ import PageTransition from "../../../shared/components/PageTransition";
 import OrderSummary from "../components/Mobile/CheckoutOrderSummary";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 const MobileCheckout = () => {
   const navigate = useNavigate();
@@ -447,14 +456,75 @@ const MobileCheckout = () => {
           walletAmountToUse: appliedWalletAmount,
         });
 
-        localStorage.setItem(`earned_points_${order.orderId || order.id}`, order.loyaltyPointsEarned?.toString() || "0");
-        localStorage.setItem(`applied_points_${order.orderId || order.id}`, appliedPoints.toString());
+        if (order.razorpayOrder) {
+          const rzpLoaded = await loadRazorpayScript();
+          if (!rzpLoaded) {
+            toast.error("Failed to load Razorpay SDK. Please check your internet connection.");
+            setIsPlacingOrder(false);
+            return;
+          }
 
-        clearCart();
-        setOrderSuccess(true);
-        setTimeout(() => {
-          navigate(`/order-confirmation/${order.orderId || order.id}`);
-        }, 2000);
+          const options = {
+            key: order.razorpayOrder.key,
+            amount: order.razorpayOrder.amount,
+            currency: order.razorpayOrder.currency,
+            name: "PLE Marketplace",
+            description: "Order Checkout Payment",
+            order_id: order.razorpayOrder.id,
+            handler: async function (response) {
+              setIsPlacingOrder(true);
+              try {
+                await api.post("/user/payments/verify", {
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_signature: response.razorpay_signature,
+                  orderId: order.orderId || order.id,
+                });
+
+                localStorage.setItem(`earned_points_${order.orderId || order.id}`, order.loyaltyPointsEarned?.toString() || "0");
+                localStorage.setItem(`applied_points_${order.orderId || order.id}`, appliedPoints.toString());
+
+                clearCart();
+                setOrderSuccess(true);
+                setTimeout(() => {
+                  navigate(`/order-confirmation/${order.orderId || order.id}`);
+                }, 2000);
+              } catch (verifyError) {
+                toast.error(verifyError?.response?.data?.message || verifyError?.message || "Payment verification failed.");
+                navigate(`/orders/${order.orderId || order.id}`);
+              } finally {
+                setIsPlacingOrder(false);
+              }
+            },
+            prefill: {
+              name: normalizedShipping.name,
+              email: normalizedShipping.email,
+              contact: normalizedShipping.phone,
+            },
+            theme: {
+              color: "#7B0A0A",
+            },
+            modal: {
+              ondismiss: function () {
+                toast.error("Payment checkout cancelled.");
+                setIsPlacingOrder(false);
+                navigate(`/orders/${order.orderId || order.id}`);
+              },
+            },
+          };
+
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        } else {
+          localStorage.setItem(`earned_points_${order.orderId || order.id}`, order.loyaltyPointsEarned?.toString() || "0");
+          localStorage.setItem(`applied_points_${order.orderId || order.id}`, appliedPoints.toString());
+
+          clearCart();
+          setOrderSuccess(true);
+          setTimeout(() => {
+            navigate(`/order-confirmation/${order.orderId || order.id}`);
+          }, 2000);
+        }
       } catch (error) {
         toast.error(error?.message || "Failed to place order");
       } finally {

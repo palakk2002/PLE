@@ -122,6 +122,10 @@ export const useOrderStore = create(
             );
           }
 
+          if (data?.razorpayOrder) {
+            createdOrder.razorpayOrder = data.razorpayOrder;
+          }
+
           set({ isLoading: false, lastError: null });
           return createdOrder;
         } catch (error) {
