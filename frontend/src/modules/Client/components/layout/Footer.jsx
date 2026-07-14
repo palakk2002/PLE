@@ -111,11 +111,11 @@ export default function Footer() {
                 />
               </Link>
               <p className="text-xs sm:text-sm text-app-text-muted leading-relaxed max-w-sm">
-                {footer.text}
+                Your destination for electronics across consumer, business, and specialized sourcing needs — from everyday tech and accessories to enterprise procurement solutions.
               </p>
               <div className="flex items-start gap-2.5 text-xs sm:text-sm text-app-text">
                 <MapPin className="w-4 h-4 text-client-primary shrink-0 mt-0.5" />
-                <span>Mumbai, Maharashtra, India</span>
+                <span>SHOP NO.25, R S NO.1045/3, 2ND CROSS, UJWAL NAGAR, Belgaum Fort, Karnataka, India,590016</span>
               </div>
             </div>
 
@@ -125,16 +125,22 @@ export default function Footer() {
                 Our Services
               </h4>
               <ul className="space-y-1.5 text-xs sm:text-sm">
-                {SERVICES.map((srv) => (
-                  <li key={srv.id}>
-                    <Link
-                      to={`/services/${srv.slug}`}
-                      className="hover:text-client-primary hover:translate-x-1.5 transition-all duration-300 block py-0.5"
-                    >
-                      {srv.title}
-                    </Link>
-                  </li>
-                ))}
+                <li>
+                  <Link
+                    to="/services"
+                    className="hover:text-client-primary hover:translate-x-1.5 transition-all duration-300 block py-0.5"
+                  >
+                    Hardware
+                  </Link>
+                </li>
+                <li>
+                  <Link
+                    to="/services"
+                    className="hover:text-client-primary hover:translate-x-1.5 transition-all duration-300 block py-0.5"
+                  >
+                    Software
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -212,13 +218,13 @@ export default function Footer() {
                 Contact Info
               </h4>
               <div className="space-y-2 text-xs sm:text-sm">
-                <a href={`tel:${contact.phone}`} className="flex items-center gap-2.5 text-app-text hover:text-client-primary transition-colors group">
+                <a href="tel:+919071149100" className="flex items-center gap-2.5 text-app-text hover:text-client-primary transition-colors group">
                   <Phone className="w-3.5 h-3.5 text-client-primary group-hover:scale-110 transition-transform" />
-                  <span>{contact.phoneDisplay}</span>
+                  <span>+91 9071149100</span>
                 </a>
-                <a href={`mailto:${contact.email}`} className="flex items-center gap-2.5 text-app-text hover:text-client-primary transition-colors group">
+                <a href="mailto:support@plebusiness.com" className="flex items-center gap-2.5 text-app-text hover:text-client-primary transition-colors group">
                   <Mail className="w-3.5 h-3.5 text-client-primary group-hover:scale-110 transition-transform" />
-                  <span>{contact.email}</span>
+                  <span>support@plebusiness.com</span>
                 </a>
               </div>
 

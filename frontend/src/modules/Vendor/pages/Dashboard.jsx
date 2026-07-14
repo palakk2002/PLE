@@ -30,7 +30,7 @@ const VendorDashboard = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const vendorId = vendor?.id;
+  const vendorId = vendor?.id || vendor?._id;
 
   useEffect(() => {
     if (!vendorId) return;
