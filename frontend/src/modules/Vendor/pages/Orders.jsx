@@ -20,7 +20,7 @@ const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const vendorId = vendor?.id || vendor?._id;
+  const vendorId = vendor?.id;
 
   useEffect(() => {
     if (!vendorId) return;

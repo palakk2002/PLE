@@ -1,16 +1,24 @@
 export const LANDING_PAGE_DEFAULTS = {
   sections: [
     { id: 'hero', name: 'Hero Section', visible: true, order: 0 },
-    { id: 'services', name: 'Services / Categories', visible: true, order: 1 },
-    { id: 'whyChooseUs', name: 'Features (Why Choose Us)', visible: true, order: 2 },
-    { id: 'comparison', name: 'Comparison Table', visible: true, order: 3 },
-    { id: 'stats', name: 'Stats Counter', visible: true, order: 4 },
-    { id: 'testimonials', name: 'Testimonials', visible: true, order: 5 },
-    { id: 'portfolio', name: 'Product Showcase', visible: true, order: 6 },
-    { id: 'pricing', name: 'Deals & Rewards', visible: true, order: 7 },
-    { id: 'gallery', name: 'Gallery', visible: true, order: 8 },
-    { id: 'presenceMap', name: 'Presence Map', visible: true, order: 9 },
-    { id: 'ctaBanner', name: 'CTA Banner', visible: true, order: 10 },
+    { id: 'trustedBrands', name: 'Trusted Brands', visible: true, order: 1 },
+    { id: 'productCategories', name: 'Product Categories', visible: true, order: 2 },
+    { id: 'portfolioHighlights', name: 'Portfolio Highlights', visible: true, order: 3 },
+    { id: 'cpoSection', name: 'CPO Section', visible: true, order: 4 },
+    { id: 'gpoSection', name: 'GPO Section', visible: true, order: 5 },
+    { id: 'smartDeals', name: 'Smart Deals', visible: true, order: 6 },
+    { id: 'loyaltyRewards', name: 'Loyalty Rewards', visible: true, order: 7 },
+    { id: 'zeroMaintenance', name: 'Zero Maintenance', visible: true, order: 8 },
+    { id: 'services', name: 'Services / Categories (Legacy)', visible: false, order: 9 },
+    { id: 'whyChooseUs', name: 'Features (Why Choose Us)', visible: true, order: 10 },
+    { id: 'comparison', name: 'Comparison Table', visible: true, order: 11 },
+    { id: 'stats', name: 'Stats Counter', visible: true, order: 12 },
+    { id: 'testimonials', name: 'Testimonials', visible: true, order: 13 },
+    { id: 'portfolio', name: 'Product Showcase', visible: true, order: 14 },
+    { id: 'pricing', name: 'Deals & Rewards (Legacy)', visible: false, order: 15 },
+    { id: 'gallery', name: 'Gallery', visible: true, order: 16 },
+    { id: 'presenceMap', name: 'Presence Map', visible: true, order: 17 },
+    { id: 'ctaBanner', name: 'CTA Banner', visible: true, order: 18 },
   ],
   hero: {
     tagline: 'REAL DEALS. FAST DELIVERY. HAPPY SHOPPING',
@@ -25,6 +33,95 @@ export const LANDING_PAGE_DEFAULTS = {
     videoBackground: '/hero-video.mp4',
     imageFallback: '/hero_modern.png',
   },
+  trustedBrands: {
+    title: 'Trusted Brands',
+    subtitle: 'Leading electronics brands available on our marketplace',
+    status: true,
+  },
+  productCategories: {
+    title: 'Product Categories',
+    subtitle: 'Explore dynamic electronics categories and bulk catalogs',
+    status: true,
+  },
+  portfolioHighlights: [
+    { id: 'hl-cpo', title: 'CPO', subtitle: 'Certified Pre-Owned', description: 'Rigorous 40+ point quality inspection with warranty.', icon: 'Shield', image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=300&h=200&fit=crop', buttonText: 'Learn More', buttonLink: '#cpo', status: true, order: 0 },
+    { id: 'hl-gpo', title: 'GPO', subtitle: 'Group Purchase Organization', description: 'Aggregated B2B buying power for lowest industry rates.', icon: 'Users', image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=300&h=200&fit=crop', buttonText: 'Explore GPO', buttonLink: '#gpo', status: true, order: 1 },
+    { id: 'hl-smart', title: 'Smart Deals', subtitle: 'Priority Value Bargains', description: 'Limited time priority bulk stock offers on top electronics.', icon: 'TrendingUp', image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=300&h=200&fit=crop', buttonText: 'View Deals', buttonLink: '#smart-deals', status: true, order: 2 },
+    { id: 'hl-loyalty', title: 'Loyalty Rewards', subtitle: 'B2B Purchaser Benefits', description: 'Earn loyalty points on every volume purchase. Redeemable anytime.', icon: 'Award', image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=300&h=200&fit=crop', buttonText: 'Claim Rewards', buttonLink: '#loyalty', status: true, order: 3 },
+    { id: 'hl-zero', title: 'Zero Maintenance', subtitle: 'Complete peace of mind', description: 'Complimentary maintenance packages for all enterprise equipment.', icon: 'Settings', image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=300&h=200&fit=crop', buttonText: 'Read Policy', buttonLink: '#zero-maintenance', status: true, order: 4 },
+  ],
+  cpoSection: {
+    title: 'Certified Pre-Owned (CPO) Electronics',
+    subtitle: 'Tested. Certified. Warranted.',
+    description: 'We offer fully certified pre-owned IT assets and office electronics. Every device undergoes a meticulous inspection process by qualified hardware engineers and comes with a 1-year replacement warranty.',
+    image: 'https://images.unsplash.com/photo-1588508065123-287b28e013da?q=80&w=600&h=400&fit=crop',
+    features: [
+      '40-Point Rigorous Testing Protocol',
+      'Original Manufacturer Components Only',
+      '12 Months Full Warranty Protection',
+      'Authorized Refurbished Certificate Issued'
+    ],
+    ctaText: 'Browse Certified Stock',
+    ctaLink: '/search?condition=refurbished',
+    status: true
+  },
+  gpoSection: {
+    title: 'Group Purchase Organization (GPO) Buying',
+    subtitle: 'Consolidated Purchasing Power',
+    description: 'Unlock enterprise-level pricing by buying collectively. Our GPO gathers bulk requirements from hundreds of small-to-medium business buyers to negotiate direct manufacturer discounts.',
+    image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?q=80&w=600&h=400&fit=crop',
+    features: [
+      'Up to 35% Lower than Standard Retail',
+      'Direct Manufacturer Shipping & Logistics',
+      'Flexible Credit terms for B2B Members',
+      'Consolidated Order Management Dashboard'
+    ],
+    ctaText: 'Join Buying Group',
+    ctaLink: '/get-quote',
+    status: true
+  },
+  smartDeals: {
+    title: 'Smart Deals & Clearance Bargains',
+    description: 'Priority bulk clearance lots and excess stock deals directly from certified manufacturers.',
+    banner: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?q=80&w=800&h=300&fit=crop',
+    image: 'https://images.unsplash.com/photo-1472851294608-062f824d29cc?q=80&w=600&h=400&fit=crop',
+    offerText: 'Save up to 60% on Bulk Enterprise Laptops & Office Equipment',
+    buttonText: 'View Clearance Deals',
+    buttonLink: '/daily-deals',
+    priority: 1,
+    status: true,
+    expiry: '2026-12-31'
+  },
+  loyaltyRewards: {
+    title: 'Loyalty Rewards Program for B2B Buyers',
+    description: 'Every rupee spent brings your business closer to massive redemption benefits and cashbacks.',
+    illustration: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?q=80&w=600&h=400&fit=crop',
+    benefits: [
+      'Earn 1 point for every Rs. 100 spent',
+      'Accelerated points multipliers on bulk orders',
+      'Exclusive early-access clearance deals',
+      'Zero point expiration for active accounts'
+    ],
+    ctaText: 'Register Free & Start Earning',
+    ctaLink: '/register',
+    status: true,
+    displayOrder: 0
+  },
+  zeroMaintenance: {
+    title: 'Zero Maintenance Hardware Guarantee',
+    subtitle: 'Free Maintenance Support Program',
+    description: 'Minimize downtime. All enterprise client orders exceeding qualified limits automatically include our complete site support package, covering maintenance, backup replacements, and round-the-clock emergency support.',
+    image: 'https://images.unsplash.com/photo-1597491853412-e82a28dc8d2b?q=80&w=600&h=400&fit=crop',
+    features: [
+      'Free On-Site Diagnostic Reviews',
+      'Immediate Backup Unit Provisioning',
+      '24/7 Priority Emergency Helpdesk',
+      'Annual Free Hardware Optimization Services'
+    ],
+    ctaText: 'Request Bulk Quote',
+    ctaLink: '/get-quote',
+    status: true
+  },
   services: [
     {
       id: 'web-dev',
@@ -37,169 +134,90 @@ export const LANDING_PAGE_DEFAULTS = {
       icon: 'Globe',
       features: ['Custom Responsive UI/UX Design', 'Modern Single Page Applications', 'High-Speed Performance', 'SEO-Friendly Structure'],
       cta: 'Get Started'
-    },
-    {
-      id: 'app-dev',
-      slug: 'mobile-app-development',
-      title: 'App Development',
-      subtitle: 'Seamless iOS & Android Experiences',
-      shortDescription: 'Native and cross-platform mobile apps for iOS and Android.',
-      description: 'We develop highly interactive, feature-rich native and cross-platform mobile apps.',
-      subServices: 'Flutter, React Native, Android, iOS',
-      icon: 'Smartphone',
-      features: ['Cross-Platform Apps', 'Highly Intuitive Mobile UI/UX', 'Real-Time Push Notifications', 'Offline Storage & Cloud Sync'],
-      cta: 'Get Started'
-    },
-    {
-      id: 'social-media',
-      slug: 'social-media-management',
-      title: 'Social Media Management',
-      subtitle: 'Build an Unforgettable Social Presence',
-      shortDescription: 'Consistent, creative content that builds your brand and engages your audience.',
-      description: 'Our social media experts curate compelling content and schedule engaging interactions across platforms.',
-      subServices: 'Posts, Reels, Stories, Strategy',
-      icon: 'Share2',
-      features: ['Custom Content Calendar', 'High-Engagement Reels & Stories', 'Community Management', 'Brand Tone Development'],
-      cta: 'Get Started'
-    },
-    {
-      id: 'performance-marketing',
-      slug: 'performance-marketing',
-      title: 'Performance Marketing',
-      subtitle: 'Paid Ads, Brand Awareness & Content Strategy',
-      shortDescription: 'Data-driven ad campaigns across Google, Meta, and more.',
-      description: 'We deploy high-performance outbound marketing models.',
-      subServices: 'Google Ads, Meta Ads, A/B Testing',
-      icon: 'TrendingUp',
-      features: ['Laser-Targeted Google & Social Ads', 'Creative Design & Ad Copywriting', 'Continuous Conversion Optimization'],
-      cta: 'Get Started'
-    },
-    {
-      id: 'accounting-finance',
-      slug: 'accounting-financial-services',
-      title: 'Accounting & Finance',
-      subtitle: 'Streamlined Compliance & MIS Reporting',
-      shortDescription: 'Indian and US accounting, GST, compliance, bookkeeping.',
-      description: 'Manage your operations with absolute precision.',
-      subServices: 'GST Filing, ITR, US GAAP, Bookkeeping',
-      icon: 'Calculator',
-      features: ['Multi-Currency Bookkeeping', 'Tax Planning & Statutory Filings', 'Reconciliation of Accounts', 'Real-Time Cash Flow Analysis'],
-      cta: 'Get Started'
-    },
-    {
-      id: 'mis-reporting',
-      slug: 'mis-reporting-services',
-      title: 'MIS & Reporting Services',
-      subtitle: 'SQL, Power BI, Python integrations',
-      shortDescription: 'Automated dashboards and reports using Excel, Power BI.',
-      description: 'We create automated pipelines using Python scripts and SQL.',
-      subServices: 'Excel Dashboards, Power BI, Automation, KPI Reports',
-      icon: 'LayoutDashboard',
-      features: ['Automated Data Pipelines', 'Custom Power BI Dashboards', 'Python Automation & Web Scraping', 'SQL Query Optimization'],
-      cta: 'Get Started'
     }
   ],
   whyChooseUs: [
-    { title: 'Economical & Pricing-Friendly', description: 'We deliver top-of-the-line creative solutions at competitive prices.', icon: 'DollarSign' },
-    { title: 'Hands-On Tech Experience', description: 'Our team comprises diverse expert minds and seasoned growth marketers.', icon: 'Award' },
-    { title: 'Continuous Support & Strategy', description: 'We support you from initial concept drafting through deployment and pivots.', icon: 'Clock' },
-    { title: 'Lead-Building Machinery', description: 'Our applications are engineered to actively acquire and capture high-intent leads.', icon: 'Users' }
+    { title: 'Bulk Purchase Discounts', description: 'Volume-negotiated rates that fit scale and maximize margins.', icon: 'Briefcase', image: '', status: true, order: 0 },
+    { title: 'Trusted Electronics Brands', description: 'Curated lineup from Apple, Dell, HP, Samsung, LG, Sony and more.', icon: 'Award', image: '', status: true, order: 1 },
+    { title: 'Certified Pre-Owned (CPO)', description: 'Meticulously inspected IT hardware with replacement warranties.', icon: 'Shield', image: '', status: true, order: 2 },
+    { title: 'Group Purchasing (GPO)', description: 'Aggregate B2B purchasing demands to unlock rock-bottom prices.', icon: 'Users', image: '', status: true, order: 3 },
+    { title: 'Priority Smart Deals', description: 'Immediate clearances and flash sales on high-intent electronics.', icon: 'Zap', image: '', status: true, order: 4 },
+    { title: 'Loyalty Rewards Program', description: 'Redeem points for massive cashbacks and future inventory credit.', icon: 'Gift', image: '', status: true, order: 5 },
+    { title: 'Zero Maintenance Guarantee', description: 'On-site upkeep support packages to reduce operational downtime.', icon: 'Settings', image: '', status: true, order: 6 },
+    { title: 'Lightning-Fast B2B Delivery', description: 'Tracked logistics network across major enterprise hubs.', icon: 'Truck', image: '', status: true, order: 7 },
+    { title: 'Wholesale Business Pricing', description: 'Get direct tax invoices and transparent pricing with no hidden fees.', icon: 'DollarSign', image: '', status: true, order: 8 }
   ],
   comparison: {
     header: {
-      heading: 'The Marketplace Advantage',
-      description: 'Shop with more confidence, better value, and less friction. Here is how our marketplace improves the usual online shopping experience.',
-      vedhuntColumnHeader: 'Our Marketplace',
-      typicalColumnHeader: 'Typical Store',
-      bottomNote: 'Customer Shopping Experience Benchmarks 2026'
+      heading: 'The B2B Marketplace Advantage',
+      description: 'Consolidate your procurement pipeline with complete trust, better margins, and automated logistics.',
+      vedhuntColumnHeader: 'Our B2B Hub',
+      typicalColumnHeader: 'Typical Retailer',
+      bottomNote: 'Procurement Benchmarks 2026'
     },
     rows: [
-      { feature: 'Product Range', vedhunt: 'Multiple categories in one cart', typical: 'Limited catalog choices' },
-      { feature: 'Pricing', vedhunt: 'Clear deals and visible savings', typical: 'Hidden fees at checkout' },
-      { feature: 'Sellers', vedhunt: 'Verified sellers and ratings', typical: 'Limited seller transparency' },
-      { feature: 'Checkout', vedhunt: 'Fast, secure payment flow', typical: 'Long and confusing forms' },
-      { feature: 'Delivery', vedhunt: 'Order updates from cart to doorstep', typical: 'Unclear delivery timelines' },
-      { feature: 'Returns', vedhunt: 'Easy return and support process', typical: 'Complicated return steps' },
-      { feature: 'Support', vedhunt: 'Help available when you need it', typical: 'Slow ticket responses' }
+      { feature: 'Volume Discounts', vedhunt: 'Aggregated GPO/Bulk rates', typical: 'Standard retail rates' },
+      { feature: 'Quality Assurance', vedhunt: 'CPO with 40-point checks & warranty', typical: 'As-is state with no warranty' },
+      { feature: 'Tax Invoicing', vedhunt: 'Complete GST input invoices', typical: 'Standard invoice with no benefits' },
+      { feature: 'Logistics', vedhunt: 'Integrated B2B bulk cargo network', typical: 'Standard parcel delivery' },
+      { feature: 'Support Service', vedhunt: 'Zero maintenance site coverage', typical: 'Ad-hoc ticket support' }
     ]
   },
   stats: [
-    { value: '15,000+', label: 'Products Listed' },
-    { value: '250+', label: 'Verified Sellers' },
-    { value: '99.9%', label: 'Secure Checkout' },
-    { value: '24/7', label: 'Customer Support' }
+    { value: '₹50Cr+', label: 'Business Purchasing Volume' },
+    { value: '500+', label: 'Enterprise B2B Members' },
+    { value: '15,000+', label: 'Commercial IT Assets Listed' },
+    { value: '99.9%', label: 'Uptime & Service Level Agreement' }
   ],
   testimonials: [
-    { quote: 'It really met my requirements. You guys were very patient even though there were delays from my side. The price was competitive and all our requirements were met.', author: 'Reshma S.', role: 'E-commerce Founder', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&fit=crop', country: 'India', countryFlag: '🇮🇳' },
-    { quote: 'Working with PLE was extremely professional. They took our complex reporting workflow and transformed it into a fully automated Power BI dashboard.', author: 'Piyush K.', role: 'Finance Director', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&h=150&fit=crop', country: 'India', countryFlag: '🇮🇳' },
-    { quote: 'Their SEO service is top-notch. Our organic search leads increased by nearly 180% within four months. They are very analytical and direct with their projections.', author: 'Shweta G.', role: 'Real Estate Marketer', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150&h=150&fit=crop', country: 'United States', countryFlag: '🇺🇸' }
+    { quote: 'Consolidating our office IT requirements through PLE saved us nearly 30% on laptop acquisitions. The zero maintenance warranty is a game-changer.', author: 'Vikram Mehta', role: 'Head of IT, TechCorp India', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=150&h=150&fit=crop', country: 'India', countryFlag: '🇮🇳' },
+    { quote: 'Direct B2B quotes and transparent GPO buying terms allowed us to scale our regional operations with ease. Very professional support team.', author: 'Priya R.', role: 'Operations Lead, GrowFast Solutions', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=150&h=150&fit=crop', country: 'India', countryFlag: '🇮🇳' }
   ],
   products: [
-    { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: '₹4,999', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=300&h=300&fit=crop', link: '#', featured: true },
-    { id: 2, name: 'Minimalist Leather Watch', price: '₹2,499', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=300&h=300&fit=crop', link: '#', featured: true },
-    { id: 3, name: 'Ergonomic Office Chair', price: '₹8,999', image: 'https://images.unsplash.com/photo-1580481072645-022f9a6dbf27?q=80&w=300&h=300&fit=crop', link: '#', featured: true }
+    { id: 1, name: 'Enterprise Laptop - 16GB RAM / 512GB SSD', price: '₹42,500', image: 'https://images.unsplash.com/photo-1496181130204-7552cc14ac1a?q=80&w=300&h=300&fit=crop', link: '#', featured: true },
+    { id: 2, name: 'Ultra-Wide LED Commercial Monitor 34"', price: '₹28,999', image: 'https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?q=80&w=300&h=300&fit=crop', link: '#', featured: true },
+    { id: 3, name: 'Ergonomic Premium Office Seat Lot', price: '₹7,499', image: 'https://images.unsplash.com/photo-1505797149-43b0069ec26b?q=80&w=300&h=300&fit=crop', link: '#', featured: true }
   ],
   pricing: [
     {
       id: 'pricing-1',
-      title: 'Basic Plan',
-      description: 'Ideal for small projects and initial experiments.',
-      price: '₹9,999',
-      period: '/one-time',
-      features: ['1 Website Project', 'Standard Responsive Layout', 'Basic SEO Setup', '2 Revisions', '5 Business Days Delivery'],
-      ctaText: 'Get Started',
-      highlight: false
-    },
-    {
-      id: 'pricing-2',
-      title: 'Growth Plan',
-      description: 'Best for growing businesses wanting custom designs.',
+      title: 'Starter',
+      description: 'Ideal for small offices.',
       price: '₹24,999',
-      period: '/one-time',
-      features: ['1 Premium React/WordPress Project', 'Full UI/UX Tailoring', 'Advanced SEO & Analytics', 'Unlimited Revisions', '10 Business Days Delivery', 'Priority 24/7 Support'],
-      ctaText: 'Choose Growth',
-      highlight: true
-    },
-    {
-      id: 'pricing-3',
-      title: 'Enterprise Plan',
-      description: 'Complete custom workflow and API integration.',
-      price: '₹59,999',
-      period: '/one-time',
-      features: ['Full Web Portal or Native App', 'Advanced Animations & API integration', 'Dedicated PM & Architecture support', 'Lifetime Maintenance (1 Year)', 'Custom MIS Analytics Dashboard'],
-      ctaText: 'Contact Enterprise',
+      period: '/lot',
+      features: ['Up to 5 Devices', 'Standard Inspection Certificate', 'Standard Shipping'],
+      ctaText: 'Get Quote',
       highlight: false
     }
   ],
   gallery: [
     { id: 'gal-1', url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=400&h=300&fit=crop', title: 'Modern Workspace' },
-    { id: 'gal-2', url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=400&h=300&fit=crop', title: 'Data Analytics Chart' },
-    { id: 'gal-3', url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=400&h=300&fit=crop', title: 'Co-working Collaboration' }
+    { id: 'gal-2', url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=400&h=300&fit=crop', title: 'Data Analytics Chart' }
   ],
   presenceMap: {
     heading: 'Our Presence',
-    description: 'From thriving startup ecosystems to rapidly growing business hubs, our network spans across the nation—helping us deliver innovation, collaboration, and technology without boundaries.',
+    description: '',
     locations: [
-      { name: 'Karnataka', top: '72%', left: '41%' }
+      { name: 'Karnataka', top: '70%', left: '29%', delay: 0.1 },
+      { name: 'Indore', top: '50%', left: '48%', delay: 0.3 }
     ]
   },
   ctaBanner: {
     heading: 'Ready to elevate your business operations?',
-    description: 'Get in touch with our team today and discover how our solutions can accelerate your growth.',
-    primaryBtnText: 'Get Free Estimate',
-    primaryBtnLink: '#pricing',
-    secondaryBtnText: 'Read Success Stories',
-    secondaryBtnLink: '/portfolio'
+    description: 'Open a business account today to receive wholesale rates, custom GPO deals, and direct tax invoicing.',
+    primaryBtnText: 'Become a Business Buyer',
+    primaryBtnLink: '/b2b/register',
+    secondaryBtnText: 'Request Bulk Quote',
+    secondaryBtnLink: '/get-quote'
   },
   faq: [
-    { question: 'What services does PLE offer?', answer: 'We offer Website Development, App Development, Social Media Management, Performance Marketing, Accounting & Finance, and MIS Reporting.' },
-    { question: 'What is the typical delivery timeline?', answer: 'Simple projects take 5–10 working days, while complex web portals or mobile apps can take 15–30 working days.' },
-    { question: 'Do you offer post-launch support?', answer: 'Yes, we provide ongoing maintenance, analytics tracking, and conversion optimization updates.' }
+    { question: 'Who can register as a B2B buyer?', answer: 'Any registered business entity with a valid GSTIN or Business registration certificate can sign up.' },
+    { question: 'What is the Zero Maintenance Guarantee?', answer: 'For qualifying enterprise purchases, we provide comprehensive site maintenance support, round-the-clock emergency help, and free replacement backups in case of downtime.' }
   ],
   contact: {
-    phone: '+91 86524 10289',
-    phoneDisplay: '+91 86524 10289',
-    email: 'support@ple.in',
+    phone: '+91 9071149100',
+    phoneDisplay: '+91 9071149100',
+    email: 'support@plebusiness.com',
     hours: 'Mon – Fri: 8:00am – 7:00pm',
     cin: 'CIN - U62099MH2025PTC447275',
     registration: 'Company Registration: CIN - U62099MH2025PTC447275',
@@ -212,40 +230,14 @@ export const LANDING_PAGE_DEFAULTS = {
     youtube: 'https://youtube.com',
   },
   footer: {
-    text: 'People’s League of Electronics (PLE) is a unified service ecosystem delivering next-generation digital products, high-yield growth marketing, and robust compliance management.',
+    text: 'People’s League of Electronics (PLE) is a unified service B2B electronics marketplace delivering next-generation digital products, commercial hardware leasing, and corporate IT asset optimization.',
     copyright: '© 2026 PLE. All Rights Reserved.'
   },
   seo: {
-    metaTitle: 'PLE - Peoples League of Electronics',
-    metaDescription: 'Unifying digital development, performance marketing, and business-focused finance services under one roof.',
-    keywords: 'electronics, web development, app development, marketing, accounting'
+    metaTitle: 'PLE - Peoples League of Electronics B2B Marketplace',
+    metaDescription: 'Aggregated volume purchase discounts, Certified Pre-Owned electronics with warranties, and zero maintenance agreements for corporate buyers.',
+    keywords: 'B2B electronics, commercial laptops, CPO electronics, bulk purchasing, GPO buying group, zero maintenance guarantee'
   },
-  blogs: [
-    { id: 1, title: 'The Future of Web Development: What to Expect in 2026', category: 'DEVELOPMENT', date: 'May 12, 2026', excerpt: 'Explore the latest trends in web development, from AI-driven coding to the rise of edge computing.', image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&h=500&fit=crop', author: 'Andrew Wills' },
-    { id: 2, title: 'Mastering Brand Identity in a Digital-First World', category: 'BRANDING', date: 'May 08, 2026', excerpt: 'How to build a brand that resonates with modern consumers and stands out.', image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=800&h=500&fit=crop', author: 'Alisha Smith' }
-  ],
-  adLandingPages: {
-    'website-development': {
-      title: 'Get a Professional Website Starting at ₹15,000',
-      subtitle: 'Mobile-friendly, fast, and built to convert visitors into customers.',
-      primaryCta: 'Get Free Website Quote',
-      problem: 'Struggling with a slow, outdated website that doesn’t generate leads?',
-      solution: 'We build blazingly fast, modern websites optimized for SEO and conversion.',
-      highlights: [
-        { title: 'Custom Design', desc: 'No cookie-cutter templates. 100% bespoke designs.' },
-        { title: 'SEO Optimized', desc: 'Built to rank higher on Google from day one.' }
-      ]
-    },
-    'app-development': {
-      title: 'Custom Mobile App Development for Your Business',
-      subtitle: 'High-performance iOS and Android apps designed for scale and user engagement.',
-      primaryCta: 'Get App Development Quote',
-      problem: 'Does your business need a reliable mobile app but you lack the technical team?',
-      solution: 'PLE provides end-to-end mobile app development.',
-      highlights: [
-        { title: 'Cross-Platform', desc: 'One codebase for both iOS and Android.' },
-        { title: 'Scalable Architecture', desc: 'Built to handle millions of active users.' }
-      ]
-    }
-  }
+  blogs: [],
+  adLandingPages: {}
 };

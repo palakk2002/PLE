@@ -232,7 +232,7 @@ const assertValidCategoryParent = async ({ categoryId = null, parentId }) => {
 };
 
 const sanitizeBrandPayload = (payload = {}) => {
-    const allowed = ['name', 'logo', 'description', 'website', 'isActive'];
+    const allowed = ['name', 'logo', 'description', 'website', 'isActive', 'displayOrder'];
     const sanitized = {};
     for (const key of allowed) {
         if (Object.prototype.hasOwnProperty.call(payload, key)) {
@@ -506,7 +506,7 @@ export const reorderCategories = asyncHandler(async (req, res) => {
 
 // GET /api/admin/brands
 export const getAllBrands = asyncHandler(async (req, res) => {
-    const brands = await Brand.find().sort({ name: 1 });
+    const brands = await Brand.find().sort({ displayOrder: 1, name: 1 });
     res.status(200).json(new ApiResponse(200, brands, 'Brands fetched.'));
 });
 

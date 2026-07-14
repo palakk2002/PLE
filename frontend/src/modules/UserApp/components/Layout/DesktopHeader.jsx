@@ -75,12 +75,22 @@ const DesktopHeader = () => {
                 {/* Logo */}
                 <Link to="/home" className="flex-shrink-0 flex items-center gap-2">
                     {appLogo.src ? (
-                        <img
-                            src={appLogo.src}
-                            alt={appLogo.alt}
-                            className="h-14 w-auto object-contain"
-                            style={{ mixBlendMode: theme === "dark" ? "screen" : "multiply" }}
-                        />
+                        <div className="relative">
+                            <img
+                                src={appLogo.src}
+                                alt={appLogo.alt}
+                                className="h-14 w-auto object-contain"
+                                style={{ mixBlendMode: theme === "dark" ? "screen" : "multiply" }}
+                            />
+                            {theme !== "dark" && (
+                                <span 
+                                    className="absolute text-[5px] font-normal text-[#7B0A0A]" 
+                                    style={{ right: '4.5px', bottom: '17px' }}
+                                >
+                                    TM
+                                </span>
+                            )}
+                        </div>
                     ) : (
                         <span className="text-2xl font-bold text-[#7B0A0A]">PLE</span>
                     )}

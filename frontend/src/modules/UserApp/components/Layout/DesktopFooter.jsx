@@ -34,11 +34,21 @@ const DesktopFooter = () => {
           <div className="flex flex-col gap-6">
             <Link to="/home" className="flex items-center gap-2">
               {appLogo.src ? (
-                <img
-                  src={appLogo.src}
-                  alt={appLogo.alt}
-                  className="h-14 w-auto object-contain"
-                />
+                <div className="relative inline-block">
+                  <img
+                    src={appLogo.src}
+                    alt={appLogo.alt}
+                    className="h-14 w-auto object-contain"
+                  />
+                  {theme !== "dark" && (
+                    <span 
+                      className="absolute text-[5px] font-normal text-[#7B0A0A]" 
+                      style={{ right: '4.5px', bottom: '17px' }}
+                    >
+                      TM
+                    </span>
+                  )}
+                </div>
               ) : (
                 <span className="text-2xl font-bold text-[#7B0A0A]">PLE</span>
               )}

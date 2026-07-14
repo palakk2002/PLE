@@ -518,12 +518,22 @@ const MobileHeader = () => {
             onClick={() => navigate("/search")}
             className="flex-grow flex items-center gap-2 cursor-pointer min-w-0"
           >
-            <img 
-              src={appLogo.src} 
-              alt="PLE Logo" 
-              className="h-5 w-auto object-contain select-none bg-transparent" 
-              style={{ mixBlendMode: theme === "dark" ? "screen" : "multiply" }}
-            />
+            <div className="relative inline-block">
+              <img 
+                src={appLogo.src} 
+                alt="PLE Logo" 
+                className="h-5 w-auto object-contain select-none bg-transparent" 
+                style={{ mixBlendMode: theme === "dark" ? "screen" : "multiply" }}
+              />
+              {theme !== "dark" && (
+                <span 
+                  className="absolute text-[2.5px] font-normal text-[#7B0A0A]" 
+                  style={{ right: '1.2px', bottom: '6.2px' }}
+                >
+                  TM
+                </span>
+              )}
+            </div>
             <span className="text-xs text-gray-400 font-semibold truncate pl-1 border-l border-gray-200 dark:border-white/10">
               Search for "Earphones"
             </span>

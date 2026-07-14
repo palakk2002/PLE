@@ -8,6 +8,7 @@ const brandSchema = new mongoose.Schema(
         description: { type: String },
         website: { type: String, trim: true },
         isActive: { type: Boolean, default: true },
+        displayOrder: { type: Number, default: 0 },
     },
     { timestamps: true }
 );

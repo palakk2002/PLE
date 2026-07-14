@@ -9,14 +9,14 @@ const pageVariants = {
       // Premium desktop transition: subtle lift, scale, and fade
       return {
         opacity: 0,
-        y: 12,
-        scale: 0.995,
+        y: 8,
+        scale: 0.998,
       };
     }
     return {
       opacity: 0,
-      x: direction === 'forward' ? 40 : direction === 'back' ? -40 : 0,
-      y: direction === 'forward' || direction === 'back' ? 0 : 12,
+      x: direction === 'forward' ? 20 : direction === 'back' ? -20 : 0,
+      y: direction === 'forward' || direction === 'back' ? 0 : 8,
     };
   },
   animate: {
@@ -29,8 +29,8 @@ const pageVariants = {
 
 const pageTransition = {
   type: 'tween',
-  ease: [0.21, 1.02, 0.43, 1.01], // Custom ultra-smooth easeOutExpo-like transition
-  duration: 0.45
+  ease: [0.25, 0.1, 0.25, 1], // Standard clean ease
+  duration: 0.3
 };
 
 /**

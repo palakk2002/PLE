@@ -9,6 +9,8 @@ const returnRequestSchema = new mongoose.Schema(
             {
                 productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
                 name: String,
+                price: Number,
+                image: String,
                 quantity: Number,
                 reason: String,
             },

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { contentService } from '../services/contentService';
 import ServiceCard from '../components/services/ServiceCard';
+import { Cpu, Laptop, Monitor, Server, Wifi, ShieldCheck } from 'lucide-react';
 
 // Image Assets
 import webDevImg from '../assets/web_dev.webp';
@@ -58,7 +59,35 @@ export default function Services() {
     const fetchServices = async () => {
       try {
         const response = await contentService.getServicesPublic('services');
-        setServices(response.data || []);
+        let fetched = response.data || [];
+        
+        // Supplement with B2B Electronics Sourcing & Software Licensing if not present
+        const hasHardware = fetched.some(s => s.title.toLowerCase().includes('hardware') || s.title.toLowerCase().includes('electronics'));
+        if (!hasHardware) {
+          fetched = [
+            ...fetched,
+            {
+              id_string: 'hardware-procurement',
+              _id: 'procure-hw-static-id',
+              title: 'B2B Electronics & IT Sourcing',
+              shortDescription: 'Enterprise procurement of corporate laptops, networking routers, custom servers, commercial displays, and graphics processing units.',
+              subServices: 'Laptops, GPUs, Motherboards, NAS Systems, Routers, Workstations',
+              cta: 'Inquire Hardware Sourcing',
+              slug: 'get-quote'
+            },
+            {
+              id_string: 'software-licensing',
+              _id: 'procure-sw-static-id',
+              title: 'Volume Software & OS Licensing',
+              shortDescription: 'Official enterprise operating systems, antivirus suites, endpoint security solutions, design tools, and customized software volume licensing.',
+              subServices: 'Windows Pro, Red Hat Linux, Endpoint Antivirus, Adobe Enterprise Suites',
+              cta: 'Inquire Software Licenses',
+              slug: 'get-quote'
+            }
+          ];
+        }
+        
+        setServices(fetched);
       } catch (error) {
         console.error("Failed to fetch services:", error);
       } finally {
@@ -176,6 +205,97 @@ export default function Services() {
               </div>
             ))
           )}
+        </motion.div>
+
+        {/* Sourcing & IT Infrastructure Portfolio Categories Overview */}
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.1 }}
+          variants={staggerContainer}
+          className="mt-24 sm:mt-32"
+        >
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <span className="text-client-primary text-[10px] sm:text-xs font-semibold uppercase tracking-[0.2em] bg-client-primary/10 border border-client-primary/20 px-4 py-1.5 rounded-full mb-4 inline-block">
+              Sourcing Portfolio
+            </span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-medium font-heading text-app-text mb-4">
+              Enterprise <span className="text-client-primary text-gradient-orange font-semibold">Hardware & Software</span> Sourcing
+            </h2>
+            <p className="text-app-text-muted text-xs sm:text-sm">
+              An overview of our hardware supply chain capabilities, operating software volume licensing, and key IT infrastructure categories.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {[
+              {
+                title: "PC Components & Workstations",
+                icon: Cpu,
+                description: "Sourcing for high-performance processors, graphics accelerators (GPUs), motherboards, RAM, power supplies, and systems custom-built for computational power.",
+                sub: "Intel, AMD, NVIDIA, ASUS ROG, Gigabyte, MSI, Corsair"
+              },
+              {
+                title: "Laptops, Desktops & Mobility",
+                icon: Laptop,
+                description: "Commercial workstations and user systems configured for office scale, executive use, and remote employee setups.",
+                sub: "Apple MacBooks, HP EliteBook, Dell Latitude, Lenovo ThinkPad"
+              },
+              {
+                title: "Monitors & Commercial Displays",
+                icon: Monitor,
+                description: "Professional multi-monitor workstations, collaborative smart interactive displays, and video wall installations.",
+                sub: "Samsung, LG, Dell, BenQ, ViewSonic"
+              },
+              {
+                title: "Servers, Cloud & Storage",
+                icon: Server,
+                description: "Rack-mount storage units, network-attached storage (NAS), server stacks, and enterprise solid-state drives.",
+                sub: "HPE, Dell Technologies, Cisco, Lenovo Enterprise"
+              },
+              {
+                title: "Networking & Active Security",
+                icon: Wifi,
+                description: "Managed switches, fiber-to-the-home nodes, firewalls, and active facility surveillance systems.",
+                sub: "Cisco, Ubiquiti, TP-Link, Hikvision, Honeywell"
+              },
+              {
+                title: "Software & Security Licenses",
+                icon: ShieldCheck,
+                description: "Official volume licensing of corporate operating systems, endpoint antivirus guards, design tools, and enterprise environments.",
+                sub: "Windows Enterprise, Red Hat Linux, Adobe Creative Cloud, Symantec"
+              }
+            ].map((cat, i) => {
+              const IconComp = cat.icon;
+              return (
+                <motion.div
+                  key={i}
+                  variants={scrollFadeUp}
+                  className="bg-app-card/30 backdrop-blur-md rounded-2xl border border-app-border/60 p-6 hover:border-client-primary/30 hover:bg-app-card/60 transition-all duration-300 group shadow-md hover:shadow-xl flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="w-12 h-12 rounded-xl bg-client-primary/10 border border-client-primary/20 flex items-center justify-center mb-5 text-client-primary group-hover:scale-110 transition-transform duration-300">
+                      <IconComp className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold text-app-text mb-3 group-hover:text-client-primary transition-colors">
+                      {cat.title}
+                    </h3>
+                    <p className="text-app-text-muted text-xs leading-relaxed mb-6">
+                      {cat.description}
+                    </p>
+                  </div>
+                  <div className="border-t border-app-border/40 pt-4">
+                    <span className="text-[10px] text-client-primary/80 uppercase font-semibold tracking-wider block mb-1">
+                      Key Brands Sourced:
+                    </span>
+                    <span className="text-[11px] text-app-text-muted/80 block">
+                      {cat.sub}
+                    </span>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </motion.div>
 
         {/* Dynamic CTA bottom card */}

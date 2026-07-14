@@ -175,13 +175,13 @@ export default function Navbar() {
           {/* Top Right: CTA Section */}
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
-            <Link
-              to="/portal"
+            <a
+              href="http://localhost:3000/b2b/register"
               className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-client-primary text-black text-xs font-black hover:bg-client-primary-hover transition-all duration-300 group shadow-[0_0_20px_rgba(215,25,32,0.2)] hover:shadow-[0_0_25px_rgba(215,25,32,0.4)]"
             >
               <span>Start Shopping</span>
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
-            </Link>
+            </a>
           </div>
 
           {/* Mobile Navigation Trigger */}

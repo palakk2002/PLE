@@ -138,6 +138,7 @@ export const createBrandSchema = Joi.object({
     description: Joi.string().trim().allow('').optional(),
     website: Joi.string().trim().uri().allow('').optional(),
     isActive: Joi.boolean().optional(),
+    displayOrder: Joi.number().integer().optional(),
 });
 
 export const updateBrandSchema = Joi.object({
@@ -146,4 +147,5 @@ export const updateBrandSchema = Joi.object({
     description: Joi.string().trim().allow('').optional(),
     website: Joi.string().trim().uri().allow('').optional(),
     isActive: Joi.boolean().optional(),
+    displayOrder: Joi.number().integer().optional(),
 }).min(1);

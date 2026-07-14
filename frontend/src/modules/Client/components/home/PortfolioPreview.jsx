@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ShoppingBag, ArrowRight } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { OptimizedLazyImage } from '../ui/lazy-image';
 import { useCMS } from '../../hooks/useCMS';
 
@@ -13,7 +14,11 @@ const staggerContainer = {
 };
 
 export default function PortfolioPreview() {
-  const { products } = useCMS();
+  const { products, portfolioHighlights } = useCMS();
+
+  const activeHighlights = (portfolioHighlights || [])
+    .filter(hl => hl.status)
+    .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
 
   return (
     <section className="pt-4 pb-12 px-4 bg-app-bg relative overflow-hidden" id="portfolio">
@@ -46,6 +51,44 @@ export default function PortfolioPreview() {
             Curated <span className="text-client-primary">Collections</span>
           </motion.h2>
         </div>
+
+        {/* B2B Capabilities Highlights Grid */}
+        {activeHighlights.length > 0 && (
+          <div className="mb-12">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              {activeHighlights.map((hl, idx) => {
+                const Icon = LucideIcons[hl.icon] || LucideIcons.HelpCircle;
+                return (
+                  <motion.div
+                    key={hl.id || idx}
+                    initial={{ opacity: 0, y: 15 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="p-5 bg-white dark:bg-app-card/40 rounded-2xl border border-app-border/40 hover:border-client-primary/50 transition-all duration-300 hover:shadow-lg flex flex-col justify-between text-left"
+                  >
+                    <div>
+                      <div className="w-8 h-8 rounded-lg bg-client-primary/10 text-client-primary flex items-center justify-center mb-3">
+                        <Icon size={16} />
+                      </div>
+                      <h4 className="text-[10px] font-black text-client-primary uppercase tracking-wider">{hl.subtitle}</h4>
+                      <h3 className="text-xs font-bold text-app-text mt-1">{hl.title}</h3>
+                      <p className="text-[11px] text-app-text-muted mt-2 leading-relaxed line-clamp-3">{hl.description}</p>
+                    </div>
+                    {hl.buttonText && (
+                      <a
+                        href={hl.buttonLink || '#'}
+                        className="text-[10px] font-black text-client-primary hover:underline uppercase tracking-widest mt-4 block"
+                      >
+                        {hl.buttonText}
+                      </a>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Product Grid */}
         <motion.div 

@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
+import CPOSection from '../components/home/CPOSection';
+import GPOSection from '../components/home/GPOSection';
+import TrustedBrands from '../components/home/TrustedBrands';
 import { 
   Laptop, 
   Database, 
-  Share2, 
   ExternalLink,
   ChevronRight,
   ChevronLeft,
@@ -12,14 +14,24 @@ import {
   Zap,
   Award,
   ArrowRight,
-  Loader
+  Cpu,
+  Monitor,
+  Keyboard,
+  Wifi,
+  Printer,
+  Smartphone,
+  Gamepad2,
+  Tv,
+  ShieldAlert,
+  Server,
+  ShieldCheck,
+  FileQuestion
 } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EncryptedText } from '../components/ui/encrypted-text';
-import { OptimizedLazyImage } from '../components/ui/lazy-image';
 import { SpotlightHover } from '../components/ui/spotlight-hover';
 import { Card } from '../components/ui/card';
-import api from '../services/api';
+import { useTheme } from '../context/ThemeContext';
 
 // High-performance animated Counter that increments from 0 to target when scrolled into viewport
 function CountUp({ to, duration = 1.8, suffix = '' }) {
@@ -65,129 +77,192 @@ function CountUp({ to, duration = 1.8, suffix = '' }) {
 }
 
 const ICON_MAP = {
+  Cpu,
   Laptop,
+  Monitor,
   Database,
-  Share2,
-  // Add fallback or others if needed
+  Keyboard,
+  Wifi,
+  Printer,
+  Zap,
+  Smartphone,
+  Gamepad2,
+  Tv,
+  ShieldAlert,
+  Server,
+  ShieldCheck,
+  FileQuestion
 };
 
-// Success parameters displaying hard-proof outcomes of PLE projects with numeric values for count-up triggers
+const SOURCING_CATEGORIES = [
+  {
+    id: 'cat-1',
+    title: "PC Components",
+    subItems: ["Motherboards", "GPUs", "Cabinets", "SMPS", "Cooling", "RAM"],
+    categoryGroup: "hardware",
+    iconName: "Cpu",
+    brands: ["ASUS ROG", "MSI", "Gigabyte", "Corsair", "Intel", "AMD", "NVIDIA", "G.Skill"],
+    description: "Sourcing for high-performance processors, graphics accelerators, system memory, and chassis solutions."
+  },
+  {
+    id: 'cat-2',
+    title: "Laptops, Desktops & AIOs",
+    subItems: ["Consumer Systems", "Commercial Systems", "Workstations"],
+    categoryGroup: "hardware",
+    iconName: "Laptop",
+    brands: ["HP", "Dell", "Lenovo", "Apple", "Acer", "ASUS"],
+    description: "Commercial and consumer computing solutions configured for enterprise scaling, office productivity, and remote setups."
+  },
+  {
+    id: 'cat-3',
+    title: "Monitors & Commercial Displays",
+    subItems: ["Monitors", "Large-Format Displays", "Interactive Panels", "Video Walls"],
+    categoryGroup: "av",
+    iconName: "Monitor",
+    brands: ["Samsung", "LG", "BenQ", "ViewSonic", "Dell"],
+    description: "Pro-grade visual setups, high-resolution business monitors, collaborative touch panels, and signage systems."
+  },
+  {
+    id: 'cat-4',
+    title: "Storage & Memory",
+    subItems: ["SSDs", "HDDs", "DRAM", "Memory Cards"],
+    categoryGroup: "hardware",
+    iconName: "Database",
+    brands: ["Samsung", "Kingston", "Western Digital", "Crucial", "SanDisk"],
+    description: "Reliable, high-density enterprise storage, solid-state system drives, and performance system memory packages."
+  },
+  {
+    id: 'cat-5',
+    title: "Peripherals & Accessories",
+    subItems: ["Keyboards", "Mice", "Webcams", "Headphones", "Docks", "Bags", "Adapters"],
+    categoryGroup: "hardware",
+    iconName: "Keyboard",
+    brands: ["Logitech", "HP", "Dell", "Lenovo", "Razer"],
+    description: "Essential workstation additions, ergonomics, high-definition communication gear, and interface adaptors."
+  },
+  {
+    id: 'cat-6',
+    title: "Networking & Wi-Fi",
+    subItems: ["Routers", "Switches", "Access Points", "FTTH", "SMB Networking"],
+    categoryGroup: "network",
+    iconName: "Wifi",
+    brands: ["Cisco", "TP-Link", "Ubiquiti", "D-Link", "Netgear"],
+    description: "High-capacity network distribution, enterprise security routing, managed switching, and fiber-to-the-home infrastructures."
+  },
+  {
+    id: 'cat-7',
+    title: "Printers, Copiers & Consumables",
+    subItems: ["Printers", "Copiers", "Toners", "Cartridges", "Drums", "Accessories"],
+    categoryGroup: "hardware",
+    iconName: "Printer",
+    brands: ["HP", "Canon", "Epson", "Brother", "Xerox"],
+    description: "High-volume business copy systems, document scanners, and replacement toners or consumables."
+  },
+  {
+    id: 'cat-8',
+    title: "Power, UPS & Batteries",
+    subItems: ["UPS Systems", "Backup Power", "Batteries"],
+    categoryGroup: "hardware",
+    iconName: "Zap",
+    brands: ["APC", "Microtek", "Luminous", "Exide"],
+    description: "Uninterrupted business continuity, surge protection, backup power generators, and long-life batteries."
+  },
+  {
+    id: 'cat-9',
+    title: "Mobile Phones & Tablets",
+    subItems: ["Smartphones", "Tablets", "Mobility Devices"],
+    categoryGroup: "hardware",
+    iconName: "Smartphone",
+    brands: ["Apple", "Samsung", "OnePlus", "Xiaomi", "Realme"],
+    description: "Handheld user devices, commercial tablets, mobile sales team setups, and specialized field gear."
+  },
+  {
+    id: 'cat-10',
+    title: "Gaming & Creator Products",
+    subItems: ["Gaming Laptops", "GPUs", "Accessories", "Creator Tablets/Displays"],
+    categoryGroup: "hardware",
+    iconName: "Gamepad2",
+    brands: ["ASUS ROG", "MSI", "Razer", "Wacom", "NVIDIA"],
+    description: "High-end creative workspace infrastructure, stylus tablets, graphic design displays, and gaming configurations."
+  },
+  {
+    id: 'cat-11',
+    title: "Smart / Interactive & AV Solutions",
+    subItems: ["Projectors", "Interactive Panels", "Conferencing Gear", "Commercial AV"],
+    categoryGroup: "av",
+    iconName: "Tv",
+    brands: ["Epson", "BenQ", "Logitech", "Polycom", "Sony"],
+    description: "Unified corporate conferencing systems, high-lumen projectors, and immersive acoustics."
+  },
+  {
+    id: 'cat-12',
+    title: "CCTV, Security & Surveillance",
+    subItems: ["Security Cameras", "NVRs", "Smart Locks", "Intrusion Alarms"],
+    categoryGroup: "network",
+    iconName: "ShieldAlert",
+    brands: ["Hikvision", "Dahua", "CP PLUS", "Honeywell"],
+    description: "Active facility monitoring, digital security recording infrastructure, alarms, and smart physical locks."
+  },
+  {
+    id: 'cat-13',
+    title: "Enterprise, Cloud & Infrastructure",
+    subItems: ["Servers", "Enterprise Hardware", "Business IT Requirements"],
+    categoryGroup: "network",
+    iconName: "Server",
+    brands: ["Dell Technologies", "HPE", "Cisco", "Lenovo Enterprise"],
+    description: "Scalable rack/tower servers, hyper-converged hardware systems, and automated cloud infrastructure."
+  },
+  {
+    id: 'cat-14',
+    title: "Software & Security",
+    subItems: ["Antivirus", "Endpoint Security", "Operating Systems", "Software Licenses"],
+    categoryGroup: "software",
+    iconName: "ShieldCheck",
+    brands: ["Microsoft", "Adobe", "Quick Heal", "Kaspersky", "Norton", "Red Hat"],
+    description: "Productivity suites, virtualization platforms, business security antivirus, and enterprise software volume licensing."
+  },
+  {
+    id: 'cat-15',
+    title: "Custom Sourcing",
+    subItems: ["Hard-to-Find Components", "Specialized Sourcing", "Product Not Listed"],
+    categoryGroup: "custom",
+    iconName: "FileQuestion",
+    brands: ["Global OEM Sourcing"],
+    description: "Tailored procurement channels for niche, customized, obsolete, or multi-brand hardware integrations."
+  }
+];
 
-const MOCK_PORTFOLIO = [
+const BRAND_GROUPS = [
   {
-    id: 'port-1',
-    title: 'MartX Multivendor Hub',
-    category: 'development',
-    icon: 'Laptop',
-    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=600&auto=format&fit=crop',
-    tagline: 'Fastest Growing Indian Multivendor Marketplace',
-    description: 'MartX is a next-generation multivendor shopping platform offering curated lifestyle, electronics, apparel, and home essentials. Designed from scratch with React & Next.js for high-speed performance, secure payment checkouts, real-time inventory synchronizations, and an integrated vendor dashboard.',
-    tags: ['Next.js', 'React', 'Node.js', 'Tailwind CSS', 'MongoDB'],
-    statLabel: 'Active Sellers',
-    statValue: '12,000+',
-    clientUrl: 'https://ple-seven.vercel.app/register'
+    name: "Silicon & Components",
+    list: ["Intel", "AMD", "NVIDIA", "ASUS", "Gigabyte", "MSI", "Corsair", "Kingston"]
   },
   {
-    id: 'port-2',
-    title: 'ShopAura D2C Store',
-    category: 'marketing',
-    icon: 'Share2',
-    image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=600&auto=format&fit=crop',
-    tagline: '350% Growth in E-commerce Checkout Conversions',
-    description: 'Developed a fully optimized e-commerce D2C storefront for ShopAura fashion brand. Focused on high-performance organic SEO catalog configurations, server-side metadata indexing, and rich schema product markup, yielding a 350% increase in shopping conversions.',
-    tags: ['Headless Commerce', 'Next.js', 'Organic SEO', 'Conversion Rate Optimization'],
-    statLabel: 'Checkout Conversion',
-    statValue: '350%+',
-    clientUrl: '/about'
+    name: "Enterprise & Computing",
+    list: ["HP", "Dell", "Lenovo", "Apple", "Cisco", "HPE", "Ubiquiti", "Netgear"]
   },
   {
-    id: 'port-3',
-    title: 'AeroCart Shipping Flow',
-    category: 'automation',
-    icon: 'Database',
-    image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?q=80&w=600&auto=format&fit=crop',
-    tagline: 'Saved 25 Hours of Logistics Weekly',
-    description: 'Developed an automated order fulfillment and shipping coordination pipeline for AeroCart logistics. Integrated multiple courier APIs with SQL data warehouses and automated Power BI dashboards to track real-time delivery status, order cancellations, and refunds.',
-    tags: ['Python', 'SQL', 'Power BI', 'Logistics API', 'Automation'],
-    statLabel: 'Time Saved',
-    statValue: '25 Hrs/Wk',
-    clientUrl: '/faq'
+    name: "Security, AV & Accessories",
+    list: ["Hikvision", "CP PLUS", "Honeywell", "Dahua", "Epson", "BenQ", "Logitech", "Sony"]
   },
   {
-    id: 'port-4',
-    title: 'GlowSkin Headless App',
-    category: 'development',
-    icon: 'Laptop',
-    image: 'https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?q=80&w=600&auto=format&fit=crop',
-    tagline: 'Ultra-fast Headless Skincare App',
-    description: 'A highly secure, lightning-fast headless e-commerce store built for GlowSkin beauty marketplace. Implemented server-side rendering for optimal SEO indexes, dynamic product listing grids, secure payment gateways, and custom cart drawers.',
-    tags: ['Next.js', 'Headless Commerce', 'Stripe API', 'GraphQL', 'Vercel'],
-    statLabel: 'Page Speed',
-    statValue: '98/100',
-    clientUrl: 'https://ple-seven.vercel.app/register'
+    name: "Software & Operating Systems",
+    list: ["Microsoft", "Adobe", "Quick Heal", "Kaspersky", "VMware", "Red Hat", "Norton", "Zoho"]
   }
 ];
 
 export default function Portfolio() {
+  const { theme } = useTheme();
   const [activeFilter, setActiveFilter] = useState('all');
-  const [portfolioItems, setPortfolioItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [pageContent, setPageContent] = useState(null);
-  const limit = 4;
+  const [filteredCategories, setFilteredCategories] = useState(SOURCING_CATEGORIES);
 
   useEffect(() => {
-    fetchPortfolioItems();
-  }, [activeFilter, page]);
-
-  useEffect(() => {
-    fetchPageContent();
-  }, []);
-
-  const fetchPageContent = async () => {
-    try {
-      const res = await api.get('/portfolio-page');
-      if (res.data?.success) {
-        setPageContent(res.data.data);
-      }
-    } catch (error) {
-      console.error('Error fetching Portfolio Page content:', error);
+    if (activeFilter === 'all') {
+      setFilteredCategories(SOURCING_CATEGORIES);
+    } else {
+      setFilteredCategories(SOURCING_CATEGORIES.filter(cat => cat.categoryGroup === activeFilter));
     }
-  };
-
-  const fetchPortfolioItems = async () => {
-    try {
-      setIsLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: limit.toString(),
-      });
-      if (activeFilter !== 'all') {
-        params.append('category', activeFilter);
-      }
-      const res = await api.get(`/portfolio?${params.toString()}`);
-      
-      // Handle the new nested response format { data: { data: [], pagination: {} } }
-      const items = res.data?.data?.data || res.data?.data || [];
-      const pagination = res.data?.data?.pagination || res.data?.pagination || {};
-
-      if (res.data.success && items.length > 0) {
-        setPortfolioItems(items);
-        setTotalPages(pagination.totalPages || 1);
-      } else {
-        const filteredMock = MOCK_PORTFOLIO.filter(item => activeFilter === 'all' || item.category === activeFilter);
-        setPortfolioItems(filteredMock.slice((page - 1) * limit, page * limit));
-        setTotalPages(Math.ceil(filteredMock.length / limit));
-      }
-    } catch (error) {
-      const filteredMock = MOCK_PORTFOLIO.filter(item => activeFilter === 'all' || item.category === activeFilter);
-      setPortfolioItems(filteredMock.slice((page - 1) * limit, page * limit));
-      setTotalPages(Math.ceil(filteredMock.length / limit));
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  }, [activeFilter]);
 
   // Animation definitions optimized for GPU hardware acceleration
   const staggerContainer = {
@@ -204,11 +279,6 @@ export default function Portfolio() {
       y: 0,
       transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] }
     }
-  };
-
-  const handleFilterChange = (newFilter) => {
-    setActiveFilter(newFilter);
-    setPage(1);
   };
 
   return (
@@ -241,19 +311,19 @@ export default function Portfolio() {
           {/* Subtitle Accent */}
           <motion.div variants={scrollFadeUp} className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-client-primary/10 border border-client-primary/20 text-client-primary text-[10px] font-extrabold uppercase tracking-widest rounded-md">
             <Sparkles className="w-3 h-3" />
-            <span>{pageContent?.hero?.subtitle}</span>
+            <span>Unified B2B Electronics Sourcing Ecosystem</span>
           </motion.div>
 
           {/* Heading with Cryptographic Encryption Typing Reveal */}
-          <h1 className="text-3xl md:text-4xl font-black font-heading text-app-text leading-tight tracking-tight flex flex-col gap-0.5">
+          <h1 className="text-3xl md:text-5xl font-black font-heading text-app-text leading-tight tracking-tight flex flex-col gap-0.5">
             <EncryptedText 
-              text={pageContent?.hero?.title1 || ""} 
+              text="Our Sourcing" 
               revealedClassName="text-app-text"
               encryptedClassName="text-client-primary/50 font-mono"
               revealDelayMs={20}
             />
             <EncryptedText 
-              text={pageContent?.hero?.title2 || ""} 
+              text="Hardware & Software Catalog" 
               revealedClassName="text-client-primary text-gradient-orange"
               encryptedClassName="text-client-primary/50 font-mono"
               revealDelayMs={10}
@@ -265,7 +335,7 @@ export default function Portfolio() {
             variants={scrollFadeUp}
             className="text-sm sm:text-base text-app-text-muted leading-relaxed max-w-xl mx-auto font-medium"
           >
-            {pageContent?.hero?.description}
+            Explore our comprehensive, premium sourcing catalog. We deliver elite digital engineering, custom electronics, enterprise computing, specialized IT equipment, and licensing solutions.
           </motion.p>
         </motion.div>
 
@@ -274,18 +344,20 @@ export default function Portfolio() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.15 }}
-          className="flex flex-wrap items-center justify-center gap-2.5 mb-16"
+          className="flex flex-wrap items-center justify-center gap-2.5 mb-12"
         >
           {[
-            { id: 'all', label: 'All Showcases' },
-            { id: 'development', label: 'Web & App Engineering' },
-            { id: 'automation', label: 'Automation & Business Finance' },
-            { id: 'marketing', label: 'SEO & Growth Marketing' }
+            { id: 'all', label: 'All Categories' },
+            { id: 'hardware', label: 'Computing & Hardware' },
+            { id: 'network', label: 'Network & Security' },
+            { id: 'av', label: 'Displays & AV' },
+            { id: 'software', label: 'Software & Licenses' },
+            { id: 'custom', label: 'Custom Sourcing' }
           ].map(btn => (
             <button
               key={btn.id}
-              onClick={() => handleFilterChange(btn.id)}
-              className={`relative px-4.5 py-2.5 rounded-xl text-xs font-semibold tracking-wide uppercase cursor-pointer transition-all duration-300 border ${
+              onClick={() => setActiveFilter(btn.id)}
+              className={`relative px-4 py-2 rounded-xl text-xs font-semibold tracking-wide uppercase cursor-pointer transition-all duration-300 border ${
                 activeFilter === btn.id
                   ? 'text-client-primary border-client-primary/30 z-10'
                   : 'text-app-text hover:text-client-primary bg-app-card/25 border-app-border/40 hover:border-app-border/80'
@@ -303,162 +375,93 @@ export default function Portfolio() {
           ))}
         </motion.div>
 
-        {/* Portfolio Showcases Compact Cards Grid */}
+        {/* Categories Grid */}
         <motion.div 
           layout
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
           variants={staggerContainer}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 max-w-5xl mx-auto gap-8 mb-20"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto gap-6 mb-20"
         >
           <AnimatePresence mode="popLayout">
-            {isLoading ? (
-              <div className="col-span-1 md:col-span-2 flex items-center justify-center min-h-[300px]">
-                <Loader className="w-8 h-8 text-client-primary animate-spin" />
-              </div>
-            ) : portfolioItems.length === 0 ? (
-              <div className="col-span-1 md:col-span-2 text-center py-20 bg-app-card/30 border border-app-border/40 rounded-2xl text-app-text-muted">
-                No showcases found for this category.
-              </div>
-            ) : portfolioItems.map((project) => {
-              const ClientIcon = ICON_MAP[project.icon] || Laptop;
+            {filteredCategories.map((cat) => {
+              const IconComponent = ICON_MAP[cat.iconName] || Cpu;
               
               return (
                 <motion.div
-                  key={project.id}
+                  key={cat.id}
                   initial={{ opacity: 0, scale: 0.96, y: 20 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.96, y: 15 }}
                   transition={{ duration: 0.4, ease: 'easeOut' }}
-                  className="h-[390px] sm:h-[415px] w-full relative cursor-pointer flip-card-perspective"
+                  className="w-full relative group"
                 >
-                  {/* Outer Flip Card Wrapper */}
-                  <div className="flip-card-inner shadow-lg rounded-2xl">
+                  <div className="glass-panel h-full border border-app-border/60 bg-white dark:bg-app-card/50 flex flex-col justify-between overflow-hidden shadow-md transition-all duration-300 hover:border-client-primary/35 rounded-2xl relative p-5">
+                    {/* Spotlight Hover logic specifically for card */}
+                    <SpotlightHover size={200} />
                     
-                    {/* FRONT SIDE FACE */}
-                    <div className="flip-card-front [backface-visibility:hidden] [-webkit-backface-visibility:hidden] rounded-2xl border border-app-border/60 bg-white dark:bg-app-card/50 flex flex-col justify-between overflow-hidden shadow-lg transition-colors duration-300">
-                      {/* Spotlight Hover logic specifically for front card */}
-                      <SpotlightHover size={200} />
-
-                      <div className="flex flex-col h-full justify-between">
-                        {/* Device Frame Mockup Header */}
-                        <div className="bg-[#F1F5F9] dark:bg-[#0E0E0E] px-3.5 py-2.5 border-b border-app-border/50 flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            <div className="w-2 h-2 rounded-full bg-red-500/80" />
-                            <div className="w-2 h-2 rounded-full bg-yellow-500/80" />
-                            <div className="w-2 h-2 rounded-full bg-green-500/80" />
+                    <div className="space-y-4 flex-grow flex flex-col justify-between">
+                      <div>
+                        {/* Header Details */}
+                        <div className="flex items-center justify-between mb-3.5">
+                          <div className="w-10 h-10 rounded-xl bg-client-primary/10 border border-client-primary/20 flex items-center justify-center text-client-primary group-hover:bg-client-primary group-hover:text-black transition-all duration-300">
+                            <IconComponent className="w-5 h-5" />
                           </div>
-                          <div className="text-[10px] font-mono font-bold tracking-wider text-slate-500 dark:text-white/30 uppercase flex items-center gap-1 truncate max-w-[150px] sm:max-w-none">
-                            <ClientIcon className="w-2.5 h-2.5 text-client-primary" />
-                            <span>{project.title.toLowerCase().replace(/\s/g, '')}.in</span>
-                          </div>
-                          <div className="w-8" />
+                          <span className="text-[9px] font-extrabold text-client-primary uppercase tracking-widest bg-client-primary/10 px-2 py-0.5 rounded border border-client-primary/20">
+                            {cat.categoryGroup}
+                          </span>
                         </div>
+                        
+                        <h3 className="text-lg font-black font-heading text-app-text tracking-tight">
+                          {cat.title}
+                        </h3>
+                        
+                        <p className="text-xs text-app-text-muted leading-relaxed mt-2">
+                          {cat.description}
+                        </p>
+                      </div>
 
-                        {/* Screenshot Visual Taking standard portion of card */}
-                        <div className="relative w-full h-[230px] sm:h-[250px] overflow-hidden bg-slate-900">
-                          <OptimizedLazyImage 
-                            src={project.image}
-                            alt={`${project.title} Screenshot`}
-                            className="w-full h-full object-cover pointer-events-none"
-                            placeholderColor="rgba(215,25,32,0.03)"
-                          />
-                          {/* Rich bottom gradient blending */}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-                          
-                          {/* Floating Category Tag */}
-                          <div className="absolute top-3.5 left-3.5 bg-slate-950/90 border border-client-primary/40 rounded px-2.5 py-0.5 text-[9px] font-extrabold text-client-primary uppercase tracking-wider">
-                            {project.category === 'development' ? 'Engineering' : project.category === 'automation' ? 'Finance & Tech' : 'Marketing & SEO'}
-                          </div>
-
-                          {/* Stat Badge */}
-                          <div className="absolute bottom-3.5 left-3.5 bg-black/95 border border-white/10 rounded-lg px-3 py-1.5 flex items-center gap-1.5 text-xs font-bold text-white shadow-sm">
-                            <span className="text-client-primary uppercase tracking-wider text-[9px]">{project.statLabel}:</span>
-                            <span className="text-white font-extrabold">{project.statValue}</span>
-                          </div>
-                        </div>
-
-                        {/* Front Bottom Title Info */}
-                        <div className="p-5 text-left border-t border-app-border/30 bg-gradient-to-b from-transparent to-app-card/90 flex flex-col justify-center flex-grow">
-                          <h3 className="text-base sm:text-lg font-black font-heading text-app-text tracking-tight flex items-center justify-between">
-                            <span>{project.title}</span>
-                            <span className="text-[9px] text-client-primary/75 font-mono flex items-center gap-1 font-bold animate-pulse">
-                              flip to see more... <Sparkles className="w-2.5 h-2.5 text-client-primary" />
+                      {/* Sub-items Grid */}
+                      <div className="mt-4 pt-4 border-t border-app-border/20">
+                        <span className="text-[9px] font-semibold uppercase tracking-widest text-app-text-muted/60 block mb-2">Scope / Sub-items</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {cat.subItems.map((sub, sIdx) => (
+                            <span 
+                              key={sIdx} 
+                              className="text-[10px] font-bold text-app-text bg-slate-100 dark:bg-[#151515] border border-app-border/40 px-2.5 py-0.5 rounded-lg"
+                            >
+                              {sub}
                             </span>
-                          </h3>
-                          <p className="text-[10px] sm:text-xs font-extrabold text-client-primary/70 italic mt-0.5">
-                            {project.tagline}
-                          </p>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Brand Tagging */}
+                      <div className="mt-4 pt-4 border-t border-app-border/20">
+                        <span className="text-[9px] font-semibold uppercase tracking-widest text-app-text-muted/60 block mb-2">Key Brands</span>
+                        <div className="flex flex-wrap gap-1">
+                          {cat.brands.map((b, bIdx) => (
+                            <span 
+                              key={bIdx}
+                              className="text-[9px] font-semibold text-client-primary bg-client-primary/5 border border-client-primary/15 px-2 py-0.5 rounded"
+                            >
+                              {b}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     </div>
 
-                    {/* BACK SIDE FACE (Revealed when card flips around) */}
-                    <div className="flip-card-back [backface-visibility:hidden] [-webkit-backface-visibility:hidden] [transform:rotateY(180deg)_translateZ(1px)] rounded-2xl border border-client-primary/30 bg-white dark:bg-gradient-to-br dark:from-app-card dark:via-app-card/95 dark:to-app-bg p-5 sm:p-6 flex flex-col justify-between text-left overflow-hidden shadow-2xl">
-                      {/* Back Core ambient light glow */}
-                      <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-client-primary/4 rounded-full filter blur-xl pointer-events-none" />
-
-                      <div className="space-y-4">
-                        {/* Header Details */}
-                        <div className="space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-extrabold text-client-primary uppercase tracking-widest bg-client-primary/10 px-2.5 py-0.5 rounded border border-client-primary/20">
-                              {project.category === 'development' ? 'Engineering' : project.category === 'automation' ? 'Finance & Tech' : 'Marketing & SEO'}
-                            </span>
-                            <ClientIcon className="w-4.5 h-4.5 text-client-primary" />
-                          </div>
-                          
-                          <h3 className="text-lg sm:text-xl font-black font-heading text-app-text tracking-tight mt-1">
-                            {project.title}
-                          </h3>
-                          <p className="text-[10px] sm:text-xs font-bold text-client-primary/75 italic">
-                            {project.tagline}
-                          </p>
-                        </div>
-
-                        {/* Elegant full height paragraph details */}
-                        <p className="text-xs sm:text-sm text-black dark:text-app-text-muted leading-relaxed font-normal line-clamp-4 sm:line-clamp-5">
-                          {project.description}
-                        </p>
-
-                        {/* Coding Engineering tags */}
-                        <div className="space-y-1.5 pt-1">
-                          <span className="text-[9px] font-normal uppercase tracking-widest text-black dark:text-white/40 block">Engineering Stack</span>
-                          <div className="flex flex-wrap gap-1">
-                            {project.tags.map(tag => (
-                              <span 
-                                key={tag} 
-                                className="text-[9px] sm:text-[10px] font-normal text-black dark:text-app-text-muted bg-slate-100 dark:bg-[#151515] border border-app-border/40 px-2.5 py-0.5 rounded"
-                              >
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Launch website CTA link & arrow */}
-                      <div className="border-t border-app-border/30 pt-4 mt-2 flex items-center justify-between relative z-10">
-                        <a
-                          href={project.clientUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="relative inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-client-primary hover:text-client-primary-hover group/link cursor-pointer"
-                        >
-                          <span>Launch Live Website</span>
-                          <ExternalLink className="w-3.5 h-3.5 text-client-primary transition-transform duration-300 group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5" />
-                        </a>
-
-                        <Link
-                          to="/get-quote"
-                          className="w-8 h-8 rounded-full bg-client-primary/10 border border-client-primary/20 text-client-primary flex items-center justify-center hover:bg-client-primary hover:text-black hover:scale-105 transition-all duration-300"
-                          aria-label="Inquire about similar solution"
-                        >
-                          <ChevronRight className="w-4 h-4" />
-                        </Link>
-                      </div>
-
+                    {/* Launch website CTA link & arrow */}
+                    <div className="border-t border-app-border/30 pt-4 mt-5 flex items-center justify-between relative z-10">
+                      <Link
+                        to="/get-quote"
+                        className="relative inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-client-primary hover:text-client-primary-hover group/link cursor-pointer"
+                      >
+                        <span>Inquire Sourcing</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-client-primary transition-transform duration-300 group-hover/link:translate-x-1" />
+                      </Link>
                     </div>
 
                   </div>
@@ -468,28 +471,56 @@ export default function Portfolio() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Pagination Controls */}
-        {!isLoading && totalPages > 1 && (
-          <div className="flex items-center justify-center gap-4 mb-20">
-            <button
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-              className="w-10 h-10 rounded-full bg-app-card/50 border border-app-border/40 flex items-center justify-center text-app-text disabled:opacity-30 disabled:cursor-not-allowed hover:border-client-primary/50 hover:text-client-primary transition-all duration-300"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <div className="text-sm font-medium text-app-text-muted">
-              Page {page} of {totalPages}
-            </div>
-            <button
-              onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-              disabled={page === totalPages}
-              className="w-10 h-10 rounded-full bg-app-card/50 border border-app-border/40 flex items-center justify-center text-app-text disabled:opacity-30 disabled:cursor-not-allowed hover:border-client-primary/50 hover:text-client-primary transition-all duration-300"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+        {/* Brand Overview Section */}
+        <div className="mb-20 text-left space-y-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="max-w-lg"
+          >
+            <span className="text-[9px] font-extrabold text-client-primary uppercase tracking-widest bg-client-primary/10 px-2 py-0.5 rounded">
+              Brand Directory
+            </span>
+            <h2 className="text-xl sm:text-3xl font-black font-heading text-app-text leading-tight mt-2.5">
+              Trusted Brands in Our App
+            </h2>
+            <p className="text-xs text-app-text-muted leading-relaxed mt-1">
+              We procure genuine products from top-tier original equipment manufacturers (OEMs) and licensed software vendors globally.
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {BRAND_GROUPS.map((group, gIdx) => (
+              <motion.div
+                key={gIdx}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: gIdx * 0.05 }}
+                className="glass-panel bg-app-card/25 border border-app-border/45 rounded-xl p-4.5 text-left relative overflow-hidden group"
+              >
+                <div className="absolute -bottom-10 -right-10 w-16 h-16 bg-client-primary/2 rounded-full filter blur-xl" />
+                
+                <h4 className="text-xs font-extrabold text-client-primary uppercase tracking-wider pl-1.5 border-l-2 border-client-primary mb-3">
+                  {group.name}
+                </h4>
+
+                <div className="flex flex-wrap gap-2 relative z-10">
+                  {group.list.map((brand, bIdx) => (
+                    <span 
+                      key={bIdx}
+                      className="text-xs font-bold text-app-text bg-slate-100/80 dark:bg-[#121212]/80 border border-app-border/30 px-3 py-1.5 rounded-lg hover:border-client-primary/30 transition-all duration-300 cursor-default"
+                    >
+                      {brand}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
           </div>
-        )}
+        </div>
 
         {/* Corporate Proof Segments (Metrics) */}
         <div className="mb-20 text-left space-y-8 content-visibility-auto">
@@ -501,56 +532,60 @@ export default function Portfolio() {
             className="max-w-lg"
           >
             <span className="text-[9px] font-extrabold text-client-primary uppercase tracking-widest bg-client-primary/10 px-2 py-0.5 rounded">
-              {pageContent?.metrics?.subtitle}
+              Operational Statistics
             </span>
             <h2 className="text-xl sm:text-2xl font-black font-heading text-app-text leading-tight mt-2.5">
-              {pageContent?.metrics?.title}
+              Verified Scale & Capability
             </h2>
             <p className="text-[11px] text-app-text-muted leading-relaxed mt-1">
-              {pageContent?.metrics?.description}
+              Our sourcing volumes enable direct brand coordination and reliable client fulfillment networks.
             </p>
           </motion.div>
 
-          {/* Cards for metrics */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {(pageContent?.metrics?.list || []).map((m, mIdx) => {
-              // Ensure we load the right icon depending on if it's dynamic string or static imported object
-              const MetricIcon = typeof m.iconName === 'string' 
-                ? LucideIcons[m.iconName] || LucideIcons.Check 
-                : m.icon || Zap;
-
-              return (
-                <motion.div
-                  key={mIdx}
-                  initial={{ opacity: 0, y: 15 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.4, delay: mIdx * 0.05 }}
-                  className="glass-panel bg-app-card/30 border border-app-border/50 hover:border-client-primary/20 rounded-xl p-4.5 text-left hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden group"
-                >
-                  <div className="absolute -bottom-10 -right-10 w-16 h-16 bg-client-primary/2 rounded-full filter blur-xl" />
-                  
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="w-8 h-8 rounded-lg bg-client-primary/10 border border-client-primary/20 flex items-center justify-center text-client-primary group-hover:bg-client-primary group-hover:text-black transition-all duration-300">
-                      <MetricIcon className="w-3.5 h-3.5" />
-                    </div>
+            {[
+              { numericValue: 15, suffix: "+", label: "Sourcing Categories", desc: "Complete vertical procurement setup from components to licenses." },
+              { numericValue: 50, suffix: "+", label: "OEM Brands Partnered", desc: "Collaborating directly with global leaders in electronics & IT." },
+              { numericValue: 10000, suffix: "+", label: "Sourced Products", desc: "A vast catalog of enterprise hardware, accessories and tools." },
+              { numericValue: 100, suffix: "%", label: "Genuine Procurement", desc: "Rigorous sandboxed verification of serials, licenses, and components." }
+            ].map((m, mIdx) => (
+              <motion.div
+                key={mIdx}
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: mIdx * 0.05 }}
+                className="glass-panel bg-app-card/30 border border-app-border/50 hover:border-client-primary/20 rounded-xl p-4.5 text-left hover:-translate-y-0.5 transition-all duration-300 relative overflow-hidden group"
+              >
+                <div className="absolute -bottom-10 -right-10 w-16 h-16 bg-client-primary/2 rounded-full filter blur-xl" />
+                
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-client-primary/10 border border-client-primary/20 flex items-center justify-center text-client-primary group-hover:bg-client-primary group-hover:text-black transition-all duration-300">
+                    <Award className="w-3.5 h-3.5" />
                   </div>
+                </div>
 
-                  <div className="space-y-0.5 relative z-10">
-                    <div className="text-xl sm:text-2xl font-black text-client-primary font-heading tracking-tight leading-none">
-                      <CountUp to={m.numericValue} suffix={m.suffix} />
-                    </div>
-                    <div className="text-[10px] font-bold text-app-text font-heading">
-                      {m.label}
-                    </div>
-                    <p className="text-[10px] text-app-text-muted leading-relaxed">
-                      {m.desc}
-                    </p>
+                <div className="space-y-0.5 relative z-10">
+                  <div className="text-xl sm:text-2xl font-black text-client-primary font-heading tracking-tight leading-none">
+                    <CountUp to={m.numericValue} suffix={m.suffix} />
                   </div>
-                </motion.div>
-              );
-            })}
+                  <div className="text-[10px] font-bold text-app-text font-heading">
+                    {m.label}
+                  </div>
+                  <p className="text-[10px] text-app-text-muted leading-relaxed">
+                    {m.desc}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
           </div>
+        </div>
+
+        {/* Trusted Brands & CPO / GPO Sections */}
+        <div className="mb-20 space-y-12">
+          <TrustedBrands />
+          <CPOSection />
+          <GPOSection />
         </div>
 
         {/* CTA Segment */}
@@ -571,18 +606,21 @@ export default function Portfolio() {
                 <div className="flex">
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-client-primary/10 border border-client-primary/20 text-client-primary text-[10px] font-extrabold uppercase tracking-widest rounded-md">
                     <Sparkles className="w-3 h-3" />
-                    <span>{pageContent?.cta?.subtitle}</span>
+                    <span>Hassle-Free Sourcing Request</span>
                   </span>
                 </div>
                 
                 <h3 className="text-2xl sm:text-3xl font-black font-heading text-app-text leading-tight">
-                  {pageContent?.cta?.title1} <span className="text-client-primary text-gradient-orange">{pageContent?.cta?.title2}</span>
+                  Need a Specific Item? <span className="text-client-primary text-gradient-orange">We Source It For You</span>
                 </h3>
 
-                {/* Micro benefits cards with UPGRADED text sizes for perfect visibility */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1.5">
-                  {(pageContent?.cta?.features || []).map((feat, fIdx) => {
-                    const FeatIcon = LucideIcons[feat.iconName] || LucideIcons.Check;
+                  {[
+                    { text: "Obsolete/Niche Components", icon: Cpu },
+                    { text: "Bulk Enterprise Pricing", icon: Server },
+                    { text: "OEM Authorized Products", icon: ShieldCheck }
+                  ].map((feat, fIdx) => {
+                    const FeatIcon = feat.icon;
                     return (
                       <div 
                         key={fIdx} 
@@ -600,11 +638,11 @@ export default function Portfolio() {
 
               <div className="shrink-0 flex justify-center lg:justify-end">
                 <Link
-                  to={pageContent?.cta?.buttonLink || "/get-quote"}
+                  to="/get-quote"
                   className="relative inline-flex items-center gap-2 px-7 py-3.5 bg-client-primary hover:bg-client-primary-hover text-black font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all duration-300 hover:shadow-[0_0_25px_rgba(215,25,32,0.4)] group cursor-pointer overflow-hidden"
                 >
                   <span className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
-                  <span>{pageContent?.cta?.buttonText}</span>
+                  <span>Request Custom RFQ</span>
                   <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </div>
@@ -617,5 +655,3 @@ export default function Portfolio() {
     </div>
   );
 }
-
-

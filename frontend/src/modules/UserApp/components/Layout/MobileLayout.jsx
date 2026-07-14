@@ -11,7 +11,7 @@ import CartDrawer from '../../../../shared/components/Cart/CartDrawer';
 import useMobileHeaderHeight from '../../hooks/useMobileHeaderHeight';
 import { useUIStore } from '../../../../shared/store/useStore';
 
-const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) => {
+const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPadding = null }) => {
   const location = useLocation();
   const headerHeight = useMobileHeaderHeight();
 
@@ -52,6 +52,8 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
     pathname === '/return-policy' ||
     pathname === '/about-us' ||
     pathname.startsWith('/legal/');
+
+  const shouldNoPadding = noPadding !== null ? noPadding : isProfileOptionPage;
   
   // Respect the showBottomNav prop and hide on auth pages or when location selector is open
   const shouldShowBottomNav = showBottomNav && !isAuthPage && !isLocationSelectorOpen;
@@ -80,7 +82,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true }) =>
           {!isAuthPage && !isCheckoutPage && !isProfileOptionPage && !isOrderConfirmationPage && !isTrackOrderPage && <DesktopHeader />}
           {shouldShowHeader && <MobileHeader />}
           <main
-            className={`min-h-screen w-full overflow-x-hidden px-4 md:px-8 lg:px-12 xl:px-16 ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}
+            className={`min-h-screen w-full overflow-x-hidden ${shouldNoPadding ? 'px-0' : 'px-4'} md:px-8 lg:px-12 xl:px-16 ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}
             style={{ paddingTop: shouldShowHeader ? `${headerHeight}px` : '0px' }}
           >
             {children}

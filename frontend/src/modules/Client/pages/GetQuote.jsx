@@ -804,13 +804,11 @@ export default function GetQuote() {
                   <div className="w-10 h-10 rounded-full bg-client-primary/10 border border-client-primary/20 text-client-primary flex items-center justify-center shrink-0">
                     <MapPin className="w-4.5 h-4.5" />
                   </div>
-                  <div>
                     <p className="text-xs font-bold font-sans text-zinc-800 dark:text-zinc-200 leading-relaxed">
-                      Sector-11, Kopar Khairane,<br />
-                      Navi Mumbai, Maharashtra,<br />
-                      India - 400709
+                      SHOP NO.25, R S NO.1045/3, 2ND CROSS,<br />
+                      UJWAL NAGAR, Belgaum Fort,<br />
+                      Karnataka, India - 590016
                     </p>
-                  </div>
                 </div>
 
                 <div className="flex gap-4 items-start">

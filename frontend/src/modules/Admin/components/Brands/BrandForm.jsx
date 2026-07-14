@@ -21,6 +21,7 @@ const BrandForm = ({ brand, onClose, onSave }) => {
     description: "",
     website: "",
     isActive: true,
+    displayOrder: 0,
   });
 
   useEffect(() => {
@@ -31,6 +32,7 @@ const BrandForm = ({ brand, onClose, onSave }) => {
         description: brand.description || "",
         website: brand.website || "",
         isActive: brand.isActive !== undefined ? brand.isActive : true,
+        displayOrder: brand.displayOrder !== undefined ? brand.displayOrder : 0,
       });
     }
   }, [brand]);
@@ -268,18 +270,33 @@ const BrandForm = ({ brand, onClose, onSave }) => {
                 <h3 className="text-lg font-bold text-gray-800 mb-4">
                   Settings
                 </h3>
-                <label className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    name="isActive"
-                    checked={formData.isActive}
-                    onChange={handleChange}
-                    className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
-                  />
-                  <span className="text-sm font-semibold text-gray-700">
-                    Active
-                  </span>
-                </label>
+                <div className="space-y-4">
+                  <label className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      checked={formData.isActive}
+                      onChange={handleChange}
+                      className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+                    />
+                    <span className="text-sm font-semibold text-gray-700">
+                      Active
+                    </span>
+                  </label>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Display Order
+                    </label>
+                    <input
+                      type="number"
+                      name="displayOrder"
+                      value={formData.displayOrder}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="e.g. 0, 1, 2"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Actions */}

@@ -354,9 +354,9 @@ router.get('/categories/all', asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, categories, 'Categories fetched.'));
 }));
 
-// GET /api/brands (public)
+// GET /api/brands/all (public)
 router.get('/brands/all', asyncHandler(async (req, res) => {
-    const brands = await Brand.find({ isActive: true }).sort({ name: 1 });
+    const brands = await Brand.find({ isActive: true }).sort({ displayOrder: 1, name: 1 });
     res.status(200).json(new ApiResponse(200, brands, 'Brands fetched.'));
 }));
 

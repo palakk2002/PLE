@@ -48,7 +48,7 @@ export default function PresenceMap() {
               }}
             />
             {/* Center subtle glow behind the map */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-[#4facfe]/10 blur-[80px] rounded-full" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[70%] bg-[#4facfe]/25 blur-[80px] rounded-full" />
             
             {/* Decorative connection lines */}
             <svg className="absolute inset-0 w-full h-full opacity-30" xmlns="http://www.w3.org/2000/svg">
@@ -72,7 +72,7 @@ export default function PresenceMap() {
             <img 
               src="/india-removebg-preview.png" 
               alt="India Map" 
-              className="w-full h-full object-contain dark:mix-blend-multiply"
+              className="w-full h-full object-contain dark:invert dark:opacity-25"
             />
           </motion.div>
 

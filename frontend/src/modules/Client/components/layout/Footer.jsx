@@ -165,11 +165,7 @@ export default function Footer() {
                     Expert Solutions
                   </Link>
                 </li>
-                <li>
-                  <Link to="/faq" className="hover:text-client-primary hover:translate-x-1.5 transition-all duration-300 block py-0.5">
-                    FAQ's
-                  </Link>
-                </li>
+
                 <li>
                   <Link to="/get-quote" className="hover:text-client-primary hover:translate-x-1.5 transition-all duration-300 block py-0.5">
                     Contact Support
@@ -197,16 +193,6 @@ export default function Footer() {
                 <li>
                   <Link to="/cookie-policy" className="hover:text-client-primary hover:translate-x-1.5 transition-all duration-300 block py-0.5">
                     Cookie Policy
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/data-processing-agreement" className="hover:text-client-primary hover:translate-x-1.5 transition-all duration-300 block py-0.5">
-                    Data Processing Agreement (DPA)
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/refund-and-billing-policy" className="hover:text-client-primary hover:translate-x-1.5 transition-all duration-300 block py-0.5">
-                    Refund & Billing Policy
                   </Link>
                 </li>
               </ul>

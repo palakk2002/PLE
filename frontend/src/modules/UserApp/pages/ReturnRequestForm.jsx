@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiCamera, FiTrash2, FiCheck } from 'react-icons/fi';
-import { motion } from 'framer-motion';
+import { createPortal } from 'react-dom';
+import { FiArrowLeft, FiCamera, FiTrash2, FiCheck, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { motion, AnimatePresence } from 'framer-motion';
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from '../../../shared/components/PageTransition';
 import { useOrderStore } from '../../../shared/store/orderStore';
@@ -29,6 +30,7 @@ const ReturnRequestForm = () => {
   const [images, setImages] = useState([]); // Array of base64 strings
   const [refundDestination, setRefundDestination] = useState('Original Payment Method');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [previewIndex, setPreviewIndex] = useState(null);
 
   const reasons = [
     'Damaged Product',
@@ -64,6 +66,24 @@ const ReturnRequestForm = () => {
     loadOrder();
     return () => { active = false; };
   }, [orderId, fetchOrderById]);
+
+  // Handle keyboard arrow navigation & ESC key in lightbox
+  useEffect(() => {
+    if (previewIndex === null) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setPreviewIndex(null);
+      } else if (e.key === 'ArrowLeft' && images.length > 1) {
+        setPreviewIndex((prev) => (prev - 1 + images.length) % images.length);
+      } else if (e.key === 'ArrowRight' && images.length > 1) {
+        setPreviewIndex((prev) => (prev + 1) % images.length);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewIndex, images.length]);
 
   if (isLoadingOrder) {
     return (
@@ -128,6 +148,12 @@ const ReturnRequestForm = () => {
 
   const handleRemoveImage = (index) => {
     setImages(prev => prev.filter((_, i) => i !== index));
+    // If the image being previewed gets deleted, or previewIndex exceeds boundaries
+    if (previewIndex === index) {
+      setPreviewIndex(null);
+    } else if (previewIndex > index) {
+      setPreviewIndex(prev => prev - 1);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -296,12 +322,20 @@ const ReturnRequestForm = () => {
               </label>
               <div className="flex flex-wrap gap-2 items-center">
                 {images.map((img, index) => (
-                  <div key={index} className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                    <img src={img} alt="upload preview" className="w-full h-full object-cover" />
+                  <div key={index} className="relative w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 group">
+                    <img 
+                      src={img} 
+                      alt="upload preview" 
+                      onClick={() => setPreviewIndex(index)}
+                      className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity" 
+                    />
                     <button
                       type="button"
-                      onClick={() => handleRemoveImage(index)}
-                      className="absolute top-0.5 right-0.5 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveImage(index);
+                      }}
+                      className="absolute top-0.5 right-0.5 p-1 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors z-10"
                     >
                       <FiTrash2 className="text-[10px]" />
                     </button>
@@ -355,6 +389,77 @@ const ReturnRequestForm = () => {
           </form>
         </div>
       </MobileLayout>
+
+      {/* Lightbox Modal rendered via Portal to ensure centering regardless of parent context or scrolling */}
+      {createPortal(
+        <AnimatePresence>
+          {previewIndex !== null && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-4"
+              onClick={() => setPreviewIndex(null)}
+            >
+              <button
+                type="button"
+                onClick={() => setPreviewIndex(null)}
+                className="absolute top-4 right-4 w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white transition-colors z-10 hover:bg-white/20"
+              >
+                <FiX className="text-2xl" />
+              </button>
+
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="relative max-w-4xl max-h-[85vh] w-full flex items-center justify-center"
+              >
+                <img
+                  src={images[previewIndex]}
+                  alt="Full preview"
+                  className="max-w-full max-h-[85vh] object-contain rounded-xl"
+                />
+
+                {/* Navigation in Lightbox */}
+                {images.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewIndex((prev) => (prev - 1 + images.length) % images.length);
+                      }}
+                      className="absolute left-2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+                    >
+                      <FiChevronLeft className="text-2xl" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewIndex((prev) => (prev + 1) % images.length);
+                      }}
+                      className="absolute right-2 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+                    >
+                      <FiChevronRight className="text-2xl" />
+                    </button>
+                  </>
+                )}
+
+                {/* Image Counter */}
+                {images.length > 1 && (
+                  <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-1.5 rounded-full text-xs font-medium">
+                    {previewIndex + 1} / {images.length}
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </PageTransition>
   );
 };

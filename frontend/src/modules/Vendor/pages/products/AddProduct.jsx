@@ -29,7 +29,7 @@ const AddProduct = () => {
 
   const [b2bSettings, setB2bSettings] = useState(null);
 
-  const vendorId = vendor?.id || vendor?._id;
+  const vendorId = vendor?.id;
 
   const [formData, setFormData] = useState({
     name: "",

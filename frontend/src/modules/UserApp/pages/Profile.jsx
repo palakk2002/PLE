@@ -583,7 +583,7 @@ const MobileProfile = () => {
 
   return (
     <PageTransition>
-      <MobileLayout showBottomNav={true} showCartBar={true}>
+      <MobileLayout showBottomNav={true} showCartBar={true} noPadding={true}>
         <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto min-h-screen bg-gray-50">
           {/* Desktop Header */}
           <div className="hidden lg:block px-4 py-8">
@@ -707,7 +707,7 @@ const MobileProfile = () => {
             </div>
 
             {/* Content Area */}
-            <div className="px-4 py-4 lg:p-0 lg:col-span-9">
+            <div className="px-0 py-4 lg:p-0 lg:col-span-9">
               {/* Dashboard Menu (Mobile Only) */}
               {!isDesktop && activeTab === "menu" && (
                 <motion.div
@@ -860,7 +860,7 @@ const MobileProfile = () => {
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="glass-card rounded-2xl p-4 lg:p-8"
+                  className="glass-card rounded-none lg:rounded-2xl p-4 lg:p-8 border-x-0 lg:border"
                 >
                   {/* Avatar */}
                   <div className="flex items-center gap-4 mb-6">

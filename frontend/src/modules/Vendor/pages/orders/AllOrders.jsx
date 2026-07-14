@@ -23,7 +23,7 @@ const AllOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
-  const vendorId = vendor?.id || vendor?._id;
+  const vendorId = vendor?.id;
 
   useEffect(() => {
     if (!vendorId) return;

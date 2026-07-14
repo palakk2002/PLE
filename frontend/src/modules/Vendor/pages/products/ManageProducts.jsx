@@ -30,7 +30,7 @@ const ManageProducts = () => {
     productId: null,
   });
 
-  const vendorId = vendor?.id || vendor?._id;
+  const vendorId = vendor?.id;
 
   useEffect(() => {
     initCategories();

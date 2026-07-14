@@ -10,6 +10,14 @@ import PortfolioPreview from '../components/home/PortfolioPreview';
 import PresenceMap from '../components/home/PresenceMap';
 import CTABanner from '../components/home/CTABanner';
 import Gallery from '../components/home/Gallery';
+import TrustedBrands from '../components/home/TrustedBrands';
+import ProductCategories from '../components/home/ProductCategories';
+import PortfolioHighlights from '../components/home/PortfolioHighlights';
+import CPOSection from '../components/home/CPOSection';
+import GPOSection from '../components/home/GPOSection';
+import SmartDeals from '../components/home/SmartDeals';
+import LoyaltyRewards from '../components/home/LoyaltyRewards';
+import ZeroMaintenance from '../components/home/ZeroMaintenance';
 import { useCMS } from '../hooks/useCMS';
 
 export default function Home() {
@@ -18,7 +26,15 @@ export default function Home() {
   // Mapping from section IDs to components
   const componentMap = {
     hero: <Hero key="hero" />,
-    services: <ServicesPreview key="services" />,
+    trustedBrands: <TrustedBrands key="trustedBrands" />,
+    productCategories: <ProductCategories key="productCategories" />,
+    portfolioHighlights: <PortfolioHighlights key="portfolioHighlights" />,
+    cpoSection: <CPOSection key="cpoSection" />,
+    gpoSection: <GPOSection key="gpoSection" />,
+    smartDeals: <SmartDeals key="smartDeals" />,
+    loyaltyRewards: <LoyaltyRewards key="loyaltyRewards" />,
+    zeroMaintenance: <ZeroMaintenance key="zeroMaintenance" />,
+    services: null,
     whyChooseUs: <WhyChooseUs key="whyChooseUs" />,
     comparison: <ComparisonTable key="comparison" />,
     stats: <StatsCounter key="stats" />,

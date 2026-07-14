@@ -798,6 +798,25 @@ export const cancelOrder = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, null, 'Order cancelled successfully.'));
 });
 
+const enrichReturnItems = (request) => {
+    const orderItems = Array.isArray(request?.orderId?.items) ? request.orderId.items : [];
+    const returnItems = Array.isArray(request?.items) ? request.items : [];
+
+    return returnItems.map((item) => {
+        const productId = String(item?.productId || '');
+        const matchedOrderItem = orderItems.find(
+            (orderItem) => String(orderItem?.productId || '') === productId
+        );
+
+        return {
+            ...item,
+            name: item?.name || matchedOrderItem?.name || 'Unknown Product',
+            price: Number(item?.price ?? matchedOrderItem?.price ?? 0),
+            image: item?.image || matchedOrderItem?.image || '',
+        };
+    });
+};
+
 const normalizeReturnRequest = (requestDoc) => {
     const request = typeof requestDoc?.toObject === 'function' ? requestDoc.toObject() : requestDoc;
     const orderOrderId = request?.orderId?.orderId || '';
@@ -808,6 +827,7 @@ const normalizeReturnRequest = (requestDoc) => {
         orderId: orderOrderId || String(orderRefId || ''),
         orderRefId: orderRefId ? String(orderRefId) : null,
         requestDate: request?.createdAt,
+        items: enrichReturnItems(request),
     };
 };
 
@@ -859,6 +879,8 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
             return {
                 productId: orderItem.productId,
                 name: orderItem.name,
+                price: orderItem.price,
+                image: orderItem.image,
                 quantity: requestedQty,
                 reason: String(inputItem?.reason || req.body.reason || '').trim(),
             };
@@ -867,6 +889,8 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
         normalizedItems = vendorScopedItems.map((item) => ({
             productId: item.productId,
             name: item.name,
+            price: item.price,
+            image: item.image,
             quantity: Number(item.quantity || 1),
             reason: String(req.body.reason || '').trim(),
         }));
@@ -932,7 +956,7 @@ export const createReturnRequest = asyncHandler(async (req, res) => {
     });
 
     const populated = await ReturnRequest.findById(request._id)
-        .populate('orderId', 'orderId total createdAt')
+        .populate('orderId', 'orderId total items createdAt')
         .populate('vendorId', 'storeName email');
 
     res.status(201).json(new ApiResponse(201, normalizeReturnRequest(populated), 'Return request submitted successfully.'));
@@ -948,7 +972,7 @@ export const getUserReturnRequests = asyncHandler(async (req, res) => {
 
     const [requests, total] = await Promise.all([
         ReturnRequest.find(filter)
-            .populate('orderId', 'orderId total createdAt')
+            .populate('orderId', 'orderId total items createdAt')
             .populate('vendorId', 'storeName email')
             .sort({ createdAt: -1 })
             .skip((numericPage - 1) * numericLimit)
@@ -970,7 +994,7 @@ export const getUserReturnRequests = asyncHandler(async (req, res) => {
 // GET /api/user/returns/:id
 export const getUserReturnRequestById = asyncHandler(async (req, res) => {
     const request = await ReturnRequest.findOne({ _id: req.params.id, userId: req.user.id })
-        .populate('orderId', 'orderId total createdAt')
+        .populate('orderId', 'orderId total items createdAt')
         .populate('vendorId', 'storeName email');
     if (!request) throw new ApiError(404, 'Return request not found.');
     res.status(200).json(new ApiResponse(200, normalizeReturnRequest(request), 'Return request fetched.'));

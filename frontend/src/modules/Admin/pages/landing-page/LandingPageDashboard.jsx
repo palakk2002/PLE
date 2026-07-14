@@ -48,6 +48,14 @@ const LandingPageDashboard = () => {
   const getSectionEditorPath = (id) => {
     const paths = {
       hero: '/admin/landing-page/hero',
+      trustedBrands: '/admin/brands',
+      productCategories: '/admin/categories',
+      portfolioHighlights: '/admin/landing-page/portfolio-highlights',
+      cpoSection: '/admin/landing-page/cpo',
+      gpoSection: '/admin/landing-page/gpo',
+      smartDeals: '/admin/landing-page/smart-deals',
+      loyaltyRewards: '/admin/landing-page/loyalty-rewards',
+      zeroMaintenance: '/admin/landing-page/zero-maintenance',
       services: '/admin/landing-page/services',
       whyChooseUs: '/admin/landing-page/features',
       comparison: '/admin/landing-page/comparison',

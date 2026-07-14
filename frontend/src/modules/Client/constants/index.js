@@ -21,11 +21,10 @@ import {
 
 import webDevIcon from '../assets/services/Gemini_Generated_Image_89l1mm89l1mm89l1.png';
 
-
 export const CONTACT_INFO = {
-  phone: '+91 86524 10289',
-  phoneDisplay: '+91 86524 10289',
-  email: 'support@ple.in',
+  phone: '+91 9071149100',
+  phoneDisplay: '+91 9071149100',
+  email: 'support@plebusiness.com',
   hours: 'Mon – Fri: 8:00am – 7:00pm',
   cin: 'CIN - U62099MH2025PTC447275',
   registration: 'Company Registration: CIN - U62099MH2025PTC447275',

@@ -159,6 +159,12 @@ const FooterEditor = lazy(() => import("./modules/Admin/pages/landing-page/Foote
 const SEOSettingsEditor = lazy(() => import("./modules/Admin/pages/landing-page/SEOSettingsEditor"));
 const BlogEditor = lazy(() => import("./modules/Admin/pages/landing-page/BlogEditor"));
 const AdLandingPagesEditor = lazy(() => import("./modules/Admin/pages/landing-page/AdLandingPagesEditor"));
+const PortfolioHighlightsEditor = lazy(() => import("./modules/Admin/pages/landing-page/PortfolioHighlightsEditor"));
+const CPOEditor = lazy(() => import("./modules/Admin/pages/landing-page/CPOEditor"));
+const GPOEditor = lazy(() => import("./modules/Admin/pages/landing-page/GPOEditor"));
+const SmartDealsEditor = lazy(() => import("./modules/Admin/pages/landing-page/SmartDealsEditor"));
+const LoyaltyRewardsEditor = lazy(() => import("./modules/Admin/pages/landing-page/LoyaltyRewardsEditor"));
+const ZeroMaintenanceEditor = lazy(() => import("./modules/Admin/pages/landing-page/ZeroMaintenanceEditor"));
 
 // About Page CMS Pages
 const AboutPageDashboard = lazy(() => import("./modules/Admin/pages/about-page/AboutPageDashboard"));
@@ -1036,6 +1042,12 @@ const AppRoutes = () => {
           <Route path="seo" element={<SEOSettingsEditor />} />
           <Route path="blogs" element={<BlogEditor />} />
           <Route path="ad-landing-pages" element={<AdLandingPagesEditor />} />
+          <Route path="portfolio-highlights" element={<PortfolioHighlightsEditor />} />
+          <Route path="cpo" element={<CPOEditor />} />
+          <Route path="gpo" element={<GPOEditor />} />
+          <Route path="smart-deals" element={<SmartDealsEditor />} />
+          <Route path="loyalty-rewards" element={<LoyaltyRewardsEditor />} />
+          <Route path="zero-maintenance" element={<ZeroMaintenanceEditor />} />
         </Route>
 
         {/* About Page CMS Routes */}

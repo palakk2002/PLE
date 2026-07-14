@@ -64,8 +64,8 @@ const MobileCategoryQuickNav = () => {
           {isAllActive && (
             <motion.div
               layoutId="quickNavUnderline"
-              className="absolute bottom-0 left-1.5 right-1.5 h-[2.5px] bg-white dark:bg-white md:bg-primary-600 md:dark:bg-white"
-              transition={{ type: "spring", stiffness: 380, damping: 30 }}
+              className="absolute bottom-0 left-1.5 right-1.5 h-[2.5px] bg-white dark:bg-red-500 md:bg-primary-600 md:dark:bg-red-500"
+              transition={{ type: "tween", ease: "easeInOut", duration: 0.25 }}
             />
           )}
         </Link>
@@ -98,8 +98,8 @@ const MobileCategoryQuickNav = () => {
               {isActive && (
                 <motion.div
                   layoutId="quickNavUnderline"
-                  className="absolute bottom-0 left-1.5 right-1.5 h-[2.5px] bg-white dark:bg-white md:bg-primary-600 md:dark:bg-white"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  className="absolute bottom-0 left-1.5 right-1.5 h-[2.5px] bg-white dark:bg-red-500 md:bg-primary-600 md:dark:bg-red-500"
+                  transition={{ type: "tween", ease: "easeInOut", duration: 0.25 }}
                 />
               )}
             </Link>
