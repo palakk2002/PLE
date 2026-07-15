@@ -126,7 +126,7 @@ const MobileSettings = () => {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
+    navigate("/portal");
     toast.success("Logged out successfully");
   };
 

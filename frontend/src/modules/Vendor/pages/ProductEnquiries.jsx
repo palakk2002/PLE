@@ -30,8 +30,13 @@ const ProductEnquiries = () => {
     setIsLoading(true);
     try {
       const response = await api.get('/vendor/enquiries');
-      if (response.data.success) {
-        setEnquiries(response.data.data);
+      const data = response?.data || response;
+      if (Array.isArray(data)) {
+        setEnquiries(data);
+      } else if (response?.success || response?.statusCode === 200) {
+        setEnquiries(response.data || []);
+      } else if (data && Array.isArray(data.data)) {
+        setEnquiries(data.data);
       }
     } catch (error) {
       console.error(error);
@@ -104,11 +109,21 @@ const ProductEnquiries = () => {
         status,
         responseText
       });
-      if (response.data.success) {
+      const data = response?.data || response;
+      const isSuccess = response?.success || response?.statusCode === 200 || data?.success;
+      if (isSuccess) {
         toast.success(`Response sent successfully! Status updated to: ${status}`);
         setResponseText('');
         fetchEnquiries(); // Refresh list
-        setSelectedEnquiry(response.data.data); // Update selected with fresh timeline
+        
+        // Merge only updated fields to preserve populated fields like productName/userName
+        const freshDoc = data.data || data;
+        setSelectedEnquiry((prev) => ({
+          ...prev,
+          status: freshDoc.status || prev.status,
+          sellerResponse: freshDoc.sellerResponse || prev.sellerResponse,
+          timeline: freshDoc.timeline || prev.timeline,
+        }));
       }
     } catch (error) {
       console.error(error);
@@ -122,10 +137,20 @@ const ProductEnquiries = () => {
         status,
         responseText: noteText // backend handles note text when status is passed
       });
-      if (response.data.success) {
+      const data = response?.data || response;
+      const isSuccess = response?.success || response?.statusCode === 200 || data?.success;
+      if (isSuccess) {
         toast.success(`Enquiry status updated to ${status}`);
         fetchEnquiries(); // Refresh list
-        setSelectedEnquiry(response.data.data); // Update selected
+        
+        // Merge only updated fields to preserve populated fields like productName/userName
+        const freshDoc = data.data || data;
+        setSelectedEnquiry((prev) => ({
+          ...prev,
+          status: freshDoc.status || prev.status,
+          sellerResponse: freshDoc.sellerResponse || prev.sellerResponse,
+          timeline: freshDoc.timeline || prev.timeline,
+        }));
       }
     } catch (error) {
       console.error(error);

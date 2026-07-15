@@ -66,7 +66,7 @@ const DesktopHeader = () => {
     const handleLogout = () => {
         logout();
         setShowUserMenu(false);
-        navigate("/");
+        navigate("/portal");
     };
 
     return (

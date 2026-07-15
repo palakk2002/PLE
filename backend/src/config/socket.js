@@ -37,6 +37,18 @@ export const initSocket = (server) => {
             console.log(`Socket ${socket.id} left user room: user_${userId}`);
         });
 
+        // Join a Chat thread room
+        socket.on("join_chat_room", (threadId) => {
+            socket.join(`chat_${threadId}`);
+            console.log(`Socket ${socket.id} joined chat room: chat_${threadId}`);
+        });
+
+        // Leave a Chat thread room
+        socket.on("leave_chat_room", (threadId) => {
+            socket.leave(`chat_${threadId}`);
+            console.log(`Socket ${socket.id} left chat room: chat_${threadId}`);
+        });
+
         // Join admin room
         socket.on("join_admin_room", () => {
             socket.join(`admin_room`);

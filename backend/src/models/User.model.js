@@ -9,6 +9,8 @@ const userSchema = new mongoose.Schema(
         phone: { type: String, trim: true },
         avatar: { type: String }, // Cloudinary URL
         role: { type: String, enum: ['customer', 'delivery', 'b2bAdmin', 'b2bEmployee'], default: 'customer' },
+        gender: { type: String, enum: ['male', 'female', 'other', 'prefer_not_to_say', ''] },
+        dob: { type: String },
         
         // B2B Specific Fields
         companyId: { type: mongoose.Schema.Types.ObjectId, ref: 'B2BCompany' },

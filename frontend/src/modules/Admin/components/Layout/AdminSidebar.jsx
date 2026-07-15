@@ -151,6 +151,7 @@ const getChildRoute = (parentRoute, childName) => {
     },
     "/admin/support": {
       "Live Chat": "/admin/support/live-chat",
+      "PLE Shop Chats": "/admin/ple-shop-chats",
       "Ticket Types": "/admin/support/ticket-types",
       Tickets: "/admin/support/tickets",
     },

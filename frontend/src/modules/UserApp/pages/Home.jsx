@@ -43,6 +43,7 @@ import OfferModal from "../../offers/components/OfferModal";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 import B2BRequestQuoteModal from "../components/B2B/B2BRequestQuoteModal";
 import B2BHome from "../components/B2B/B2BHome";
+import { useAuthStore } from "../../../shared/store/authStore";
 
 const normalizeId = (value) => String(value ?? "").trim();
 const toNumber = (value, fallback = 0) => {
@@ -262,9 +263,17 @@ const MobileHome = () => {
   const [selectedHomeOffer, setSelectedHomeOffer] = useState(null);
   const [isCustomRfqOpen, setIsCustomRfqOpen] = useState(false);
 
-  // Load active offers
   const { offers } = useOffers();
   const { isBusiness } = useBusinessBuyer();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  const handleCustomRfqClick = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create a business account to request custom quotes.");
+      return;
+    }
+    setIsCustomRfqOpen(true);
+  };
 
   const { categories: allCategories, getCategoryById, getCategoriesByParent, initialize: initializeCategories } = useCategoryStore();
 
@@ -688,7 +697,7 @@ const MobileHome = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => setIsCustomRfqOpen(true)}
+                  onClick={handleCustomRfqClick}
                   className="px-4 py-1.5 bg-white text-[#AE020B] font-extrabold rounded-lg text-xs hover:bg-red-50 transition-all whitespace-nowrap shrink-0 active:scale-95 shadow-sm"
                 >
                   Request Quote

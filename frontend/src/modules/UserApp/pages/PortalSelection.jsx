@@ -26,7 +26,7 @@ const PortalSelection = () => {
       return;
     }
     setUserRole('customer');
-    navigate('/login');
+    navigate('/portal/retail');
   };
 
   const handleSelectB2B = () => {
@@ -35,7 +35,7 @@ const PortalSelection = () => {
       return;
     }
     setUserRole('business_buyer');
-    navigate('/b2b/login');
+    navigate('/portal/business');
   };
 
   return (

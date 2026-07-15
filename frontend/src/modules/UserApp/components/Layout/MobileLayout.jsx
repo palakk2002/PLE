@@ -43,6 +43,8 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     pathname === '/help-support' ||
     pathname === '/support-tickets' ||
     pathname.startsWith('/support-chat/') ||
+    pathname.startsWith('/chat/vendor/') ||
+    pathname === '/chats' ||
     pathname.startsWith('/product-requests') ||
     pathname.startsWith('/product-request/') ||
     pathname.startsWith('/rfq/') ||

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuthStore } from '../../../../shared/store/authStore';
 import api from '../../../../shared/utils/api';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiMessageSquare, FiEye, FiClock, FiCheckCircle, FiXCircle, FiX, FiCalendar, FiArrowRight, FiInfo } from 'react-icons/fi';
+import { FiMessageSquare, FiEye, FiClock, FiCheckCircle, FiXCircle, FiX, FiCalendar, FiArrowRight, FiInfo, FiArrowLeft } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 
 export const MyProductEnquiries = () => {
@@ -68,6 +68,122 @@ export const MyProductEnquiries = () => {
     // Let's add it or mock it for now, actually let's just close it locally or notify it's not supported.
     toast.error('Closing enquiry directly is not supported in this version.');
   };
+
+  if (selectedEnquiry) {
+    return (
+      <div className="space-y-6 text-sm">
+        {/* Back Button and Header */}
+        <div className="flex items-center gap-3 pb-3 border-b border-gray-150">
+          <button
+            onClick={() => setSelectedEnquiry(null)}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-700"
+            type="button"
+            title="Back to list"
+          >
+            <FiArrowLeft className="text-xl" />
+          </button>
+          <div>
+            <h3 className="font-extrabold text-gray-900 text-base">Enquiry Details</h3>
+            <span className="font-mono text-xs text-gray-500 font-bold">{selectedEnquiry.id}</span>
+          </div>
+        </div>
+
+        {/* Content Details */}
+        <div className="space-y-5">
+          {/* Product Info */}
+          <div className="flex gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-150 items-center">
+            <img
+              src={selectedEnquiry.productImage}
+              alt={selectedEnquiry.productName}
+              className="w-16 h-16 object-cover rounded-xl border border-gray-200 bg-white shrink-0"
+            />
+            <div>
+              <h4 className="font-bold text-gray-900 text-sm leading-snug">{selectedEnquiry.productName}</h4>
+              <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${getStatusColor(selectedEnquiry.status)}`}>
+                {selectedEnquiry.status}
+              </span>
+            </div>
+          </div>
+
+          {/* Question Details */}
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+              Question Details
+            </p>
+            <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
+              <h5 className="font-extrabold text-gray-900">Subject: {selectedEnquiry.subject}</h5>
+              <p className="text-gray-750 leading-relaxed whitespace-pre-wrap font-medium">{selectedEnquiry.question}</p>
+              {selectedEnquiry.attachment && (
+                <div className="text-xs font-bold text-[#7B0A0A] bg-red-50 px-3 py-1 rounded-xl inline-block mt-2 border border-red-100">
+                  📎 Attachment: {selectedEnquiry.attachment}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Seller Response */}
+          {selectedEnquiry.sellerResponse && (
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+                Seller Response
+              </p>
+              <div className="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl">
+                <p className="text-emerald-900 leading-relaxed whitespace-pre-wrap font-semibold">
+                  {selectedEnquiry.sellerResponse}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Timeline */}
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Status Timeline
+            </p>
+            <div className="border border-gray-150 rounded-2xl p-4 bg-gray-50/50 space-y-4">
+              {selectedEnquiry.timeline.map((item, index) => (
+                <div key={index} className="flex gap-3 text-xs">
+                  <div className="flex flex-col items-center shrink-0">
+                    <div className="w-2.5 h-2.5 rounded-full bg-[#7B0A0A] ring-4 ring-red-100" />
+                    {index < selectedEnquiry.timeline.length - 1 && (
+                      <div className="w-0.5 h-10 bg-gray-200 mt-1" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-gray-850">{item.status}</span>
+                      <span className="text-[10px] text-gray-400">
+                        {new Date(item.date).toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                    <p className="text-gray-650 mt-1 font-semibold">{item.note}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Action footer */}
+          {selectedEnquiry.status !== 'Closed' && selectedEnquiry.status !== 'Resolved' && (
+            <div className="pt-2 flex gap-3">
+              <button
+                onClick={() => handleCloseEnquiry(selectedEnquiry.id)}
+                className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold border border-red-250 rounded-xl transition-all flex items-center justify-center gap-1.5"
+              >
+                <FiXCircle />
+                <span>Close Enquiry</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 text-sm">
@@ -136,133 +252,6 @@ export const MyProductEnquiries = () => {
           ))}
         </div>
       )}
-
-      {/* Details Drawer / Modal */}
-      <AnimatePresence>
-        {selectedEnquiry && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedEnquiry(null)}
-              className="absolute inset-0 bg-black"
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative z-10 border border-gray-150"
-            >
-              <div className="bg-[#7B0A0A] px-6 py-4 flex items-center justify-between text-white">
-                <div>
-                  <h3 className="font-extrabold text-lg">Enquiry Details</h3>
-                  <span className="font-mono text-xs text-red-100">{selectedEnquiry.id}</span>
-                </div>
-                <button
-                  onClick={() => setSelectedEnquiry(null)}
-                  className="text-red-100 hover:text-white hover:bg-[#AE020B]/50 p-1.5 rounded-lg transition-colors"
-                >
-                  <FiX className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
-                {/* Product Info */}
-                <div className="flex gap-4 bg-gray-50 p-3.5 rounded-2xl border border-gray-150">
-                  <img
-                    src={selectedEnquiry.productImage}
-                    alt={selectedEnquiry.productName}
-                    className="w-16 h-16 object-cover rounded-xl border border-gray-200 bg-white"
-                  />
-                  <div>
-                    <h4 className="font-bold text-gray-900">{selectedEnquiry.productName}</h4>
-                    <span className={`inline-block mt-2 px-2.5 py-0.5 rounded-full text-xs font-bold border ${getStatusColor(selectedEnquiry.status)}`}>
-                      {selectedEnquiry.status}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Question Details */}
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                    Question Details
-                  </p>
-                  <div className="bg-white border border-gray-200 p-4 rounded-2xl space-y-2">
-                    <h5 className="font-extrabold text-gray-900">Subject: {selectedEnquiry.subject}</h5>
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">{selectedEnquiry.question}</p>
-                    {selectedEnquiry.attachment && (
-                      <div className="text-xs font-bold text-[#7B0A0A] bg-red-50 px-3 py-1 rounded-xl inline-block mt-2">
-                        📎 Attachment: {selectedEnquiry.attachment}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Seller Response */}
-                {selectedEnquiry.sellerResponse && (
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
-                      Seller Response
-                    </p>
-                    <div className="bg-emerald-50 border border-emerald-250 p-4 rounded-2xl">
-                      <p className="text-emerald-900 leading-relaxed whitespace-pre-wrap font-semibold">
-                        {selectedEnquiry.sellerResponse}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Timeline */}
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
-                    Status Timeline
-                  </p>
-                  <div className="border border-gray-150 rounded-2xl p-4 bg-gray-50/50 space-y-4">
-                    {selectedEnquiry.timeline.map((item, index) => (
-                      <div key={index} className="flex gap-3 text-xs">
-                        <div className="flex flex-col items-center shrink-0">
-                          <div className="w-2.5 h-2.5 rounded-full bg-[#7B0A0A] ring-4 ring-red-100" />
-                          {index < selectedEnquiry.timeline.length - 1 && (
-                            <div className="w-0.5 h-10 bg-gray-200 mt-1" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-gray-850">{item.status}</span>
-                            <span className="text-[10px] text-gray-400">
-                              {new Date(item.date).toLocaleDateString('en-IN', {
-                                day: 'numeric',
-                                month: 'short',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </span>
-                          </div>
-                          <p className="text-gray-650 mt-1 font-semibold">{item.note}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action footer */}
-                {selectedEnquiry.status !== 'Closed' && selectedEnquiry.status !== 'Resolved' && (
-                  <div className="pt-2 flex gap-3">
-                    <button
-                      onClick={() => handleCloseEnquiry(selectedEnquiry.id)}
-                      className="flex-1 py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-bold border border-red-250 rounded-xl transition-all flex items-center justify-center gap-1.5"
-                    >
-                      <FiXCircle />
-                      <span>Close Enquiry</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

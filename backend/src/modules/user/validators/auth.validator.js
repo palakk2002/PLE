@@ -49,6 +49,8 @@ export const resetPasswordSchema = Joi.object({
 export const updateProfileSchema = Joi.object({
     name: Joi.string().trim().min(2).max(50).required(),
     phone: Joi.string().pattern(/^[0-9]{10}$/).allow('').optional(),
+    gender: Joi.string().valid('male', 'female', 'other', 'prefer_not_to_say', '').optional(),
+    dob: Joi.string().allow('').optional(),
 });
 
 export const changePasswordSchema = Joi.object({

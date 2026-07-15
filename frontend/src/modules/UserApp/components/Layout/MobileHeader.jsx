@@ -251,7 +251,7 @@ const MobileHeader = () => {
   const handleLogout = () => {
     logout();
     setShowUserMenu(false);
-    navigate("/");
+    navigate("/portal");
   };
 
   // Animation content - straight line movement only, starting from behind logo

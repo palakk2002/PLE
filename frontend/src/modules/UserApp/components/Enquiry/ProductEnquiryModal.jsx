@@ -40,6 +40,15 @@ export const ProductEnquiryModal = ({ isOpen, onClose, product }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("Submitting enquiry...", {
+      isAuthenticated,
+      productId: product?.id || product?._id,
+      subject,
+      question,
+      priority,
+      attachmentName
+    });
+
     if (!isAuthenticated) {
       toast.error('Please login to submit an enquiry.');
       navigate('/login');
@@ -57,6 +66,7 @@ export const ProductEnquiryModal = ({ isOpen, onClose, product }) => {
 
     setIsSubmitting(true);
     try {
+      console.log("Sending API request to /user/enquiries...");
       const response = await api.post('/user/enquiries', {
         productId: product.id || product._id,
         subject,
@@ -64,9 +74,12 @@ export const ProductEnquiryModal = ({ isOpen, onClose, product }) => {
         priority,
         attachment: attachmentName || null
       });
+      console.log("API response received:", response);
       
-      // api.js interceptor already unwraps response.data, so check response.success directly
-      if (response.success || response.statusCode === 201) {
+      const data = response?.data || response;
+      const isSuccess = response?.success || response?.statusCode === 201 || response?.statusCode === 200 || data?.success;
+
+      if (isSuccess) {
         toast.success('Product enquiry submitted successfully!');
         onClose();
         // Reset form
@@ -75,7 +88,7 @@ export const ProductEnquiryModal = ({ isOpen, onClose, product }) => {
         setPriority('Medium');
         setAttachmentName('');
       } else {
-        toast.error(response.message || 'Failed to submit enquiry');
+        toast.error(response?.message || data?.message || 'Failed to submit enquiry');
       }
     } catch (error) {
       console.error(error);

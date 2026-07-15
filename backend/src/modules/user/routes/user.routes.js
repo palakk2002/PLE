@@ -122,4 +122,12 @@ router.post('/product-requests', ...customerAuth, productRequestController.creat
 router.get('/product-requests', ...customerAuth, productRequestController.getUserProductRequests);
 router.get('/product-requests/:id', ...customerAuth, productRequestController.getProductRequestById);
 
+// Chat routes (protected)
+import * as customerChatController from '../controllers/customerChat.controller.js';
+router.post('/chat/vendor/initiate', ...customerAuth, customerChatController.initiateVendorChat);
+router.get('/chat/vendor/threads', ...customerAuth, customerChatController.getCustomerChatThreads);
+router.get('/chat/vendor/threads/:id/messages', ...customerAuth, customerChatController.getCustomerChatMessages);
+router.post('/chat/vendor/threads/:id/messages', ...customerAuth, customerChatController.sendCustomerChatMessage);
+router.patch('/chat/vendor/threads/:id/read', ...customerAuth, customerChatController.markCustomerChatRead);
+
 export default router;

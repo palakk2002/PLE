@@ -84,7 +84,13 @@ const AdminProductEnquiries = () => {
       if (response.success || response.statusCode === 200) {
         toast.success(`Enquiry status updated to ${newStatus}`);
         fetchEnquiries();
-        setSelectedEnquiry(response.data);
+        const freshDoc = response?.data || response;
+        setSelectedEnquiry((prev) => ({
+          ...prev,
+          status: freshDoc.status || prev.status,
+          sellerResponse: freshDoc.sellerResponse || prev.sellerResponse,
+          timeline: freshDoc.timeline || prev.timeline,
+        }));
       }
     } catch (error) {
       console.error(error);

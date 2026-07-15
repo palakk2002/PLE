@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { FiFilter, FiArrowLeft, FiGrid, FiList, FiX, FiCheckCircle, FiStar, FiShoppingBag } from "react-icons/fi";
+import { FiFilter, FiArrowLeft, FiGrid, FiList, FiX, FiCheckCircle, FiStar, FiShoppingBag, FiMessageSquare } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import MobileLayout from "../components/Layout/MobileLayout";
 import ProductCard from "../../../shared/components/ProductCard";
@@ -11,6 +11,8 @@ import useInfiniteScroll from "../../../shared/hooks/useInfiniteScroll";
 import LazyImage from "../../../shared/components/LazyImage";
 import { getPlaceholderImage } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
+import toast from "react-hot-toast";
+import { useAuthStore } from "../../../shared/store/authStore";
 
 const normalizeVendor = (raw) => ({
     ...raw,
@@ -37,6 +39,7 @@ const normalizeProduct = (raw) => ({
 const Seller = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { isAuthenticated } = useAuthStore();
     const vendorId = String(id ?? "").trim();
     const [catalogVersion, setCatalogVersion] = useState(0);
     const [remoteVendor, setRemoteVendor] = useState(null);
@@ -101,6 +104,27 @@ const Seller = () => {
         useInfiniteScroll(vendorProducts, 10, 10);
 
     const filterButtonRef = useRef(null);
+
+    const handleChatWithStore = async () => {
+        try {
+            if (!isAuthenticated) {
+                toast.error("Please login to chat with the store.");
+                navigate("/login");
+                return;
+            }
+            const res = await api.post("/user/chat/vendor/initiate", { vendorId });
+            const threadDoc = res?.data || res;
+            const threadId = threadDoc?._id || threadDoc?.id;
+            if (threadId) {
+                navigate(`/chat/vendor/${threadId}`);
+            } else {
+                toast.error("Could not initiate chat. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error initiating chat:", error);
+            toast.error(error.response?.data?.message || "Failed to initiate chat.");
+        }
+    };
 
     const handleFilterChange = (name, value) => {
         setFilters({ ...filters, [name]: value });
@@ -442,6 +466,14 @@ const Seller = () => {
                                             <span>{vendorProducts.length} Products</span>
                                         </div>
                                     </div>
+                                    <button
+                                        type="button"
+                                        onClick={handleChatWithStore}
+                                        className="mt-3 relative z-10 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 text-xs cursor-pointer"
+                                    >
+                                        <FiMessageSquare className="text-sm" />
+                                        <span>Chat with Store</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
