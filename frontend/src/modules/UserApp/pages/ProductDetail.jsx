@@ -475,8 +475,20 @@ const MobileProductDetail = () => {
     );
   }
 
+  const handleEnquiryClick = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create an account to send inquiries.");
+      return;
+    }
+    setIsEnquiryModalOpen(true);
+  };
+
   const handleAddToCart = () => {
     if (!product) return;
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create an account to purchase items.");
+      return;
+    }
     if (product.stock === "out_of_stock") {
       toast.error("Product is out of stock");
       return;
@@ -568,6 +580,10 @@ const MobileProductDetail = () => {
 
   const handleFavorite = () => {
     if (!product) return;
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create an account to use the wishlist.");
+      return;
+    }
     if (isFavorite) {
       removeFromWishlist(product.id);
       toast.success("Removed from wishlist");
@@ -1145,7 +1161,7 @@ const MobileProductDetail = () => {
 
                   <div className="col-span-6 flex gap-4 mt-2">
                     <button
-                      onClick={() => setIsEnquiryModalOpen(true)}
+                      onClick={handleEnquiryClick}
                       className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2"
                     >
                       <FiFileText className="text-xl" />
@@ -1377,7 +1393,7 @@ const MobileProductDetail = () => {
             <FiShare2 className="text-xl" />
           </button>
           <button
-            onClick={() => setIsEnquiryModalOpen(true)}
+            onClick={handleEnquiryClick}
             className="p-3 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 rounded-xl font-semibold transition-all duration-300"
             title="Enquire Now"
           >

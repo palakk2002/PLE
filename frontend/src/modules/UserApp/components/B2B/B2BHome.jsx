@@ -24,6 +24,7 @@ import OfferCarousel from "../../../offers/components/OfferCarousel";
 import { useCategoryStore } from "../../../../shared/store/categoryStore";
 import { categories as fallbackCategories } from "../../../../data/categories";
 import { useThemeStore } from "../../../../shared/store/themeStore";
+import { useAuthStore } from "../../../../shared/store/authStore";
 
 const B2BHome = ({
   computedBrands,
@@ -84,8 +85,22 @@ const B2BHome = ({
 
 
 
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   const handleUploadBOQ = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create a business account to upload BOQs.");
+      return;
+    }
     toast.success("BOQ Upload dialog opened. Choose your procurement list.");
+  };
+
+  const handleRfqClick = () => {
+    if (!isAuthenticated) {
+      toast.error("Please sign in or create a business account to request quotes.");
+      return;
+    }
+    setIsRfqOpen(true);
   };
 
   return (
@@ -233,7 +248,7 @@ const B2BHome = ({
           
           <div className="flex flex-wrap items-center gap-3 mt-6">
             <button 
-              onClick={() => setIsRfqOpen(true)}
+              onClick={handleRfqClick}
               className="flex items-center gap-2 px-4 py-2.5 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-xs uppercase rounded-lg transition-all shadow-md active:scale-95"
             >
               <FiFileText className="text-sm" />
@@ -252,7 +267,7 @@ const B2BHome = ({
         {/* Seventh Row: Services Grid (4 Cards) */}
         <div className="grid grid-cols-2 gap-3">
           <div 
-            onClick={() => setIsRfqOpen(true)}
+            onClick={handleRfqClick}
             className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors"
           >
             <div className="w-9 h-9 rounded-lg bg-red-950/50 light:bg-red-50 flex items-center justify-center text-red-500 shrink-0">

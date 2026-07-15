@@ -4,6 +4,9 @@ import ApiError from '../../../utils/ApiError.js';
 import Order from '../../../models/Order.model.js';
 import VendorChatThread from '../../../models/VendorChatThread.model.js';
 import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
+import Notification from '../../../models/Notification.model.js';
+import Vendor from '../../../models/Vendor.model.js';
+import { getIO } from '../../../config/socket.js';
 
 const buildThreadSeedFromOrder = (order) => {
     const customerName =
@@ -129,6 +132,44 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
     thread.lastMessage = message;
     thread.lastActivity = created.createdAt;
     await thread.save();
+
+    // Create in-app notification for the customer
+    if (thread.customerUserId) {
+        try {
+            const vendorObj = await Vendor.findById(req.user.id);
+            const vendorName = vendorObj?.storeName || vendorObj?.name || 'Store';
+            await Notification.create({
+                recipientId: thread.customerUserId,
+                recipientType: 'user',
+                title: `New message from ${vendorName}`,
+                message: message.length > 50 ? `${message.substring(0, 50)}...` : message,
+                type: 'chat',
+                data: {
+                    threadId: String(thread._id),
+                    vendorId: String(req.user.id),
+                },
+            });
+        } catch (nErr) {
+            console.warn('Failed to create in-app notification:', nErr.message);
+        }
+    }
+
+    // Broadcast the message via Socket.io to the thread room
+    try {
+        const io = getIO();
+        if (io) {
+            io.to(`chat_${thread._id}`).emit('new_message', serializeMessage(created));
+            // Also notify the customer in their user room
+            if (thread.customerUserId) {
+                io.to(`user_${thread.customerUserId}`).emit('customer_chat_notification', {
+                    threadId: thread._id,
+                    lastMessage: message,
+                });
+            }
+        }
+    } catch (err) {
+        console.warn('Socket broadcast failed:', err.message);
+    }
 
     res.status(201).json(new ApiResponse(201, serializeMessage(created), 'Message sent.'));
 });

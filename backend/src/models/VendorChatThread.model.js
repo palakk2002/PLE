@@ -11,7 +11,8 @@ const vendorChatThreadSchema = new mongoose.Schema(
         orderRef: {
             type: mongoose.Schema.Types.ObjectId,
             ref: 'Order',
-            required: true,
+            required: false,
+            default: null,
             index: true,
         },
         orderDisplayId: { type: String, trim: true },
@@ -37,7 +38,7 @@ const vendorChatThreadSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-vendorChatThreadSchema.index({ vendorId: 1, orderRef: 1 }, { unique: true });
+vendorChatThreadSchema.index({ vendorId: 1, customerUserId: 1, orderRef: 1 }, { unique: true });
 
 const VendorChatThread = mongoose.model('VendorChatThread', vendorChatThreadSchema);
 export { VendorChatThread };

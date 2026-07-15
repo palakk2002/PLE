@@ -8,7 +8,7 @@ import Notification from '../../../models/Notification.model.js';
 // @route   GET /api/vendor/enquiries
 // @access  Private
 export const getVendorEnquiries = asyncHandler(async (req, res) => {
-    const enquiries = await ProductEnquiry.find({ vendorId: req.vendor._id })
+    const enquiries = await ProductEnquiry.find({ vendorId: req.user.id })
         .populate('userId', 'name email role')
         .populate('productId', 'name image slug')
         .sort({ createdAt: -1 });
@@ -38,6 +38,7 @@ export const getVendorEnquiries = asyncHandler(async (req, res) => {
 // @desc    Reply to a product enquiry
 // @route   PUT /api/vendor/enquiries/:id/reply
 // @access  Private
+// export const replyToEnquiry = asyncHandler(async (req, res) => {
 export const replyToEnquiry = asyncHandler(async (req, res) => {
     const { status, responseText } = req.body;
     
@@ -45,7 +46,7 @@ export const replyToEnquiry = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Please provide status or response text.');
     }
 
-    const enquiry = await ProductEnquiry.findOne({ enquiryId: req.params.id, vendorId: req.vendor._id });
+    const enquiry = await ProductEnquiry.findOne({ enquiryId: req.params.id, vendorId: req.user.id });
     if (!enquiry) {
         throw new ApiError(404, 'Enquiry not found or unauthorized.');
     }
@@ -66,13 +67,15 @@ export const replyToEnquiry = asyncHandler(async (req, res) => {
 
     // Notify user
     await Notification.create({
-        userId: enquiry.userId,
-        userType: 'User',
-        type: 'Order', // Using existing generic types if needed
+        recipientId: enquiry.userId,
+        recipientType: 'user',
+        type: 'system',
         title: 'Product Enquiry Update',
         message: `There is an update on your enquiry regarding ${enquiry.subject}.`,
-        relatedId: enquiry._id,
-        onModel: 'ProductEnquiry'
+        data: {
+            relatedId: enquiry._id.toString(),
+            onModel: 'ProductEnquiry'
+        }
     });
 
     res.status(200).json(new ApiResponse(200, enquiry, 'Enquiry updated successfully.'));

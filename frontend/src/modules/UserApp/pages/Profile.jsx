@@ -291,6 +291,20 @@ const MobileProfile = () => {
   }, [isDesktop, activeTab]);
 
   useEffect(() => {
+    const lastClickedId = sessionStorage.getItem("lastClickedProfileOption");
+    if (lastClickedId) {
+      const timer = setTimeout(() => {
+        const element = document.getElementById(lastClickedId);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        sessionStorage.removeItem("lastClickedProfileOption");
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  useEffect(() => {
     resetPersonal({
       name: user?.name || "",
       email: isB2BUser ? (company?.businessEmail || user?.email || "") : (user?.email || ""),
@@ -514,6 +528,14 @@ const MobileProfile = () => {
       link: "/support-tickets",
     },
     {
+      id: "my-chats",
+      label: "My Store Chats",
+      icon: FiMessageSquare,
+      color: "text-[#7B0A0A]",
+      bg: "bg-[#7B0A0A]/10",
+      link: "/chats",
+    },
+    {
       id: "help",
       label: "Help & Support",
       icon: FiHelpCircle,
@@ -589,7 +611,7 @@ const MobileProfile = () => {
           <div className="hidden lg:block px-4 py-8">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate(-1)}
+                onClick={() => navigate("/")}
                 className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
               >
                 <FiArrowLeft className="text-xl text-gray-700" />
@@ -607,7 +629,7 @@ const MobileProfile = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() =>
-                  activeTab === "menu" ? navigate(-1) : setActiveTab("menu")
+                  activeTab === "menu" ? navigate("/") : setActiveTab("menu")
                 }
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
@@ -668,7 +690,13 @@ const MobileProfile = () => {
 
                     if (option.link) {
                       return (
-                        <Link key={option.id} to={option.link} className={className}>
+                        <Link
+                          key={option.id}
+                          id={`profile-option-${option.id}`}
+                          onClick={() => sessionStorage.setItem("lastClickedProfileOption", `profile-option-${option.id}`)}
+                          to={option.link}
+                          className={className}
+                        >
                           {content}
                           {rightElement}
                         </Link>
@@ -694,6 +722,8 @@ const MobileProfile = () => {
                     {legalOptions.map((option) => (
                       <Link
                         key={option.id}
+                        id={`profile-option-${option.id}`}
+                        onClick={() => sessionStorage.setItem("lastClickedProfileOption", `profile-option-${option.id}`)}
                         to={option.link}
                         className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-left font-semibold text-gray-600 hover:bg-red-50/50 hover:text-[#7B0A0A] text-sm"
                       >
@@ -761,6 +791,8 @@ const MobileProfile = () => {
                         option.link ? (
                           <Link
                             key={option.id}
+                            id={`profile-option-${option.id}`}
+                            onClick={() => sessionStorage.setItem("lastClickedProfileOption", `profile-option-${option.id}`)}
                             to={option.link}
                             className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors bg-white"
                           >
@@ -822,6 +854,8 @@ const MobileProfile = () => {
                       {legalOptions.map((option) => (
                         <Link
                           key={option.id}
+                          id={`profile-option-${option.id}`}
+                          onClick={() => sessionStorage.setItem("lastClickedProfileOption", `profile-option-${option.id}`)}
                           to={option.link}
                           className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors bg-white"
                         >

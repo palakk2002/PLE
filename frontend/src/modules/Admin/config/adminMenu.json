@@ -158,6 +158,7 @@
     "route": "/admin/support",
     "children": [
       "Live Chat",
+      "PLE Shop Chats",
       "Ticket Types",
       "Tickets"
     ]

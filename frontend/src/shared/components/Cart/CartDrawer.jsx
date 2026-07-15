@@ -38,6 +38,16 @@ const CartDrawer = () => {
     initializeCategories();
   }, [initializeCategories]);
 
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const rootCategories = useMemo(() => {
     return getRootCategories().filter(cat => cat.isActive !== false).slice(0, 4);
   }, [categories, getRootCategories]);
@@ -85,11 +95,11 @@ const CartDrawer = () => {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            drag="x"
+            drag={isMobile ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.2}
+            dragElastic={isMobile ? 0.2 : 0}
             onDragEnd={(event, info) => {
-              if (info.offset.x > 200) {
+              if (isMobile && info.offset.x > 200) {
                 toggleCart();
               }
             }}

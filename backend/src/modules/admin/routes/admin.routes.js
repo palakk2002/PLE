@@ -21,6 +21,7 @@ import b2bUserRoutes from './b2bUser.routes.js';
 import cmsRoutes from './cms.routes.js';
 import * as managedShopController from '../controllers/managedShop.controller.js';
 import * as productRequestController from '../controllers/productRequest.controller.js';
+import * as productEnquiryController from '../controllers/productEnquiry.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -244,6 +245,10 @@ router.get('/product-requests', ...adminAuth, productRequestController.getAllPro
 router.put('/product-requests/:id/status', ...adminAuth, productRequestController.updateProductRequestStatus);
 router.delete('/product-requests/:id', ...adminAuth, productRequestController.deleteProductRequest);
 
+// Product Enquiries
+router.get('/enquiries', ...adminAuth, productEnquiryController.getAdminEnquiries);
+router.put('/enquiries/:id/reply', ...adminAuth, productEnquiryController.replyToEnquiry);
+
 export default router;
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -281,3 +286,11 @@ router.get('/products', ...adminAuth, catalogController.getAllProducts);
 router.get('/products/tax-pricing-rules', ...adminAuth, catalogController.getTaxPricingRules);
 router.get('/products/:id', ...adminAuth, catalogController.getProductById);
 router.post('/products', ...adminAuth, validate(createProductSchema), catalogController.createProduct);
+
+// ─── PLE Shop Chat Routes ──────────────────────────────────────────────────────
+import * as pleShopChatController from '../controllers/pleShopChat.controller.js';
+router.get('/ple-shop/my-shops', ...adminAuth, pleShopChatController.getAdminShops);
+router.get('/ple-shop/threads', ...adminAuth, pleShopChatController.getPLEShopThreads);
+router.get('/ple-shop/threads/:id/messages', ...adminAuth, pleShopChatController.getPLEShopMessages);
+router.post('/ple-shop/threads/:id/messages', ...adminAuth, pleShopChatController.sendPLEShopMessage);
+router.patch('/ple-shop/threads/:id/read', ...adminAuth, pleShopChatController.markPLEShopRead);

@@ -91,6 +91,7 @@ const PushNotifications = lazy(() => import("./modules/Admin/pages/notifications
 const CustomMessages = lazy(() => import("./modules/Admin/pages/notifications/CustomMessages"));
 const AllNotifications = lazy(() => import("./modules/Admin/pages/notifications/AllNotifications"));
 const LiveChat = lazy(() => import("./modules/Admin/pages/support/LiveChat"));
+const PLEShopChats = lazy(() => import("./modules/Admin/pages/support/PLEShopChats"));
 const TicketTypes = lazy(() => import("./modules/Admin/pages/support/TicketTypes"));
 const Tickets = lazy(() => import("./modules/Admin/pages/support/Tickets"));
 const SalesReport = lazy(() => import("./modules/Admin/pages/reports/SalesReport"));
@@ -193,6 +194,8 @@ const MobileLogin = lazy(() => import("./modules/UserApp/pages/Login"));
 const MobileHelpSupport = lazy(() => import("./modules/UserApp/pages/HelpSupport"));
 const MySupportTickets = lazy(() => import("./modules/UserApp/pages/MySupportTickets"));
 const SupportChat = lazy(() => import("./modules/UserApp/pages/SupportChat"));
+const CustomerVendorChat = lazy(() => import("./modules/UserApp/pages/CustomerVendorChat"));
+const CustomerChatsList = lazy(() => import("./modules/UserApp/pages/CustomerChatsList"));
 const MobileRegister = lazy(() => import("./modules/UserApp/pages/Register"));
 const MobileVerification = lazy(() => import("./modules/UserApp/pages/Verification"));
 const MobileForgotPassword = lazy(() => import("./modules/UserApp/pages/ForgotPassword"));
@@ -217,6 +220,7 @@ const MobileTrackOrder = lazy(() => import("./modules/UserApp/pages/TrackOrder")
 const MobileOrderConfirmation = lazy(() => import("./modules/UserApp/pages/OrderConfirmation"));
 const ComingSoon = lazy(() => import("./modules/UserApp/pages/ComingSoon"));
 const PortalSelection = lazy(() => import("./modules/UserApp/pages/PortalSelection"));
+const PortalWelcome = lazy(() => import("./modules/UserApp/pages/PortalWelcome"));
 const UserPrivacyPolicy = lazy(() => import("./modules/UserApp/pages/PrivacyPolicy"));
 const UserTermsConditions = lazy(() => import("./modules/UserApp/pages/TermsConditions"));
 const UserAgreement = lazy(() => import("./modules/UserApp/pages/UserAgreement"));
@@ -378,6 +382,22 @@ const AppRoutes = () => {
         element={
           <RouteWrapper>
             <PortalSelection />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/portal/retail"
+        element={
+          <RouteWrapper>
+            <PortalWelcome type="retail" />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/portal/business"
+        element={
+          <RouteWrapper>
+            <PortalWelcome type="business" />
           </RouteWrapper>
         }
       />
@@ -700,6 +720,26 @@ const AppRoutes = () => {
         }
       />
       <Route
+        path="/chat/vendor/:threadId"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <CustomerVendorChat />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/chats"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <CustomerChatsList />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+      <Route
         path="/privacy-policy"
         element={
           <RouteWrapper>
@@ -975,6 +1015,7 @@ const AppRoutes = () => {
         />
         <Route path="support" element={<Tickets />} />
         <Route path="support/live-chat" element={<LiveChat />} />
+        <Route path="ple-shop-chats" element={<PLEShopChats />} />
         <Route path="support/ticket-types" element={<TicketTypes />} />
         <Route path="support/tickets" element={<Tickets />} />
         <Route path="reports" element={<SalesReport />} />

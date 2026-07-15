@@ -331,6 +331,8 @@ export const useAuthStore = create(
           const response = await api.put('/user/auth/profile', {
             name: profileData?.name,
             phone: profileData?.phone,
+            gender: profileData?.gender,
+            dob: profileData?.dob,
           });
           const payload = response?.data ?? response;
           const currentUser = get().user || {};

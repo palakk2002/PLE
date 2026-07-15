@@ -9,6 +9,11 @@ const ScrollToTop = () => {
   const { pathname } = useLocation();
 
   useEffect(() => {
+    // If returning to profile page with a saved scroll target, bypass scroll-to-top
+    if (pathname === '/profile' && sessionStorage.getItem("lastClickedProfileOption")) {
+      return;
+    }
+
     // Scroll window to top (for desktop and mobile)
     window.scrollTo({
       top: 0,

@@ -279,13 +279,15 @@ export const getProfile = asyncHandler(async (req, res) => {
 
 // PUT /api/user/auth/profile
 export const updateProfile = asyncHandler(async (req, res) => {
-    const { name, phone } = req.body;
+    const { name, phone, gender, dob } = req.body;
     const normalizedName = String(name || '').trim();
     const normalizedPhone = String(phone || '').replace(/\D/g, '').slice(-10);
 
     const updatePayload = {
         name: normalizedName,
         phone: normalizedPhone || undefined,
+        gender: gender || "",
+        dob: dob || "",
     };
 
     const user = await User.findByIdAndUpdate(
