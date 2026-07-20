@@ -13,6 +13,7 @@ import { getPlaceholderImage } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../../../shared/store/authStore";
+import { useB2bStore } from "../../../shared/store/b2bStore";
 
 const normalizeVendor = (raw) => ({
     ...raw,
@@ -39,7 +40,7 @@ const normalizeProduct = (raw) => ({
 const Seller = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { isAuthenticated } = useAuthStore();
+    const { isAuthenticated, user } = useAuthStore();
     const vendorId = String(id ?? "").trim();
     const [catalogVersion, setCatalogVersion] = useState(0);
     const [remoteVendor, setRemoteVendor] = useState(null);
@@ -116,7 +117,7 @@ const Seller = () => {
             }
             setIsInitiatingChat(true);
             const res = await api.post("/user/chat/vendor/initiate", { vendorId });
-            const threadDoc = res?.data || res;
+            const threadDoc = res?.data?.data || res?.data || res;
             const threadId = threadDoc?._id || threadDoc?.id;
             if (threadId) {
                 navigate(`/chat/vendor/${threadId}`);

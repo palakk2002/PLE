@@ -359,6 +359,7 @@ const B2BRFQDetail = lazy(() => import("./modules/B2BAdmin/pages/RFQDetail"));
 const B2BQuotations = lazy(() => import("./modules/B2BAdmin/pages/Quotations"));
 const B2BRFQDiscussions = lazy(() => import("./modules/B2BAdmin/pages/RFQDiscussions"));
 const B2BPurchaseOrders = lazy(() => import("./modules/B2BAdmin/pages/PurchaseOrders"));
+const ShopChats = lazy(() => import("./modules/B2BAdmin/pages/ShopChats"));
 import B2BProtectedRoute from "./modules/B2BAdmin/components/B2BProtectedRoute";
 
 import { useB2BAdminStore } from "./modules/B2BAdmin/store/b2bAdminStore";
@@ -894,6 +895,7 @@ const AppRoutes = () => {
         <Route path="direct-rfqs/:id" element={<B2BRFQDetail />} />
         <Route path="quotations" element={<B2BQuotations />} />
         <Route path="discussions" element={<B2BRFQDiscussions />} />
+        <Route path="shop-chats" element={<ShopChats />} />
         <Route path="purchase-orders" element={<B2BPurchaseOrders />} />
         <Route path="company-profile" element={<B2BCompanyProfile />} />
         <Route path="admin-profile" element={<B2BAdminProfile />} />

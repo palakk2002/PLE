@@ -7,12 +7,15 @@ import PageTransition from "../../../shared/components/PageTransition";
 import api from "../../../shared/utils/api";
 import { getPlaceholderImage } from "../../../shared/utils/helpers";
 import LazyImage from "../../../shared/components/LazyImage";
+import { useB2bStore } from "../../../shared/store/b2bStore";
 
 const CustomerChatsList = () => {
   const navigate = useNavigate();
   const [threads, setThreads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const isB2B = useB2bStore((state) => state.userRole === 'business_buyer');
 
+  // Fetch threads for both B2C and B2B users inside the User App
   useEffect(() => {
     fetchThreads();
   }, []);

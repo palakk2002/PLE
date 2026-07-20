@@ -37,6 +37,7 @@ import { useCategoryStore } from "../../../../shared/store/categoryStore";
 import { categories as fallbackCategories } from "../../../../data/categories";
 import { useThemeStore } from "../../../../shared/store/themeStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
+import { getPlaceholderImage } from "../../../../shared/utils/helpers";
 
 const B2BHome = ({
   computedBrands,
@@ -183,7 +184,7 @@ const B2BHome = ({
         <div className="block md:hidden space-y-2">
           {/* Red Background Top Section wrapper */}
           <div 
-            className="px-4 pt-2.5 pb-2.5 space-y-2 -mx-4 -mt-3 transition-colors duration-300"
+            className="px-3 pt-1.5 pb-1.5 space-y-1.5 -mx-4 -mt-3 transition-colors duration-300"
             style={{
               background: theme === "dark" 
                 ? "linear-gradient(to bottom, #1A0A0A 0%, #140808 30%, #0D0D0D 100%)" 
@@ -191,230 +192,153 @@ const B2BHome = ({
             }}
           >
             {/* Third Row: Slim Navigation Capsule Tabs */}
-            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-1">
+            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide py-0.5">
               <button 
                 onClick={() => setActiveMarketTab("Official Store")}
-                className={`w-[108px] h-[44px] flex-shrink-0 flex flex-col items-center justify-center rounded-md text-center transition-all cursor-pointer ${
+                className={`w-[96px] h-[36px] flex-shrink-0 flex flex-col items-center justify-center rounded-md text-center transition-all cursor-pointer ${
                   activeMarketTab === "Official Store"
                     ? "bg-white text-[#AE020B] shadow-sm font-extrabold"
                     : "border border-white/20 bg-white/10 text-white font-medium hover:bg-white/20"
                 }`}
               >
-                <span className={`block text-[8px] opacity-75 font-normal leading-tight ${activeMarketTab === "Official Store" ? "text-zinc-550" : "text-white/80"}`}>BRANDS BY PLE</span>
-                <span className="text-[10px] leading-tight">Official Store</span>
+                <span className={`block text-[7px] opacity-75 font-normal leading-tight ${activeMarketTab === "Official Store" ? "text-zinc-550" : "text-white/80"}`}>BRANDS BY PLE</span>
+                <span className="text-[9px] leading-tight">Official Store</span>
               </button>
               
               <button 
                 onClick={() => setActiveMarketTab("Marketplace")}
-                className={`w-[108px] h-[44px] flex-shrink-0 flex flex-col items-center justify-center rounded-md text-center transition-all cursor-pointer ${
+                className={`w-[96px] h-[36px] flex-shrink-0 flex flex-col items-center justify-center rounded-md text-center transition-all cursor-pointer ${
                   activeMarketTab === "Marketplace"
                     ? "bg-white text-[#AE020B] shadow-sm font-extrabold"
                     : "border border-white/20 bg-white/10 text-white font-medium hover:bg-white/20"
                 }`}
               >
-                <span className={`block text-[8px] opacity-75 font-normal leading-tight ${activeMarketTab === "Marketplace" ? "text-zinc-550" : "text-white/80"}`}>OTHER SHOPS</span>
-                <span className="text-[10px] leading-tight">Marketplace</span>
+                <span className={`block text-[7px] opacity-75 font-normal leading-tight ${activeMarketTab === "Marketplace" ? "text-zinc-550" : "text-white/80"}`}>OTHER SHOPS</span>
+                <span className="text-[9px] leading-tight">Marketplace</span>
               </button>
 
               <button 
                 onClick={() => navigate('/categories')}
-                className="w-[108px] h-[44px] flex-shrink-0 flex flex-col items-center justify-center border border-white/20 bg-white/10 text-white font-semibold text-[10px] uppercase rounded-md"
+                className="w-[96px] h-[36px] flex-shrink-0 flex flex-col items-center justify-center border border-white/20 bg-white/10 text-white font-semibold text-[9px] uppercase rounded-md"
               >
                 CATEGORIES
               </button>
 
               <button 
                 onClick={() => navigate('/offers')}
-                className="w-[108px] h-[44px] flex-shrink-0 flex flex-col items-center justify-center border border-white/20 bg-white/10 text-white font-semibold text-[10px] uppercase rounded-md"
+                className="w-[96px] h-[36px] flex-shrink-0 flex flex-col items-center justify-center border border-white/20 bg-white/10 text-white font-semibold text-[9px] uppercase rounded-md"
               >
                 OFFER
               </button>
 
               <button 
                 onClick={() => navigate('/offers')}
-                className="w-[108px] h-[44px] flex-shrink-0 flex flex-col items-center justify-center border border-white/20 bg-white/10 text-yellow-300 font-extrabold text-[10px] uppercase rounded-md"
+                className="w-[96px] h-[36px] flex-shrink-0 flex flex-col items-center justify-center border border-white/20 bg-white/10 text-yellow-300 font-extrabold text-[9px] uppercase rounded-md"
               >
-                <span className="flex items-center justify-center gap-0.5">DIWALI <span className="text-[9px]">★</span> SALE</span>
+                <span className="flex items-center justify-center gap-0.5">DIWALI <span className="text-[8px]">★</span> SALE</span>
               </button>
             </div>
 
             {/* Fourth Row: Single Integrated Search Bar with Left Logo & Right Search Icon */}
-            <div className="relative flex items-center w-full bg-white rounded-full border border-white/20 pl-4 pr-10 py-2 shadow-sm">
-              <div className="flex items-center gap-2 pr-3 border-r border-gray-200">
-                <div className="w-5 h-5 rounded-full bg-[#AE020B] flex items-center justify-center text-white text-[9px] font-black">
+            <div className="relative flex items-center w-full bg-white rounded-full border border-white/20 pl-3 pr-8 py-1.5 shadow-sm">
+              <div className="flex items-center gap-1.5 pr-2 border-r border-gray-200">
+                <div className="w-4.5 h-4.5 rounded-full bg-[#AE020B] flex items-center justify-center text-white text-[8px] font-black">
                   PLE
                 </div>
               </div>
               <input 
                 type="text" 
                 placeholder="Search for products, brands, categories..." 
-                className="flex-grow pl-3 bg-transparent text-sm text-gray-900 focus:outline-none placeholder-gray-400"
+                className="flex-grow pl-2 bg-transparent text-xs text-gray-900 focus:outline-none placeholder-gray-400"
               />
-              <FiSearch className="absolute right-4 text-gray-400 text-lg" />
+              <FiSearch className="absolute right-3 text-gray-400 text-sm" />
             </div>
-
-          {/* Fifth Row: Category Quick Nav Bar (Circles/Icons) */}
-          <div className="flex items-center justify-around py-2 border-b border-white/10">
-            {categoryTabs.map((tab) => (
-              <button 
-                key={tab.name}
-                onClick={() => setActiveCategoryTab(tab.name)}
-                className="flex flex-col items-center gap-1.5 focus:outline-none relative"
-              >
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${
-                  activeCategoryTab === tab.name 
-                    ? "border-white bg-white text-[#AE020B] shadow-md" 
-                    : "border-white/20 bg-white/10 text-white/90 hover:bg-white/20"
-                }`}>
-                  {tab.name === "All" && <FiShoppingBag className="text-lg" />}
-                  {tab.name === "Men's" && <span className="text-lg font-bold">M</span>}
-                  {tab.name === "Women's" && <span className="text-lg font-bold">W</span>}
-                  {tab.name === "Books" && <span className="text-lg font-bold">B</span>}
-                  {tab.name === "Kids" && <span className="text-lg font-bold">K</span>}
-                </div>
-                <span className={`text-[11px] font-semibold ${
-                  activeCategoryTab === tab.name ? "text-white font-extrabold" : "text-white/70"
-                }`}>
-                  {tab.name}
-                </span>
-                {activeCategoryTab === tab.name && (
-                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-white rounded-full" />
-                )}
-              </button>
-            ))}
           </div>
-        </div>
 
-        {/* Sixth Row: Main Hero Banner ("BUSINESS PROCUREMENT") */}
-        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#200204] via-[#0E0102] to-black border border-zinc-800/50 p-6 md:p-8 flex flex-col justify-between min-h-[220px]">
-          <div className="space-y-2">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FF3E46]">
-              BUSINESS PROCUREMENT
-            </span>
-            <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">
-              Smart Sourcing.<br />Reliable Supply.
-            </h2>
-            <p className="text-xs text-zinc-400 max-w-sm font-medium mt-1 leading-relaxed">
-              GST-compliant sourcing, bulk quotes and business purchasing made easy.
-            </p>
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3 mt-6">
-            <button 
-              onClick={handleRfqClick}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-xs uppercase rounded-lg transition-all shadow-md active:scale-95"
-            >
-              <FiFileText className="text-sm" />
-              Request Quote
-            </button>
-            <button 
-              onClick={handleUploadBOQ}
-              className="flex items-center gap-2 px-4 py-2.5 border border-zinc-700 bg-zinc-950/80 hover:bg-zinc-900 text-white font-extrabold text-xs uppercase rounded-lg transition-all active:scale-95"
-            >
-              <FiUploadCloud className="text-sm" />
-              Upload BOQ
-            </button>
-          </div>
-        </div>
-
-        {/* Seventh Row: Services Grid (4 Cards) */}
-        <div className="grid grid-cols-2 gap-3">
+          {/* Fifth Row: Category Quick Nav Bar Wrapper (Allows independent background color styling) */}
           <div 
-            onClick={handleRfqClick}
-            className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors"
+            className="px-3 py-1 -mx-4 !mt-0 transition-colors duration-300"
+            style={{
+              background: theme === "dark" 
+                ? "linear-gradient(to bottom, #0D0D0D 0%, #000000 100%)" 
+                : "linear-gradient(to bottom, #4C0505 0%, #3B0202 100%)"
+            }}
           >
-            <div className="w-9 h-9 rounded-lg bg-red-950/50 light:bg-red-50 flex items-center justify-center text-red-500 shrink-0">
-              <FiFileText className="text-lg" />
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-xs font-bold text-white light:text-gray-900">Request Quote</h4>
-              <p className="text-[10px] text-zinc-500 light:text-gray-500 mt-0.5 leading-tight">Get best quotes for your needs</p>
+            <div className="flex items-center justify-around py-1 border-b border-white/10">
+              {categoryTabs.map((tab) => {
+                const match = displayCategories.find(
+                  cat => cat.name?.toLowerCase().includes(tab.name.replace("'", "").toLowerCase().split(" ")[0])
+                );
+                const hasImage = tab.name !== "All" && match && match.image;
+
+                return (
+                  <button 
+                    key={tab.name}
+                    onClick={() => setActiveCategoryTab(tab.name)}
+                    className="flex flex-col items-center gap-0.5 focus:outline-none relative"
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center border overflow-hidden p-0.5 transition-all ${
+                      activeCategoryTab === tab.name 
+                        ? "border-white bg-white text-[#AE020B] shadow-md" 
+                        : "border-white/20 bg-white/10 text-white/90 hover:bg-white/20"
+                    }`}>
+                      {tab.name === "All" ? (
+                        <FiShoppingBag className="text-xs" />
+                      ) : hasImage ? (
+                        <img 
+                          src={match.image} 
+                          alt={tab.name} 
+                          className="w-full h-full object-contain rounded-full"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = getPlaceholderImage(32, 32, tab.name);
+                          }}
+                        />
+                      ) : (
+                        <span className="text-xs font-bold">{tab.name.charAt(0)}</span>
+                      )}
+                    </div>
+                    <span className={`text-[9px] font-semibold ${
+                      activeCategoryTab === tab.name ? "text-white font-extrabold" : "text-white/70"
+                    }`}>
+                      {tab.name}
+                    </span>
+                    {activeCategoryTab === tab.name && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-white rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          <div 
-            onClick={handleUploadBOQ}
-            className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors"
-          >
-            <div className="w-9 h-9 rounded-lg bg-blue-950/50 light:bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
-              <FiUploadCloud className="text-lg" />
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-xs font-bold text-white light:text-gray-900">Upload BOQ</h4>
-              <p className="text-[10px] text-zinc-500 light:text-gray-500 mt-0.5 leading-tight">Upload your list for bulk pricing</p>
-            </div>
-          </div>
 
-          <div className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors">
-            <div className="w-9 h-9 rounded-lg bg-green-950/50 light:bg-green-50 flex items-center justify-center text-green-500 shrink-0">
-              <FiClock className="text-lg" />
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-xs font-bold text-white light:text-gray-900">Track Orders</h4>
-              <p className="text-[10px] text-zinc-500 light:text-gray-500 mt-0.5 leading-tight">Real-time status of your orders</p>
-            </div>
-          </div>
 
-          <div className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors">
-            <div className="w-9 h-9 rounded-lg bg-amber-950/50 light:bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-            </div>
-            <div className="min-w-0">
-              <h4 className="text-xs font-bold text-white light:text-gray-900">GST Invoices</h4>
-              <p className="text-[10px] text-zinc-500 light:text-gray-500 mt-0.5 leading-tight">100% GST compliant invoicing</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Eighth Row: TOP BRANDS BY PLE */}
-        <div className="space-y-3 pt-2">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-white light:text-gray-900 tracking-wide uppercase">
-              TOP BRANDS BY PLE
-            </h3>
-            <button className="text-xs font-bold text-[#AE020B] flex items-center gap-0.5 hover:underline">
-              View All <FiChevronRight className="mt-0.5" />
-            </button>
-          </div>
-          <div className="grid grid-cols-4 gap-2">
-            {brands.map((brand) => (
-              <div 
-                key={brand.name}
-                className="flex flex-col items-center gap-1.5"
-              >
-                <div className="w-full aspect-square bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-lg flex items-center justify-center p-2 hover:border-zinc-800 transition-colors">
-                  <span className="text-xs font-black tracking-widest text-white light:text-gray-900 text-center uppercase">
-                    {brand.logo}
-                  </span>
-                </div>
-                <span className="text-[10px] text-zinc-500 light:text-gray-500 text-center truncate w-full">
-                  {brand.subtitle}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
         {activeMarketTab === "Official Store" ? (
             <>
               {/* Sixth Row: Main Hero Banner ("BUSINESS PROCUREMENT") */}
-              <div className={`relative rounded-2xl overflow-hidden p-6 flex flex-col justify-between min-h-[220px] transition-all border ${
-                isDark 
-                  ? "bg-gradient-to-r from-[#200204] via-[#0E0102] to-black border-zinc-800/50" 
-                  : "bg-white border-gray-200 shadow-sm"
-              }`}>
-                <div className="space-y-2">
+              <div 
+                className="relative rounded-2xl overflow-hidden p-6 flex flex-col justify-between min-h-[220px] transition-all border border-zinc-800/50 bg-black"
+                style={{
+                  backgroundImage: "linear-gradient(to right, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.4) 100%), url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80')",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center"
+                }}
+              >
+                <div className="space-y-2 relative z-10">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FF3E46]">
                     BUSINESS PROCUREMENT
                   </span>
-                  <h2 className={`text-2xl font-black leading-tight ${isDark ? "text-white" : "text-gray-900"}`}>
+                  <h2 className="text-2xl font-black leading-tight text-white">
                     Smart Sourcing.<br />Reliable Supply.
                   </h2>
-                  <p className={`text-xs max-w-sm font-medium mt-1 leading-relaxed ${isDark ? "text-zinc-400" : "text-gray-550"}`}>
+                  <p className="text-xs max-w-sm font-medium mt-1 leading-relaxed text-zinc-300">
                     GST-compliant sourcing, bulk quotes and business purchasing made easy.
                   </p>
                 </div>
                 
-                <div className="flex flex-wrap items-center gap-3 mt-6">
+                <div className="flex flex-wrap items-center gap-3 mt-6 relative z-10">
                   <button 
                     onClick={handleRfqClick}
                     className="flex items-center gap-2 px-4 py-2.5 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-xs uppercase rounded-lg transition-all shadow-md active:scale-95 cursor-pointer"
@@ -424,11 +348,7 @@ const B2BHome = ({
                   </button>
                   <button 
                     onClick={handleUploadBOQ}
-                    className={`flex items-center gap-2 px-4 py-2.5 border font-extrabold text-xs uppercase rounded-lg transition-all active:scale-95 cursor-pointer ${
-                      isDark
-                        ? "border-zinc-700 bg-zinc-955/80 hover:bg-zinc-900 text-white"
-                        : "border-gray-300 bg-gray-50 hover:bg-gray-100 text-gray-800"
-                    }`}
+                    className="flex items-center gap-2 px-4 py-2.5 border border-white/20 bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs uppercase rounded-lg transition-all active:scale-95 cursor-pointer"
                   >
                     <FiUploadCloud className="text-sm" />
                     Upload BOQ
@@ -536,7 +456,7 @@ const B2BHome = ({
                             className="w-full h-full object-contain rounded-full"
                             onError={(e) => {
                               e.target.onerror = null;
-                              e.target.src = "https://via.placeholder.com/64x64?text=Cat";
+                              e.target.src = getPlaceholderImage(64, 64, cat.name || "Cat");
                             }}
                           />
                         </div>

@@ -36,7 +36,7 @@ export default function ReviewModal({ isOpen, onClose }) {
     setError('');
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const apiUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
       const res = await axios.post(`${apiUrl}/upload/public`, data, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
@@ -61,7 +61,7 @@ export default function ReviewModal({ isOpen, onClose }) {
     setError('');
     
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const apiUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
       await axios.post(`${apiUrl}/testimonials`, formData);
       setIsSuccess(true);
     } catch (err) {

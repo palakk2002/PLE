@@ -10,7 +10,7 @@ export default function TrustedBrands() {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        const baseUrl = import.meta.env.VITE_API_URL || (typeof window !== 'undefined' ? `${window.location.protocol}//${window.location.hostname}:5000/api` : 'http://localhost:5000/api');
         const res = await axios.get(`${baseUrl}/brands/all`);
         if (res.data?.success) {
           setBrands(res.data.data || []);

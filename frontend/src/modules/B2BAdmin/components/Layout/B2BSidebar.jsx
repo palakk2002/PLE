@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiUsers, FiBriefcase, FiUser, FiActivity, FiBell, FiSettings, FiLogOut, FiX, FiFileText, FiTrendingUp, FiMessageCircle, FiDollarSign } from 'react-icons/fi';
+import { FiHome, FiUsers, FiBriefcase, FiUser, FiActivity, FiBell, FiSettings, FiLogOut, FiX, FiFileText, FiTrendingUp, FiMessageCircle, FiDollarSign, FiMessageSquare } from 'react-icons/fi';
 import { useB2BAdminStore } from '../../store/b2bAdminStore';
 
 const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
@@ -15,6 +15,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'RFQs', path: '/b2b-dashboard/rfqs', icon: FiFileText },
     { name: 'Quotations', path: '/b2b-dashboard/quotations', icon: FiTrendingUp },
     { name: 'RFQ Discussions', path: '/b2b-dashboard/discussions', icon: FiMessageCircle },
+    { name: 'Shop Chats', path: '/b2b-dashboard/shop-chats', icon: FiMessageSquare },
     { name: 'Purchase Orders', path: '/b2b-dashboard/purchase-orders', icon: FiDollarSign },
     { name: 'Company Profile', path: '/b2b-dashboard/company-profile', icon: FiBriefcase },
     { name: 'Admin Profile', path: '/b2b-dashboard/admin-profile', icon: FiUser },
@@ -22,7 +23,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'Settings', path: '/b2b-dashboard/settings', icon: FiSettings },
   ].filter(item => {
     if (isEmployee) {
-      return ['RFQs', 'Quotations', 'RFQ Discussions'].includes(item.name);
+      return ['RFQs', 'Quotations', 'RFQ Discussions', 'Shop Chats'].includes(item.name);
     }
     return true;
   });

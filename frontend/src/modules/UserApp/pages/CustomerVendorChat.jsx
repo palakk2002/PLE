@@ -7,6 +7,7 @@ import PageTransition from "../../../shared/components/PageTransition";
 import api from "../../../shared/utils/api";
 import socketService from "../../../shared/utils/socket";
 import toast from "react-hot-toast";
+import { useB2bStore } from "../../../shared/store/b2bStore";
 
 const CustomerVendorChat = () => {
   const { threadId } = useParams();
@@ -17,6 +18,9 @@ const CustomerVendorChat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const chatEndRef = useRef(null);
+  const isB2B = useB2bStore((state) => state.userRole === 'business_buyer');
+
+
 
   // Fetch thread details & message history
   useEffect(() => {

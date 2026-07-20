@@ -577,64 +577,63 @@ const MobileHeader = () => {
 
 
       {/* Row 2: Location, Theme, Profile and Cart Actions in specified B2B sequence */}
-      <div className="flex items-center justify-between px-4 py-4 bg-transparent">
-        <div className="flex items-center gap-3.5 min-w-0 flex-grow">
+      <div className="flex items-center justify-between px-4 py-3 bg-transparent">
+        <div className="flex items-center gap-1.5 min-w-0 flex-grow">
           {/* 1. Hamburger Icon */}
           <button 
             onClick={() => setIsSidebarOpen(true)}
-            className="p-1 hover:bg-white/10 rounded text-white shrink-0"
+            className="p-2 hover:bg-white/10 rounded-lg transition-all duration-300 text-white flex items-center justify-center flex-shrink-0"
           >
-            <FiMenu className="text-xl" />
+            <FiMenu className="text-2xl" />
           </button>
-          
-          {/* 2. PLE Logo */}
-          <div className="flex items-center gap-0.5 shrink-0">
-            <div className="w-5 h-5 rounded-full bg-[#AE020B] flex items-center justify-center text-white text-[8px] font-black border border-white/20">
-              PLE
-            </div>
-          </div>
 
-          {/* 3. Location Selector */}
+          {/* 2. Location Selector */}
           <div 
             onClick={() => setIsAddressSheetOpen(true)}
-            className="flex flex-col text-left cursor-pointer min-w-0 flex-grow pr-1"
+            className="flex flex-col text-left cursor-pointer min-w-0 flex-grow pr-1 pl-1"
           >
-            <span className="text-[8px] font-black text-white/70 uppercase tracking-tight truncate">SELECT LOCATION</span>
-            <span className="text-[10px] font-bold text-white flex items-center gap-0.5 leading-tight truncate">
-              {defaultAddress ? `${defaultAddress.name}` : "Click to select"}
-              <FiChevronDown className="text-[10px] text-white/80 shrink-0 mt-0.5" />
+            <span className="font-black text-white text-sm sm:text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none truncate">
+              {defaultAddress ? defaultAddress.name : "Select Location"}
+            </span>
+            <span className="text-[10px] sm:text-xs font-semibold text-white/95 flex items-center gap-0.5 truncate mt-0.5">
+              {defaultAddress ? `${defaultAddress.address}, ${defaultAddress.city}` : "Click to select"}
+              <FiChevronDown className="text-xs text-white/80 mt-0.5 flex-shrink-0" />
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3.5 shrink-0">
-          {/* 4. Theme Toggle */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {/* 3. Theme Toggle */}
           <button 
             onClick={toggleTheme}
-            className="p-1.5 hover:bg-white/10 rounded-full text-white"
+            className="p-2 hover:bg-white/10 rounded-full transition-all duration-300 text-white focus:outline-none"
           >
-            {theme === "light" ? <FiMoon className="text-base" /> : <FiSun className="text-base text-yellow-500" />}
+            {theme === "light" ? (
+              <FiMoon className="text-xl text-white" />
+            ) : (
+              <FiSun className="text-xl text-yellow-500" />
+            )}
+          </button>
+
+          {/* 4. Profile Icon with circular border */}
+          <button 
+            onClick={() => navigate(isAuthenticated ? "/profile" : "/login")}
+            className="p-2 hover:bg-white/10 rounded-full transition-all duration-300 border border-white/20 text-white flex items-center justify-center"
+          >
+            <FiUser className="text-xl" />
           </button>
 
           {/* 5. Cart */}
           <button 
             onClick={toggleCart}
-            className="p-1.5 hover:bg-white/10 rounded-full text-white relative"
+            className="p-2 hover:bg-white/10 rounded-full transition-all duration-300 text-white relative"
           >
-            <FiShoppingBag className="text-base" />
+            <FiShoppingBag className="text-xl text-white" />
             {itemCount > 0 && (
               <span className="absolute -top-0.5 -right-0.5 bg-[#AE020B] text-white text-[7px] font-bold rounded-full w-3.5 h-3.5 flex items-center justify-center">
                 {itemCount}
               </span>
             )}
-          </button>
-
-          {/* 6. Profile Icon */}
-          <button 
-            onClick={() => navigate(isAuthenticated ? "/profile" : "/login")}
-            className="p-1.5 hover:bg-white/10 rounded-full text-white"
-          >
-            <FiUser className="text-base" />
           </button>
         </div>
       </div>

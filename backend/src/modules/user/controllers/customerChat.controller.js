@@ -48,6 +48,9 @@ export const initiateVendorChat = asyncHandler(async (req, res) => {
                     vendorId,
                     customerUserId: req.user.id,
                     orderRef: null,
+                }) || await VendorChatThread.findOne({
+                    vendorId,
+                    customerUserId: req.user.id,
                 });
             } else {
                 throw error;

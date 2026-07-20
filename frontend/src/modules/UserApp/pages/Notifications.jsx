@@ -31,6 +31,24 @@ const UserNotifications = () => {
     fetchNotifications(1);
   }, [fetchNotifications]);
 
+  const handleNotificationClick = (notification) => {
+    if (!notification?.isRead) {
+      markAsRead(notification?._id);
+    }
+
+    if (notification?.type === 'chat') {
+      const threadId = notification?.data?.threadId;
+      if (threadId) {
+        navigate(`/chat/vendor/${threadId}`);
+      }
+    } else if (notification?.type === 'order') {
+      const orderId = notification?.data?.orderId || notification?.data?.id;
+      if (orderId) {
+        navigate(`/orders/${orderId}`);
+      }
+    }
+  };
+
   return (
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
@@ -96,10 +114,11 @@ const UserNotifications = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.03 }}
-                  className={`rounded-2xl p-4 shadow-sm border ${
+                  onClick={() => handleNotificationClick(notification)}
+                  className={`rounded-2xl p-4 shadow-sm border cursor-pointer transition-all duration-200 hover:shadow-md ${
                     notification?.isRead
-                      ? "bg-white border-gray-200"
-                      : "bg-red-50 border-red-200"
+                      ? "bg-white border-gray-200 hover:bg-gray-50/50"
+                      : "bg-red-50 border-red-200 hover:bg-red-50/80"
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -121,7 +140,10 @@ const UserNotifications = () => {
                     <div className="flex items-center gap-2 shrink-0">
                       {!notification?.isRead && (
                         <button
-                          onClick={() => markAsRead(notification?._id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            markAsRead(notification?._id);
+                          }}
                           className="p-2 rounded-lg border border-gray-200 text-gray-700 hover:bg-white"
                           title="Mark as read"
                           type="button"
@@ -130,7 +152,10 @@ const UserNotifications = () => {
                         </button>
                       )}
                       <button
-                        onClick={() => removeNotification(notification?._id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeNotification(notification?._id);
+                        }}
                         className="p-2 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
                         title="Delete notification"
                         type="button"
