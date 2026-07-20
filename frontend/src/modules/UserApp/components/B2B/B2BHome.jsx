@@ -98,6 +98,8 @@ const B2BHome = ({
     { name: "Chloe", logo: "Chloé", subtitle: "Chloe" }
   ];
 
+
+
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
 
@@ -251,38 +253,148 @@ const B2BHome = ({
               <FiSearch className="absolute right-4 text-gray-400 text-lg" />
             </div>
 
-             {/* Fifth Row: Category Quick Nav Bar (Circles/Icons) */}
-             <div className="flex items-center justify-center gap-4 py-0.5 border-b border-white/10">
-               {categoryTabs.map((tab) => (
-                 <button 
-                   key={tab.name}
-                   onClick={() => setActiveCategoryTab(tab.name)}
-                   className="flex flex-col items-center gap-0.5 focus:outline-none relative"
-                 >
-                   <div className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${
-                     activeCategoryTab === tab.name 
-                       ? "border-white bg-white text-[#AE020B] shadow-md" 
-                       : "border-white/20 bg-white/10 text-white/90 hover:bg-white/20"
-                   }`}>
-                     {tab.name === "All" && <FiShoppingBag className="text-lg" />}
-                     {tab.name === "Men's" && <span className="text-lg font-bold">M</span>}
-                     {tab.name === "Women's" && <span className="text-lg font-bold">W</span>}
-                     {tab.name === "Books" && <span className="text-lg font-bold">B</span>}
-                     {tab.name === "Kids" && <span className="text-lg font-bold">K</span>}
-                   </div>
-                   <span className={`text-[11px] font-semibold ${
-                     activeCategoryTab === tab.name ? "text-white font-extrabold" : "text-white/70"
-                   }`}>
-                     {tab.name}
-                   </span>
-                   {activeCategoryTab === tab.name && (
-                     <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-white rounded-full" />
-                   )}
-                 </button>
-               ))}
-             </div>
+          {/* Fifth Row: Category Quick Nav Bar (Circles/Icons) */}
+          <div className="flex items-center justify-around py-2 border-b border-white/10">
+            {categoryTabs.map((tab) => (
+              <button 
+                key={tab.name}
+                onClick={() => setActiveCategoryTab(tab.name)}
+                className="flex flex-col items-center gap-1.5 focus:outline-none relative"
+              >
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center border transition-all ${
+                  activeCategoryTab === tab.name 
+                    ? "border-white bg-white text-[#AE020B] shadow-md" 
+                    : "border-white/20 bg-white/10 text-white/90 hover:bg-white/20"
+                }`}>
+                  {tab.name === "All" && <FiShoppingBag className="text-lg" />}
+                  {tab.name === "Men's" && <span className="text-lg font-bold">M</span>}
+                  {tab.name === "Women's" && <span className="text-lg font-bold">W</span>}
+                  {tab.name === "Books" && <span className="text-lg font-bold">B</span>}
+                  {tab.name === "Kids" && <span className="text-lg font-bold">K</span>}
+                </div>
+                <span className={`text-[11px] font-semibold ${
+                  activeCategoryTab === tab.name ? "text-white font-extrabold" : "text-white/70"
+                }`}>
+                  {tab.name}
+                </span>
+                {activeCategoryTab === tab.name && (
+                  <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-white rounded-full" />
+                )}
+              </button>
+            ))}
           </div>
-          {activeMarketTab === "Official Store" ? (
+        </div>
+
+        {/* Sixth Row: Main Hero Banner ("BUSINESS PROCUREMENT") */}
+        <div className="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#200204] via-[#0E0102] to-black border border-zinc-800/50 p-6 md:p-8 flex flex-col justify-between min-h-[220px]">
+          <div className="space-y-2">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#FF3E46]">
+              BUSINESS PROCUREMENT
+            </span>
+            <h2 className="text-2xl md:text-3xl font-black text-white leading-tight">
+              Smart Sourcing.<br />Reliable Supply.
+            </h2>
+            <p className="text-xs text-zinc-400 max-w-sm font-medium mt-1 leading-relaxed">
+              GST-compliant sourcing, bulk quotes and business purchasing made easy.
+            </p>
+          </div>
+          
+          <div className="flex flex-wrap items-center gap-3 mt-6">
+            <button 
+              onClick={handleRfqClick}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-xs uppercase rounded-lg transition-all shadow-md active:scale-95"
+            >
+              <FiFileText className="text-sm" />
+              Request Quote
+            </button>
+            <button 
+              onClick={handleUploadBOQ}
+              className="flex items-center gap-2 px-4 py-2.5 border border-zinc-700 bg-zinc-950/80 hover:bg-zinc-900 text-white font-extrabold text-xs uppercase rounded-lg transition-all active:scale-95"
+            >
+              <FiUploadCloud className="text-sm" />
+              Upload BOQ
+            </button>
+          </div>
+        </div>
+
+        {/* Seventh Row: Services Grid (4 Cards) */}
+        <div className="grid grid-cols-2 gap-3">
+          <div 
+            onClick={handleRfqClick}
+            className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-lg bg-red-950/50 light:bg-red-50 flex items-center justify-center text-red-500 shrink-0">
+              <FiFileText className="text-lg" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-xs font-bold text-white light:text-gray-900">Request Quote</h4>
+              <p className="text-[10px] text-zinc-500 light:text-gray-500 mt-0.5 leading-tight">Get best quotes for your needs</p>
+            </div>
+          </div>
+
+          <div 
+            onClick={handleUploadBOQ}
+            className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors"
+          >
+            <div className="w-9 h-9 rounded-lg bg-blue-950/50 light:bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
+              <FiUploadCloud className="text-lg" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-xs font-bold text-white light:text-gray-900">Upload BOQ</h4>
+              <p className="text-[10px] text-zinc-500 light:text-gray-500 mt-0.5 leading-tight">Upload your list for bulk pricing</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-green-950/50 light:bg-green-50 flex items-center justify-center text-green-500 shrink-0">
+              <FiClock className="text-lg" />
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-xs font-bold text-white light:text-gray-900">Track Orders</h4>
+              <p className="text-[10px] text-zinc-500 light:text-gray-500 mt-0.5 leading-tight">Real-time status of your orders</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-3 bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-xl cursor-pointer hover:border-zinc-800 transition-colors">
+            <div className="w-9 h-9 rounded-lg bg-amber-950/50 light:bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+            </div>
+            <div className="min-w-0">
+              <h4 className="text-xs font-bold text-white light:text-gray-900">GST Invoices</h4>
+              <p className="text-[10px] text-zinc-500 light:text-gray-500 mt-0.5 leading-tight">100% GST compliant invoicing</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Eighth Row: TOP BRANDS BY PLE */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-bold text-white light:text-gray-900 tracking-wide uppercase">
+              TOP BRANDS BY PLE
+            </h3>
+            <button className="text-xs font-bold text-[#AE020B] flex items-center gap-0.5 hover:underline">
+              View All <FiChevronRight className="mt-0.5" />
+            </button>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {brands.map((brand) => (
+              <div 
+                key={brand.name}
+                className="flex flex-col items-center gap-1.5"
+              >
+                <div className="w-full aspect-square bg-zinc-950 light:bg-white border border-zinc-900 light:border-gray-200 rounded-lg flex items-center justify-center p-2 hover:border-zinc-800 transition-colors">
+                  <span className="text-xs font-black tracking-widest text-white light:text-gray-900 text-center uppercase">
+                    {brand.logo}
+                  </span>
+                </div>
+                <span className="text-[10px] text-zinc-500 light:text-gray-500 text-center truncate w-full">
+                  {brand.subtitle}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {activeMarketTab === "Official Store" ? (
             <>
               {/* Sixth Row: Main Hero Banner ("BUSINESS PROCUREMENT") */}
               <div className={`relative rounded-2xl overflow-hidden p-6 flex flex-col justify-between min-h-[220px] transition-all border ${
@@ -423,6 +535,7 @@ const B2BHome = ({
                             alt={cat.name}
                             className="w-full h-full object-contain rounded-full"
                             onError={(e) => {
+                              e.target.onerror = null;
                               e.target.src = "https://via.placeholder.com/64x64?text=Cat";
                             }}
                           />

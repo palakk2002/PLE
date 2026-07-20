@@ -71,6 +71,7 @@ const DesktopHeader = () => {
         const isB2B = useB2bStore.getState().userRole === 'business_buyer';
         logout();
         setShowUserMenu(false);
+        navigate("/portal");
         if (isB2B) {
             navigate('/b2b/login');
         } else {
