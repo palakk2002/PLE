@@ -45,6 +45,7 @@ const Seller = () => {
     const [remoteVendor, setRemoteVendor] = useState(null);
     const [remoteProducts, setRemoteProducts] = useState([]);
     const [isResolvingVendor, setIsResolvingVendor] = useState(true);
+    const [isInitiatingChat, setIsInitiatingChat] = useState(false);
 
     // Get vendor information
     const vendor = useMemo(
@@ -106,12 +107,14 @@ const Seller = () => {
     const filterButtonRef = useRef(null);
 
     const handleChatWithStore = async () => {
+        if (isInitiatingChat) return;
         try {
             if (!isAuthenticated) {
                 toast.error("Please login to chat with the store.");
                 navigate("/login");
                 return;
             }
+            setIsInitiatingChat(true);
             const res = await api.post("/user/chat/vendor/initiate", { vendorId });
             const threadDoc = res?.data || res;
             const threadId = threadDoc?._id || threadDoc?.id;
@@ -123,6 +126,8 @@ const Seller = () => {
         } catch (error) {
             console.error("Error initiating chat:", error);
             toast.error(error.response?.data?.message || "Failed to initiate chat.");
+        } finally {
+            setIsInitiatingChat(false);
         }
     };
 
@@ -477,10 +482,11 @@ const Seller = () => {
                                     <button
                                         type="button"
                                         onClick={handleChatWithStore}
-                                        className="mt-3 relative z-10 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 text-xs cursor-pointer"
+                                        disabled={isInitiatingChat}
+                                        className="mt-3 relative z-10 flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white font-bold rounded-xl shadow-md hover:shadow-lg active:scale-95 transition-all duration-200 text-xs cursor-pointer disabled:opacity-50"
                                     >
                                         <FiMessageSquare className="text-sm" />
-                                        <span>Chat with Store</span>
+                                        <span>{isInitiatingChat ? "Connecting..." : "Chat with Store"}</span>
                                     </button>
                                 </div>
                             </div>

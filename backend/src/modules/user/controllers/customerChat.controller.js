@@ -28,19 +28,31 @@ export const initiateVendorChat = asyncHandler(async (req, res) => {
     });
 
     if (!thread) {
-        thread = await VendorChatThread.create({
-            vendorId,
-            customerUserId: req.user.id,
-            customerName: req.user.name || 'Customer',
-            customerEmail: req.user.email || '',
-            customerPhone: req.user.phone || '',
-            orderRef: null,
-            orderDisplayId: '',
-            lastMessage: 'Chat started',
-            lastActivity: new Date(),
-            unreadCount: 0,
-            status: 'active',
-        });
+        try {
+            thread = await VendorChatThread.create({
+                vendorId,
+                customerUserId: req.user.id,
+                customerName: req.user.name || 'Customer',
+                customerEmail: req.user.email || '',
+                customerPhone: req.user.phone || '',
+                orderRef: null,
+                orderDisplayId: '',
+                lastMessage: 'Chat started',
+                lastActivity: new Date(),
+                unreadCount: 0,
+                status: 'active',
+            });
+        } catch (error) {
+            if (error.code === 11000) {
+                thread = await VendorChatThread.findOne({
+                    vendorId,
+                    customerUserId: req.user.id,
+                    orderRef: null,
+                });
+            } else {
+                throw error;
+            }
+        }
     }
 
     res.status(200).json(new ApiResponse(200, thread, 'Chat thread initiated successfully.'));
