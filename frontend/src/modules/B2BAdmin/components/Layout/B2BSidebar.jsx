@@ -29,7 +29,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
 
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate('/b2b/login');
   };
 
   return (

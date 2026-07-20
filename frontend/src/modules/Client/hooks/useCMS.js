@@ -54,7 +54,14 @@ export const useCMS = () => {
                 phoneDisplay: '+91 9071149100',
                 email: 'support@plebusiness.com'
               },
-              social: { ...prev.social, ...parsed.social },
+              social: {
+                ...prev.social,
+                ...parsed.social,
+                facebook: 'https://www.facebook.com/share/1EaNrat2yr/',
+                instagram: 'https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==',
+                linkedin: 'https://www.linkedin.com/company/ple-electronics',
+                twitter: 'https://x.com/PeoplesE9405',
+              },
               footer: { ...prev.footer, ...parsed.footer },
               seo: { ...prev.seo, ...parsed.seo },
             };

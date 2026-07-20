@@ -18,7 +18,7 @@ import {
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useVendorStore } from "../../store/vendorStore";
-import { getAllOrders, getVendorCommissions, getVendorDocuments, updateVendorDocumentStatus } from "../../services/adminService";
+import { getAllOrders, getVendorCommissions, getVendorDocuments, updateVendorDocumentStatus, verifyVendorBusiness, rejectVendorBusiness } from "../../services/adminService";
 import Badge from "../../../../shared/components/Badge";
 import DataTable from "../../components/DataTable";
 import { formatPrice } from "../../../../shared/utils/helpers";
@@ -41,7 +41,44 @@ const VendorDetail = () => {
   const [isEditingCommission, setIsEditingCommission] = useState(false);
   const [commissionRate, setCommissionRate] = useState("");
   const [isRefurbishedEnabled, setIsRefurbishedEnabled] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectRemark, setRejectRemark] = useState("");
   const isSameVendorId = (a, b) => String(a) === String(b);
+
+  const handleVerifyBusiness = async () => {
+    try {
+      await verifyVendorBusiness(id);
+      setVendor(prev => ({
+        ...prev,
+        verificationStatus: 'Approved',
+        status: 'approved'
+      }));
+      toast.success("Business verified and vendor approved!");
+    } catch {
+      toast.error("Failed to verify business.");
+    }
+  };
+
+  const handleRejectBusinessSubmit = async () => {
+    if (!rejectRemark.trim()) {
+      toast.error("Please enter a remark.");
+      return;
+    }
+    try {
+      await rejectVendorBusiness(id, rejectRemark);
+      setVendor(prev => ({
+        ...prev,
+        verificationStatus: 'Rejected',
+        status: 'rejected',
+        verificationRemark: rejectRemark
+      }));
+      setShowRejectModal(false);
+      setRejectRemark("");
+      toast.success("Business verification rejected.");
+    } catch {
+      toast.error("Failed to reject business.");
+    }
+  };
 
   const handleToggleRefurbished = async () => {
     try {
@@ -552,6 +589,119 @@ const VendorDetail = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Business Verification Profile */}
+              <div className="border-t border-gray-200 pt-6 mt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold text-gray-800">
+                    Business Verification Profile
+                  </h2>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 mr-1">Verification:</span>
+                    <Badge
+                      variant={
+                        vendor.verificationStatus === "Approved"
+                          ? "success"
+                          : vendor.verificationStatus === "Pending"
+                            ? "warning"
+                            : vendor.verificationStatus === "Rejected"
+                              ? "error"
+                              : "neutral"
+                      }>
+                      {vendor.verificationStatus || "Unsubmitted"}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-6 rounded-xl border">
+                  <div className="space-y-3">
+                    <p className="text-sm"><strong className="text-gray-600">Business Type:</strong> <span className="font-semibold text-gray-800">{vendor.businessType || 'Other'}</span></p>
+                    <p className="text-sm"><strong className="text-gray-600">GST Registered:</strong> <span className="font-semibold text-gray-800">{vendor.gstRegistered ? 'Yes' : 'No'}</span></p>
+                    {vendor.gstRegistered ? (
+                      <>
+                        <p className="text-sm"><strong className="text-gray-600">Business Legal Name:</strong> <span className="font-semibold text-gray-800">{vendor.businessName || 'N/A'}</span></p>
+                        <p className="text-sm"><strong className="text-gray-600">Trade Name:</strong> <span className="font-semibold text-gray-800">{vendor.tradeName || 'N/A'}</span></p>
+                        <p className="text-sm"><strong className="text-gray-600">GST Number:</strong> <span className="font-semibold text-gray-800 font-mono">{vendor.gstNumber || 'N/A'}</span></p>
+                        <p className="text-sm"><strong className="text-gray-600">PAN Number:</strong> <span className="font-semibold text-gray-800 font-mono">{vendor.panNumber || 'N/A'}</span></p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm"><strong className="text-gray-600">Business Name:</strong> <span className="font-semibold text-gray-800">{vendor.businessName || 'N/A'}</span></p>
+                        <p className="text-sm"><strong className="text-gray-600">Owner Name:</strong> <span className="font-semibold text-gray-800">{vendor.ownerName || 'N/A'}</span></p>
+                      </>
+                    )}
+                    <p className="text-sm">
+                      <strong className="text-gray-600">Address:</strong>{' '}
+                      <span className="font-semibold text-gray-800">
+                        {vendor.businessAddress || 'N/A'}
+                        {vendor.city && `, ${vendor.city}`}
+                        {vendor.state && `, ${vendor.state}`}
+                        {vendor.pincode && ` - ${vendor.pincode}`}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="space-y-4">
+                    <h4 className="font-bold text-gray-800 text-sm">Uploaded Verification Documents</h4>
+                    <div className="space-y-2">
+                      {vendor.gstRegistered ? (
+                        <>
+                          <div className="flex items-center justify-between bg-white p-3 rounded-lg border">
+                            <span className="text-xs font-semibold text-gray-700">GST Certificate (Mandatory)</span>
+                            {vendor.gstCertificate ? (
+                              <a href={vendor.gstCertificate} target="_blank" rel="noreferrer" className="text-xs text-purple-600 hover:underline font-semibold">View File</a>
+                            ) : (
+                              <span className="text-xs text-red-500 font-semibold">Not Uploaded</span>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between bg-white p-3 rounded-lg border">
+                            <span className="text-xs font-semibold text-gray-700">MSME Certificate (Optional)</span>
+                            {vendor.msmeCertificate ? (
+                              <a href={vendor.msmeCertificate} target="_blank" rel="noreferrer" className="text-xs text-purple-600 hover:underline font-semibold">View File</a>
+                            ) : (
+                              <span className="text-xs text-gray-400">Not Uploaded</span>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-between bg-white p-3 rounded-lg border">
+                          <span className="text-xs font-semibold text-gray-700">Identity Proof (Mandatory)</span>
+                          {vendor.identityProof ? (
+                            <a href={vendor.identityProof} target="_blank" rel="noreferrer" className="text-xs text-purple-600 hover:underline font-semibold">View File</a>
+                          ) : (
+                            <span className="text-xs text-red-500 font-semibold">Not Uploaded</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {vendor.verificationStatus === 'Pending' && (
+                      <div className="pt-4 border-t flex gap-2">
+                        <button
+                          onClick={() => handleVerifyBusiness()}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors font-semibold text-xs"
+                        >
+                          <FiCheckCircle />
+                          Verify Business
+                        </button>
+                        <button
+                          onClick={() => setShowRejectModal(true)}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors font-semibold text-xs"
+                        >
+                          <FiXCircle />
+                          Reject Business
+                        </button>
+                      </div>
+                    )}
+
+                    {vendor.verificationStatus === 'Rejected' && vendor.verificationRemark && (
+                      <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+                        <strong>Rejection Reason:</strong> {vendor.verificationRemark}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -701,6 +851,38 @@ const VendorDetail = () => {
           )}
         </div>
       </div>
+
+      {/* Reject Business Verification Modal */}
+      {showRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-gray-900">Reject Business Verification</h3>
+            <p className="text-sm text-gray-600">Please provide a reason for rejecting the verification request. This remark will be sent to the vendor.</p>
+            <textarea
+              value={rejectRemark}
+              onChange={(e) => setRejectRemark(e.target.value)}
+              rows={4}
+              placeholder="Enter rejection remark..."
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-800 text-sm"
+              required
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setShowRejectModal(false); setRejectRemark(""); }}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectBusinessSubmit}
+                className="px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 font-semibold"
+              >
+                Reject Verification
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };

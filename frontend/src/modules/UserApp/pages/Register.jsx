@@ -20,6 +20,7 @@ const MobileRegister = ({ isB2BRoute }) => {
   const { register: registerUser, login, isLoading } = useAuthStore();
   const { setUserRole } = useBusinessBuyer();
   const registerCompany = useB2bStore((state) => state.registerCompany);
+  const { register: registerB2BAdminAPI, login: loginB2B, isLoading: isB2BLoading } = useB2BAdminStore();
 
   const isBusinessMode = isB2BRoute || location.pathname.startsWith('/b2b/');
 
@@ -36,6 +37,7 @@ const MobileRegister = ({ isB2BRoute }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [b2bStep, setB2bStep] = useState(1);
   const [b2bSettings, setB2bSettings] = useState({ requireGST: true, requirePAN: true });
+  const [showB2BOptionModal, setShowB2BOptionModal] = useState(false);
 
   useEffect(() => {
     api.get('/settings/b2b').then(res => {
@@ -169,6 +171,7 @@ const MobileRegister = ({ isB2BRoute }) => {
 
   const handleB2BSubmit = async (e) => {
     e.preventDefault();
+    if (isB2BLoading) return;
     try {
       const payload = {
         companyData: {
@@ -189,7 +192,6 @@ const MobileRegister = ({ isB2BRoute }) => {
         employees
       };
 
-      const { register: registerB2BAdminAPI, login: loginB2B } = useB2BAdminStore.getState();
       const success = await registerB2BAdminAPI(payload);
 
       if (success) {
@@ -212,7 +214,7 @@ const MobileRegister = ({ isB2BRoute }) => {
               useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
             }
 
-            navigate('/home', { replace: true });
+            setShowB2BOptionModal(true);
             return;
           }
         } catch (loginErr) {
@@ -548,11 +550,11 @@ const MobileRegister = ({ isB2BRoute }) => {
                       <div className="flex flex-col gap-3 pt-2">
                         <div className="flex gap-3">
                           <button type="button" onClick={() => setB2bStep(2)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-750 py-3 rounded-xl font-bold text-sm">Back</button>
-                          <button type="submit" disabled={isLoading} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-3 rounded-xl font-bold text-sm">{isLoading ? 'Creating...' : 'Register Company'}</button>
+                          <button type="submit" disabled={isB2BLoading} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-3 rounded-xl font-bold text-sm">{isB2BLoading ? 'Registering...' : 'Register Company'}</button>
                         </div>
                         {employees.length === 0 && (
-                          <button type="submit" disabled={isLoading} className="w-full border-2 border-dashed border-[#AE020B] text-[#AE020B] hover:bg-red-50/50 dark:hover:bg-red-950/10 py-3 rounded-xl font-bold text-xs transition-colors">
-                            Skip Employee Setup & Register Company
+                          <button type="submit" disabled={isB2BLoading} className="w-full border-2 border-dashed border-[#AE020B] text-[#AE020B] hover:bg-red-50/50 dark:hover:bg-red-950/10 py-3 rounded-xl font-bold text-xs transition-colors">
+                            {isB2BLoading ? 'Registering...' : 'Skip Employee Setup & Register Company'}
                           </button>
                         )}
                       </div>
@@ -577,6 +579,41 @@ const MobileRegister = ({ isB2BRoute }) => {
             </div>
           </motion.div>
         </div>
+
+        {/* B2B Admin Options Modal */}
+        {showB2BOptionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-xl max-w-sm w-full border border-gray-100 dark:border-zinc-800"
+            >
+              <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 mb-2 text-center">
+                Welcome to PLE!
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6 text-center">
+                Your B2B Company account is registered. Where would you like to go first?
+              </p>
+              <div className="space-y-3">
+                <button
+                  onClick={() => {
+                    useB2bStore.getState().setUserRole('business_buyer');
+                    navigate('/home', { replace: true });
+                  }}
+                  className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold transition-colors shadow-sm"
+                >
+                  Bulk Order (Home)
+                </button>
+                <button
+                  onClick={() => navigate('/b2b-dashboard/overview', { replace: true })}
+                  className="w-full bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-900 dark:text-white py-3.5 rounded-xl font-semibold transition-colors"
+                >
+                  Admin Panel
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </MobileLayout>
     </PageTransition>
   );

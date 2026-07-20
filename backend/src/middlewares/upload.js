@@ -116,6 +116,24 @@ export const uploadDeliveryDocuments = (fields) =>
         limits: { fileSize: MAX_DOCUMENT_FILE_SIZE },
     }).fields(fields);
 
+export const uploadVendorRegistrationDocs = () =>
+    multer({
+        storage: imageDiskStorage,
+        fileFilter: (req, file, cb) => {
+            const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+            if (allowed.includes(file.mimetype)) {
+                cb(null, true);
+            } else {
+                cb(new ApiError(400, 'Invalid file type. Only PDF, JPG, JPEG, and PNG are allowed.'), false);
+            }
+        },
+        limits: { fileSize: 10 * 1024 * 1024 },
+    }).fields([
+        { name: 'gstCertificate', maxCount: 1 },
+        { name: 'msmeCertificate', maxCount: 1 },
+        { name: 'identityProof', maxCount: 1 }
+    ]);
+
 // CSV upload for bulk operations
 export const uploadCSV = multer({
     storage: csvMemoryStorage,

@@ -642,7 +642,14 @@ const MobileProductDetail = () => {
           {/* Back Button */}
           <div className="px-4 pt-4 lg:pt-8 lg:px-8 mb-6">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                const prevPath = sessionStorage.getItem('prevPath');
+                if (prevPath && prevPath !== '/portal' && !prevPath.includes('login') && !prevPath.includes('register')) {
+                  navigate(prevPath);
+                } else {
+                  navigate('/home');
+                }
+              }}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors group"
             >
               <div className="p-2 rounded-full group-hover:bg-gray-100 transition-colors">

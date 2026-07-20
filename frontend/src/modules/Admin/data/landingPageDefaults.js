@@ -224,9 +224,10 @@ export const LANDING_PAGE_DEFAULTS = {
     copyright: '© 2026 PLE (Peoples League of Electronics). All Rights Reserved.'
   },
   social: {
-    facebook: 'https://facebook.com',
-    instagram: 'https://instagram.com',
-    linkedin: 'https://linkedin.com',
+    facebook: 'https://www.facebook.com/share/1EaNrat2yr/',
+    instagram: 'https://www.instagram.com/peoplesleagueofelectronics?igsh=MWdtbTNzajdqMGV4cQ==',
+    linkedin: 'https://www.linkedin.com/company/ple-electronics',
+    twitter: 'https://x.com/PeoplesE9405',
     youtube: 'https://youtube.com',
   },
   footer: {

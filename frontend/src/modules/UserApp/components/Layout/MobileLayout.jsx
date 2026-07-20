@@ -10,10 +10,12 @@ import MobileCartBar from './MobileCartBar';
 import CartDrawer from '../../../../shared/components/Cart/CartDrawer';
 import useMobileHeaderHeight from '../../hooks/useMobileHeaderHeight';
 import { useUIStore } from '../../../../shared/store/useStore';
+import { useB2bStore } from '../../../../shared/store/b2bStore';
 
 const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPadding = null }) => {
   const location = useLocation();
   const headerHeight = useMobileHeaderHeight();
+  const isBusiness = useB2bStore((state) => state.userRole === 'business_buyer');
 
   const pathname = location.pathname.toLowerCase();
 
@@ -79,12 +81,16 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
 
       const isLegalPath = pathname.startsWith('/legal/') || pathname === '/privacy-policy' || pathname === '/terms-and-conditions' || pathname === '/user-agreement' || pathname === '/return-policy';
 
+      const paddingClasses = shouldNoPadding 
+        ? "px-0" 
+        : (isBusiness ? "px-4 md:px-2 lg:px-3 xl:px-4" : "px-4 md:px-8 lg:px-12 xl:px-16");
+
       return (
         <>
           {!isAuthPage && !isCheckoutPage && !isProfileOptionPage && !isOrderConfirmationPage && !isTrackOrderPage && <DesktopHeader />}
           {shouldShowHeader && <MobileHeader />}
           <main
-            className={`min-h-screen w-full overflow-x-hidden ${shouldNoPadding ? 'px-0' : 'px-4'} md:px-8 lg:px-12 xl:px-16 ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}
+            className={`min-h-screen w-full overflow-x-hidden ${paddingClasses} ${shouldShowBottomNav ? 'pb-20' : ''} ${showCartBar ? 'pb-24' : ''}`}
             style={{ paddingTop: shouldShowHeader ? `${headerHeight}px` : '0px' }}
           >
             {children}

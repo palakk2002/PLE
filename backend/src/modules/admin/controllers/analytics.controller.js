@@ -20,13 +20,36 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
     const dateFilter = getDateFilter(startDate, endDate);
     
     const activeOrderFilter = { isDeleted: { $ne: true }, ...dateFilter };
-    const [totalOrders, totalUsers, totalVendors, totalProducts, revenueAgg, pendingOrders] = await Promise.all([
+    const [
+        totalOrders,
+        totalUsers,
+        totalVendors,
+        totalProducts,
+        revenueAgg,
+        pendingOrders,
+        totalSellers,
+        gstSellers,
+        nonGstSellers,
+        msmeSellers,
+        homeBusinesses,
+        pendingVerification,
+        approvedSellers,
+        rejectedSellers
+    ] = await Promise.all([
         Order.countDocuments(activeOrderFilter),
         User.countDocuments({ role: 'customer', ...dateFilter }),
         Vendor.countDocuments({ status: 'approved', ...dateFilter }),
         Product.countDocuments({ isActive: true, ...dateFilter }),
         Order.aggregate([{ $match: { ...activeOrderFilter, status: { $ne: 'cancelled' } } }, { $group: { _id: null, total: { $sum: '$total' } } }]),
         Order.countDocuments({ ...activeOrderFilter, status: 'pending' }),
+        Vendor.countDocuments({ ...dateFilter }),
+        Vendor.countDocuments({ gstRegistered: true, ...dateFilter }),
+        Vendor.countDocuments({ gstRegistered: false, ...dateFilter }),
+        Vendor.countDocuments({ businessType: 'MSME', ...dateFilter }),
+        Vendor.countDocuments({ businessType: 'Home Business', ...dateFilter }),
+        Vendor.countDocuments({ verificationStatus: 'Pending', ...dateFilter }),
+        Vendor.countDocuments({ verificationStatus: 'Approved', ...dateFilter }),
+        Vendor.countDocuments({ verificationStatus: 'Rejected', ...dateFilter }),
     ]);
 
     res.status(200).json(new ApiResponse(200, {
@@ -36,6 +59,14 @@ export const getDashboardStats = asyncHandler(async (req, res) => {
         totalProducts,
         totalRevenue: revenueAgg[0]?.total || 0,
         pendingOrders,
+        totalSellers,
+        gstSellers,
+        nonGstSellers,
+        msmeSellers,
+        homeBusinesses,
+        pendingVerification,
+        approvedSellers,
+        rejectedSellers,
     }, 'Dashboard stats fetched.'));
 });
 

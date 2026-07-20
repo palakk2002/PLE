@@ -1197,6 +1197,7 @@ const AppRoutes = () => {
         <Route path="settings/payment-settings" element={<VendorSettings />} />
         <Route path="settings/shipping" element={<VendorSettings />} />
         <Route path="settings/shipping-settings" element={<VendorSettings />} />
+        <Route path="settings/business" element={<VendorSettings />} />
         {/* B2B Enquiry Routes */}
         <Route path="b2b-enquiries" element={<VendorB2BEnquiries />} />
         <Route path="b2b-enquiries/all" element={<VendorB2BEnquiries />} />

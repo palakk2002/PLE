@@ -43,7 +43,7 @@ export const getDashboardOverview = asyncHandler(async (req, res) => {
             createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
         }),
         RFQ.find({ companyId }).sort({ createdAt: -1 }),
-        PurchaseOrder.find({ companyId }).sort({ createdAt: -1 })
+        PurchaseOrder.find({ companyId }).populate('rfqId').sort({ createdAt: -1 })
     ]);
 
     // ── RFQ Stats ─────────────────────────────────────────────
@@ -134,6 +134,36 @@ export const getDashboardOverview = asyncHandler(async (req, res) => {
         createdAt: po.createdAt
     }));
 
+    // ── Spend By Employee ─────────────────────────────────────
+    const employeeSpendMap = {};
+    const companyEmployees = await User.find({ companyId, role: 'b2bEmployee' }).select('name email');
+    companyEmployees.forEach(emp => {
+        employeeSpendMap[emp._id.toString()] = {
+            id: emp._id.toString(),
+            name: emp.name,
+            email: emp.email,
+            spend: 0
+        };
+    });
+
+    purchaseOrders.forEach(po => {
+        const rfq = po.rfqId;
+        if (rfq && rfq.createdByEmployeeId) {
+            const empId = rfq.createdByEmployeeId.toString();
+            if (employeeSpendMap[empId]) {
+                employeeSpendMap[empId].spend += (po.pricing?.total || 0);
+            } else {
+                employeeSpendMap[empId] = {
+                    id: empId,
+                    name: 'Unknown Employee',
+                    spend: po.pricing?.total || 0
+                };
+            }
+        }
+    });
+
+    const employeeSpending = Object.values(employeeSpendMap);
+
     const stats = {
         company: {
             name: company.companyName,
@@ -151,7 +181,8 @@ export const getDashboardOverview = asyncHandler(async (req, res) => {
         charts: {
             monthlyTrend,
             statusDistribution,
-            vendorParticipation
+            vendorParticipation,
+            employeeSpending
         },
         recentRFQs,
         recentPOs

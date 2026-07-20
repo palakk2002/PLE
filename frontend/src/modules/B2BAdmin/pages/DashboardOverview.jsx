@@ -364,6 +364,37 @@ const DashboardOverview = () => {
         </div>
       </div>
 
+      {/* Employee Spend Analytics Section */}
+      <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
+        <h3 className="font-extrabold text-gray-800 text-sm uppercase tracking-wider flex items-center gap-1.5">
+          <FiUsers className="text-[#C07A3D]" /> Employee Spend Breakdown
+        </h3>
+        <div className="h-64">
+          {(!data?.charts?.employeeSpending || data.charts.employeeSpending.length === 0) ? (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-sm text-gray-400 font-medium">No employee spending recorded</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data.charts.employeeSpending}
+                layout="vertical"
+                margin={{ top: 10, right: 30, left: 40, bottom: 10 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f3f4f6" />
+                <XAxis type="number" tickFormatter={(v) => `₹${v}`} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                <YAxis dataKey="name" type="category" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  formatter={(value) => [formatPrice(value), 'Total Spend']}
+                  contentStyle={{ borderRadius: '12px', fontSize: '12px' }}
+                />
+                <Bar dataKey="spend" fill="#C07A3D" radius={[0, 6, 6, 0]} barSize={20} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+      </div>
+
       {/* Recent Activity — RFQs + POs side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent RFQs */}

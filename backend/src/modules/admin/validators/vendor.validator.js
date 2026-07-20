@@ -3,10 +3,17 @@ import Joi from 'joi';
 const objectId = Joi.string().trim().hex().length(24);
 
 export const vendorListQuerySchema = Joi.object({
-    status: Joi.string().valid('all', 'pending', 'approved', 'suspended', 'rejected').optional(),
+    status: Joi.string().valid(
+        'all', 'pending', 'approved', 'suspended', 'rejected',
+        'gst', 'nongst', 'msme', 'home_business', 'small_business',
+        'pending_verification', 'approved_verification', 'rejected_verification'
+    ).optional(),
     search: Joi.string().trim().allow('').optional(),
     page: Joi.number().integer().min(1).optional(),
     limit: Joi.number().integer().min(1).max(500).optional(),
+    gstRegistered: Joi.string().valid('true', 'false').optional(),
+    businessType: Joi.string().optional(),
+    verificationStatus: Joi.string().valid('Pending', 'Approved', 'Rejected', 'Unsubmitted').optional(),
 });
 
 export const vendorIdParamSchema = Joi.object({
@@ -16,6 +23,10 @@ export const vendorIdParamSchema = Joi.object({
 export const vendorStatusUpdateSchema = Joi.object({
     status: Joi.string().valid('approved', 'suspended', 'rejected').required(),
     reason: Joi.string().trim().allow('').max(500).optional(),
+});
+
+export const vendorRejectBusinessSchema = Joi.object({
+    remark: Joi.string().trim().min(1).max(500).required(),
 });
 
 export const vendorCommissionUpdateSchema = Joi.object({

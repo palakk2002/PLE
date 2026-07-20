@@ -266,14 +266,22 @@ const Seller = () => {
 
     return (
         <PageTransition>
-            <MobileLayout showBottomNav={true} showCartBar={true}>
-                <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto min-h-screen bg-gray-50">
+            <MobileLayout showBottomNav={true} showCartBar={true} noPadding={true}>
+                <div className="w-full bg-gray-50 min-h-screen">
+                    <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto px-4 md:px-6">
                     {/* Header */}
                     <div className="bg-white border-b border-gray-200 sticky top-0 z-30">
                         <div className="px-2 md:px-4 py-2 md:py-4">
                             <div className="flex items-center gap-3 mb-4">
                                 <button
-                                    onClick={() => navigate(-1)}
+                                    onClick={() => {
+                                        const prevPath = sessionStorage.getItem('prevPath');
+                                        if (prevPath && prevPath !== '/portal' && !prevPath.includes('login') && !prevPath.includes('register')) {
+                                            navigate(prevPath);
+                                        } else {
+                                            navigate('/home');
+                                        }
+                                    }}
                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                                 >
                                     <FiArrowLeft className="text-xl text-gray-700" />
@@ -576,6 +584,7 @@ const Seller = () => {
                                 Request Product
                             </button>
                         </div>
+                    </div>
                     </div>
                 </div>
             </MobileLayout>

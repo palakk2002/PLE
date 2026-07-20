@@ -37,8 +37,8 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'A user with this admin email already exists.');
     }
 
-    // Force verificationStatus to Approved to allow instant B2B login testing
-    let verificationStatus = 'Approved';
+    // Set status to Pending Verification so that registration requires SuperAdmin approval.
+    let verificationStatus = 'Pending Verification';
 
     // 1. Create Company
     const b2bCompany = await B2BCompany.create({

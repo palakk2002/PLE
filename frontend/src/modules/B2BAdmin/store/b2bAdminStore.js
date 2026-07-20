@@ -114,6 +114,23 @@ export const useB2BAdminStore = create(
     }
   },
 
+  allotEmployeeWallet: async (id, amount) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.allotEmployeeWallet(id, amount);
+      await get().fetchEmployees();
+      toast.success('Wallet funds allotted successfully');
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to allot wallet funds';
+      set({ error: msg });
+      toast.error(msg);
+      return false;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
   fetchCompanyProfile: async () => {
     set({ isLoading: true, error: null });
     try {

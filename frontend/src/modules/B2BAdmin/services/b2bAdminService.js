@@ -29,4 +29,7 @@ export const deleteNotification = (id) => api.delete(`/b2b-user/admin/notificati
 // ─── Purchase Orders ──────────────────────────────────────────────────────────
 export const payPurchaseOrder = (id, data) => api.patch(`/b2b-user/admin/purchase-orders/${id}/pay`, data);
 
+// ─── Wallet Allotment ────────────────────────────────────────────────────────
+export const allotEmployeeWallet = (id, amount) => api.post(`/b2b-user/admin/employees/${id}/allot-wallet`, { amount });
+
 

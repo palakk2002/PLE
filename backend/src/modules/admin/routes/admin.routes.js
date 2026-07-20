@@ -65,6 +65,7 @@ import {
     vendorStatusUpdateSchema,
     vendorCommissionUpdateSchema,
     vendorCommissionsQuerySchema,
+    vendorRejectBusinessSchema,
 } from '../validators/vendor.validator.js';
 import {
     marketingIdParamSchema,
@@ -101,6 +102,8 @@ router.get('/vendors/:id/documents', ...adminAuth, validate(vendorIdParamSchema,
 router.patch('/vendors/documents/:docId/status', ...adminAuth, vendorController.updateDocumentStatus);
 router.patch('/vendors/:id/status', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorStatusUpdateSchema), vendorController.updateVendorStatus);
 router.patch('/vendors/:id/commission', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorCommissionUpdateSchema), vendorController.updateCommissionRate);
+router.patch('/vendors/:id/verify-business', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.verifyVendorBusiness);
+router.patch('/vendors/:id/reject-business', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorRejectBusinessSchema), vendorController.rejectVendorBusiness);
 
 // ─── Managed Shops & Vendors ───────────────────────────────────────────────
 router.post('/managed-shops', ...adminAuth, managedShopController.createShop);

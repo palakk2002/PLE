@@ -35,6 +35,14 @@ const Dashboard = () => {
     totalCustomers: 0,
     totalVendors: 0,
     pendingOrders: 0,
+    totalSellers: 0,
+    gstSellers: 0,
+    nonGstSellers: 0,
+    msmeSellers: 0,
+    homeBusinesses: 0,
+    pendingVerification: 0,
+    approvedSellers: 0,
+    rejectedSellers: 0,
   });
   const [b2bStats, setB2bStats] = useState({
     b2bUsers: 0,
@@ -150,6 +158,14 @@ const Dashboard = () => {
           totalCustomers: d.totalUsers || 0,
           totalVendors: d.totalVendors || 0,
           pendingOrders: d.pendingOrders || 0,
+          totalSellers: d.totalSellers || 0,
+          gstSellers: d.gstSellers || 0,
+          nonGstSellers: d.nonGstSellers || 0,
+          msmeSellers: d.msmeSellers || 0,
+          homeBusinesses: d.homeBusinesses || 0,
+          pendingVerification: d.pendingVerification || 0,
+          approvedSellers: d.approvedSellers || 0,
+          rejectedSellers: d.rejectedSellers || 0,
         });
       } else {
         setStats({
@@ -159,6 +175,14 @@ const Dashboard = () => {
           totalCustomers: 0,
           totalVendors: 0,
           pendingOrders: 0,
+          totalSellers: 0,
+          gstSellers: 0,
+          nonGstSellers: 0,
+          msmeSellers: 0,
+          homeBusinesses: 0,
+          pendingVerification: 0,
+          approvedSellers: 0,
+          rejectedSellers: 0,
         });
       }
       
@@ -255,6 +279,48 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <StatsCards stats={stats} />
+
+      {/* Business Verification & Seller Overview */}
+      <div className="space-y-4">
+        <h2 className="text-base sm:text-lg font-bold text-gray-900 px-1 flex items-center gap-2">
+          <span className="w-2.5 h-5 bg-purple-600 rounded-full inline-block"></span>
+          Business Verification & Seller Overview
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 sm:p-6 shadow-md border border-indigo-100 relative overflow-hidden">
+            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Total Sellers</h3>
+            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.totalSellers}</p>
+          </div>
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 sm:p-6 shadow-md border border-green-100 relative overflow-hidden">
+            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">GST Sellers</h3>
+            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.gstSellers}</p>
+          </div>
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 sm:p-6 shadow-md border border-blue-100 relative overflow-hidden">
+            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Non-GST Sellers</h3>
+            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.nonGstSellers}</p>
+          </div>
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 sm:p-6 shadow-md border border-amber-100 relative overflow-hidden">
+            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">MSME Sellers</h3>
+            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.msmeSellers}</p>
+          </div>
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 sm:p-6 shadow-md border border-purple-100 relative overflow-hidden">
+            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Home Businesses</h3>
+            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.homeBusinesses}</p>
+          </div>
+          <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 sm:p-6 shadow-md border border-yellow-100 relative overflow-hidden animate-pulse">
+            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Pending Verification</h3>
+            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.pendingVerification}</p>
+          </div>
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 sm:p-6 shadow-md border border-emerald-100 relative overflow-hidden">
+            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Approved Sellers</h3>
+            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.approvedSellers}</p>
+          </div>
+          <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl p-4 sm:p-6 shadow-md border border-red-100 relative overflow-hidden">
+            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Rejected Sellers</h3>
+            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.rejectedSellers}</p>
+          </div>
+        </div>
+      </div>
 
       {/* B2B Marketplace Overview */}
       <div className="space-y-4">

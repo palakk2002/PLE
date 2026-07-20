@@ -15,13 +15,57 @@ import {
     rotateRefreshSession,
 } from '../../../services/refreshToken.service.js';
 
-// POST /api/vendor/auth/register
+import { uploadLocalFileToCloudinaryAndCleanupWithType } from '../../../services/upload.service.js';
+
 export const register = asyncHandler(async (req, res) => {
     const { name, email, password, phone, storeName, storeDescription, address } = req.body;
 
     const normalizedEmail = String(email || '').trim().toLowerCase();
     const existing = await Vendor.findOne({ email: normalizedEmail });
     if (existing) throw new ApiError(409, 'Email already registered.');
+
+    let parsedAddress = address;
+    if (typeof address === 'string') {
+        try {
+            parsedAddress = JSON.parse(address);
+        } catch {
+            parsedAddress = {};
+        }
+    }
+
+    const isGst = req.body.gstRegistered === true || req.body.gstRegistered === 'true';
+
+    // Upload files to Cloudinary
+    let gstCertificate = '';
+    let msmeCertificate = '';
+    let identityProof = '';
+
+    if (req.files) {
+        if (req.files.gstCertificate?.[0]) {
+            const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+                req.files.gstCertificate[0].path,
+                'vendors/verification/gst',
+                'auto'
+            );
+            gstCertificate = uploaded.url;
+        }
+        if (req.files.msmeCertificate?.[0]) {
+            const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+                req.files.msmeCertificate[0].path,
+                'vendors/verification/msme',
+                'auto'
+            );
+            msmeCertificate = uploaded.url;
+        }
+        if (req.files.identityProof?.[0]) {
+            const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+                req.files.identityProof[0].path,
+                'vendors/verification/identity',
+                'auto'
+            );
+            identityProof = uploaded.url;
+        }
+    }
 
     const vendor = await Vendor.create({
         name: String(name || '').trim(),
@@ -30,7 +74,22 @@ export const register = asyncHandler(async (req, res) => {
         phone: String(phone || '').trim(),
         storeName: String(storeName || '').trim(),
         storeDescription: String(storeDescription || '').trim(),
-        address,
+        address: parsedAddress,
+        businessType: req.body.businessType || 'Other',
+        gstRegistered: isGst,
+        businessName: req.body.businessName || '',
+        tradeName: req.body.tradeName || '',
+        gstNumber: req.body.gstNumber || '',
+        panNumber: req.body.panNumber || '',
+        ownerName: req.body.ownerName || '',
+        businessAddress: req.body.businessAddress || '',
+        city: req.body.city || '',
+        state: req.body.state || '',
+        pincode: req.body.pincode || '',
+        gstCertificate,
+        msmeCertificate,
+        identityProof,
+        verificationStatus: 'Pending',
         status: 'pending'
     });
     await sendOTP(vendor, 'vendor_verification');

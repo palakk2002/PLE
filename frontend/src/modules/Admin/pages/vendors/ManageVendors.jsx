@@ -99,12 +99,32 @@ const ManageVendors = () => {
         (vendor) =>
           vendor.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
           vendor.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          vendor.storeName?.toLowerCase().includes(searchQuery.toLowerCase())
+          vendor.storeName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          vendor.businessName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          vendor.ownerName?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     if (selectedStatus !== "all") {
-      filtered = filtered.filter((vendor) => vendor.status === selectedStatus);
+      if (selectedStatus === 'gst') {
+        filtered = filtered.filter((vendor) => vendor.gstRegistered === true);
+      } else if (selectedStatus === 'nongst') {
+        filtered = filtered.filter((vendor) => vendor.gstRegistered === false);
+      } else if (selectedStatus === 'msme') {
+        filtered = filtered.filter((vendor) => vendor.businessType === 'MSME');
+      } else if (selectedStatus === 'home_business') {
+        filtered = filtered.filter((vendor) => vendor.businessType === 'Home Business');
+      } else if (selectedStatus === 'small_business') {
+        filtered = filtered.filter((vendor) => vendor.businessType === 'Small Business');
+      } else if (selectedStatus === 'pending_verification') {
+        filtered = filtered.filter((vendor) => vendor.verificationStatus === 'Pending');
+      } else if (selectedStatus === 'approved_verification') {
+        filtered = filtered.filter((vendor) => vendor.verificationStatus === 'Approved');
+      } else if (selectedStatus === 'rejected_verification') {
+        filtered = filtered.filter((vendor) => vendor.verificationStatus === 'Rejected');
+      } else {
+        filtered = filtered.filter((vendor) => vendor.status === selectedStatus);
+      }
     }
 
     return filtered;
@@ -153,8 +173,59 @@ const ManageVendors = () => {
       render: (value) => <span className="text-sm text-gray-700">{value}</span>,
     },
     {
+      key: "businessName",
+      label: "Business Name",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <span className="text-sm font-semibold text-gray-800">{value || row.storeName || 'N/A'}</span>
+          <p className="text-xs text-gray-500">{row.ownerName || row.name}</p>
+        </div>
+      )
+    },
+    {
+      key: "businessType",
+      label: "Business Type",
+      sortable: true,
+      render: (value) => <span className="text-sm text-gray-700">{value || 'Other'}</span>,
+    },
+    {
+      key: "gstRegistered",
+      label: "GST Registered",
+      sortable: true,
+      render: (value, row) => (
+        <div>
+          <Badge variant={value ? "success" : "neutral"}>
+            {value ? "Yes" : "No"}
+          </Badge>
+          {value && row.gstNumber && (
+            <p className="text-[10px] font-mono text-gray-500 mt-0.5">{row.gstNumber}</p>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "verificationStatus",
+      label: "Verification Status",
+      sortable: true,
+      render: (value) => (
+        <Badge
+          variant={
+            value === "Approved"
+              ? "success"
+              : value === "Pending"
+                ? "warning"
+                : value === "Rejected"
+                  ? "error"
+                  : "neutral"
+          }>
+          {value || "Unsubmitted"}
+        </Badge>
+      ),
+    },
+    {
       key: "status",
-      label: "Status",
+      label: "Account Status",
       sortable: true,
       render: (value) => (
         <Badge
@@ -429,10 +500,18 @@ const ManageVendors = () => {
               onChange={(e) => setSelectedStatus(e.target.value)}
               options={[
                 { value: "all", label: "All Status" },
-                { value: "approved", label: "Approved" },
-                { value: "pending", label: "Pending" },
+                { value: "approved", label: "Approved (Active)" },
+                { value: "pending", label: "Pending Approval" },
                 { value: "suspended", label: "Suspended" },
                 { value: "rejected", label: "Rejected" },
+                { value: "gst", label: "GST Sellers" },
+                { value: "nongst", label: "Non GST Sellers" },
+                { value: "msme", label: "MSME" },
+                { value: "home_business", label: "Home Business" },
+                { value: "small_business", label: "Small Business" },
+                { value: "pending_verification", label: "Pending Verification" },
+                { value: "approved_verification", label: "Approved Verification" },
+                { value: "rejected_verification", label: "Rejected Verification" },
               ]}
               className="w-full sm:w-auto min-w-[140px]"
             />

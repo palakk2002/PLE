@@ -3,7 +3,6 @@ import { Phone } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import ScrollToTop from '../common/ScrollToTop';
 import { useTheme } from '../../context/ThemeContext';
-import WhatsAppWidget from '../common/WhatsAppWidget';
 
 const lightLogo = '/PLE-logo-light-transparent.png';
 const darkLogo = '/PLE-logo-dark-transparent.png';
@@ -62,11 +61,6 @@ export default function LandingPageLayout() {
           </div>
         </div>
       </footer>
-
-      {/* Floating WhatsApp Widget */}
-      <WhatsAppWidget />
     </div>
   );
 }
-
-

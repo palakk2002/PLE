@@ -6,7 +6,16 @@ import api from '../../../shared/utils/api';
  * Register a new vendor (pending approval + OTP email sent)
  * @param {{ name, email, password, phone, storeName, storeDescription }} data
  */
-export const registerVendor = (data) => api.post('/vendor/auth/register', data);
+export const registerVendor = (data) => {
+    if (data instanceof FormData) {
+        return api.post('/vendor/auth/register', data, {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        });
+    }
+    return api.post('/vendor/auth/register', data);
+};
 
 /**
  * Verify email OTP after registration
@@ -512,5 +521,54 @@ export const uploadVendorImages = (files, folder = 'vendors/products') => {
     formData.append('folder', folder);
     return api.post('/vendor/uploads/images', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
+    });
+};
+
+/**
+ * Get vendor business profile
+ */
+export const getVendorBusinessProfile = () =>
+    api.get('/vendor/business-profile');
+
+/**
+ * Update/Create vendor business profile
+ * @param {object} data
+ */
+export const updateVendorBusinessProfile = (data) =>
+    api.put('/vendor/business-profile', data);
+
+/**
+ * Upload GST Certificate
+ * @param {File} file
+ */
+export const uploadGstCertificate = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/vendor/business-profile/upload-gst', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+};
+
+/**
+ * Upload MSME Certificate
+ * @param {File} file
+ */
+export const uploadMsmeCertificate = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/vendor/business-profile/upload-msme', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+};
+
+/**
+ * Upload Identity Proof
+ * @param {File} file
+ */
+export const uploadIdentityProof = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/vendor/business-profile/upload-identity', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
     });
 };

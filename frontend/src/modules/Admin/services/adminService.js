@@ -139,6 +139,12 @@ export const getVendorById = (id) =>
 export const updateVendorStatus = (id, status, reason = '') =>
     api.patch(`/admin/vendors/${id}/status`, { status, reason });
 
+export const verifyVendorBusiness = (id) =>
+    api.patch(`/admin/vendors/${id}/verify-business`);
+
+export const rejectVendorBusiness = (id, remark) =>
+    api.patch(`/admin/vendors/${id}/reject-business`, { remark });
+
 export const updateCommissionRate = (id, commissionRate) =>
     api.patch(`/admin/vendors/${id}/commission`, { commissionRate });
 

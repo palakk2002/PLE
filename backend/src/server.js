@@ -30,6 +30,9 @@ const startServer = async () => {
     const { migrateSalesChannel } = await import('./utils/migrateSalesChannel.js');
     await migrateSalesChannel();
     
+    const { migrateBusinessVerification } = await import('./utils/migrateBusinessVerification.js');
+    await migrateBusinessVerification();
+    
     const server = http.createServer(app);
     initSocket(server);
 

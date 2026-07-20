@@ -40,9 +40,10 @@ const MobileLogin = ({ isB2BRoute }) => {
   const [showB2BOptionModal, setShowB2BOptionModal] = useState(false);
 
   useEffect(() => {
+    if (showB2BOptionModal) return;
+
     const { adminProfile } = useB2BAdminStore.getState();
     const isActuallyAdmin = isB2BAuthenticated && adminProfile && !adminProfile.isEmployee;
-    const isActuallyEmployee = isB2BAuthenticated && adminProfile && adminProfile.isEmployee;
     const b2bStore = useB2bStore.getState();
 
     if (isB2BAuthenticated && adminProfile) {
@@ -62,10 +63,10 @@ const MobileLogin = ({ isB2BRoute }) => {
       }
     } else {
       if (isB2BAuthenticated || isAuthenticated) {
-        navigate('/home', { replace: true });
+        setShowB2BOptionModal(true);
       }
     }
-  }, [isAuthenticated, isB2BAuthenticated, navigate]);
+  }, [isAuthenticated, isB2BAuthenticated, navigate, showB2BOptionModal]);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -110,7 +111,11 @@ const MobileLogin = ({ isB2BRoute }) => {
             useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
           }
 
-          navigate('/home', { replace: true });
+          if (adminProfile && !adminProfile.isEmployee) {
+            setShowB2BOptionModal(true);
+          } else {
+            navigate('/home', { replace: true });
+          }
         }
         return;
       }

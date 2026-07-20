@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye, FiX } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye, FiX, FiDollarSign } from 'react-icons/fi';
 import DataTable from '../../Admin/components/DataTable';
 import ConfirmModal from '../../Admin/components/ConfirmModal';
 import { useB2BAdminStore } from '../store/b2bAdminStore';
 
 const EmployeeManagement = () => {
-  const { employees, fetchEmployees, createEmployee, updateEmployee, deleteEmployee, isLoading } = useB2BAdminStore();
+  const { employees, fetchEmployees, createEmployee, updateEmployee, deleteEmployee, allotEmployeeWallet, isLoading } = useB2BAdminStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, id: null, name: '' });
+  
+  // Allot funds modal state
+  const [allotModal, setAllotModal] = useState({ isOpen: false, employeeId: null, name: '', amount: '' });
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,7 +25,9 @@ const EmployeeManagement = () => {
     password: '',
     department: '',
     designation: '',
-    status: 'Active'
+    status: 'Active',
+    b2bWalletBalance: 0,
+    b2bSpendingLimit: 0
   });
 
   useEffect(() => {
@@ -42,7 +47,7 @@ const EmployeeManagement = () => {
 
   const openAddModal = () => {
     setIsEditing(false);
-    setFormData({ id: null, firstName: '', lastName: '', email: '', phone: '', password: '', department: '', designation: '', status: 'Active' });
+    setFormData({ id: null, firstName: '', lastName: '', email: '', phone: '', password: '', department: '', designation: '', status: 'Active', b2bWalletBalance: 0, b2bSpendingLimit: 0 });
     setIsModalOpen(true);
   };
 
@@ -57,9 +62,28 @@ const EmployeeManagement = () => {
       password: '', // Leave blank when editing unless changing
       department: employee.department || '',
       designation: employee.designation || '',
-      status: employee.isActive === false ? 'Inactive' : 'Active'
+      status: employee.isActive === false ? 'Inactive' : 'Active',
+      b2bWalletBalance: employee.b2bWalletBalance || 0,
+      b2bSpendingLimit: employee.b2bSpendingLimit || 0
     });
     setIsModalOpen(true);
+  };
+
+  const openAllotModal = (employee) => {
+    setAllotModal({
+      isOpen: true,
+      employeeId: employee._id,
+      name: `${employee.firstName} ${employee.lastName}`,
+      amount: ''
+    });
+  };
+
+  const handleAllotSubmit = async (e) => {
+    e.preventDefault();
+    const success = await allotEmployeeWallet(allotModal.employeeId, Number(allotModal.amount));
+    if (success) {
+      setAllotModal({ isOpen: false, employeeId: null, name: '', amount: '' });
+    }
   };
 
   const handleModalSubmit = async (e) => {
@@ -103,6 +127,18 @@ const EmployeeManagement = () => {
       render: (value) => <span className="text-sm text-gray-700">{value || '-'}</span>
     },
     {
+      key: 'b2bWalletBalance',
+      label: 'Allotted Wallet',
+      sortable: true,
+      render: (value) => <span className="text-sm font-bold text-gray-700">₹{(value || 0).toLocaleString()}</span>
+    },
+    {
+      key: 'b2bSpendingLimit',
+      label: 'Spending Limit',
+      sortable: true,
+      render: (value) => <span className="text-sm text-gray-700">{value ? `₹${value.toLocaleString()}` : 'Unlimited'}</span>
+    },
+    {
       key: 'isActive',
       label: 'Status',
       sortable: true,
@@ -122,6 +158,13 @@ const EmployeeManagement = () => {
       sortable: false,
       render: (_, row) => (
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => openAllotModal(row)}
+            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+            title="Allot Funds"
+          >
+            <FiDollarSign />
+          </button>
           <button
             onClick={() => openEditModal(row)}
             className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors"
@@ -254,6 +297,16 @@ const EmployeeManagement = () => {
                     <option value="Suspended">Suspended</option>
                   </select>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Spending Limit (₹) (0 for unlimited)</label>
+                  <input type="number" min={0} value={formData.b2bSpendingLimit} onChange={e => setFormData({ ...formData, b2bSpendingLimit: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+                {!isEditing && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Initial Wallet Allotment (₹)</label>
+                    <input type="number" min={0} value={formData.b2bWalletBalance} onChange={e => setFormData({ ...formData, b2bWalletBalance: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
@@ -261,6 +314,43 @@ const EmployeeManagement = () => {
                 <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center">
                   {isLoading && <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>}
                   {isEditing ? 'Save Changes' : 'Create Employee'}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
+
+      {/* Allot Wallet Modal */}
+      {allotModal.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
+          >
+            <div className="flex items-center justify-between p-5 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">Allot Wallet Funds</h2>
+              <button onClick={() => setAllotModal({ ...allotModal, isOpen: false })} className="p-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition-colors">
+                <FiX className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAllotSubmit} className="p-5 space-y-4">
+              <div>
+                <p className="text-sm text-gray-600">Allotting wallet funds to <strong>{allotModal.name}</strong> from the company wallet.</p>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Allot (₹) *</label>
+                <input type="number" required min={1} value={allotModal.amount} onChange={e => setAllotModal({ ...allotModal, amount: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter amount to transfer" />
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+                <button type="button" onClick={() => setAllotModal({ ...allotModal, isOpen: false })} className="px-4 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 font-medium">Cancel</button>
+                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center">
+                  {isLoading && <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>}
+                  Confirm Allotment
                 </button>
               </div>
             </form>

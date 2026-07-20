@@ -4,7 +4,8 @@ import {
     getEmployees, 
     createEmployee, 
     updateEmployee, 
-    deleteEmployee 
+    deleteEmployee,
+    allotWalletFunds
 } from '../controllers/employee.controller.js';
 import { 
     getCompanyProfile, 
@@ -41,6 +42,7 @@ router.get('/employees', requireAdmin, getEmployees);
 router.post('/employees', requireAdmin, createEmployee);
 router.put('/employees/:id', requireAdmin, updateEmployee);
 router.delete('/employees/:id', requireAdmin, deleteEmployee);
+router.post('/employees/:id/allot-wallet', requireAdmin, allotWalletFunds);
 
 // Vendors for dropdowns
 router.get('/vendors', rfqController.getVendorsForSourcing);

@@ -13,6 +13,7 @@ import {
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
 import { useAuthStore } from "../../../../shared/store/authStore";
+import { useB2bStore } from "../../../../shared/store/b2bStore";
 import { useThemeStore } from "../../../../shared/store/themeStore";
 import appLogoBlack from "../../../../assets/PLELOGOBLACK-removebg-preview (1).png";
 import appLogoWhite from "../../../../assets/PLEwhite-removebg-preview (3).png";
@@ -249,9 +250,14 @@ const MobileHeader = () => {
   }, [hasPlayed]);
 
   const handleLogout = () => {
+    const isB2B = useB2bStore.getState().userRole === 'business_buyer';
     logout();
     setShowUserMenu(false);
-    navigate("/portal");
+    if (isB2B) {
+      navigate('/b2b/login');
+    } else {
+      navigate("/portal");
+    }
   };
 
   // Animation content - straight line movement only, starting from behind logo

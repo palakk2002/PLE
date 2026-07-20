@@ -14,6 +14,7 @@ import * as reviewController from '../controllers/review.controller.js';
 import * as shippingController from '../controllers/shipping.controller.js';
 import * as uploadController from '../controllers/upload.controller.js';
 import * as vendorPurchaseOrderController from '../controllers/vendorPurchaseOrder.controller.js';
+import * as businessProfileController from '../controllers/businessProfile.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -34,14 +35,14 @@ import {
     updateProductSchema,
     productIdParamSchema,
 } from '../validators/product.validator.js';
-import { uploadSingle, uploadMultiple, uploadDocumentSingle } from '../../../middlewares/upload.js';
+import { uploadSingle, uploadMultiple, uploadDocumentSingle, uploadVendorRegistrationDocs } from '../../../middlewares/upload.js';
 
 const router = Router();
 const vendorAuth = [authenticate, authorize('vendor', 'managed_vendor'), enforceAccountStatus];
 const strictVendorAuth = [authenticate, authorize('vendor'), enforceAccountStatus];
 
 // Auth
-router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
+router.post('/auth/register', authLimiter, uploadVendorRegistrationDocs(), validate(registerSchema), authController.register);
 router.post('/auth/verify-otp', validate(verifyOtpSchema), authController.verifyOTP);
 router.post('/auth/resend-otp', validate(resendOtpSchema), authController.resendOTP);
 router.post('/auth/forgot-password', authLimiter, validate(forgotPasswordSchema), authController.forgotPassword);
@@ -53,6 +54,14 @@ router.post('/auth/logout', validate(logoutSchema), authController.logout);
 router.get('/auth/profile', ...vendorAuth, authController.getProfile);
 router.put('/auth/profile', ...vendorAuth, authController.updateProfile);
 router.put('/auth/bank-details', ...strictVendorAuth, authController.updateBankDetails);
+
+// Business Profile Routes
+router.get('/business-profile', ...strictVendorAuth, businessProfileController.getBusinessProfile);
+router.post('/business-profile', ...strictVendorAuth, businessProfileController.updateBusinessProfile);
+router.put('/business-profile', ...strictVendorAuth, businessProfileController.updateBusinessProfile);
+router.post('/business-profile/upload-gst', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadGSTCertificate);
+router.post('/business-profile/upload-msme', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadMSMECertificate);
+router.post('/business-profile/upload-identity', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadIdentityProof);
 
 // Products
 router.get('/products', ...vendorAuth, productController.getVendorProducts);

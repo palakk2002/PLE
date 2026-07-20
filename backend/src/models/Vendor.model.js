@@ -78,7 +78,34 @@ const vendorSchema = new mongoose.Schema(
         fcmTokenMobile: {
             type: [String],
             default: []
-        }
+        },
+        // Business Verification & Type Management fields
+        businessType: {
+            type: String,
+            enum: ['Home Business', 'Small Business', 'MSME', 'Startup', 'Proprietorship', 'Partnership', 'LLP', 'Private Limited', 'Public Limited', 'Other'],
+            default: 'Other'
+        },
+        gstRegistered: { type: Boolean, default: false },
+        businessName: { type: String },
+        tradeName: { type: String },
+        gstNumber: { type: String },
+        panNumber: { type: String },
+        gstCertificate: { type: String },
+        msmeCertificate: { type: String },
+        ownerName: { type: String },
+        businessAddress: { type: String },
+        city: { type: String },
+        state: { type: String },
+        pincode: { type: String },
+        identityProof: { type: String },
+        verificationStatus: {
+            type: String,
+            enum: ['Pending', 'Approved', 'Rejected', 'Unsubmitted'],
+            default: 'Pending'
+        },
+        verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+        verifiedAt: { type: Date },
+        verificationRemark: { type: String }
     },
     { timestamps: true }
 );

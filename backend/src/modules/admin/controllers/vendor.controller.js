@@ -27,21 +27,48 @@ const toApiVendor = (vendorDoc) => {
 
 // GET /api/admin/vendors
 export const getAllVendors = asyncHandler(async (req, res) => {
-    const { status, page = 1, limit = 20, search } = req.query;
+    const { status, page = 1, limit = 20, search, gstRegistered, businessType, verificationStatus } = req.query;
     const numericPage = Math.max(parseInt(page, 10) || 1, 1);
     const numericLimit = Math.max(parseInt(limit, 10) || 20, 1);
     const skip = (numericPage - 1) * numericLimit;
     const filter = {};
 
     const allowedStatuses = new Set(['pending', 'approved', 'suspended', 'rejected']);
-    if (typeof status === 'string' && status !== 'all' && allowedStatuses.has(status)) {
+    
+    if (status === 'gst') {
+        filter.gstRegistered = true;
+    } else if (status === 'nongst') {
+        filter.gstRegistered = false;
+    } else if (status === 'msme') {
+        filter.businessType = 'MSME';
+    } else if (status === 'home_business') {
+        filter.businessType = 'Home Business';
+    } else if (status === 'small_business') {
+        filter.businessType = 'Small Business';
+    } else if (status === 'pending_verification') {
+        filter.verificationStatus = 'Pending';
+    } else if (status === 'approved_verification') {
+        filter.verificationStatus = 'Approved';
+    } else if (status === 'rejected_verification') {
+        filter.verificationStatus = 'Rejected';
+    } else if (typeof status === 'string' && status !== 'all' && allowedStatuses.has(status)) {
         filter.status = status;
+    }
+
+    if (gstRegistered !== undefined) {
+        filter.gstRegistered = gstRegistered === 'true' || gstRegistered === true;
+    }
+    if (businessType) {
+        filter.businessType = businessType;
+    }
+    if (verificationStatus) {
+        filter.verificationStatus = verificationStatus;
     }
 
     const trimmedSearch = String(search || '').trim();
     if (trimmedSearch) {
         const safeRegex = new RegExp(escapeRegex(trimmedSearch), 'i');
-        filter.$or = [{ name: safeRegex }, { email: safeRegex }, { storeName: safeRegex }];
+        filter.$or = [{ name: safeRegex }, { email: safeRegex }, { storeName: safeRegex }, { businessName: safeRegex }, { ownerName: safeRegex }];
     }
 
     const vendors = await Vendor.find(filter)
@@ -219,4 +246,79 @@ export const updateDocumentStatus = asyncHandler(async (req, res) => {
     }
 
     res.status(200).json(new ApiResponse(200, document, `Document status updated to ${status}.`));
+});
+
+// PATCH /api/admin/vendors/:id/verify-business
+export const verifyVendorBusiness = asyncHandler(async (req, res) => {
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    vendor.verificationStatus = 'Approved';
+    vendor.status = 'approved';
+    vendor.verifiedBy = req.user.id;
+    vendor.verifiedAt = new Date();
+    vendor.verificationRemark = '';
+    await vendor.save();
+
+    const message = `Your business verification for ${vendor.storeName || vendor.name} has been approved.`;
+    await createNotification({
+        recipientId: vendor._id,
+        recipientType: 'vendor',
+        title: 'Business Verification Approved',
+        message,
+        type: 'system',
+        data: { verificationStatus: 'Approved', status: 'approved' },
+    });
+
+    try {
+        await sendEmail({
+            to: vendor.email,
+            subject: 'Business Verification Approved',
+            text: message,
+            html: `<p>${message}</p>`,
+        });
+    } catch (err) {
+        console.warn(`Vendor verification email failed: ${err.message}`);
+    }
+
+    res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Business verification approved.'));
+});
+
+// PATCH /api/admin/vendors/:id/reject-business
+export const rejectVendorBusiness = asyncHandler(async (req, res) => {
+    const { remark } = req.body;
+    if (!remark) throw new ApiError(400, 'Rejection remark is required.');
+
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    vendor.verificationStatus = 'Rejected';
+    vendor.status = 'rejected';
+    vendor.verifiedBy = req.user.id;
+    vendor.verifiedAt = new Date();
+    vendor.verificationRemark = remark;
+    await vendor.save();
+
+    const message = `Your business verification for ${vendor.storeName || vendor.name} has been rejected. Reason: ${remark}`;
+    await createNotification({
+        recipientId: vendor._id,
+        recipientType: 'vendor',
+        title: 'Business Verification Rejected',
+        message,
+        type: 'system',
+        data: { verificationStatus: 'Rejected', status: 'rejected', remark },
+    });
+
+    try {
+        await sendEmail({
+            to: vendor.email,
+            subject: 'Business Verification Rejected',
+            text: message,
+            html: `<p>${message}</p>`,
+        });
+    } catch (err) {
+        console.warn(`Vendor verification rejection email failed: ${err.message}`);
+    }
+
+    res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Business verification rejected.'));
 });

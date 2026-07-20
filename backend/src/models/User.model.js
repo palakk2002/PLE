@@ -20,6 +20,8 @@ const userSchema = new mongoose.Schema(
         address: { type: String, trim: true },
         firstName: { type: String, trim: true },
         lastName: { type: String, trim: true },
+        b2bWalletBalance: { type: Number, default: 0 },
+        b2bSpendingLimit: { type: Number, default: 0 },
 
         isVerified: { type: Boolean, default: false },
         isActive: { type: Boolean, default: true },

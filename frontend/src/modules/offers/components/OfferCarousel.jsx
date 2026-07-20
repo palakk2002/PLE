@@ -81,7 +81,7 @@ export const OfferCarousel = ({ offers = [], onOfferClick }) => {
     <div
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
-      className="relative w-full h-40 md:h-56 lg:h-64 rounded-2xl overflow-hidden bg-[#120D0B] border border-white/[0.06] select-none group shadow-lg"
+      className="relative w-full h-40 md:h-56 lg:h-64 rounded-none md:rounded-2xl overflow-hidden bg-[#120D0B] border border-white/[0.06] select-none group shadow-lg"
     >
       <div
         onTouchStart={onTouchStart}

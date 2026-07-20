@@ -20,7 +20,7 @@ const NewArrivalsSection = ({ products = null }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       whileHover={{ scale: 1.01 }}
-      className="relative mx-4 my-4 rounded-3xl overflow-hidden shadow-lg border border-gray-100 dark:border-[#7B0A0A]/40 bg-white dark:from-[#1a0f0f] dark:via-[#0d0d0d] dark:to-[#000000] dark:bg-gradient-to-br dark:shadow-[0_8px_32px_rgba(123, 10, 10,0.25)]">
+      className="relative mx-0 md:mx-4 my-4 rounded-none md:rounded-3xl overflow-hidden shadow-lg border-t border-b md:border border-gray-100 dark:border-[#7B0A0A]/40 bg-white dark:from-[#1a0f0f] dark:via-[#0d0d0d] dark:to-[#000000] dark:bg-gradient-to-br dark:shadow-[0_8px_32px_rgba(123, 10, 10,0.25)]">
       {/* Animated Gradient Overlay */}
       <motion.div
         className="absolute inset-0 opacity-30 hidden dark:block"

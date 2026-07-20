@@ -7,13 +7,18 @@ export const registerSchema = Joi.object({
     phone: Joi.string().trim().required(),
     storeName: Joi.string().trim().min(2).max(100).required(),
     storeDescription: Joi.string().trim().max(500).allow('').optional(),
-    address: Joi.object({
-        street: Joi.string().allow('').optional(),
-        city: Joi.string().allow('').optional(),
-        state: Joi.string().allow('').optional(),
-        zipCode: Joi.string().allow('').optional(),
-        country: Joi.string().allow('').optional(),
-    }).optional(),
+    businessType: Joi.string().valid('Home Business', 'Small Business', 'MSME', 'Startup', 'Proprietorship', 'Partnership', 'LLP', 'Private Limited', 'Public Limited', 'Other').optional(),
+    gstRegistered: Joi.any().optional(),
+    businessName: Joi.string().trim().allow('').optional(),
+    tradeName: Joi.string().trim().allow('').optional(),
+    gstNumber: Joi.string().trim().allow('').optional(),
+    panNumber: Joi.string().trim().allow('').optional(),
+    ownerName: Joi.string().trim().allow('').optional(),
+    businessAddress: Joi.string().trim().allow('').optional(),
+    city: Joi.string().trim().allow('').optional(),
+    state: Joi.string().trim().allow('').optional(),
+    pincode: Joi.string().trim().allow('').optional(),
+    address: Joi.any().optional(),
 });
 
 export const loginSchema = Joi.object({

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiSettings, FiCreditCard, FiTruck, FiUser } from 'react-icons/fi';
+import { FiSettings, FiCreditCard, FiTruck, FiUser, FiBriefcase } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import StoreSettings from './settings/StoreSettings';
 import PaymentSettings from './settings/PaymentSettings';
 import ShippingSettings from './settings/ShippingSettings';
 import ProfileSettings from './settings/ProfileSettings';
+import BusinessProfile from './settings/BusinessProfile';
 
 const VendorSettings = () => {
   const navigate = useNavigate();
@@ -16,6 +17,7 @@ const VendorSettings = () => {
     const path = location.pathname;
     if (path.includes('/payment') || path.includes('/payment-settings')) return 'payment';
     if (path.includes('/shipping') || path.includes('/shipping-settings')) return 'shipping';
+    if (path.includes('/business')) return 'business';
     if (path.includes('/store')) return 'store';
     return 'store';
   };
@@ -34,6 +36,8 @@ const VendorSettings = () => {
       navigate('/vendor/settings/payment');
     } else if (tabId === 'shipping') {
       navigate('/vendor/settings/shipping');
+    } else if (tabId === 'business') {
+      navigate('/vendor/settings/business');
     }
   };
 
@@ -41,6 +45,7 @@ const VendorSettings = () => {
     { id: 'store', label: 'Store Settings', icon: FiSettings, component: StoreSettings, route: '/vendor/settings' },
     { id: 'payment', label: 'Payment Settings', icon: FiCreditCard, component: PaymentSettings, route: '/vendor/settings/payment-settings' },
     { id: 'shipping', label: 'Shipping Settings', icon: FiTruck, component: ShippingSettings, route: '/vendor/settings/shipping-settings' },
+    { id: 'business', label: 'Business Profile', icon: FiBriefcase, component: BusinessProfile, route: '/vendor/settings/business' },
   ];
 
   const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component || StoreSettings;

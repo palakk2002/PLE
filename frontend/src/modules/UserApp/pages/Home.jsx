@@ -650,7 +650,7 @@ const MobileHome = () => {
   if (isBusiness) {
     return (
       <PageTransition>
-        <MobileLayout>
+        <MobileLayout noPadding={true}>
           <B2BHome 
             computedBrands={computedBrands}
             computedVendors={computedVendors}
@@ -880,7 +880,7 @@ const MobileHome = () => {
               <BrandLogosScroll brands={computedBrands} />
 
               {/* Offer Carousel Section */}
-              <div className="px-4 py-2">
+              <div className="px-0 md:px-4 py-2">
                 <OfferCarousel offers={offers} onOfferClick={setSelectedHomeOffer} />
               </div>
 
