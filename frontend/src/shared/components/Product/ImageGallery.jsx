@@ -100,14 +100,14 @@ const ImageGallery = ({ images, productName = "Product", children }) => {
         {/* Action Buttons / Badge Area (Injected via children) */}
         {children}
 
-        {/* Thumbnails Grid (3 Columns) */}
+        {/* Thumbnails Row */}
         {imageArray.length > 1 && (
-          <div className="grid grid-cols-3 gap-3">
+          <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory justify-start">
             {imageArray.map((image, index) => (
               <button
                 key={index}
                 onClick={() => handleThumbnailClick(index)}
-                className={`aspect-square rounded-2xl overflow-hidden border-2 transition-all duration-300 ${selectedIndex === index
+                className={`w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 transition-all duration-300 snap-start ${selectedIndex === index
                   ? "border-primary-600 ring-2 ring-primary-50 ring-offset-2"
                   : "border-transparent hover:border-gray-300"
                   }`}>

@@ -640,7 +640,7 @@ const MobileProductDetail = () => {
       <MobileLayout showBottomNav={false} showCartBar={true}>
         <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto">
           {/* Back Button */}
-          <div className="px-4 pt-4 lg:pt-8 lg:px-8 mb-6">
+          <div className="px-4 pt-2 lg:pt-8 lg:px-8 mb-2">
             <button
               onClick={() => {
                 const prevPath = sessionStorage.getItem('prevPath');
@@ -661,15 +661,13 @@ const MobileProductDetail = () => {
 
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-16 lg:px-8 lg:items-start">
             {/* Left Column: Product Image */}
-            <div className="px-4 py-4 lg:p-0 sticky top-24">
-              <div className="bg-white rounded-3xl p-2 lg:p-4 shadow-sm border border-gray-100">
-                <ImageGallery
-                  images={productImages}
-                  productName={product.name}
-                />
-              </div>
+            <div className="px-4 py-2 lg:p-0 sticky top-24 mb-6 lg:mb-0">
+              <ImageGallery
+                images={productImages}
+                productName={product.name}
+              />
               {product.flashSale && (
-                <div className="mt-4 flex justify-center lg:justify-start">
+                <div className="mt-3 flex justify-center lg:justify-start">
                   <Badge variant="flash" size="lg">
                     Flash Sale - Limited Time Offer
                   </Badge>
@@ -765,7 +763,7 @@ const MobileProductDetail = () => {
                   </h1>
 
                   {/* Rating & Reviews */}
-                  {product.rating && (
+                  {!!product.rating && (
                     <div className="flex items-center gap-4 mb-6">
                       <div className="flex items-center gap-1 bg-yellow-50 px-2 py-1 rounded-lg border border-yellow-100">
                         <span className="font-bold text-yellow-700">
@@ -1167,13 +1165,15 @@ const MobileProductDetail = () => {
                   )}
 
                   <div className="col-span-6 flex gap-4 mt-2">
-                    <button
-                      onClick={handleEnquiryClick}
-                      className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      <FiFileText className="text-xl" />
-                      <span>Enquire Now</span>
-                    </button>
+                    {isBusiness && (
+                      <button
+                        onClick={handleEnquiryClick}
+                        className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        <FiFileText className="text-xl" />
+                        <span>Enquire Now</span>
+                      </button>
+                    )}
                     <button
                       onClick={handleFavorite}
                       className={`flex-1 py-4 rounded-xl font-semibold transition-all duration-300 border-2 flex items-center justify-center ${
@@ -1399,13 +1399,15 @@ const MobileProductDetail = () => {
           >
             <FiShare2 className="text-xl" />
           </button>
-          <button
-            onClick={handleEnquiryClick}
-            className="p-3 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 rounded-xl font-semibold transition-all duration-300"
-            title="Enquire Now"
-          >
-            <FiFileText className="text-xl" />
-          </button>
+          {isBusiness && (
+            <button
+              onClick={handleEnquiryClick}
+              className="p-3 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 rounded-xl font-semibold transition-all duration-300"
+              title="Enquire Now"
+            >
+              <FiFileText className="text-xl" />
+            </button>
+          )}
           {isBusiness ? (
             <button
               onClick={handleAddToCart}

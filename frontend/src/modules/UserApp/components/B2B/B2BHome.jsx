@@ -18,7 +18,8 @@ import {
   FiLayers,
   FiHome,
   FiTruck,
-  FiPhone
+  FiPhone,
+  FiPlus
 } from "react-icons/fi";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -338,20 +339,20 @@ const B2BHome = ({
                   </p>
                 </div>
                 
-                <div className="flex flex-wrap items-center gap-3 mt-6 relative z-10">
+                <div className="grid grid-cols-2 gap-2 mt-4 relative z-10 w-full max-w-[340px]">
                   <button 
                     onClick={handleRfqClick}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-xs uppercase rounded-lg transition-all shadow-md active:scale-95 cursor-pointer"
+                    className="flex items-center justify-center gap-1 px-2.5 py-2 bg-[#AE020B] hover:bg-[#8B0208] text-white font-extrabold text-[10px] sm:text-xs uppercase rounded-lg transition-all shadow-md active:scale-95 cursor-pointer w-full text-center"
                   >
-                    <FiFileText className="text-sm" />
+                    <FiFileText className="text-xs shrink-0" />
                     Request Quote
                   </button>
                   <button 
-                    onClick={handleUploadBOQ}
-                    className="flex items-center gap-2 px-4 py-2.5 border border-white/20 bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs uppercase rounded-lg transition-all active:scale-95 cursor-pointer"
+                    onClick={() => navigate('/product-request/new')}
+                    className="flex items-center justify-center gap-1 px-2.5 py-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white font-extrabold text-[10px] sm:text-xs uppercase rounded-lg transition-all active:scale-95 cursor-pointer w-full text-center"
                   >
-                    <FiUploadCloud className="text-sm" />
-                    Upload BOQ
+                    <FiPlus className="text-xs shrink-0" />
+                    Request Product
                   </button>
                 </div>
               </div>
@@ -376,7 +377,7 @@ const B2BHome = ({
                 </div>
      
                 <div 
-                  onClick={handleUploadBOQ}
+                  onClick={() => navigate('/product-request/new')}
                   className={`flex items-start gap-3 p-3 border rounded-xl cursor-pointer transition-colors ${
                     isDark 
                       ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800" 
@@ -386,11 +387,11 @@ const B2BHome = ({
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${
                     isDark ? "bg-blue-955/50 text-blue-500" : "bg-blue-50 text-blue-600"
                   }`}>
-                    <FiUploadCloud className="text-lg" />
+                    <FiPlus className="text-lg" />
                   </div>
                   <div className="min-w-0">
-                    <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Upload BOQ</h4>
-                    <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Upload your list for bulk pricing</p>
+                    <h4 className={`text-xs font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Request Product</h4>
+                    <p className={`text-[10px] mt-0.5 leading-tight ${isDark ? "text-zinc-500" : "text-gray-500"}`}>Request custom or unlisted items</p>
                   </div>
                 </div>
      

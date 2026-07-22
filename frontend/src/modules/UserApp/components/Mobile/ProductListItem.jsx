@@ -139,7 +139,7 @@ const ProductListItem = ({ product, index, isFlashSale = false }) => {
           </div>
 
           <div className="flex items-center gap-2 mb-1">
-            {product.rating && (
+            {!!product.rating && (
               <div className="flex items-center bg-yellow-400/10 px-1.5 py-0.5 rounded-md">
                 <span className="text-[10px] md:text-xs font-bold text-yellow-700">⭐ {product.rating}</span>
                 <span className="text-[9px] text-gray-400 font-medium ml-1">({product.reviewCount || 0})</span>

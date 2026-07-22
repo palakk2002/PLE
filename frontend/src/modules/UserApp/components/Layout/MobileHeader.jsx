@@ -9,6 +9,7 @@ import {
   FiSearch,
   FiMenu,
   FiFileText,
+  FiMapPin,
 } from "react-icons/fi";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useCartStore, useUIStore } from "../../../../shared/store/useStore";
@@ -361,11 +362,12 @@ const MobileHeader = () => {
             {/* Dynamic Location Selection Bar */}
             <div 
               onClick={() => setIsAddressSheetOpen(true)}
-              className="flex items-center gap-2 overflow-visible relative z-[10001] cursor-pointer min-w-0 flex-1 pr-2"
+              className="flex items-start gap-1.5 overflow-visible relative z-[10001] cursor-pointer min-w-0 flex-1 pr-2"
             >
+              {defaultAddress && <FiMapPin className="text-white text-sm shrink-0 mt-0.5" />}
               <div className="flex flex-col text-left min-w-0">
-                <span className="font-black text-white text-sm sm:text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none truncate">
-                  {defaultAddress ? defaultAddress.name : "Select Location"}
+                <span className="font-black text-white text-sm sm:text-base leading-tight flex items-center gap-1 capitalize tracking-tight select-none truncate">
+                  {defaultAddress ? "Deliver to" : "Select Location"}
                 </span>
                 <span className="text-[10px] sm:text-xs font-semibold text-white/95 flex items-center gap-0.5 truncate mt-0.5">
                   {defaultAddress ? `${defaultAddress.address}, ${defaultAddress.city}` : "Click to select"}
@@ -590,15 +592,18 @@ const MobileHeader = () => {
           {/* 2. Location Selector */}
           <div 
             onClick={() => setIsAddressSheetOpen(true)}
-            className="flex flex-col text-left cursor-pointer min-w-0 flex-grow pr-1 pl-1"
+            className="flex items-start gap-1.5 text-left cursor-pointer min-w-0 flex-grow pr-1 pl-1"
           >
-            <span className="font-black text-white text-sm sm:text-base leading-tight flex items-center gap-1 uppercase tracking-tight select-none truncate">
-              {defaultAddress ? defaultAddress.name : "Select Location"}
-            </span>
-            <span className="text-[10px] sm:text-xs font-semibold text-white/95 flex items-center gap-0.5 truncate mt-0.5">
-              {defaultAddress ? `${defaultAddress.address}, ${defaultAddress.city}` : "Click to select"}
-              <FiChevronDown className="text-xs text-white/80 mt-0.5 flex-shrink-0" />
-            </span>
+            {defaultAddress && <FiMapPin className="text-white text-sm shrink-0 mt-0.5" />}
+            <div className="flex flex-col min-w-0">
+              <span className="font-black text-white text-sm sm:text-base leading-tight flex items-center gap-1 capitalize tracking-tight select-none truncate">
+                {defaultAddress ? "Deliver to" : "Select Location"}
+              </span>
+              <span className="text-[10px] sm:text-xs font-semibold text-white/95 flex items-center gap-0.5 truncate mt-0.5">
+                {defaultAddress ? `${defaultAddress.address}, ${defaultAddress.city}` : "Click to select"}
+                <FiChevronDown className="text-xs text-white/80 mt-0.5 flex-shrink-0" />
+              </span>
+            </div>
           </div>
         </div>
 

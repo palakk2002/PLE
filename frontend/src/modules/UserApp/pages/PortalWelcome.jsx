@@ -136,16 +136,18 @@ const PortalWelcome = ({ type }) => {
           </button>
 
           {/* Skip Button */}
-          <button
-            onClick={handleSkip}
-            className={`w-full py-2.5 px-6 font-bold text-sm tracking-wide bg-transparent transition-all hover:underline ${
-              isDarkMode
-                ? 'text-zinc-400 hover:text-zinc-200'
-                : 'text-zinc-500 hover:text-zinc-800'
-            }`}
-          >
-            Skip sign in
-          </button>
+          {!isB2B && (
+            <button
+              onClick={handleSkip}
+              className={`w-full py-2.5 px-6 font-bold text-sm tracking-wide bg-transparent transition-all hover:underline ${
+                isDarkMode
+                  ? 'text-zinc-400 hover:text-zinc-200'
+                  : 'text-zinc-500 hover:text-zinc-800'
+              }`}
+            >
+              Skip sign in
+            </button>
+          )}
         </div>
       </motion.div>
     </div>

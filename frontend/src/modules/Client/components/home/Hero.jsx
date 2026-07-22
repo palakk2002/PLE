@@ -5,7 +5,7 @@ import { ArrowRight, Sparkles, Check, Award, Users, Play, Pause, Globe, Code, Cp
 import heroImage from '../../assets/hero_modern.png';
 import lightLogo from '../../assets/logo_Square.jpg__1_-removebg-preview.png';
 import darkLogo from '../../assets/DarkthemeLogo.png';
-const backgroundVideo = '/vidssave.com “Watch How Fashion Meets the Future in This Viral Shopping Animation ✨🛍️” 720P.mp4';
+const backgroundVideo = '/electronicsvideo.mp4';
 import { useTheme } from '../../context/ThemeContext';
 import { Spotlight } from '@/components/ui/spotlight';
 import { EncryptedText } from '@/components/ui/encrypted-text';
@@ -72,6 +72,20 @@ export default function Hero() {
     }, 4000);
     return () => clearInterval(interval);
   }, [prefersReducedMotion, rotatingPhrases]);
+
+  const primaryLink = (cmsHero?.primaryBtnLink === '#pricing') ? '#smart-deals' : (cmsHero?.primaryBtnLink || '/get-quote');
+  const secondaryLink = (cmsHero?.secondaryBtnLink === '#services') ? '/services' : (cmsHero?.secondaryBtnLink || '/services');
+
+  const handleButtonClick = (e, targetLink) => {
+    if (targetLink && targetLink.startsWith('#')) {
+      const elementId = targetLink.substring(1);
+      const element = document.getElementById(elementId);
+      if (element) {
+        e.preventDefault();
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+  };
 
   return (
     <section 
@@ -181,7 +195,8 @@ export default function Hero() {
             className="flex flex-col sm:flex-row gap-3 sm:gap-5 w-full sm:w-auto pt-2 sm:pt-0"
           >
             <Link
-              to={cmsHero?.primaryBtnLink || "/get-quote"}
+              to={primaryLink}
+              onClick={(e) => handleButtonClick(e, primaryLink)}
               className="px-6 py-3.5 sm:px-10 sm:py-4 bg-client-primary hover:bg-client-primary-hover text-black font-black text-sm rounded-full flex items-center justify-center gap-2 sm:gap-3 transition-all duration-300 hover:scale-105 group shadow-[0_0_30px_rgba(215,25,32,0.3)] w-full sm:w-auto text-center"
             >
               <span>{cmsHero?.primaryBtnText || "Shop Now"}</span>
@@ -189,7 +204,8 @@ export default function Hero() {
             </Link>
 
             <Link
-              to={cmsHero?.secondaryBtnLink || "/services"}
+              to={secondaryLink}
+              onClick={(e) => handleButtonClick(e, secondaryLink)}
               className="px-6 py-3.5 sm:px-10 sm:py-4 bg-white/5 backdrop-blur-md border border-white/10 hover:bg-client-primary hover:border-client-primary hover:text-black text-white font-bold text-sm rounded-full flex items-center justify-center gap-3 transition-all duration-300 hover:scale-105 w-full sm:w-auto text-center shadow-lg hover:shadow-[0_0_30px_rgba(215,25,32,0.3)]"
             >
               <span>{cmsHero?.secondaryBtnText || "Explore Products"}</span>
