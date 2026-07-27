@@ -139,6 +139,11 @@ const DesktopFooter = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/warranty-policy" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
+                  Warranty Policy
+                </Link>
+              </li>
+              <li>
                 <Link to="/user-agreement" className="text-sm text-gray-500 hover:text-[#7B0A0A] dark:text-gray-400 dark:hover:text-[#FF4D4D] transition-colors duration-200">
                   User Agreement
                 </Link>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useBusinessBuyer } from '../../hooks/useBusinessBuyer';
 import { useCartStore } from '../../../../shared/store/useStore';
 import { formatPrice } from '../../../../shared/utils/helpers';
@@ -6,6 +7,7 @@ import { FiBriefcase, FiRefreshCw, FiDownload, FiCheck, FiInbox, FiTrendingUp, F
 import toast from 'react-hot-toast';
 
 export const B2BBusinessDashboard = () => {
+  const navigate = useNavigate();
   const { isBusiness, businessProfile, quotations, getWholesaleSpecs } = useBusinessBuyer();
   const addItem = useCartStore((state) => state.addItem);
 
@@ -102,6 +104,19 @@ export const B2BBusinessDashboard = () => {
           <div className="flex items-center justify-between text-[10px] text-gray-400">
             <span>Used: {formatPrice(businessProfile.creditUsed)}</span>
             <span>Terms: NET 30 Days invoicing allowed</span>
+          </div>
+
+          <div className="flex items-center justify-between text-xs pt-2 mt-1 border-t border-dashed border-gray-100">
+            <span className="text-gray-500 font-semibold flex items-center gap-1">
+              <FiCreditCard />
+              <span>Business Wallet Balance</span>
+            </span>
+            <button
+              onClick={() => navigate('/wallet')}
+              className="text-[#7B0A0A] font-bold hover:underline"
+            >
+              Go to Wallet →
+            </button>
           </div>
         </div>
 

@@ -56,7 +56,7 @@ export const verifyOTP = asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    const user = await User.findOne({ email: normalizedEmail }).select('+otp +otpExpiry');
+    const user = await User.findOne({ email: normalizedEmail, role: 'customer' }).select('+otp +otpExpiry');
     if (!user) throw new ApiError(404, 'User not found.');
     
     // Developer bypass in development mode
@@ -103,10 +103,16 @@ export const login = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    const user = await User.findOne({ email: normalizedEmail }).select('+password');
-    if (!user) throw new ApiError(401, 'Invalid email or password.');
+    const user = await User.findOne({ email: normalizedEmail, role: 'customer' }).select('+password');
+    if (!user) {
+        const isB2BUser = await User.findOne({ email: normalizedEmail, role: { $in: ['b2bAdmin', 'b2bEmployee'] } });
+        if (isB2BUser) {
+            throw new ApiError(403, 'This account is registered for B2B. Please use the B2B portal to login.');
+        }
+        throw new ApiError(401, 'Invalid email or password.');
+    }
     if (!user.isActive) throw new ApiError(403, 'Your account has been deactivated.');
-    if (!user.isVerified && !['b2bAdmin', 'b2bEmployee'].includes(user.role)) {
+    if (!user.isVerified) {
         await sendOTP(user, 'email_verification');
         throw new ApiError(403, 'Email not verified. A new OTP has been sent to your email.');
     }
@@ -184,7 +190,7 @@ export const logout = asyncHandler(async (req, res) => {
 export const resendOTP = asyncHandler(async (req, res) => {
     const { email } = req.body;
     const normalizedEmail = String(email || '').trim().toLowerCase();
-    const user = await User.findOne({ email: normalizedEmail });
+    const user = await User.findOne({ email: normalizedEmail, role: 'customer' });
     if (!user) throw new ApiError(404, 'User not found.');
     if (user.isVerified) throw new ApiError(400, 'Email already verified.');
 
@@ -197,7 +203,7 @@ export const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    const user = await User.findOne({ email: normalizedEmail }).select('+resetOtp +resetOtpExpiry +resetOtpVerified');
+    const user = await User.findOne({ email: normalizedEmail, role: 'customer' }).select('+resetOtp +resetOtpExpiry +resetOtpVerified');
 
     // Generic response to avoid account enumeration.
     if (!user) {
@@ -236,7 +242,7 @@ export const verifyResetOTP = asyncHandler(async (req, res) => {
     const { email, otp } = req.body;
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    const user = await User.findOne({ email: normalizedEmail }).select('+resetOtp +resetOtpExpiry +resetOtpVerified');
+    const user = await User.findOne({ email: normalizedEmail, role: 'customer' }).select('+resetOtp +resetOtpExpiry +resetOtpVerified');
     if (!user) throw new ApiError(404, 'User not found.');
     if (!user.resetOtp || !user.resetOtpExpiry) throw new ApiError(400, 'No reset OTP requested.');
     if (user.resetOtpExpiry < new Date()) throw new ApiError(400, 'Reset OTP has expired.');
@@ -253,7 +259,7 @@ export const resetPassword = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const normalizedEmail = String(email || '').trim().toLowerCase();
 
-    const user = await User.findOne({ email: normalizedEmail }).select('+password +resetOtp +resetOtpExpiry +resetOtpVerified');
+    const user = await User.findOne({ email: normalizedEmail, role: 'customer' }).select('+password +resetOtp +resetOtpExpiry +resetOtpVerified');
     if (!user) throw new ApiError(404, 'User not found.');
     if (!user.resetOtpVerified) throw new ApiError(400, 'Please verify reset OTP first.');
     if (!user.resetOtp || !user.resetOtpExpiry) throw new ApiError(400, 'No reset OTP requested.');

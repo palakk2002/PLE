@@ -232,7 +232,7 @@ const CreateRFQ = () => {
         {/* Section 1: General Info */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-            <FiLayers className="text-[#C07A3D]" /> General Information
+            <FiLayers className="text-[#D71920]" /> General Information
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="md:col-span-2 space-y-1.5">
@@ -243,7 +243,7 @@ const CreateRFQ = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Sourcing Bulk Cotton Uniforms for Logistics Team"
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium"
               />
             </div>
 
@@ -252,7 +252,7 @@ const CreateRFQ = () => {
               <select
                 value={priority}
                 onChange={(e) => setPriority(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-semibold text-gray-700"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-semibold text-gray-700"
               >
                 <option value="Low">Low Priority</option>
                 <option value="Medium">Medium Priority</option>
@@ -265,7 +265,7 @@ const CreateRFQ = () => {
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-semibold text-gray-700"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-semibold text-gray-700"
               >
                 <option value="">Choose a Category</option>
                 {categories.length > 0 ? (
@@ -290,7 +290,7 @@ const CreateRFQ = () => {
                 <select
                   value={selectedVendorId}
                   onChange={(e) => setSelectedVendorId(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-semibold text-gray-700"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-semibold text-gray-700"
                 >
                   <option value="">Open to all vendors (Standard RFQ)</option>
                   {vendors.map((v) => (
@@ -309,7 +309,7 @@ const CreateRFQ = () => {
         {/* Section 2: Product Sourcing Specs */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-            <FiInbox className="text-[#C07A3D]" /> Product / Sourcing Specifications
+            <FiInbox className="text-[#D71920]" /> Product / Sourcing Specifications
           </h3>
           <div className="flex gap-4 p-1 bg-gray-150/60 rounded-xl w-fit mb-4">
             <button
@@ -342,7 +342,7 @@ const CreateRFQ = () => {
                   value={customProductName}
                   onChange={(e) => setCustomProductName(e.target.value)}
                   placeholder="e.g. High Density EPS Packing Boxes"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium"
                 />
               </div>
             ) : (
@@ -351,7 +351,7 @@ const CreateRFQ = () => {
                 <select
                   value={productId}
                   onChange={(e) => setProductId(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-semibold text-gray-700"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-semibold text-gray-700"
                 >
                   <option value="">Search/Choose Platform Catalog</option>
                   {platformProducts.map((p) => (
@@ -363,7 +363,7 @@ const CreateRFQ = () => {
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700">Required Quantity *</label>
-              <div className="flex bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#C07A3D]">
+              <div className="flex bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#D71920]">
                 <input
                   type="number"
                   required
@@ -385,7 +385,7 @@ const CreateRFQ = () => {
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700">Target Rate (per unit) ₹ *</label>
-              <div className="flex bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#C07A3D]">
+              <div className="flex bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#D71920]">
                 <span className="flex items-center px-3 text-gray-400 text-xs font-bold border-r border-gray-200 bg-gray-100 select-none">₹</span>
                 <input
                   type="number"
@@ -406,7 +406,7 @@ const CreateRFQ = () => {
                 type="date"
                 value={expectedDeliveryDate}
                 onChange={(e) => setExpectedDeliveryDate(e.target.value)}
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium text-gray-700"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium text-gray-700"
               />
             </div>
           </div>
@@ -417,7 +417,7 @@ const CreateRFQ = () => {
         {/* Section 3: Sourcing Requirements */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-            <FiFileText className="text-[#C07A3D]" /> Procurement Requirements
+            <FiFileText className="text-[#D71920]" /> Procurement Requirements
           </h3>
 
           <div className="space-y-4">
@@ -428,7 +428,7 @@ const CreateRFQ = () => {
                 value={specifications}
                 onChange={(e) => setSpecifications(e.target.value)}
                 placeholder="List size constraints, core material grade specifications, color hex codes, packaging requirements..."
-                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium"
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium"
               />
             </div>
 
@@ -440,7 +440,7 @@ const CreateRFQ = () => {
                   value={qualityStandards}
                   onChange={(e) => setQualityStandards(e.target.value)}
                   placeholder="e.g. ISO 9001 certified, RoHS Compliant, OEKO-TEX standard"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium"
                 />
               </div>
 
@@ -451,7 +451,7 @@ const CreateRFQ = () => {
                   value={termsConditions}
                   onChange={(e) => setTermsConditions(e.target.value)}
                   placeholder="e.g. NET 30 Days payment timeline, inspection on arrival"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium"
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium"
                 />
               </div>
             </div>
@@ -463,15 +463,15 @@ const CreateRFQ = () => {
         {/* Section 4: Attachments */}
         <div className="space-y-4">
           <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-            <FiUploadCloud className="text-[#C07A3D]" /> Document Attachments
+            <FiUploadCloud className="text-[#D71920]" /> Document Attachments
           </h3>
           <div className="border border-dashed border-gray-200 rounded-2xl p-6 text-center bg-gray-50/50 hover:bg-gray-50 transition-colors">
-            <FiUploadCloud className="w-8 h-8 mx-auto text-[#C07A3D] mb-2" />
+            <FiUploadCloud className="w-8 h-8 mx-auto text-[#D71920] mb-2" />
             <span className="text-xs font-bold text-gray-800 block">Upload Technical Blueprints or CAD files</span>
             <span className="text-[10px] text-gray-400 block mt-0.5">Formats supported: PDF, DOCX, ZIP, PNG, JPG (Max 5MB)</span>
             
             <div className="mt-3 flex justify-center">
-              <label className="cursor-pointer bg-[#C07A3D] hover:bg-[#A9662E] text-white px-3.5 py-1.5 rounded-lg text-[10px] font-bold transition-all shadow-sm">
+              <label className="cursor-pointer bg-[#D71920] hover:bg-[#B51218] text-white px-3.5 py-1.5 rounded-lg text-[10px] font-bold transition-all shadow-sm">
                 {uploading ? 'Uploading...' : 'Choose File'}
                 <input
                   type="file"
@@ -521,7 +521,7 @@ const CreateRFQ = () => {
             type="button"
             onClick={() => handleSubmit('Submitted')}
             disabled={submitting}
-            className="px-5 py-2.5 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl text-xs font-bold transition-all flex items-center shadow-sm"
+            className="px-5 py-2.5 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl text-xs font-bold transition-all flex items-center shadow-sm"
           >
             {submitting && <span className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-2"></span>}
             Submit RFQ

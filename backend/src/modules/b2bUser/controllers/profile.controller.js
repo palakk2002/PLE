@@ -99,25 +99,40 @@ export const getAdminProfile = asyncHandler(async (req, res) => {
  */
 export const updateAdminProfile = asyncHandler(async (req, res) => {
     const adminId = req.user.id || req.user._id;
-    const { adminName, adminPhone, name, phone, currentPassword, newPassword } = req.body;
+    const { adminName, adminEmail, adminPhone, name, phone, newPassword, secretKey } = req.body;
+
+    if (!secretKey) {
+        throw new ApiError(400, 'Company Owner Secret Key is required to update credentials.');
+    }
 
     const admin = await User.findById(adminId).select('+password');
-
     if (!admin) {
         throw new ApiError(404, 'User not found.');
+    }
+
+    const company = await B2BCompany.findById(admin.companyId).select('+ownerSecretKey');
+    if (!company) {
+        throw new ApiError(404, 'B2B Company not found.');
+    }
+
+    const isSecretKeyCorrect = await company.compareSecretKey(secretKey);
+    if (!isSecretKeyCorrect) {
+        throw new ApiError(403, 'Invalid Company Owner Secret Key.');
     }
 
     if (adminName || name) admin.name = adminName || name;
     if (adminPhone || phone) admin.phone = adminPhone || phone;
 
+    const emailToUpdate = adminEmail || req.body.email;
+    if (emailToUpdate && emailToUpdate.toLowerCase() !== admin.email.toLowerCase()) {
+        const existingUser = await User.findOne({ email: emailToUpdate.toLowerCase() });
+        if (existingUser) {
+            throw new ApiError(400, 'A user with this email already exists.');
+        }
+        admin.email = emailToUpdate.toLowerCase();
+    }
+
     if (newPassword) {
-        if (!currentPassword) {
-            throw new ApiError(400, 'Current password is required to set a new password.');
-        }
-        const isMatch = await admin.comparePassword(currentPassword);
-        if (!isMatch) {
-            throw new ApiError(401, 'Incorrect current password.');
-        }
         admin.password = newPassword;
     }
 

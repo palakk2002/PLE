@@ -229,7 +229,7 @@ const PurchaseOrders = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by PO Number, Vendor, Item..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C07A3D] text-sm transition-all"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D71920] text-sm transition-all"
               />
             </div>
 
@@ -295,13 +295,13 @@ const PurchaseOrders = () => {
               {/* Modal Header */}
               <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50 print:hidden">
                 <h3 className="text-base font-black text-gray-900 flex items-center gap-2">
-                  <FiFileText className="text-[#C07A3D]" /> Sourcing Purchase Agreement
+                  <FiFileText className="text-[#D71920]" /> Sourcing Purchase Agreement
                 </h3>
                 <div className="flex items-center gap-2">
                   {selectedPo.paymentStatus !== 'Paid' && (
                     <button
                       onClick={() => setShowPaymentModal(true)}
-                      className="py-1.5 px-4 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                      className="py-1.5 px-4 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
                     >
                       <FiDollarSign /> Pay Contract Value
                     </button>
@@ -550,7 +550,7 @@ const PurchaseOrders = () => {
                           required
                           value={mockCard.number}
                           onChange={(e) => setMockCard({ ...mockCard, number: e.target.value })}
-                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-mono font-bold"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-mono font-bold"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-3">
@@ -562,7 +562,7 @@ const PurchaseOrders = () => {
                             placeholder="MM/YY"
                             value={mockCard.expiry}
                             onChange={(e) => setMockCard({ ...mockCard, expiry: e.target.value })}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-bold"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-bold"
                           />
                         </div>
                         <div className="space-y-1">
@@ -574,7 +574,7 @@ const PurchaseOrders = () => {
                             maxLength="3"
                             value={mockCard.cvv}
                             onChange={(e) => setMockCard({ ...mockCard, cvv: e.target.value })}
-                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-bold"
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-bold"
                           />
                         </div>
                       </div>
@@ -585,7 +585,7 @@ const PurchaseOrders = () => {
                           required
                           value={mockCard.name}
                           onChange={(e) => setMockCard({ ...mockCard, name: e.target.value })}
-                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-bold text-gray-700"
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-bold text-gray-700"
                         />
                       </div>
                     </div>
@@ -598,7 +598,7 @@ const PurchaseOrders = () => {
                         placeholder="e.g. b2badmin@okaxis"
                         value={mockUpi}
                         onChange={(e) => setMockUpi(e.target.value)}
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-bold"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-bold"
                       />
                       <span className="text-[9px] text-gray-400 font-bold block mt-1">Select simulated app auto-authorization on submission.</span>
                     </div>
@@ -607,7 +607,7 @@ const PurchaseOrders = () => {
                   <button
                     type="submit"
                     disabled={paying}
-                    className="w-full py-3 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-sm disabled:opacity-50"
+                    className="w-full py-3 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center shadow-sm disabled:opacity-50"
                   >
                     {paying ? (
                       <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>

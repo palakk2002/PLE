@@ -16,6 +16,7 @@ const ManageB2BUsers = () => {
   }, [initialize]);
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState(null);
   const [filterStatus, setFilterStatus] = useState("all");
   const [actionModal, setActionModal] = useState({
     isOpen: false,
@@ -115,7 +116,7 @@ const ManageB2BUsers = () => {
           <button
             onClick={(e) => {
               e.stopPropagation();
-              // Navigate to details if created later: navigate(`/admin/b2b-users/${row.id}`)
+              setSelectedUserForDetails(row);
             }}
             className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="View Details">
@@ -303,6 +304,88 @@ const ManageB2BUsers = () => {
           type={modalContent.type}
           customContent={modalContent.customContent}
         />
+      )}
+
+      {selectedUserForDetails && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-xl border border-gray-100 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center pb-4 mb-4 border-b border-gray-100">
+              <h2 className="text-xl font-bold text-gray-800">B2B User Details</h2>
+              <button onClick={() => setSelectedUserForDetails(null)} className="text-gray-400 hover:text-gray-600 text-2xl font-bold">&times;</button>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-sm font-semibold uppercase text-blue-600 mb-3 tracking-wider">Company Information</h3>
+                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Company Name</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.companyName || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Company Type</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.companyType || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">GST Number</p>
+                    <p className="text-sm font-semibold text-gray-800 uppercase">{selectedUserForDetails.gstNumber || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Website</p>
+                    {selectedUserForDetails.website ? (
+                      <a href={selectedUserForDetails.website} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-blue-600 hover:underline">{selectedUserForDetails.website}</a>
+                    ) : (
+                      <p className="text-sm font-semibold text-gray-800">N/A</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Business Email</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.businessEmail || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Business Phone</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.businessPhone || 'N/A'}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-xs text-gray-500 font-medium">Company Address</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.companyAddress || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold uppercase text-blue-600 mb-3 tracking-wider">Admin Information</h3>
+                <div className="grid grid-cols-2 gap-4 bg-gray-50 p-4 rounded-xl">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Admin Name</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.admin?.adminName || selectedUserForDetails.admin?.name || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Admin Email</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.admin?.adminEmail || selectedUserForDetails.admin?.email || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Admin Phone</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.admin?.adminPhone || selectedUserForDetails.admin?.phone || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Total Employees</p>
+                    <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.employeeCount ?? 0}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-4 border-t border-gray-100">
+                <div>
+                  <span className="text-xs text-gray-500 font-medium mr-2">Verification Status:</span>
+                  <span className={`px-3 py-1 rounded-full text-xs font-semibold ${selectedUserForDetails.verificationStatus === 'Approved' ? 'bg-green-100 text-green-700' : selectedUserForDetails.verificationStatus === 'Rejected' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    {selectedUserForDetails.verificationStatus || 'Pending'}
+                  </span>
+                </div>
+                <button onClick={() => setSelectedUserForDetails(null)} className="px-5 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-all">Close</button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </motion.div>
   );

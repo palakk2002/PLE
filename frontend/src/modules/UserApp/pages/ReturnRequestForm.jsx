@@ -11,7 +11,6 @@ import { useAuthStore } from '../../../shared/store/authStore';
 import { formatPrice } from '../../../shared/utils/helpers';
 import LazyImage from '../../../shared/components/LazyImage';
 import toast from 'react-hot-toast';
-import RefundDestinationSelector from '../components/Refund/RefundDestinationSelector';
 
 const ReturnRequestForm = () => {
   const { orderId } = useParams();
@@ -371,12 +370,6 @@ const ReturnRequestForm = () => {
                 placeholder="Any extra details or preferences..."
               />
             </div>
-
-            {/* Refund Destination Selection */}
-            <RefundDestinationSelector
-              selected={refundDestination}
-              onChange={setRefundDestination}
-            />
 
             {/* Submit */}
             <button

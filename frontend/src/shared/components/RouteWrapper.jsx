@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 /**
@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
  */
 const RouteWrapper = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [catalogTick, setCatalogTick] = useState(0);
 
   useEffect(() => {
@@ -32,6 +33,16 @@ const RouteWrapper = ({ children }) => {
 
     return () => clearTimeout(timer);
   }, [location.pathname]);
+
+  // Prevent back navigation from /home to /
+  useEffect(() => {
+    if (location.pathname === '/') {
+      const prev = sessionStorage.getItem('currentPath');
+      if (prev === '/home') {
+        navigate('/home', { replace: true });
+      }
+    }
+  }, [location.pathname, navigate]);
 
   // Track valid history to support safe back navigation
   useEffect(() => {

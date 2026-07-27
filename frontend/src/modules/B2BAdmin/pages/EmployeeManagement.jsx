@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye, FiX, FiDollarSign } from 'react-icons/fi';
+import { FiSearch, FiPlus, FiEdit2, FiTrash2, FiEye, FiEyeOff, FiX, FiDollarSign } from 'react-icons/fi';
 import DataTable from '../../Admin/components/DataTable';
 import ConfirmModal from '../../Admin/components/ConfirmModal';
 import { useB2BAdminStore } from '../store/b2bAdminStore';
@@ -15,6 +15,7 @@ const EmployeeManagement = () => {
 
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     id: null,
@@ -47,12 +48,14 @@ const EmployeeManagement = () => {
 
   const openAddModal = () => {
     setIsEditing(false);
+    setShowPassword(false);
     setFormData({ id: null, firstName: '', lastName: '', email: '', phone: '', password: '', department: '', designation: '', status: 'Active', b2bWalletBalance: 0, b2bSpendingLimit: 0 });
     setIsModalOpen(true);
   };
 
   const openEditModal = (employee) => {
     setIsEditing(true);
+    setShowPassword(false);
     setFormData({
       id: employee._id,
       firstName: employee.firstName,
@@ -197,7 +200,7 @@ const EmployeeManagement = () => {
         </div>
         <button
           onClick={openAddModal}
-          className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm font-medium"
+          className="flex items-center justify-center px-4 py-2 bg-[#D71920] text-white rounded-lg hover:bg-[#B51218] transition-colors shadow-sm font-medium"
         >
           <FiPlus className="mr-2" /> Add Employee
         </button>
@@ -212,13 +215,13 @@ const EmployeeManagement = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search employees by name, email, or department..."
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#D71920] text-sm"
             />
           </div>
         </div>
 
         {isLoading && employees.length === 0 ? (
-          <div className="flex justify-center items-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+          <div className="flex justify-center items-center h-48"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D71920]"></div></div>
         ) : filteredEmployees.length > 0 ? (
           <DataTable
             data={filteredEmployees}
@@ -263,35 +266,40 @@ const EmployeeManagement = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
-                  <input type="text" required value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input type="text" required value={formData.firstName} onChange={e => setFormData({ ...formData, firstName: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
-                  <input type="text" required value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input type="text" required value={formData.lastName} onChange={e => setFormData({ ...formData, lastName: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                  <input type="email" required disabled={isEditing} value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-100" />
+                  <input type="email" required disabled={isEditing} value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none disabled:bg-gray-100" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                  <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Password {isEditing ? '(Leave blank to keep)' : '*'}</label>
-                  <input type="password" required={!isEditing} minLength={6} value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <div className="relative">
+                    <input type={showPassword ? 'text' : 'password'} required={!isEditing} minLength={6} value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                    </button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
-                  <input type="text" value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input type="text" value={formData.department} onChange={e => setFormData({ ...formData, department: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
-                  <input type="text" value={formData.designation} onChange={e => setFormData({ ...formData, designation: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input type="text" value={formData.designation} onChange={e => setFormData({ ...formData, designation: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                  <select value={formData.status} onChange={e => setFormData({ ...formData, status: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none">
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                     <option value="Suspended">Suspended</option>
@@ -299,19 +307,19 @@ const EmployeeManagement = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Monthly Spending Limit (₹) (0 for unlimited)</label>
-                  <input type="number" min={0} value={formData.b2bSpendingLimit} onChange={e => setFormData({ ...formData, b2bSpendingLimit: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                  <input type="number" min={0} value={formData.b2bSpendingLimit} onChange={e => setFormData({ ...formData, b2bSpendingLimit: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
                 </div>
                 {!isEditing && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Initial Wallet Allotment (₹)</label>
-                    <input type="number" min={0} value={formData.b2bWalletBalance} onChange={e => setFormData({ ...formData, b2bWalletBalance: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" />
+                    <input type="number" min={0} value={formData.b2bWalletBalance} onChange={e => setFormData({ ...formData, b2bWalletBalance: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" />
                   </div>
                 )}
               </div>
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
                 <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 font-medium">Cancel</button>
-                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center">
+                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-[#D71920] text-white rounded-lg hover:bg-[#B51218] font-medium disabled:opacity-50 flex items-center">
                   {isLoading && <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>}
                   {isEditing ? 'Save Changes' : 'Create Employee'}
                 </button>
@@ -343,12 +351,12 @@ const EmployeeManagement = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Amount to Allot (₹) *</label>
-                <input type="number" required min={1} value={allotModal.amount} onChange={e => setAllotModal({ ...allotModal, amount: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Enter amount to transfer" />
+                <input type="number" required min={1} value={allotModal.amount} onChange={e => setAllotModal({ ...allotModal, amount: e.target.value })} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#D71920] outline-none" placeholder="Enter amount to transfer" />
               </div>
 
               <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
                 <button type="button" onClick={() => setAllotModal({ ...allotModal, isOpen: false })} className="px-4 py-2 text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 font-medium">Cancel</button>
-                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 flex items-center">
+                <button type="submit" disabled={isLoading} className="px-4 py-2 bg-[#D71920] text-white rounded-lg hover:bg-[#B51218] font-medium disabled:opacity-50 flex items-center">
                   {isLoading && <span className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>}
                   Confirm Allotment
                 </button>

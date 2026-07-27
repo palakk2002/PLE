@@ -8,11 +8,6 @@ const RefundDestinationSelector = ({ selected, onChange }) => {
       title: "Back to Original Payment Method",
       note: "Refund will be processed to your original payment source.",
     },
-    {
-      id: "Wallet",
-      title: "Refund to Wallet",
-      note: "Refund will be credited to your wallet and can be used for future purchases.",
-    },
   ];
 
   return (

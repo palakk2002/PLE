@@ -1,6 +1,6 @@
 import Wallet from '../models/Wallet.model.js';
 import WalletTransaction from '../models/WalletTransaction.model.js';
-import { ApiError } from '../utils/ApiError.js';
+import ApiError from '../utils/ApiError.js';
 import mongoose from 'mongoose';
 
 /**
@@ -33,63 +33,97 @@ export const creditWallet = async ({
         throw new ApiError(400, 'Invalid amount for wallet credit.');
     }
 
-    const localSession = session || (await mongoose.startSession());
-    let isLocalTransaction = !session;
-
     try {
-        if (isLocalTransaction) {
-            localSession.startTransaction();
-        }
+        const localSession = session || (await mongoose.startSession());
+        let isLocalTransaction = !session;
 
-        // 1. Check idempotency first if key provided
-        if (idempotencyKey) {
-            const existingTx = await WalletTransaction.findOne({ idempotencyKey }).session(localSession);
-            if (existingTx) {
-                // If transaction already processed, return existing wallet info to avoid double credits
-                const wallet = await getOrCreateWallet(userId, localSession);
-                if (isLocalTransaction) await localSession.commitTransaction();
-                return { wallet, transaction: existingTx, alreadyProcessed: true };
+        try {
+            if (isLocalTransaction) {
+                localSession.startTransaction();
+            }
+
+            // 1. Check idempotency first if key provided
+            if (idempotencyKey) {
+                const existingTx = await WalletTransaction.findOne({ idempotencyKey }).session(localSession);
+                if (existingTx) {
+                    const wallet = await getOrCreateWallet(userId, localSession);
+                    if (isLocalTransaction) await localSession.commitTransaction();
+                    return { wallet, transaction: existingTx, alreadyProcessed: true };
+                }
+            }
+
+            // 2. Fetch/Create wallet
+            const wallet = await getOrCreateWallet(userId, localSession);
+
+            // 3. Update wallet totals and balance
+            wallet.balance = parseFloat((wallet.balance + parsedAmount).toFixed(2));
+            wallet.totalCredit = parseFloat((wallet.totalCredit + parsedAmount).toFixed(2));
+            await wallet.save({ session: localSession });
+
+            // 4. Record Transaction
+            const [transaction] = await WalletTransaction.create([{
+                walletId: wallet._id,
+                userId,
+                amount: parsedAmount,
+                type: 'credit',
+                transactionCategory: category,
+                balanceAfterTransaction: wallet.balance,
+                orderId,
+                returnRequestId,
+                idempotencyKey,
+                description,
+                status: 'completed'
+            }], { session: localSession });
+
+            if (isLocalTransaction) {
+                await localSession.commitTransaction();
+            }
+
+            return { wallet, transaction, alreadyProcessed: false };
+
+        } catch (error) {
+            if (isLocalTransaction) {
+                await localSession.abortTransaction();
+            }
+            throw error;
+        } finally {
+            if (isLocalTransaction) {
+                await localSession.endSession();
             }
         }
+    } catch (err) {
+        // Fallback for standalone MongoDB connections without replica sets
+        if (err.message?.includes('Transaction numbers') || err.code === 20 || err.message?.includes('replica set')) {
+            if (idempotencyKey) {
+                const existingTx = await WalletTransaction.findOne({ idempotencyKey });
+                if (existingTx) {
+                    const wallet = await getOrCreateWallet(userId);
+                    return { wallet, transaction: existingTx, alreadyProcessed: true };
+                }
+            }
 
-        // 2. Fetch/Create wallet
-        const wallet = await getOrCreateWallet(userId, localSession);
+            const wallet = await getOrCreateWallet(userId);
+            wallet.balance = parseFloat((wallet.balance + parsedAmount).toFixed(2));
+            wallet.totalCredit = parseFloat((wallet.totalCredit + parsedAmount).toFixed(2));
+            await wallet.save();
 
-        // 3. Update wallet totals and balance
-        wallet.balance = parseFloat((wallet.balance + parsedAmount).toFixed(2));
-        wallet.totalCredit = parseFloat((wallet.totalCredit + parsedAmount).toFixed(2));
-        await wallet.save({ session: localSession });
+            const [transaction] = await WalletTransaction.create([{
+                walletId: wallet._id,
+                userId,
+                amount: parsedAmount,
+                type: 'credit',
+                transactionCategory: category,
+                balanceAfterTransaction: wallet.balance,
+                orderId,
+                returnRequestId,
+                idempotencyKey,
+                description,
+                status: 'completed'
+            }]);
 
-        // 4. Record Transaction
-        const [transaction] = await WalletTransaction.create([{
-            walletId: wallet._id,
-            userId,
-            amount: parsedAmount,
-            type: 'credit',
-            transactionCategory: category,
-            balanceAfterTransaction: wallet.balance,
-            orderId,
-            returnRequestId,
-            idempotencyKey,
-            description,
-            status: 'completed'
-        }], { session: localSession });
-
-        if (isLocalTransaction) {
-            await localSession.commitTransaction();
+            return { wallet, transaction, alreadyProcessed: false };
         }
-
-        return { wallet, transaction, alreadyProcessed: false };
-
-    } catch (error) {
-        if (isLocalTransaction) {
-            await localSession.abortTransaction();
-        }
-        throw error;
-    } finally {
-        if (isLocalTransaction) {
-            await localSession.endSession();
-        }
+        throw err;
     }
 };
 
@@ -109,57 +143,91 @@ export const debitWallet = async ({
         throw new ApiError(400, 'Invalid amount for wallet debit.');
     }
 
-    const localSession = session || (await mongoose.startSession());
-    let isLocalTransaction = !session;
-
     try {
-        if (isLocalTransaction) {
-            localSession.startTransaction();
+        const localSession = session || (await mongoose.startSession());
+        let isLocalTransaction = !session;
+
+        try {
+            if (isLocalTransaction) {
+                localSession.startTransaction();
+            }
+
+            const wallet = await getOrCreateWallet(userId, localSession);
+
+            if (wallet.isFrozen) {
+                throw new ApiError(400, 'Wallet is frozen. Cannot perform debit transactions.');
+            }
+
+            if (wallet.balance < parsedAmount) {
+                throw new ApiError(400, 'Insufficient wallet balance.');
+            }
+
+            // Update totals
+            wallet.balance = parseFloat((wallet.balance - parsedAmount).toFixed(2));
+            wallet.totalDebit = parseFloat((wallet.totalDebit + parsedAmount).toFixed(2));
+            await wallet.save({ session: localSession });
+
+            // Create Debit Transaction
+            const [transaction] = await WalletTransaction.create([{
+                walletId: wallet._id,
+                userId,
+                amount: parsedAmount,
+                type: 'debit',
+                transactionCategory: category,
+                balanceAfterTransaction: wallet.balance,
+                orderId,
+                description,
+                status: 'completed'
+            }], { session: localSession });
+
+            if (isLocalTransaction) {
+                await localSession.commitTransaction();
+            }
+
+            return { wallet, transaction };
+
+        } catch (error) {
+            if (isLocalTransaction) {
+                await localSession.abortTransaction();
+            }
+            throw error;
+        } finally {
+            if (isLocalTransaction) {
+                await localSession.endSession();
+            }
         }
+    } catch (err) {
+        // Fallback for standalone MongoDB connections without replica sets
+        if (err.message?.includes('Transaction numbers') || err.code === 20 || err.message?.includes('replica set')) {
+            const wallet = await getOrCreateWallet(userId);
 
-        const wallet = await getOrCreateWallet(userId, localSession);
+            if (wallet.isFrozen) {
+                throw new ApiError(400, 'Wallet is frozen. Cannot perform debit transactions.');
+            }
 
-        if (wallet.isFrozen) {
-            throw new ApiError(400, 'Wallet is frozen. Cannot perform debit transactions.');
+            if (wallet.balance < parsedAmount) {
+                throw new ApiError(400, 'Insufficient wallet balance.');
+            }
+
+            wallet.balance = parseFloat((wallet.balance - parsedAmount).toFixed(2));
+            wallet.totalDebit = parseFloat((wallet.totalDebit + parsedAmount).toFixed(2));
+            await wallet.save();
+
+            const [transaction] = await WalletTransaction.create([{
+                walletId: wallet._id,
+                userId,
+                amount: parsedAmount,
+                type: 'debit',
+                transactionCategory: category,
+                balanceAfterTransaction: wallet.balance,
+                orderId,
+                description,
+                status: 'completed'
+            }]);
+
+            return { wallet, transaction };
         }
-
-        if (wallet.balance < parsedAmount) {
-            throw new ApiError(400, 'Insufficient wallet balance.');
-        }
-
-        // Update totals
-        wallet.balance = parseFloat((wallet.balance - parsedAmount).toFixed(2));
-        wallet.totalDebit = parseFloat((wallet.totalDebit + parsedAmount).toFixed(2));
-        await wallet.save({ session: localSession });
-
-        // Create Debit Transaction
-        const [transaction] = await WalletTransaction.create([{
-            walletId: wallet._id,
-            userId,
-            amount: parsedAmount,
-            type: 'debit',
-            transactionCategory: category,
-            balanceAfterTransaction: wallet.balance,
-            orderId,
-            description,
-            status: 'completed'
-        }], { session: localSession });
-
-        if (isLocalTransaction) {
-            await localSession.commitTransaction();
-        }
-
-        return { wallet, transaction };
-
-    } catch (error) {
-        if (isLocalTransaction) {
-            await localSession.abortTransaction();
-        }
-        throw error;
-    } finally {
-        if (isLocalTransaction) {
-            await localSession.endSession();
-        }
+        throw err;
     }
 };
 

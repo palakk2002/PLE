@@ -14,6 +14,7 @@ import {
   FiX
 } from "react-icons/fi";
 import { useAdminWalletStore } from "../../store/adminWalletStore";
+import { useWalletStore } from "../../../../shared/store/walletStore";
 import toast from "react-hot-toast";
 import { formatPrice } from "../../../../shared/utils/helpers";
 
@@ -34,6 +35,15 @@ const AdminWalletDashboard = () => {
     toggleFreezeWallet
   } = useAdminWalletStore();
 
+  const { fetchWalletSettings, updateWalletSettings } = useWalletStore();
+  const [settingsForm, setSettingsForm] = useState({
+    minRecharge: 100,
+    maxRecharge: 50000,
+    maxBalance: 100000,
+    cashbackPercent: 0,
+    refundPolicy: ""
+  });
+
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUserId, setSelectedUserId] = useState(null);
@@ -45,7 +55,28 @@ const AdminWalletDashboard = () => {
   useEffect(() => {
     fetchDashboardStats();
     searchUsers("", 1, 10);
+    fetchWalletSettings().then(res => {
+      if (res.success && res.data) {
+        setSettingsForm({
+          minRecharge: res.data.minRecharge || 100,
+          maxRecharge: res.data.maxRecharge || 50000,
+          maxBalance: res.data.maxBalance || 100000,
+          cashbackPercent: res.data.cashbackPercent || 0,
+          refundPolicy: res.data.refundPolicy || ""
+        });
+      }
+    });
   }, []);
+
+  const handleSaveSettings = async (e) => {
+    e.preventDefault();
+    const res = await updateWalletSettings(settingsForm);
+    if (res.success) {
+      toast.success("Wallet settings updated successfully!");
+    } else {
+      toast.error(res.error || "Failed to update settings");
+    }
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -295,12 +326,11 @@ const AdminWalletDashboard = () => {
 
         {/* Selected User Wallet Details & Transactions */}
         <div className="bg-white dark:bg-[#1A1A1A] p-6 rounded-2xl border border-gray-150 dark:border-white/5 shadow-sm space-y-4">
-          <h2 className="text-lg font-bold text-gray-800 dark:text-white border-b border-gray-100 dark:border-white/5 pb-2">
-            Selected User Detail
-          </h2>
-
           {selectedUserWallet ? (
             <div className="space-y-4">
+              <h2 className="text-lg font-bold text-gray-800 dark:text-white border-b border-gray-100 dark:border-white/5 pb-2">
+                Selected User Detail
+              </h2>
               <div className="bg-gray-50 dark:bg-[#222] p-4 rounded-xl space-y-2">
                 <div className="text-sm font-bold text-gray-800 dark:text-white">
                   {selectedUserWallet.user.name}
@@ -321,9 +351,34 @@ const AdminWalletDashboard = () => {
               </div>
 
               <div>
-                <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider mb-2 flex items-center gap-1">
-                  <FiActivity /> Recent Activity
-                </h3>
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="text-xs font-bold uppercase text-gray-400 tracking-wider flex items-center gap-1">
+                    <FiActivity /> Recent Activity
+                  </h3>
+                  {selectedUserTransactions && selectedUserTransactions.length > 0 && (
+                    <button
+                      onClick={() => {
+                        let csvContent = "data:text/csv;charset=utf-8,";
+                        csvContent += "Transaction ID,Date,Type,Category,Amount,Balance After,Description\n";
+                        selectedUserTransactions.forEach((tx) => {
+                          const date = new Date(tx.createdAt).toLocaleDateString();
+                          csvContent += `"${tx._id}","${date}","${tx.type}","${tx.transactionCategory}",${tx.amount},${tx.balanceAfterTransaction},"${tx.description}"\n`;
+                        });
+                        const encodedUri = encodeURI(csvContent);
+                        const link = document.createElement("a");
+                        link.setAttribute("href", encodedUri);
+                        link.setAttribute("download", `wallet_user_${selectedUserId}_statement.csv`);
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                        toast.success("Statement exported successfully!");
+                      }}
+                      className="text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 rounded-lg hover:underline"
+                    >
+                      Export CSV
+                    </button>
+                  )}
+                </div>
                 <div className="space-y-2 max-h-[300px] overflow-y-auto">
                   {selectedUserTransactions.map((tx) => {
                     const isCredit = tx.type === "credit";
@@ -354,8 +409,73 @@ const AdminWalletDashboard = () => {
               </div>
             </div>
           ) : (
-            <div className="text-center py-12 text-sm text-gray-400">
-              Select a user from the list to view wallet balance and transaction logs.
+            <div className="space-y-6">
+              <div className="text-center py-4 text-xs text-gray-400 border-b border-gray-100 dark:border-white/5">
+                Select a user from the list to view wallet balance and transaction logs.
+              </div>
+              
+              <div className="space-y-4">
+                <h2 className="text-lg font-bold text-gray-800 dark:text-white border-b border-gray-100 dark:border-white/5 pb-2">
+                  Wallet Global Settings
+                </h2>
+                <form onSubmit={handleSaveSettings} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Min Recharge</label>
+                      <input
+                        type="number"
+                        value={settingsForm.minRecharge}
+                        onChange={e => setSettingsForm({ ...settingsForm, minRecharge: Number(e.target.value) })}
+                        className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Max Recharge</label>
+                      <input
+                        type="number"
+                        value={settingsForm.maxRecharge}
+                        onChange={e => setSettingsForm({ ...settingsForm, maxRecharge: Number(e.target.value) })}
+                        className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Max Balance</label>
+                      <input
+                        type="number"
+                        value={settingsForm.maxBalance}
+                        onChange={e => setSettingsForm({ ...settingsForm, maxBalance: Number(e.target.value) })}
+                        className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Cashback %</label>
+                      <input
+                        type="number"
+                        value={settingsForm.cashbackPercent}
+                        onChange={e => setSettingsForm({ ...settingsForm, cashbackPercent: Number(e.target.value) })}
+                        className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Refund Policy</label>
+                    <textarea
+                      value={settingsForm.refundPolicy}
+                      onChange={e => setSettingsForm({ ...settingsForm, refundPolicy: e.target.value })}
+                      rows="2"
+                      className="w-full px-2.5 py-1.5 border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none text-xs"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-[#7B0A0A] hover:bg-[#AE020B] text-white text-xs font-bold py-2 rounded-lg transition-colors shadow-md"
+                  >
+                    Save Settings
+                  </button>
+                </form>
+              </div>
             </div>
           )}
         </div>

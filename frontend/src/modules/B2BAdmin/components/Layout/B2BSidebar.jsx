@@ -34,11 +34,11 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
   };
 
   return (
-    <aside className="h-full w-64 bg-[#1A1310] shadow-xl flex flex-col z-[10000]">
+    <aside className="h-full w-64 bg-black shadow-xl flex flex-col z-[10000]">
       {/* Header Section */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-white/[0.06] bg-[#120D0B]">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-white/[0.06] bg-black">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#C07A3D] to-[#D18B4A] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+            <div className="w-10 h-10 bg-gradient-to-br from-[#D71920] to-[#B51218] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
               <FiBriefcase className="text-white text-lg" />
             </div>
             <div className="flex-1 min-w-0">
@@ -52,7 +52,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
             onClick={() => setIsOpen(false)} 
             className="p-2 hover:bg-white/[0.06] rounded-lg transition-colors flex-shrink-0 lg:hidden"
           >
-            <FiX className="text-xl text-[#C8B3A3]" />
+            <FiX className="text-xl text-gray-400 hover:text-white" />
           </button>
         )}
       </div>
@@ -69,11 +69,11 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
                 onClick={() => isMobile && setIsOpen(false)}
                 className={`flex items-center px-4 py-3 mb-1 text-sm font-medium rounded-xl transition-all duration-200 ${
                   isActive 
-                    ? 'bg-[#C07A3D] text-white shadow-sm' 
-                    : 'text-[#C8B3A3] hover:bg-[#2A1F1A]'
+                    ? 'bg-[#D71920] text-white shadow-sm' 
+                    : 'text-gray-400 hover:text-white hover:bg-white/[0.06]'
                 }`}
               >
-                <Icon className={`text-xl flex-shrink-0 mr-3 ${isActive ? 'text-white' : 'text-[#8E7768]'}`} />
+                <Icon className={`text-xl flex-shrink-0 mr-3 ${isActive ? 'text-white' : 'text-gray-500'}`} />
                 <span className="flex-1">{item.name}</span>
               </NavLink>
             );
@@ -84,7 +84,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
       <div className="p-3 border-t border-white/[0.06]">
         <button
           onClick={handleLogout}
-          className="flex items-center w-full px-4 py-3 text-sm font-medium text-[#f43f5e] rounded-xl hover:bg-[#2A1F1A] transition-colors duration-200"
+          className="flex items-center w-full px-4 py-3 text-sm font-medium text-[#f43f5e] rounded-xl hover:bg-white/[0.06] transition-colors duration-200"
         >
           <FiLogOut className="mr-3 text-xl" />
           Logout

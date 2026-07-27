@@ -492,6 +492,14 @@ const DeliveryOrderDetail = () => {
               <span>Delivery Fee</span>
               <span>{formatPrice(order.deliveryFee)}</span>
             </div>
+            <div className="flex items-center justify-between text-gray-700 text-sm">
+              <span>Payment Method</span>
+              <span className="font-semibold capitalize text-gray-800">{order.paymentMethod || 'COD'}</span>
+            </div>
+            <div className="flex items-center justify-between text-gray-700 text-sm">
+              <span>Payment Status</span>
+              <span className="font-semibold capitalize text-emerald-650">{order.paymentStatus || 'Pending'}</span>
+            </div>
             <div className="pt-2 border-t border-gray-200 flex items-center justify-between">
               <span className="font-bold text-gray-800">Total</span>
               <span className="font-bold text-primary-600 text-lg">{formatPrice(order.total)}</span>

@@ -274,12 +274,12 @@ const RFQDiscussions = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder="Type message for Super Admin..."
-                    className="flex-1 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium resize-none"
+                    className="flex-1 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium resize-none"
                   />
                   <button
                     type="submit"
                     disabled={sending || !message.trim()}
-                    className="p-3 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                    className="p-3 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl transition-colors shadow-sm disabled:opacity-50"
                   >
                     <FiSend className="w-4 h-4" />
                   </button>
@@ -291,7 +291,7 @@ const RFQDiscussions = () => {
                       type="checkbox"
                       checked={isInternalNote}
                       onChange={(e) => setIsInternalNote(e.target.checked)}
-                      className="rounded border-gray-300 text-[#C07A3D] focus:ring-[#C07A3D]"
+                      className="rounded border-gray-300 text-[#D71920] focus:ring-[#D71920]"
                     />
                     <span>Internal Note (only visible to B2B staff members)</span>
                   </label>

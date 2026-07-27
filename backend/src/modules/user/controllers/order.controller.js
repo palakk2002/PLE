@@ -11,6 +11,7 @@ import Admin from '../../../models/Admin.model.js';
 import { generateOrderId } from '../../../utils/generateOrderId.js';
 import { generateTrackingNumber } from '../../../utils/generateTrackingNumber.js';
 import mongoose from 'mongoose';
+import { User } from '../../../models/User.model.js';
 import Wallet from '../../../models/Wallet.model.js';
 import WalletTransaction from '../../../models/WalletTransaction.model.js';
 import * as walletService from '../../../services/wallet.service.js';
@@ -412,28 +413,75 @@ export const placeOrder = asyncHandler(async (req, res) => {
             }
 
             // Wallet Payment Validation & Deduction
+            const isB2B = req.user?.role === 'b2bAdmin' || req.user?.role === 'b2bEmployee';
             let walletTxId = null;
             let walletUsed = 0;
 
             if (normalizedPaymentMethod === 'wallet' || walletAmountToUse > 0) {
-                const wallet = await walletService.getOrCreateWallet(userId, session);
-                const maxAmount = normalizedPaymentMethod === 'wallet' ? total : Math.min(walletAmountToUse, total);
+                if (!isB2B) {
+                    throw new ApiError(400, 'Wallet payment system is no longer available for B2C.');
+                }
                 
-                if (maxAmount > 0) {
-                    if (wallet.balance < maxAmount) {
-                        throw new ApiError(400, 'Insufficient wallet balance for this order.');
+                const reqWalletAmount = normalizedPaymentMethod === 'wallet' ? total : Number(walletAmountToUse);
+                if (reqWalletAmount > total) {
+                    throw new ApiError(400, 'Wallet amount used cannot exceed order total.');
+                }
+
+                if (req.user.role === 'b2bEmployee') {
+                    const employeeUser = await User.findById(req.user.id).session(session);
+                    if (!employeeUser) {
+                        throw new ApiError(404, 'Employee user not found.');
                     }
-                    
+                    if (employeeUser.b2bWalletBalance < reqWalletAmount) {
+                        throw new ApiError(400, `Insufficient employee wallet balance. Available: ₹${employeeUser.b2bWalletBalance}`);
+                    }
+                    if (employeeUser.b2bSpendingLimit && employeeUser.b2bSpendingLimit < reqWalletAmount) {
+                        throw new ApiError(400, `Payment exceeds employee spending limit of ₹${employeeUser.b2bSpendingLimit}`);
+                    }
+
+                    // Deduct from employee user model
+                    employeeUser.b2bWalletBalance = parseFloat((employeeUser.b2bWalletBalance - reqWalletAmount).toFixed(2));
+                    await employeeUser.save({ session });
+
+                    // Update their Wallet document and record transaction log
+                    const employeeWallet = await walletService.getOrCreateWallet(req.user.id, session);
+                    employeeWallet.balance = employeeUser.b2bWalletBalance;
+                    employeeWallet.totalDebit = parseFloat((employeeWallet.totalDebit + reqWalletAmount).toFixed(2));
+                    await employeeWallet.save({ session });
+
+                    const [tx] = await WalletTransaction.create([{
+                        walletId: employeeWallet._id,
+                        userId: req.user.id,
+                        amount: reqWalletAmount,
+                        type: 'debit',
+                        transactionCategory: 'order_payment',
+                        balanceAfterTransaction: employeeWallet.balance,
+                        description: `Payment for order`,
+                        status: 'completed'
+                    }], { session });
+
+                    walletTxId = tx._id;
+                    walletUsed = reqWalletAmount;
+
+                } else {
+                    const adminWallet = await walletService.getOrCreateWallet(req.user.id, session);
+                    if (adminWallet.isFrozen) {
+                        throw new ApiError(400, 'B2B Admin wallet is frozen. Cannot place order.');
+                    }
+                    if (adminWallet.balance < reqWalletAmount) {
+                        throw new ApiError(400, `Insufficient wallet balance. Available: ₹${adminWallet.balance}`);
+                    }
+
                     const { transaction } = await walletService.debitWallet({
-                        userId,
-                        amount: maxAmount,
+                        userId: req.user.id,
+                        amount: reqWalletAmount,
                         category: 'order_payment',
-                        description: `Payment for order placement`,
+                        description: `Payment for order`,
                         session
                     });
-                    
+
                     walletTxId = transaction._id;
-                    walletUsed = maxAmount;
+                    walletUsed = reqWalletAmount;
                 }
             }
 
@@ -454,14 +502,22 @@ export const placeOrder = asyncHandler(async (req, res) => {
             if (isEligibleForLoyalty) {
                 pointsToEarn = await loyaltyService.calculateEarnablePoints(subtotal - couponDiscount - loyaltyDiscount, req.user?.role);
             }            let razorpayOrderId = undefined;
-            if (normalizedPaymentMethod === 'card') {
+            let finalPaymentMethod = normalizedPaymentMethod;
+            const remainingToPay = parseFloat((total - walletUsed).toFixed(2));
+            
+            if (finalPaymentMethod === 'mixed' && remainingToPay <= 0) {
+                finalPaymentMethod = 'wallet';
+            }
+
+            if (finalPaymentMethod === 'card' || (finalPaymentMethod === 'mixed' && remainingToPay > 0)) {
+                const amountToPayRzp = finalPaymentMethod === 'mixed' ? remainingToPay : total;
                 try {
                     const razorpayInstance = new Razorpay({
                         key_id: process.env.RAZORPAY_KEY_ID,
                         key_secret: process.env.RAZORPAY_KEY_SECRET,
                     });
                     const rzpOrder = await razorpayInstance.orders.create({
-                        amount: Math.round(total * 100), // in paise
+                        amount: Math.round(amountToPayRzp * 100), // in paise
                         currency: 'INR',
                         receipt: `rcpt_${Date.now()}`
                     });
@@ -472,17 +528,22 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 }
             }
 
+            let initialPaymentStatus = 'pending';
+            if (finalPaymentMethod === 'wallet') {
+                initialPaymentStatus = 'paid';
+            }
+
             const [createdOrder] = await Order.create([{
                 orderId: generateOrderId(),
                 userId,
                 items: enrichedItems,
                 vendorItems,
                 shippingAddress,
-                paymentMethod: normalizedPaymentMethod,
-                paymentStatus: (normalizedPaymentMethod === 'cod' || normalizedPaymentMethod === 'card') ? 'pending' : 'paid',
+                paymentMethod: finalPaymentMethod,
+                paymentStatus: initialPaymentStatus,
                 paymentDetails: razorpayOrderId ? {
                     razorpayOrderId,
-                    amount: total,
+                    amount: finalPaymentMethod === 'mixed' ? remainingToPay : total,
                     status: 'created',
                     gatewayName: 'Razorpay',
                     paymentMethod: 'card'

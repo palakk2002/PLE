@@ -18,10 +18,11 @@ import { FiLock } from "react-icons/fi";
 import { useCartStore } from "../../../shared/store/useStore";
 import { useAuthStore } from "../../../shared/store/authStore";
 import { useAddressStore } from "../../../shared/store/addressStore";
+import { useWalletStore } from "../../../shared/store/walletStore";
 import { useOrderStore } from "../../../shared/store/orderStore";
 import { useLoyaltyStore } from "../../../shared/store/loyaltyStore";
 import { useB2BAdminStore } from "../../B2BAdmin/store/b2bAdminStore";
-import { useWalletStore } from "../../../shared/store/walletStore";
+
 import { formatPrice } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
 import toast from "react-hot-toast";
@@ -55,6 +56,13 @@ const MobileCheckout = () => {
   
   const { isBusiness } = useBusinessBuyer();
   const { balance: walletBalance, fetchWallet } = useWalletStore();
+  const [useWallet, setUseWallet] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && isBusiness) {
+      fetchWallet().catch(() => null);
+    }
+  }, [isAuthenticated, isBusiness, fetchWallet]);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -98,8 +106,7 @@ const MobileCheckout = () => {
     paymentMethod: "card",
   });
 
-  const [useWallet, setUseWallet] = useState(false);
-  const [walletAmountToUse, setWalletAmountToUse] = useState(0);
+
 
   useEffect(() => {
     if (isBusiness) {
@@ -112,9 +119,8 @@ const MobileCheckout = () => {
   useEffect(() => {
     if (isAuthenticated) {
       fetchAddresses().catch(() => null);
-      fetchWallet();
     }
-  }, [isAuthenticated, fetchAddresses, fetchWallet]);
+  }, [isAuthenticated, fetchAddresses]);
 
   useEffect(() => {
     let cancelled = false;
@@ -436,15 +442,16 @@ const MobileCheckout = () => {
 
       setIsPlacingOrder(true);
       try {
-        const appliedWalletAmount = useWallet ? Math.min(walletBalance, finalTotal) : 0;
-        const remainder = Math.max(0, finalTotal - appliedWalletAmount);
-        const finalPaymentMethod = remainder === 0 ? 'wallet' : formData.paymentMethod;
+        const userWalletBalance = user?.role === 'b2bEmployee' ? (user?.b2bWalletBalance || 0) : (walletBalance || 0);
+        const walletAmountToUse = useWallet ? Math.min(userWalletBalance, finalTotal) : 0;
+        const finalPaymentMethod = walletAmountToUse >= finalTotal ? 'wallet' : (useWallet ? 'mixed' : formData.paymentMethod);
 
         const order = await createOrder({
           userId: isAuthenticated ? user?.id : null,
           items: items,
           shippingAddress: normalizedShipping,
           paymentMethod: finalPaymentMethod,
+          walletAmountToUse,
           subtotal: total,
           shipping: shipping,
           tax: tax,
@@ -453,7 +460,7 @@ const MobileCheckout = () => {
           couponCode: appliedCoupon ? (appliedCoupon.code || couponCode.trim().toUpperCase()) : null,
           shippingOption,
           loyaltyPointsToRedeem: appliedPoints > 0 ? appliedPoints : undefined,
-          walletAmountToUse: appliedWalletAmount,
+
         });
 
         if (order.razorpayOrder) {
@@ -537,9 +544,8 @@ const MobileCheckout = () => {
     if (isPlacingOrder) return;
     setIsPlacingOrder(true);
     try {
-      const appliedWalletAmount = useWallet ? Math.min(walletBalance, finalTotal) : 0;
-      const remainder = Math.max(0, finalTotal - appliedWalletAmount);
-      const finalPaymentMethod = remainder === 0 ? 'wallet' : 'upi';
+      const remainder = finalTotal;
+      const finalPaymentMethod = 'upi';
 
       const order = await createOrder({
         userId: isAuthenticated ? user?.id : null,
@@ -553,7 +559,7 @@ const MobileCheckout = () => {
         total: finalTotal,
         couponCode: appliedCoupon ? (appliedCoupon.code || couponCode.trim().toUpperCase()) : null,
         shippingOption,
-        walletAmountToUse: appliedWalletAmount,
+
       });
 
       if (appliedPoints > 0) {
@@ -842,75 +848,74 @@ const MobileCheckout = () => {
                       Payment Method
                     </h2>
 
-                    {/* Wallet Apply Card */}
-                    {walletBalance > 0 && (
-                      <div className="bg-red-50/55 dark:bg-red-950/10 border-2 border-[#7B0A0A]/20 rounded-xl p-4 mb-5 flex flex-col gap-3">
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-3">
+                      {isBusiness && (
+                        <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-6 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-blue-800 text-sm">Use Business Wallet Balance</span>
+                            <span className="font-bold text-blue-900 text-sm">
+                              ₹{((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                            </span>
+                          </div>
+                          
+                          <label className="flex items-center gap-3 cursor-pointer select-none">
                             <input
                               type="checkbox"
-                              id="useWalletCheck"
                               checked={useWallet}
-                              onChange={(e) => {
-                                setUseWallet(e.target.checked);
-                                if (e.target.checked && walletBalance >= finalTotal) {
-                                  setFormData({ ...formData, paymentMethod: 'wallet' });
-                                }
-                              }}
-                              className="w-5 h-5 accent-[#7B0A0A]"
+                              onChange={(e) => setUseWallet(e.target.checked)}
+                              className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                             />
-                            <label htmlFor="useWalletCheck" className="font-bold text-gray-800 dark:text-gray-200 text-sm cursor-pointer select-none">
-                              Apply Wallet Balance (Available: {formatPrice(walletBalance)})
-                            </label>
-                          </div>
+                            <span className="text-xs text-blue-700 font-medium">
+                              Pay ₹{Math.min(((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0), finalTotal).toLocaleString("en-IN")} from wallet
+                            </span>
+                          </label>
+
+                          {useWallet && ((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0) < finalTotal && (
+                            <div className="text-xs text-amber-700 font-semibold bg-amber-50 p-2.5 rounded-xl border border-amber-100">
+                              Partial payment: Wallet covers ₹{((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0).toLocaleString("en-IN")}. Remaining ₹{(finalTotal - ((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0)).toLocaleString("en-IN")} will be paid online.
+                            </div>
+                          )}
                         </div>
-                        {useWallet && (
-                          <div className="text-xs font-semibold text-[#7B0A0A] flex flex-col gap-1 pl-8">
-                            <span>Applied from Wallet: {formatPrice(Math.min(walletBalance, finalTotal))}</span>
-                            {walletBalance < finalTotal ? (
-                              <span>Remaining to Pay: {formatPrice(Math.max(0, finalTotal - walletBalance))}</span>
-                            ) : (
-                              <span>Paying full amount using wallet!</span>
-                            )}
+                      )}
+
+                      <div className="space-y-3 mb-6">
+                        {(!useWallet || ((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0) < finalTotal) ? (
+                          ["card", "upi", "cash", "bank"].map((method) => (
+                            <label
+                              key={method}
+                              className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                                formData.paymentMethod === method
+                                  ? "border-primary-500 bg-primary-50"
+                                  : "border-gray-200"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="paymentMethod"
+                                value={method}
+                                checked={formData.paymentMethod === method}
+                                onChange={handleInputChange}
+                                className="w-5 h-5 text-primary-500"
+                              />
+                              <span className="font-semibold text-gray-800 capitalize text-base flex flex-col">
+                                <span>
+                                  {method === "card"
+                                    ? "Credit/Debit Card"
+                                    : method === "upi"
+                                      ? "UPI Payment (GPay / PhonePe / Paytm)"
+                                      : method === "cash"
+                                        ? "Cash on Delivery"
+                                        : "Bank Transfer"}
+                                </span>
+                              </span>
+                            </label>
+                          ))
+                        ) : (
+                          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4 text-emerald-800 text-sm font-semibold flex items-center gap-2">
+                            <FiCheck className="w-5 h-5 text-emerald-600" />
+                            <span>Full payment will be processed via Wallet. No other payment method required.</span>
                           </div>
                         )}
                       </div>
-                    )}
-
-                    {(!useWallet || walletBalance < finalTotal) && (
-                      <div className="space-y-3 mb-6">
-                        {["card", "upi", "cash", "bank"].map((method) => (
-                          <label
-                            key={method}
-                            className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                              formData.paymentMethod === method
-                                ? "border-primary-500 bg-primary-50"
-                                : "border-gray-200"
-                            }`}
-                          >
-                            <input
-                              type="radio"
-                              name="paymentMethod"
-                              value={method}
-                              checked={formData.paymentMethod === method}
-                              onChange={handleInputChange}
-                              className="w-5 h-5 text-primary-500"
-                            />
-                            <span className="font-semibold text-gray-800 capitalize text-base flex flex-col">
-                              <span>
-                                {method === "card"
-                                  ? "Credit/Debit Card"
-                                  : method === "upi"
-                                    ? "UPI Payment (GPay / PhonePe / Paytm)"
-                                    : method === "cash"
-                                      ? "Cash on Delivery"
-                                      : "Bank Transfer"}
-                              </span>
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    )}
 
                     {formData.paymentMethod === "upi" && (
                       <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-6 space-y-4">

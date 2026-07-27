@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, matchPath, useNavigate, useLocation } from "react-router-dom";
-import { FiHeart } from "react-icons/fi";
+import { FiHeart, FiEdit3 } from "react-icons/fi";
 import MobileLayout from "../components/Layout/MobileLayout";
 import ProductCard from "../../../shared/components/ProductCard";
 import AnimatedBanner from "../components/Mobile/AnimatedBanner";
@@ -866,10 +866,10 @@ const MobileHome = () => {
                       </p>
                       <button
                         type="button"
-                        onClick={() => handleBannerNavigation(sideBanner?.link || "/offers")}
+                        onClick={() => navigate("/product-request/new")}
                         className="bg-[#ffffff] dark:!bg-[#7B0A0A] text-gray-900 dark:text-white font-bold py-3.5 px-10 rounded-xl w-full hover:bg-gray-100 dark:hover:!bg-[#AE020B] transition-all transform hover:-translate-y-1 shadow-lg hover:shadow-xl uppercase tracking-widest text-sm"
                       >
-                        Shop Now
+                        Request Product
                       </button>
                     </div>
                   </div>
@@ -886,6 +886,21 @@ const MobileHome = () => {
 
               {/* Categories */}
               <MobileCategoryGrid />
+
+              {/* Request Product Button (Mobile only) */}
+              <div className="px-4 py-2 block lg:hidden">
+                <button
+                  type="button"
+                  onClick={() => navigate("/product-request/new")}
+                  className="w-full py-3.5 px-6 rounded-xl font-bold text-sm tracking-wide text-white transition-all active:scale-[0.98] shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  style={{
+                    background: "linear-gradient(135deg, #9B1C1C 0%, #7B0A0A 50%, #4C0505 100%)"
+                  }}
+                >
+                  <FiEdit3 className="text-base shrink-0" />
+                  <span>Request Product</span>
+                </button>
+              </div>
 
               {/* Featured Vendors Section */}
               <FeaturedVendorsSection vendors={computedVendors} />
