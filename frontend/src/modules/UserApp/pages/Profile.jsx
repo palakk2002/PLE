@@ -52,7 +52,7 @@ import { B2BBusinessDashboard } from "../components/B2B/B2BBusinessDashboard";
 import { B2BMyEnquiries } from "../components/B2B/B2BMyEnquiries";
 import { MyProductEnquiries } from "../components/Enquiry/MyProductEnquiries";
 import { useB2BAdminStore } from "../../B2BAdmin/store/b2bAdminStore";
-import { useWalletStore } from "../../../shared/store/walletStore";
+
 
 const MobileProfile = () => {
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ const MobileProfile = () => {
     ? dbCompanyProfile
     : companies?.find(c => c.id === user?.companyId || c.companyName === user?.companyName || c.admin?.email?.toLowerCase() === user?.email?.toLowerCase());
 
-  const { balance: walletBalance, fetchWallet } = useWalletStore();
+
 
   useEffect(() => {
     if ((isB2CUser || isB2BUser) && user) {
@@ -118,11 +118,7 @@ const MobileProfile = () => {
     }
   }, [user, isB2BUser, isB2BAdmin, fetchDbEmployees, fetchDbCompanyProfile]);
 
-  useEffect(() => {
-    if (user) {
-      fetchWallet();
-    }
-  }, [user, fetchWallet]);
+
 
   const employeesList = isB2BAdmin ? dbEmployees : (company?.employees || []);
 
@@ -413,7 +409,7 @@ const MobileProfile = () => {
       color: "text-[#7B0A0A]",
       bg: "bg-[#7B0A0A]/10",
     },
-    ...(isBusiness
+    ...(isBusiness && !isB2BEmployee
       ? [
         {
           id: "b2b-requests",
@@ -423,23 +419,17 @@ const MobileProfile = () => {
           bg: "bg-[#7B0A0A]/10",
           link: "/b2b-dashboard"
         },
-        {
-          id: "company-profile",
-          label: "Company Profile",
-          icon: FiBriefcase,
-          color: "text-[#7B0A0A]",
-          bg: "bg-[#7B0A0A]/10",
-        },
       ]
       : []),
-    ...(isBusiness && (user?.isCompanyAdmin || user?.role === 'b2bAdmin')
+    ...(isBusiness
       ? [
         {
-          id: "team-management",
-          label: "Team Management",
-          icon: FiUsers,
+          id: "business-wallet",
+          label: "Business Wallet",
+          icon: FiCreditCard,
           color: "text-[#7B0A0A]",
           bg: "bg-[#7B0A0A]/10",
+          link: "/wallet"
         },
       ]
       : []),
@@ -492,15 +482,6 @@ const MobileProfile = () => {
       bg: "bg-red-50",
       link: "/wishlist",
       badge: wishlistCount > 0 ? wishlistCount : null,
-    },
-    {
-      id: "wallet",
-      label: "My Wallet",
-      icon: FiCreditCard,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/wallet",
-      badge: `₹${walletBalance.toFixed(0)}`,
     },
     {
       id: "loyalty",
@@ -597,6 +578,14 @@ const MobileProfile = () => {
       color: "text-[#7B0A0A]",
       bg: "bg-red-50",
       link: "/return-policy",
+    },
+    {
+      id: "warranty",
+      label: "Warranty Policy",
+      icon: FiFileText,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/warranty-policy",
     },
     {
       id: "about",

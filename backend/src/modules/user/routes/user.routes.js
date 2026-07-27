@@ -62,13 +62,7 @@ router.get('/wishlist', ...customerAuth, wishlistController.getWishlist);
 router.post('/wishlist', ...customerAuth, wishlistController.addToWishlist);
 router.delete('/wishlist/:productId', ...customerAuth, wishlistController.removeFromWishlist);
 
-// Wallet routes (protected)
-router.get('/wallet', ...customerAuth, walletController.getWallet);
-router.get('/wallet/summary', ...customerAuth, walletController.getWalletSummary);
-router.get('/wallet/transactions', ...customerAuth, walletController.getWalletTransactions);
-router.post('/wallet/add', ...customerAuth, walletController.addFunds);
-router.post('/wallet/transfer', ...customerAuth, walletController.transferFunds);
-router.post('/wallet/withdraw', ...customerAuth, walletController.withdrawFunds);
+
 
 // Review routes
 router.get('/reviews/product/:productId', reviewController.getProductReviews);

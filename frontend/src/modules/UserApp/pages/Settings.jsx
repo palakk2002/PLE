@@ -307,23 +307,6 @@ const MobileSettings = () => {
                         <FiChevronRight className="text-gray-400" />
                       </button>
 
-                      {/* My Wallet */}
-                      <button
-                        onClick={() => navigate("/wallet")}
-                        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
-                            <FiCreditCard className="text-lg" />
-                          </div>
-                          <div>
-                            <span className="font-bold text-gray-700 dark:text-gray-200 text-sm block">My Wallet</span>
-                            <span className="text-gray-400 dark:text-gray-500 text-xs">View balance and add or transfer funds</span>
-                          </div>
-                        </div>
-                        <FiChevronRight className="text-gray-400" />
-                      </button>
-
                       {/* Saved Addresses */}
                       <button
                         onClick={() => navigate("/addresses")}

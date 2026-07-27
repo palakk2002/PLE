@@ -129,7 +129,7 @@ const ShopChats = () => {
   if (loading && threads.length === 0) {
     return (
       <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-xl h-10 w-10 border-t-2 border-b-2 border-[#C07A3D]"></div>
+        <div className="animate-spin rounded-xl h-10 w-10 border-t-2 border-b-2 border-[#D71920]"></div>
       </div>
     );
   }
@@ -142,7 +142,7 @@ const ShopChats = () => {
     >
       <div>
         <h1 className="text-2xl font-black text-gray-900 tracking-tight flex items-center gap-2">
-          <FiMessageSquare className="text-[#C07A3D]" /> Shop Conversations
+          <FiMessageSquare className="text-[#D71920]" /> Shop Conversations
         </h1>
         <p className="text-sm text-gray-500 font-semibold">
           Direct messaging logs with registered vendor shops.
@@ -168,7 +168,7 @@ const ShopChats = () => {
                     onClick={() => setSelectedThread(t)}
                     className={`w-full text-left p-3 rounded-2xl transition-all flex items-center gap-3 ${
                       isSelected 
-                        ? 'bg-[#C07A3D] text-white shadow-sm' 
+                        ? 'bg-[#D71920] text-white shadow-sm' 
                         : 'hover:bg-gray-100 text-gray-700'
                     }`}
                   >
@@ -242,7 +242,7 @@ const ShopChats = () => {
                     >
                       <div className={`max-w-[70%] rounded-2xl p-3 ${
                         isCustomer 
-                          ? 'bg-[#C07A3D] text-white rounded-tr-none' 
+                          ? 'bg-[#D71920] text-white rounded-tr-none' 
                           : 'bg-white border border-gray-150 text-gray-800 rounded-tl-none shadow-sm'
                       }`}>
                         <p className="text-xs leading-relaxed break-words font-medium">{msg.message}</p>
@@ -265,12 +265,12 @@ const ShopChats = () => {
                   value={messageText}
                   onChange={(e) => setMessageText(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#C07A3D] text-xs font-semibold"
+                  className="flex-1 px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#D71920] text-xs font-semibold"
                 />
                 <button
                   type="submit"
                   disabled={!messageText.trim() || sending}
-                  className="p-2.5 bg-[#C07A3D] hover:bg-[#A06530] text-white rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center shrink-0 cursor-pointer"
+                  className="p-2.5 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl transition-all shadow-md active:scale-95 disabled:opacity-50 disabled:scale-100 flex items-center justify-center shrink-0 cursor-pointer"
                 >
                   <FiSend className="text-sm" />
                 </button>

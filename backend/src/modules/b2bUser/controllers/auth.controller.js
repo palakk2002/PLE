@@ -16,11 +16,15 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Company and Admin data must be provided.');
     }
 
-    const { companyName, gstNumber, businessEmail, businessPhone, businessAddress, businessType, website } = companyData;
+    const { companyName, gstNumber, businessEmail, businessPhone, businessAddress, businessType, website, secretKey } = companyData;
     const { adminName, adminEmail, adminPhone, password } = adminData;
 
     if (!companyName || !gstNumber || !businessEmail || !businessPhone || !businessAddress || !businessType) {
         throw new ApiError(400, 'All required company fields must be provided.');
+    }
+
+    if (!secretKey || secretKey.length < 6) {
+        throw new ApiError(400, 'Owner Secret Key must be at least 6 characters.');
     }
 
     if (!adminName || !adminEmail || !adminPhone || !password) {
@@ -49,6 +53,7 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         companyAddress: businessAddress,
         companyType: businessType,
         website,
+        ownerSecretKey: secretKey,
         verificationStatus
     });
 

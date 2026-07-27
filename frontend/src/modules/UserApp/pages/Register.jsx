@@ -35,9 +35,13 @@ const MobileRegister = ({ isB2BRoute }) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showSecretKey, setShowSecretKey] = useState(false);
+  const [showConfirmSecretKey, setShowConfirmSecretKey] = useState(false);
+  const [showEmpPassword, setShowEmpPassword] = useState(false);
+  const [showEmpConfirmPassword, setShowEmpConfirmPassword] = useState(false);
   const [b2bStep, setB2bStep] = useState(1);
   const [b2bSettings, setB2bSettings] = useState({ requireGST: true, requirePAN: true });
-  const [showB2BOptionModal, setShowB2BOptionModal] = useState(false);
+
 
   useEffect(() => {
     api.get('/settings/b2b').then(res => {
@@ -63,6 +67,8 @@ const MobileRegister = ({ isB2BRoute }) => {
     adminPhone: '',
     password: '',
     confirmPassword: '',
+    secretKey: '',
+    confirmSecretKey: '',
   });
 
   const [employees, setEmployees] = useState([]);
@@ -139,8 +145,8 @@ const MobileRegister = ({ isB2BRoute }) => {
   };
 
   const validateStep2 = () => {
-    if (!b2bData.adminName || !b2bData.adminEmail || !b2bData.adminPhone || !b2bData.password || !b2bData.confirmPassword) {
-      toast.error('Please fill all admin details.');
+    if (!b2bData.adminName || !b2bData.adminEmail || !b2bData.adminPhone || !b2bData.password || !b2bData.confirmPassword || !b2bData.secretKey || !b2bData.confirmSecretKey) {
+      toast.error('Please fill all admin and secret key details.');
       return false;
     }
     if (!isValidEmail(b2bData.adminEmail)) {
@@ -153,6 +159,14 @@ const MobileRegister = ({ isB2BRoute }) => {
     }
     if (b2bData.password !== b2bData.confirmPassword) {
       toast.error('Passwords do not match.');
+      return false;
+    }
+    if (b2bData.secretKey.length < 6) {
+      toast.error('Secret Key must be at least 6 characters.');
+      return false;
+    }
+    if (b2bData.secretKey !== b2bData.confirmSecretKey) {
+      toast.error('Secret Keys do not match.');
       return false;
     }
     return true;
@@ -182,6 +196,7 @@ const MobileRegister = ({ isB2BRoute }) => {
           businessAddress: b2bData.businessAddress,
           businessType: b2bData.businessType,
           website: b2bData.website,
+          secretKey: b2bData.secretKey,
         },
         adminData: {
           adminName: b2bData.adminName,
@@ -214,7 +229,7 @@ const MobileRegister = ({ isB2BRoute }) => {
               useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
             }
 
-            setShowB2BOptionModal(true);
+            navigate('/home', { replace: true });
             return;
           }
         } catch (loginErr) {
@@ -446,20 +461,37 @@ const MobileRegister = ({ isB2BRoute }) => {
                           <input type={showPassword ? 'text' : 'password'} name="password" value={b2bData.password} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Create admin password" />
                           <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"><FiEye /></button>
                         </div>
-                      </div>
-                      <div>
+                      </div>                      <div>
                         <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Confirm Password *</label>
                         <div className="relative">
                           <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={b2bData.confirmPassword} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Confirm admin password" />
                           <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400"><FiEye /></button>
                         </div>
                       </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Company Owner Secret Key *</label>
+                        <div className="relative">
+                          <input type={showSecretKey ? 'text' : 'password'} name="secretKey" value={b2bData.secretKey} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Min 6 characters (For handover protection)" />
+                          <button type="button" onClick={() => setShowSecretKey(!showSecretKey)} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            {showSecretKey ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 dark:text-zinc-300 mb-1.5">Confirm Secret Key *</label>
+                        <div className="relative">
+                          <input type={showConfirmSecretKey ? 'text' : 'password'} name="confirmSecretKey" value={b2bData.confirmSecretKey} onChange={handleB2bChange} className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-zinc-800 focus:border-[#AE020B] bg-white dark:bg-zinc-950 text-gray-900 dark:text-white focus:outline-none text-base" placeholder="Confirm Owner Secret Key" />
+                          <button type="button" onClick={() => setShowConfirmSecretKey(!showConfirmSecretKey)} className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400">
+                            {showConfirmSecretKey ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                          </button>
+                        </div>
+                      </div>
                       <div className="flex gap-3 pt-2">
-                        <button type="button" onClick={() => setB2bStep(1)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-750 py-3 rounded-xl font-bold text-sm">Back</button>
+                        <button type="button" onClick={() => setB2bStep(1)} className="flex-1 border-2 border-gray-200 dark:border-zinc-800 hover:bg-gray-50 text-gray-700 py-3 rounded-xl font-bold text-sm">Back</button>
                         <button type="button" onClick={() => { if (validateStep2()) setB2bStep(3); }} className="flex-1 bg-[#AE020B] hover:bg-[#8d0208] text-white py-3 rounded-xl font-bold text-sm">Next: Employees</button>
                       </div>
                     </div>
-                  )}x
+                  )}
 
                   {b2bStep === 3 && (
                     <div className="space-y-4 text-xs font-semibold">
@@ -491,11 +523,21 @@ const MobileRegister = ({ isB2BRoute }) => {
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Password *</label>
-                          <input type="password" name="password" value={empInput.password || ''} onChange={(e) => setEmpInput(prev => ({ ...prev, password: e.target.value }))} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Employee password" />
+                          <div className="relative">
+                            <input type={showEmpPassword ? 'text' : 'password'} name="password" value={empInput.password || ''} onChange={(e) => setEmpInput(prev => ({ ...prev, password: e.target.value }))} className="w-full pl-3 pr-10 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Employee password" />
+                            <button type="button" onClick={() => setShowEmpPassword(!showEmpPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                              {showEmpPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                            </button>
+                          </div>
                         </div>
                         <div>
                           <label className="block text-gray-600 dark:text-zinc-400 mb-1">Confirm Password *</label>
-                          <input type="password" value={empConfirmPassword} onChange={(e) => setEmpConfirmPassword(e.target.value)} className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Confirm password" />
+                          <div className="relative">
+                            <input type={showEmpConfirmPassword ? 'text' : 'password'} value={empConfirmPassword} onChange={(e) => setEmpConfirmPassword(e.target.value)} className="w-full pl-3 pr-10 py-2 border rounded-lg bg-white dark:bg-zinc-950 text-gray-900 dark:text-white" placeholder="Confirm password" />
+                            <button type="button" onClick={() => setShowEmpConfirmPassword(!showEmpConfirmPassword)} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                              {showEmpConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                            </button>
+                          </div>
                         </div>
                         <button type="button" onClick={() => {
                           if (!empInput.name || !empInput.email || !empInput.phone || !empInput.designation || !empInput.password) {
@@ -580,40 +622,6 @@ const MobileRegister = ({ isB2BRoute }) => {
           </motion.div>
         </div>
 
-        {/* B2B Admin Options Modal */}
-        {showB2BOptionModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-xl max-w-sm w-full border border-gray-100 dark:border-zinc-800"
-            >
-              <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 mb-2 text-center">
-                Welcome to PLE!
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6 text-center">
-                Your B2B Company account is registered. Where would you like to go first?
-              </p>
-              <div className="space-y-3">
-                <button
-                  onClick={() => {
-                    useB2bStore.getState().setUserRole('business_buyer');
-                    navigate('/home', { replace: true });
-                  }}
-                  className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold transition-colors shadow-sm"
-                >
-                  Bulk Order (Home)
-                </button>
-                <button
-                  onClick={() => navigate('/b2b-dashboard/overview', { replace: true })}
-                  className="w-full bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-900 dark:text-white py-3.5 rounded-xl font-semibold transition-colors"
-                >
-                  Admin Panel
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
       </MobileLayout>
     </PageTransition>
   );

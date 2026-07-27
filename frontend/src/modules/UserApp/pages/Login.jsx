@@ -36,14 +36,8 @@ const MobileLogin = ({ isB2BRoute }) => {
     }
   }, [isBusinessMode, setUserRole]);
 
-  // Auto-redirect when authentication state changes
-  const [showB2BOptionModal, setShowB2BOptionModal] = useState(false);
-
   useEffect(() => {
-    if (showB2BOptionModal) return;
-
     const { adminProfile } = useB2BAdminStore.getState();
-    const isActuallyAdmin = isB2BAuthenticated && adminProfile && !adminProfile.isEmployee;
     const b2bStore = useB2bStore.getState();
 
     if (isB2BAuthenticated && adminProfile) {
@@ -57,16 +51,18 @@ const MobileLogin = ({ isB2BRoute }) => {
       }
     }
 
-    if (b2bStore.userRole === 'customer') {
-      if (isAuthenticated) {
+    if (isBusinessMode) {
+      if (isB2BAuthenticated) {
+        b2bStore.setUserRole('business_buyer');
         navigate('/home', { replace: true });
       }
     } else {
-      if (isB2BAuthenticated || isAuthenticated) {
-        setShowB2BOptionModal(true);
+      if (isAuthenticated) {
+        b2bStore.setUserRole('customer');
+        navigate('/home', { replace: true });
       }
     }
-  }, [isAuthenticated, isB2BAuthenticated, navigate, showB2BOptionModal]);
+  }, [isAuthenticated, isB2BAuthenticated, isBusinessMode, navigate]);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -111,11 +107,7 @@ const MobileLogin = ({ isB2BRoute }) => {
             useAuthStore.setState({ isAuthenticated: true, token, user: adminProfile });
           }
 
-          if (adminProfile && !adminProfile.isEmployee) {
-            setShowB2BOptionModal(true);
-          } else {
-            navigate('/home', { replace: true });
-          }
+          navigate('/home', { replace: true });
         }
         return;
       }
@@ -179,7 +171,9 @@ const MobileLogin = ({ isB2BRoute }) => {
                 navigate('/home', { replace: true });
                 return;
               } else {
-                setShowB2BOptionModal(true);
+                useB2bStore.getState().setUserRole('business_buyer');
+                toast.success('Login successful as B2B Admin!');
+                navigate('/home', { replace: true });
                 return;
               }
             }
@@ -372,40 +366,6 @@ const MobileLogin = ({ isB2BRoute }) => {
           </motion.div>
         </div>
 
-        {/* B2B Admin Options Modal */}
-        {showB2BOptionModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white dark:bg-zinc-900 rounded-2xl p-6 shadow-xl max-w-sm w-full border border-gray-100 dark:border-zinc-800"
-            >
-              <h2 className="text-xl font-bold text-gray-900 dark:text-zinc-50 mb-2 text-center">
-                Welcome back!
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-zinc-400 mb-6 text-center">
-                Where would you like to go?
-              </p>
-              <div className="space-y-3">
-                <button
-                  onClick={() => {
-                    useB2bStore.getState().setUserRole('business_buyer');
-                    navigate('/home', { replace: true });
-                  }}
-                  className="w-full bg-[#AE020B] hover:bg-[#8d0208] text-white py-3.5 rounded-xl font-semibold transition-colors shadow-sm"
-                >
-                  Bulk Order (Home)
-                </button>
-                <button
-                  onClick={() => navigate('/b2b-dashboard/overview', { replace: true })}
-                  className="w-full bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-900 dark:text-white py-3.5 rounded-xl font-semibold transition-colors"
-                >
-                  Admin Panel
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
       </MobileLayout>
     </PageTransition>
   );

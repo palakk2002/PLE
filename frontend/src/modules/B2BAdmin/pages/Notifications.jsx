@@ -67,7 +67,7 @@ const Notifications = () => {
           <button
             onClick={markAllNotificationsAsRead}
             disabled={!notifications.length || unreadNotificationsCount === 0}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="flex items-center gap-1.5 px-4 py-2 bg-[#D71920] hover:bg-[#B51218] text-white rounded-lg transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             type="button"
           >
             <FiCheck />
@@ -79,11 +79,11 @@ const Notifications = () => {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
         {isLoading && notifications.length === 0 ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#D71920]"></div>
           </div>
         ) : notifications.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-red-50 text-[#D71920] rounded-full flex items-center justify-center mx-auto mb-4">
               <FiInbox className="text-3xl" />
             </div>
             <h3 className="text-lg font-semibold text-gray-800">All caught up!</h3>
@@ -100,12 +100,12 @@ const Notifications = () => {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.2 }}
                 className={`py-4 flex gap-4 items-start transition-colors ${
-                  notification?.isRead ? 'bg-white' : 'bg-blue-50/40 px-3 rounded-lg -mx-3'
+                  notification?.isRead ? 'bg-white' : 'bg-red-50/40 px-3 rounded-lg -mx-3'
                 }`}
               >
                 <div className="mt-1">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    notification?.isRead ? 'bg-gray-100 text-gray-500' : 'bg-blue-100 text-blue-600'
+                    notification?.isRead ? 'bg-gray-100 text-gray-500' : 'bg-red-100 text-[#D71920]'
                   }`}>
                     <FiBell className="text-sm" />
                   </div>
@@ -119,7 +119,7 @@ const Notifications = () => {
                       {notification?.title || 'System Notification'}
                     </h4>
                     {!notification?.isRead && (
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#D71920]"></span>
                     )}
                   </div>
                   <p className="text-sm text-gray-600 mt-1 leading-relaxed break-words">
@@ -134,7 +134,7 @@ const Notifications = () => {
                   {!notification?.isRead && (
                     <button
                       onClick={() => markNotificationAsRead(notification?._id)}
-                      className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-[#D71920] hover:bg-red-50 rounded transition-colors"
                       title="Mark as read"
                       type="button"
                     >

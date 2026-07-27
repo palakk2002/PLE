@@ -201,8 +201,9 @@ const MobileVerification = lazy(() => import("./modules/UserApp/pages/Verificati
 const MobileForgotPassword = lazy(() => import("./modules/UserApp/pages/ForgotPassword"));
 const MobileResetPassword = lazy(() => import("./modules/UserApp/pages/ResetPassword"));
 const MobileProfile = lazy(() => import("./modules/UserApp/pages/Profile"));
-const MobileSettings = lazy(() => import("./modules/UserApp/pages/Settings"));
 const MobileWallet = lazy(() => import("./modules/UserApp/pages/Wallet"));
+const MobileSettings = lazy(() => import("./modules/UserApp/pages/Settings"));
+
 const UserNotifications = lazy(() => import("./modules/UserApp/pages/Notifications"));
 const MobileOrders = lazy(() => import("./modules/UserApp/pages/Orders"));
 const MobileOrderDetail = lazy(() => import("./modules/UserApp/pages/OrderDetail"));
@@ -226,6 +227,7 @@ const UserTermsConditions = lazy(() => import("./modules/UserApp/pages/TermsCond
 const UserAgreement = lazy(() => import("./modules/UserApp/pages/UserAgreement"));
 const LegalPage = lazy(() => import("./modules/UserApp/pages/LegalPage"));
 const UserReturnPolicy = lazy(() => import("./modules/UserApp/pages/ReturnPolicy"));
+const UserWarrantyPolicy = lazy(() => import("./modules/UserApp/pages/WarrantyPolicy"));
 const AboutUs = lazy(() => import("./modules/UserApp/pages/AboutUs"));
 const Returns = lazy(() => import("./modules/UserApp/pages/Returns"));
 const ReturnRequestForm = lazy(() => import("./modules/UserApp/pages/ReturnRequestForm"));
@@ -661,16 +663,6 @@ const AppRoutes = () => {
         }
       />
       <Route
-        path="/settings"
-        element={
-          <RouteWrapper>
-            <ProtectedRoute>
-              <MobileSettings />
-            </ProtectedRoute>
-          </RouteWrapper>
-        }
-      />
-      <Route
         path="/wallet"
         element={
           <RouteWrapper>
@@ -680,6 +672,17 @@ const AppRoutes = () => {
           </RouteWrapper>
         }
       />
+      <Route
+        path="/settings"
+        element={
+          <RouteWrapper>
+            <ProtectedRoute>
+              <MobileSettings />
+            </ProtectedRoute>
+          </RouteWrapper>
+        }
+      />
+
       <Route
         path="/loyalty-history"
         element={
@@ -777,6 +780,14 @@ const AppRoutes = () => {
         element={
           <RouteWrapper>
             <UserReturnPolicy />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/warranty-policy"
+        element={
+          <RouteWrapper>
+            <UserWarrantyPolicy />
           </RouteWrapper>
         }
       />

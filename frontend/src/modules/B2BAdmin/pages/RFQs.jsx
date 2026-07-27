@@ -367,12 +367,12 @@ const RFQs = () => {
             className="px-3 py-2.5 bg-white border border-gray-200 text-gray-600 rounded-xl hover:bg-gray-50 transition-colors shadow-sm flex items-center gap-2 text-xs font-bold"
             title="Refresh Status"
           >
-            <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-[#C07A3D]' : ''}`} />
+            <FiRefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-[#D71920]' : ''}`} />
             {refreshing ? 'Refreshing...' : 'Refresh'}
           </button>
           <button
             onClick={() => navigate('/b2b-dashboard/rfqs/new')}
-            className="flex-1 sm:flex-none px-4 py-2.5 bg-[#C07A3D] text-white rounded-xl hover:bg-[#A9662E] transition-colors shadow-sm font-bold flex items-center justify-center gap-2 text-xs"
+            className="flex-1 sm:flex-none px-4 py-2.5 bg-[#D71920] text-white rounded-xl hover:bg-[#B51218] transition-colors shadow-sm font-bold flex items-center justify-center gap-2 text-xs"
           >
             <FiPlus className="w-4 h-4" strokeWidth={2.5} /> Create RFQ
           </button>
@@ -390,7 +390,7 @@ const RFQs = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search RFQs by Title, ID, Category..."
-              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C07A3D] text-sm transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#D71920] text-sm transition-all"
             />
           </div>
 

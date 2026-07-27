@@ -17,7 +17,7 @@ import Badge from '../../../shared/components/Badge';
 import { formatPrice } from '../../../shared/utils/helpers';
 import { useWalletStore } from '../../../shared/store/walletStore';
 
-const COLORS = ['#C07A3D', '#D18B4A', '#6366f1', '#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ['#D71920', '#D18B4A', '#6366f1', '#10b981', '#f59e0b', '#ef4444'];
 
 const getStatusVariant = (status) => {
   if (['Purchase Order Generated', 'Completed'].includes(status)) return 'success';
@@ -65,8 +65,8 @@ const DashboardOverview = () => {
       title: 'Total RFQs',
       value: data.rfq.total,
       sub: `${data.rfq.draft} drafts`,
-      icon: <FiFileText className="w-5 h-5 text-[#C07A3D]" />,
-      bg: 'bg-[#C07A3D]/10',
+      icon: <FiFileText className="w-5 h-5 text-[#D71920]" />,
+      bg: 'bg-[#D71920]/10',
       onClick: () => navigate('/b2b-dashboard/rfqs')
     },
     {
@@ -162,7 +162,7 @@ const DashboardOverview = () => {
 
       {/* This Month Spend Banner */}
       {data?.procurement?.thisMonthSpend > 0 && (
-        <div className="bg-gradient-to-r from-[#C07A3D] to-[#A06030] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-[#D71920] to-[#B51218] rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="text-white">
             <p className="text-xs font-bold opacity-75 uppercase tracking-wider">This Month Procurement Spend</p>
             <h2 className="text-3xl font-black mt-1">{formatPrice(data.procurement.thisMonthSpend)}</h2>
@@ -204,9 +204,9 @@ const DashboardOverview = () => {
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm lg:col-span-2 space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="font-extrabold text-gray-800 text-sm uppercase tracking-wider flex items-center gap-1.5">
-              <FiBarChart2 className="text-[#C07A3D]" /> Monthly Procurement Activity
+              <FiBarChart2 className="text-[#D71920]" /> Monthly Procurement Activity
             </h3>
-            <span className="text-xs font-bold text-[#C07A3D] bg-[#C07A3D]/10 px-2.5 py-1 rounded-full">Last 6 Months</span>
+            <span className="text-xs font-bold text-[#D71920] bg-[#D71920]/10 px-2.5 py-1 rounded-full">Last 6 Months</span>
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -227,7 +227,7 @@ const DashboardOverview = () => {
                   formatter={(value, name) => name === 'Spend' ? [formatPrice(value), 'Spend'] : [value, name]}
                 />
                 <Legend wrapperStyle={{ fontSize: '11px' }} />
-                <Bar yAxisId="left" dataKey="RFQs" fill="#C07A3D" radius={[6, 6, 0, 0]} barSize={20} opacity={0.85} />
+                <Bar yAxisId="left" dataKey="RFQs" fill="#D71920" radius={[6, 6, 0, 0]} barSize={20} opacity={0.85} />
                 <Area yAxisId="right" type="monotone" dataKey="Spend" stroke="#6366f1" strokeWidth={2.5}
                   fill="url(#colorSpend)" dot={{ r: 4, fill: '#6366f1' }} />
               </ComposedChart>
@@ -279,9 +279,9 @@ const DashboardOverview = () => {
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Vendor Bids Bar */}
-        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm lg:col-span-2 space-y-4">
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
           <h3 className="font-extrabold text-gray-800 text-sm uppercase tracking-wider flex items-center gap-1.5">
-            <FiAward className="text-[#C07A3D]" /> Vendor Bids Per RFQ
+            <FiAward className="text-[#D71920]" /> Vendor Bids Per RFQ
           </h3>
           <div className="h-60">
             {(data?.charts?.vendorParticipation?.length || 0) === 0 ? (
@@ -303,7 +303,7 @@ const DashboardOverview = () => {
                   />
                   <Bar dataKey="Bids" radius={[8, 8, 0, 0]} barSize={32}>
                     {data.charts.vendorParticipation.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Bar>
                 </BarChart>
@@ -315,7 +315,7 @@ const DashboardOverview = () => {
         {/* Quick Stats Panel */}
         <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
           <h3 className="font-extrabold text-gray-800 text-sm uppercase tracking-wider flex items-center gap-1.5">
-            <FiTrendingUp className="text-[#C07A3D]" /> Procurement Health
+            <FiTrendingUp className="text-[#D71920]" /> Procurement Health
           </h3>
           <div className="space-y-3">
             {[
@@ -334,7 +334,7 @@ const DashboardOverview = () => {
               {
                 label: 'Avg PO Value',
                 value: formatPrice(data?.procurement?.avgPOValue || 0),
-                color: 'bg-[#C07A3D]',
+                color: 'bg-[#D71920]',
                 pct: 100
               }
             ].map((item, i) => (

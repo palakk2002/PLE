@@ -122,7 +122,7 @@ const PortalWelcome = ({ type }) => {
           {/* Gold / Primary Button */}
           <button
             onClick={handleSignIn}
-            className="w-full bg-gradient-to-b from-[#f7dfa5] to-[#f0c14b] hover:from-[#f5d78e] hover:to-[#eeb933] active:from-[#f0c14b] active:to-[#f5d78e] text-zinc-900 border border-[#a88734] font-bold py-3 px-6 rounded-xl shadow-sm transition-all text-sm tracking-wide"
+            className="w-full bg-gradient-to-b from-[#E22A31] to-[#D71920] hover:from-[#F23B42] hover:to-[#B51218] active:from-[#B51218] active:to-[#D71920] text-white border border-[#B51218] font-bold py-3 px-6 rounded-xl shadow-sm transition-all text-sm tracking-wide"
           >
             {isB2B ? 'Already a business buyer? Sign in' : 'Already a customer? Sign in'}
           </button>

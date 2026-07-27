@@ -292,7 +292,7 @@ const RFQDetail = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-96">
-        <div className="animate-spin rounded-xl h-10 w-10 border-t-2 border-b-2 border-[#C07A3D]"></div>
+        <div className="animate-spin rounded-xl h-10 w-10 border-t-2 border-b-2 border-[#D71920]"></div>
       </div>
     );
   }
@@ -303,7 +303,7 @@ const RFQDetail = () => {
         <h2 className="text-xl font-bold text-gray-800">RFQ not found</h2>
         <button
           onClick={() => navigate('/b2b-dashboard/rfqs')}
-          className="mt-4 px-4 py-2 bg-[#C07A3D] text-white rounded-xl text-sm font-semibold"
+          className="mt-4 px-4 py-2 bg-[#D71920] text-white rounded-xl text-sm font-semibold"
         >
           Back to list
         </button>
@@ -378,7 +378,7 @@ const RFQDetail = () => {
               </button>
               <button
                 onClick={handleRequestRenegotiation}
-                className="py-2.5 px-4 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
+                className="py-2.5 px-4 bg-[#D71920] hover:bg-[#B51218] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-sm"
               >
                 <FiClock className="w-4 h-4" /> Request Re-Negotiation
               </button>
@@ -615,7 +615,7 @@ const RFQDetail = () => {
                         </button>
                         <button
                           onClick={handleRequestRenegotiation}
-                          className="py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
+                          className="py-2.5 px-4 bg-[#D71920] hover:bg-[#B51218] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm"
                         >
                           <FiClock className="w-4 h-4" /> 🔄 Request Re-Negotiation
                         </button>
@@ -718,12 +718,12 @@ const RFQDetail = () => {
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
                     placeholder={isDirectRFQ ? "Enter message for Vendor..." : "Enter message for Super Admin..."}
-                    className="flex-1 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-medium resize-none"
+                    className="flex-1 bg-white border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-medium resize-none"
                   />
                   <button
                     type="submit"
                     disabled={sending || !message.trim()}
-                    className="p-3 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-xl transition-colors shadow-sm disabled:opacity-50"
+                    className="p-3 bg-[#D71920] hover:bg-[#B51218] text-white rounded-xl transition-colors shadow-sm disabled:opacity-50"
                   >
                     <FiSend className="w-4 h-4" />
                   </button>
@@ -735,7 +735,7 @@ const RFQDetail = () => {
                       type="checkbox"
                       checked={isInternalNote}
                       onChange={(e) => setIsInternalNote(e.target.checked)}
-                      className="rounded border-gray-300 text-[#C07A3D] focus:ring-[#C07A3D]"
+                      className="rounded border-gray-300 text-[#D71920] focus:ring-[#D71920]"
                     />
                     <span>Post as Internal Note (Visible to company staff only)</span>
                   </label>

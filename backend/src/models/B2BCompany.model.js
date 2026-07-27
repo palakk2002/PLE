@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 const b2bCompanySchema = new mongoose.Schema(
     {
@@ -45,6 +46,11 @@ const b2bCompanySchema = new mongoose.Schema(
             type: String, 
             trim: true 
         },
+        ownerSecretKey: {
+            type: String,
+            required: true,
+            select: false
+        },
         verificationStatus: { 
             type: String, 
             enum: ['Pending Verification', 'Approved', 'Rejected', 'Suspended'], 
@@ -59,5 +65,18 @@ const b2bCompanySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+// Hash ownerSecretKey before saving
+b2bCompanySchema.pre('save', async function (next) {
+    if (!this.isModified('ownerSecretKey')) return next();
+    this.ownerSecretKey = await bcrypt.hash(this.ownerSecretKey, 12);
+    next();
+});
+
+// Compare secret key method
+b2bCompanySchema.methods.compareSecretKey = async function (candidateKey) {
+    return bcrypt.compare(candidateKey, this.ownerSecretKey);
+};
+
 const B2BCompany = mongoose.model('B2BCompany', b2bCompanySchema);
 export default B2BCompany;
+

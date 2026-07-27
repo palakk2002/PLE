@@ -1,563 +1,459 @@
-import { useState, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useEffect, useState } from "react";
 import {
-  FiArrowLeft,
-  FiPlus,
-  FiSend,
-  FiRotateCcw,
-  FiCheckCircle,
+  FiDollarSign,
   FiTrendingUp,
   FiTrendingDown,
-  FiCreditCard,
-  FiShoppingBag,
-  FiDollarSign,
-  FiCheck,
+  FiPlusCircle,
+  FiDownload,
+  FiFilter,
+  FiCheckCircle,
+  FiXCircle,
+  FiInfo,
+  FiArrowLeft,
+  FiActivity,
+  FiBriefcase
 } from "react-icons/fi";
-import { useAuthStore } from "../../../shared/store/authStore";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import { useWalletStore } from "../../../shared/store/walletStore";
+import { useAuthStore } from "../../../shared/store/authStore";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
-import toast from "react-hot-toast";
-import WalletBalanceCard from "../components/Wallet/WalletBalanceCard";
-import WalletTransactionCard from "../components/Wallet/WalletTransactionCard";
 
-const MobileWallet = () => {
+const Wallet = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const { 
-    balance, 
-    totalCredit, 
-    totalDebit, 
-    transactions, 
-    pagination, 
-    fetchWallet, 
-    fetchTransactions, 
-    addFunds, 
-    transferFunds, 
-    withdrawFunds, 
-    isLoading 
+  const {
+    balance,
+    totalCredit,
+    totalDebit,
+    isFrozen,
+    transactions,
+    settings,
+    pagination,
+    isLoading,
+    fetchWallet,
+    fetchTransactions,
+    fetchWalletSettings,
+    rechargeWallet,
+    verifyRechargePayment
   } = useWalletStore();
 
-  const [activeTab, setActiveTab] = useState("all"); // 'all', 'credit', 'debit', 'refunds'
-  const [page, setPage] = useState(1);
-  const [showAddMoney, setShowAddMoney] = useState(false);
-  const [showSendMoney, setShowSendMoney] = useState(false);
-  const [showWithdrawMoney, setShowWithdrawMoney] = useState(false);
+  const [rechargeAmount, setRechargeAmount] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showRechargeModal, setShowRechargeModal] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  // Form states
-  const [addAmount, setAddAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("card"); // 'card', 'upi'
-  const [cardNumber, setCardNumber] = useState("");
-  const [upiId, setUpiId] = useState("");
-  const [sendRecipient, setSendRecipient] = useState("");
-  const [sendAmount, setSendAmount] = useState("");
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [bankName, setBankName] = useState("");
-  const [accountNumber, setAccountNumber] = useState("");
-  const [ifscCode, setIfscCode] = useState("");
+  const isB2B = user?.role === 'b2bAdmin' || user?.role === 'b2bEmployee';
+  const isEmployee = user?.role === 'b2bEmployee';
 
   useEffect(() => {
     fetchWallet();
-  }, [fetchWallet]);
+    fetchWalletSettings();
+    fetchTransactions(1, 10, "all");
+  }, []);
 
-  useEffect(() => {
-    fetchTransactions(page, 10, activeTab);
-  }, [page, activeTab, fetchTransactions]);
-
-  const handleTabChange = (newTab) => {
-    setActiveTab(newTab);
-    setPage(1);
+  const handleCategoryChange = (e) => {
+    const cat = e.target.value;
+    setSelectedCategory(cat);
+    setCurrentPage(1);
+    fetchTransactions(1, 10, cat);
   };
 
-  const handleAddMoney = async (e) => {
-    e.preventDefault();
-    const amountVal = parseFloat(addAmount);
-    if (isNaN(amountVal) || amountVal <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-
-    if (paymentMethod === "card" && !cardNumber.trim()) {
-      toast.error("Please enter your card number");
-      return;
-    }
-
-    if (paymentMethod === "upi" && !upiId.trim()) {
-      toast.error("Please enter your UPI ID");
-      return;
-    }
-
-    const res = await addFunds(amountVal, paymentMethod);
-    if (res.success) {
-      toast.success(`₹${amountVal.toFixed(2)} added to your wallet!`);
-      // Reset form
-      setAddAmount("");
-      setCardNumber("");
-      setUpiId("");
-      setShowAddMoney(false);
-    }
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchTransactions(page, 10, selectedCategory);
   };
 
-  const handleSendMoney = async (e) => {
+  const handleRecharge = async (e) => {
     e.preventDefault();
-    const amountVal = parseFloat(sendAmount);
-    if (!sendRecipient.trim()) {
-      toast.error("Please enter recipient email or phone");
-      return;
-    }
-    if (isNaN(amountVal) || amountVal <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-    if (amountVal > balance) {
-      toast.error("Insufficient wallet balance");
+    const amount = parseFloat(rechargeAmount);
+
+    if (isNaN(amount) || amount <= 0) {
+      toast.error("Please enter a valid positive amount");
       return;
     }
 
-    const res = await transferFunds(sendRecipient, amountVal);
-    if (res.success) {
-      toast.success(`₹${amountVal.toFixed(2)} transferred successfully!`);
-      // Reset form
-      setSendRecipient("");
-      setSendAmount("");
-      setShowSendMoney(false);
+    if (amount < settings.minRecharge) {
+      toast.error(`Minimum recharge amount is ₹${settings.minRecharge}`);
+      return;
     }
+    if (amount > settings.maxRecharge) {
+      toast.error(`Maximum recharge amount is ₹${settings.maxRecharge}`);
+      return;
+    }
+
+    setIsProcessingPayment(true);
+
+    const res = await rechargeWallet(amount);
+    if (!res.success) {
+      toast.error(res.error?.message || "Failed to create recharge order.");
+      setIsProcessingPayment(false);
+      return;
+    }
+
+    const { id: orderId, amount: rzpAmount, key } = res.data;
+
+    // Load Razorpay Script
+    const loadRazorpayScript = () => {
+      return new Promise((resolve) => {
+        const script = document.createElement("script");
+        script.src = "https://checkout.razorpay.com/v1/checkout.js";
+        script.onload = () => resolve(true);
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+      });
+    };
+
+    const isLoaded = await loadRazorpayScript();
+    if (!isLoaded) {
+      toast.error("Failed to load payment gateway SDK.");
+      setIsProcessingPayment(false);
+      return;
+    }
+
+    const options = {
+      key: key || process.env.REACT_APP_RAZORPAY_KEY_ID,
+      amount: rzpAmount,
+      currency: "INR",
+      name: "Peoples League Of Electronics",
+      description: "B2B Wallet Recharge",
+      order_id: orderId,
+      handler: async (response) => {
+        toast.loading("Verifying transaction...");
+        const verifyRes = await verifyRechargePayment({
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          amount
+        });
+        toast.dismiss();
+
+        if (verifyRes.success) {
+          toast.success("Wallet recharged successfully!");
+          setShowRechargeModal(false);
+          setRechargeAmount("");
+          fetchTransactions(1, 10, selectedCategory);
+        } else {
+          toast.error(verifyRes.error || "Payment verification failed.");
+        }
+        setIsProcessingPayment(false);
+      },
+      prefill: {
+        name: user?.name || "",
+        email: user?.email || "",
+        contact: user?.phone || ""
+      },
+      theme: {
+        color: "#7B0A0A"
+      },
+      modal: {
+        ondismiss: () => {
+          setIsProcessingPayment(false);
+          toast.error("Recharge payment cancelled.");
+        }
+      }
+    };
+
+    const paymentObject = new window.Razorpay(options);
+    paymentObject.open();
   };
 
-  const handleWithdrawMoney = async (e) => {
-    e.preventDefault();
-    const amountVal = parseFloat(withdrawAmount);
-    if (isNaN(amountVal) || amountVal <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
-    }
-    if (amountVal > balance) {
-      toast.error("Insufficient wallet balance");
-      return;
-    }
-    if (!bankName.trim() || !accountNumber.trim() || !ifscCode.trim()) {
-      toast.error("Please fill all bank details");
+  const handleDownloadStatement = () => {
+    if (!transactions || transactions.length === 0) {
+      toast.error("No transactions to export.");
       return;
     }
 
-    const bankDetails = { bankName, accountNumber, ifscCode };
-    const res = await withdrawFunds(amountVal, bankDetails);
-    if (res.success) {
-      toast.success(`₹${amountVal.toFixed(2)} withdrawal requested successfully!`);
-      // Reset form
-      setWithdrawAmount("");
-      setBankName("");
-      setAccountNumber("");
-      setIfscCode("");
-      setShowWithdrawMoney(false);
-    }
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Transaction ID,Date,Type,Category,Amount,Balance After,Description\n";
+
+    transactions.forEach((tx) => {
+      const date = new Date(tx.createdAt).toLocaleDateString();
+      csvContent += `"${tx._id}","${date}","${tx.type}","${tx.transactionCategory}",${tx.amount},${tx.balanceAfterTransaction},"${tx.description}"\n`;
+    });
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `wallet_statement_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success("Statement downloaded successfully!");
   };
 
   return (
     <PageTransition>
-      <MobileLayout showBottomNav={true} showCartBar={true}>
-        <div className="w-full pb-24 lg:pb-12 max-w-4xl mx-auto min-h-screen bg-gray-50 dark:bg-[#121212] transition-colors duration-200">
-          
+      <MobileLayout>
+        <div className="min-h-screen bg-slate-50 pb-20">
           {/* Header */}
-          <div className="px-4 py-4 bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-white/10 sticky top-0 z-30 shadow-sm flex items-center gap-3">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors text-gray-700 dark:text-gray-200"
-            >
-              <FiArrowLeft className="text-xl" />
+          <div className="bg-white border-b border-slate-100 sticky top-0 z-30 px-4 py-4 flex items-center gap-3">
+            <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+              <FiArrowLeft className="w-5 h-5 text-slate-700" />
             </button>
-            <h1 className="text-xl font-bold text-gray-800 dark:text-white">My Wallet</h1>
+            <h1 className="font-semibold text-lg text-slate-800">Business Wallet</h1>
           </div>
 
-          <div className="p-4 space-y-6">
-            
-            {/* Visual Balance Card */}
-            <WalletBalanceCard
-              balance={balance}
-              totalCredit={totalCredit}
-              totalDebit={totalDebit}
-              userName={user?.name}
-              onAddMoney={() => setShowAddMoney(true)}
-              onTransfer={() => setShowSendMoney(true)}
-              onWithdraw={() => setShowWithdrawMoney(true)}
-            />
+          <div className="px-4 py-6 max-w-lg mx-auto space-y-6">
+            {/* Wallet Info Card */}
+            <div className="relative overflow-hidden bg-gradient-to-tr from-[#7B0A0A] to-[#4A0404] rounded-3xl p-6 text-white shadow-xl shadow-[#7B0A0A]/10">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10" />
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-xs text-red-100 font-medium tracking-wider uppercase mb-1">
+                    {isEmployee ? "Employee Allotted Balance" : "Company Wallet Balance"}
+                  </p>
+                  <h2 className="text-4xl font-extrabold tracking-tight">
+                    ₹{(isEmployee ? (user?.b2bWalletBalance ?? 0) : balance).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
+                  </h2>
+                </div>
+                <div className="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md">
+                  <FiBriefcase className="w-6 h-6" />
+                </div>
+              </div>
 
-            {/* Quick Actions / Toggles */}
-            <div className="flex justify-between items-center px-1">
-              <h3 className="font-extrabold text-gray-800 dark:text-white text-base">Transactions</h3>
-              <div className="flex bg-gray-100 dark:bg-white/5 p-1 rounded-xl">
-                {["all", "credit", "debit", "refunds"].map((tab) => (
+              {isFrozen && (
+                <div className="mt-4 flex items-center gap-2 bg-red-500/30 text-red-100 border border-red-500/20 px-3 py-2 rounded-xl text-xs backdrop-blur-sm">
+                  <FiInfo className="w-4 h-4 shrink-0" />
+                  <span>Wallet is frozen. Recharge and deductions are disabled.</span>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              {!isEmployee && !isFrozen && (
+                <div className="mt-6">
                   <button
-                    key={tab}
-                    onClick={() => handleTabChange(tab)}
-                    className={`px-3 py-1.5 text-xs font-bold capitalize rounded-lg transition-all ${
-                      activeTab === tab
-                        ? "bg-white dark:bg-[#252525] text-[#7B0A0A] shadow-sm"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
+                    onClick={() => setShowRechargeModal(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-white text-[#7B0A0A] font-semibold py-3.5 px-4 rounded-2xl hover:bg-red-50 transition-colors shadow-lg shadow-black/5"
                   >
-                    {tab === "refunds" ? "Refunds" : tab}
+                    <FiPlusCircle className="w-5 h-5" />
+                    <span>Add Money</span>
                   </button>
-                ))}
+                </div>
+              )}
+
+              {isEmployee && (
+                <div className="mt-4 text-red-100/90 border-t border-white/10 pt-3 flex justify-between">
+                  <span>Spending Limit: ₹{(user?.b2bSpendingLimit ?? 0).toLocaleString("en-IN")}</span>
+                  <span>Contact admin to request balance allotment.</span>
+                </div>
+              )}
+            </div>
+
+            {/* Quick stats row */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
+                <div className="bg-emerald-50 text-emerald-600 p-2.5 rounded-xl">
+                  <FiTrendingUp className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs font-medium">Total Received</p>
+                  <p className="font-semibold text-slate-800 text-sm">₹{totalCredit.toLocaleString("en-IN")}</p>
+                </div>
+              </div>
+
+              <div className="bg-white border border-slate-100 rounded-2xl p-4 flex items-center gap-3">
+                <div className="bg-rose-50 text-rose-600 p-2.5 rounded-xl">
+                  <FiTrendingDown className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs font-medium">Total Spent</p>
+                  <p className="font-semibold text-slate-800 text-sm">₹{totalDebit.toLocaleString("en-IN")}</p>
+                </div>
               </div>
             </div>
 
-            {/* Transaction Log */}
-            <div className="space-y-3">
-              <AnimatePresence mode="popLayout">
-                {transactions.length > 0 ? (
-                  transactions.map((tx) => (
-                    <WalletTransactionCard key={tx.id || tx._id} tx={tx} />
-                  ))
-                ) : (
-                  <div className="text-center py-12 bg-white dark:bg-[#1A1A1A] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
-                    <p className="text-gray-500 dark:text-gray-400 text-sm">No transactions found.</p>
-                  </div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Pagination Controls */}
-            {pagination && pagination.pages > 1 && (
-              <div className="flex justify-center items-center gap-4 pt-2">
+            {/* Transactions Header */}
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold text-slate-800 text-base flex items-center gap-2">
+                  <FiActivity className="text-slate-400" />
+                  <span>Transactions</span>
+                </h3>
                 <button
-                  disabled={page <= 1 || isLoading}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className="px-3 py-1.5 text-xs font-bold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/10 rounded-xl text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-50"
+                  onClick={handleDownloadStatement}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[#7B0A0A] hover:text-[#9E1212] bg-red-50/50 hover:bg-red-50 px-3 py-2 rounded-xl transition-colors"
                 >
-                  Previous
-                </button>
-                <span className="text-xs font-bold text-gray-500">
-                  Page {page} of {pagination.pages}
-                </span>
-                <button
-                  disabled={page >= pagination.pages || isLoading}
-                  onClick={() => setPage((p) => p + 1)}
-                  className="px-3 py-1.5 text-xs font-bold bg-white dark:bg-[#1A1A1A] border border-gray-200 dark:border-white/10 rounded-xl text-gray-700 dark:text-gray-200 disabled:opacity-50 hover:bg-gray-50"
-                >
-                  Next
+                  <FiDownload className="w-3.5 h-3.5" />
+                  <span>Statement</span>
                 </button>
               </div>
-            )}
 
-            {/* Simulated Add Money Drawer */}
-            {createPortal(
-              <AnimatePresence>
-                {showAddMoney && (
-                  <div className="fixed inset-0 z-[10000] flex items-center justify-center px-4 pb-4">
-                    {/* Backdrop */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setShowAddMoney(false)}
-                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                    />
-                    {/* Content Sheet */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      className="relative bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 pb-6 w-full max-w-md shadow-2xl z-10"
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-base font-extrabold text-gray-800 dark:text-white">Add Money</h3>
-                        <button
-                          onClick={() => setShowAddMoney(false)}
-                          className="text-gray-400 hover:text-gray-600 text-xs font-bold"
-                        >
-                          Cancel
-                        </button>
+              {/* Filters */}
+              <div className="flex gap-2 items-center">
+                <div className="relative flex-1">
+                  <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <select
+                    value={selectedCategory}
+                    onChange={handleCategoryChange}
+                    className="w-full bg-white border border-slate-100 rounded-xl pl-9 pr-4 py-2.5 text-sm text-slate-600 focus:outline-none focus:ring-1 focus:ring-[#7B0A0A] appearance-none"
+                  >
+                    <option value="all">All Transactions</option>
+                    <option value="recharge">Recharges</option>
+                    <option value="order_payment">Order Payments</option>
+                    <option value="refund">Refunds</option>
+                    <option value="cashback">Cashback</option>
+                    <option value="admin_credit">Admin Adjustment Credits</option>
+                    <option value="admin_debit">Admin Adjustment Debits</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Transaction List */}
+              <div className="space-y-3">
+                {isLoading && (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((n) => (
+                      <div key={n} className="bg-white border border-slate-100 rounded-2xl p-4 animate-pulse flex justify-between">
+                        <div className="flex gap-3">
+                          <div className="w-10 h-10 bg-slate-200 rounded-xl" />
+                          <div className="space-y-2">
+                            <div className="h-4 bg-slate-200 rounded w-28" />
+                            <div className="h-3 bg-slate-200 rounded w-16" />
+                          </div>
+                        </div>
+                        <div className="h-5 bg-slate-200 rounded w-12 self-center" />
                       </div>
-
-                      <form onSubmit={handleAddMoney} className="space-y-3">
-                        {/* Amount Input */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">
-                            Enter Amount (₹)
-                          </label>
-                          <input
-                            type="number"
-                            value={addAmount}
-                            onChange={(e) => setAddAmount(e.target.value)}
-                            placeholder="e.g. 500"
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white font-extrabold text-base text-[#7B0A0A] focus:outline-none focus:ring-2 focus:ring-[#7B0A0A]"
-                            required
-                          />
-                        </div>
-
-                        {/* Fast Options */}
-                        <div className="flex gap-2">
-                          {[500, 1000, 2000].map((amt) => (
-                            <button
-                              key={amt}
-                              type="button"
-                              onClick={() => setAddAmount(amt.toString())}
-                              className="flex-1 py-1.5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-200 transition-colors"
-                            >
-                              +₹{amt}
-                            </button>
-                          ))}
-                        </div>
-
-                        {/* Payment Methods */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">
-                            Select Payment Method
-                          </label>
-                          <div className="grid grid-cols-2 gap-3">
-                            <button
-                              type="button"
-                              onClick={() => setPaymentMethod("card")}
-                              className={`py-2 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition-colors ${
-                                paymentMethod === "card"
-                                  ? "border-[#7B0A0A] bg-red-50/50 dark:bg-red-950/20 text-[#7B0A0A]"
-                                  : "border-gray-200 dark:border-white/5 text-gray-600 dark:text-gray-300"
-                              }`}
-                            >
-                              <FiCreditCard className="text-sm" /> Credit/Debit Card
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setPaymentMethod("upi")}
-                              className={`py-2 rounded-xl border text-xs font-bold flex flex-col items-center justify-center gap-1 transition-colors ${
-                                paymentMethod === "upi"
-                                  ? "border-[#7B0A0A] bg-red-50/50 dark:bg-red-950/20 text-[#7B0A0A]"
-                                  : "border-gray-200 dark:border-white/5 text-gray-600 dark:text-gray-300"
-                              }`}
-                            >
-                              <FiDollarSign className="text-sm" /> UPI Address
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Dynamic Payment Method fields */}
-                        {paymentMethod === "card" ? (
-                          <div>
-                            <input
-                              type="text"
-                              value={cardNumber}
-                              onChange={(e) => setCardNumber(e.target.value)}
-                              placeholder="Card Number (e.g. 4111 2222 3333 4444)"
-                              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white text-xs focus:outline-none"
-                              required
-                            />
-                          </div>
-                        ) : (
-                          <div>
-                            <input
-                              type="text"
-                              value={upiId}
-                              onChange={(e) => setUpiId(e.target.value)}
-                              placeholder="UPI ID (e.g. user@upi)"
-                              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white text-xs focus:outline-none"
-                              required
-                            />
-                          </div>
-                        )}
-
-                        <button
-                          type="submit"
-                          className="w-full py-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl text-xs transition-colors shadow-lg"
-                        >
-                          Add to Wallet
-                        </button>
-                      </form>
-                    </motion.div>
+                    ))}
                   </div>
                 )}
-              </AnimatePresence>,
-              document.body
-            )}
 
-            {/* Simulated Transfer Drawer */}
-            {createPortal(
-              <AnimatePresence>
-                {showSendMoney && (
-                  <div className="fixed inset-0 z-[10000] flex items-center justify-center px-4 pb-4">
-                    {/* Backdrop */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setShowSendMoney(false)}
-                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                    />
-                    {/* Content Sheet */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      className="relative bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 pb-6 w-full max-w-md shadow-2xl z-10"
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-base font-extrabold text-gray-800 dark:text-white">Transfer Balance</h3>
-                        <button
-                          onClick={() => setShowSendMoney(false)}
-                          className="text-gray-400 hover:text-gray-600 text-xs font-bold"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-
-                      <form onSubmit={handleSendMoney} className="space-y-3">
-                        {/* Recipient */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">
-                            Recipient Phone or Email
-                          </label>
-                          <input
-                            type="text"
-                            value={sendRecipient}
-                            onChange={(e) => setSendRecipient(e.target.value)}
-                            placeholder="e.g. friend@example.com"
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white text-xs focus:outline-none"
-                            required
-                          />
-                        </div>
-
-                        {/* Transfer Amount */}
-                        <div>
-                          <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1.5">
-                            Amount (₹)
-                          </label>
-                          <input
-                            type="number"
-                            value={sendAmount}
-                            onChange={(e) => setSendAmount(e.target.value)}
-                            placeholder="Amount"
-                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white font-extrabold text-base focus:outline-none"
-                            required
-                          />
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full py-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl text-xs transition-colors shadow-lg"
-                        >
-                          Send Money
-                        </button>
-                      </form>
-                    </motion.div>
+                {!isLoading && (!transactions || transactions.length === 0) && (
+                  <div className="bg-white border border-slate-100 rounded-2xl p-8 text-center space-y-2">
+                    <p className="text-slate-400 text-sm">No transaction records found.</p>
                   </div>
                 )}
-              </AnimatePresence>,
-              document.body
-            )}
 
-            {/* Simulated Withdraw Drawer */}
-            {createPortal(
-              <AnimatePresence>
-                {showWithdrawMoney && (
-                  <div className="fixed inset-0 z-[10000] flex items-center justify-center px-4 pb-4">
-                    {/* Backdrop */}
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setShowWithdrawMoney(false)}
-                      className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                    />
-                    {/* Content Sheet */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      className="relative bg-white dark:bg-[#1A1A1A] rounded-3xl p-5 pb-6 w-full max-w-md shadow-2xl z-10"
-                    >
-                      <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-base font-extrabold text-gray-800 dark:text-white">Withdraw Funds</h3>
+                {!isLoading && transactions && transactions.length > 0 && (
+                  <div className="space-y-3">
+                    {transactions.map((tx) => {
+                      const isCredit = tx.type === "credit";
+                      return (
+                        <div key={tx._id} className="bg-white border border-slate-100 rounded-2xl p-4 flex justify-between items-center hover:border-slate-200 transition-all">
+                          <div className="flex gap-3 items-center">
+                            <div className={`p-2.5 rounded-xl ${isCredit ? "bg-emerald-50 text-emerald-600" : "bg-slate-50 text-slate-600"}`}>
+                              {isCredit ? <FiTrendingUp className="w-5 h-5" /> : <FiTrendingDown className="w-5 h-5" />}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-slate-800 text-sm">{tx.description || "Wallet Transaction"}</p>
+                              <p className="text-slate-400 text-xs">
+                                {new Date(tx.createdAt).toLocaleDateString("en-IN", {
+                                  day: "numeric",
+                                  month: "short",
+                                  year: "numeric"
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className={`font-bold text-sm ${isCredit ? "text-emerald-600" : "text-slate-800"}`}>
+                              {isCredit ? "+" : "-"} ₹{tx.amount.toFixed(2)}
+                            </p>
+                            <p className="text-slate-400 text-[10px]">Bal: ₹{tx.balanceAfterTransaction.toFixed(2)}</p>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Pagination */}
+                    {pagination && pagination.pages > 1 && (
+                      <div className="flex justify-between items-center pt-2">
                         <button
-                          onClick={() => setShowWithdrawMoney(false)}
-                          className="text-gray-400 hover:text-gray-600 text-xs font-bold"
+                          disabled={currentPage === 1}
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          className="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 disabled:opacity-50"
                         >
-                          Cancel
+                          Previous
+                        </button>
+                        <span className="text-xs text-slate-400">
+                          Page {currentPage} of {pagination.pages}
+                        </span>
+                        <button
+                          disabled={currentPage === pagination.pages}
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          className="px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-100 rounded-xl hover:bg-slate-50 disabled:opacity-50"
+                        >
+                          Next
                         </button>
                       </div>
-
-                      <form onSubmit={handleWithdrawMoney} className="space-y-2.5">
-                        {/* Amount */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
-                              Amount (₹)
-                            </label>
-                            <input
-                              type="number"
-                              value={withdrawAmount}
-                              onChange={(e) => setWithdrawAmount(e.target.value)}
-                              placeholder="Amount"
-                              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white font-extrabold text-sm focus:outline-none"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
-                              Bank Name
-                            </label>
-                            <input
-                              type="text"
-                              value={bankName}
-                              onChange={(e) => setBankName(e.target.value)}
-                              placeholder="e.g. HDFC"
-                              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white text-xs focus:outline-none"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        {/* Account details */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
-                              Account Number
-                            </label>
-                            <input
-                              type="text"
-                              value={accountNumber}
-                              onChange={(e) => setAccountNumber(e.target.value)}
-                              placeholder="Account Number"
-                              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white text-xs focus:outline-none"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">
-                              IFSC Code
-                            </label>
-                            <input
-                              type="text"
-                              value={ifscCode}
-                              onChange={(e) => setIfscCode(e.target.value)}
-                              placeholder="IFSC Code"
-                              className="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white text-xs focus:outline-none"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <button
-                          type="submit"
-                          className="w-full py-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl text-xs transition-colors shadow-lg mt-1"
-                        >
-                          Request Withdrawal
-                        </button>
-                      </form>
-                    </motion.div>
+                    )}
                   </div>
                 )}
-              </AnimatePresence>,
-              document.body
-            )}
-
+              </div>
+            </div>
           </div>
-
         </div>
+
+        {/* Recharge Modal */}
+        <AnimatePresence>
+          {showRechargeModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                className="w-full max-w-md bg-white rounded-3xl p-6 space-y-6 shadow-xl"
+              >
+                <div className="flex justify-between items-center">
+                  <h3 className="font-bold text-lg text-slate-800">Add Money to Wallet</h3>
+                  <button onClick={() => setShowRechargeModal(false)} className="p-1 hover:bg-slate-100 rounded-full">
+                    <FiXCircle className="w-6 h-6 text-slate-400" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleRecharge} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-500 uppercase">Amount (₹)</label>
+                    <input
+                      type="number"
+                      placeholder={`Enter amount (Min ₹${settings.minRecharge})`}
+                      value={rechargeAmount}
+                      onChange={(e) => setRechargeAmount(e.target.value)}
+                      disabled={isProcessingPayment}
+                      className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3.5 text-slate-800 font-bold focus:outline-none focus:ring-1 focus:ring-[#7B0A0A]"
+                    />
+                  </div>
+
+                  {/* Predefined packs */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[500, 1000, 5000, 10000, 25000, 50000].map((val) => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => setRechargeAmount(String(val))}
+                        disabled={isProcessingPayment}
+                        className="border border-slate-100 bg-white hover:bg-red-50 hover:border-red-200 text-slate-600 hover:text-[#7B0A0A] font-semibold py-2 rounded-xl text-xs transition-colors"
+                      >
+                        + ₹{val.toLocaleString()}
+                      </button>
+                    ))}
+                  </div>
+
+                  {settings.cashbackPercent > 0 && (
+                    <div className="flex items-center gap-2 bg-emerald-50 text-emerald-700 px-3 py-2.5 rounded-xl text-xs font-medium">
+                      <FiInfo className="w-4 h-4 shrink-0" />
+                      <span>Enjoy {settings.cashbackPercent}% instant cashback credited on all recharges!</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isProcessingPayment}
+                    className="w-full flex items-center justify-center gap-2 bg-[#7B0A0A] hover:bg-[#9E1212] text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-[#7B0A0A]/20 disabled:opacity-50 transition-colors"
+                  >
+                    {isProcessingPayment ? "Processing..." : "Proceed to Payment"}
+                  </button>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </MobileLayout>
     </PageTransition>
   );
 };
 
-export default MobileWallet;
+export default Wallet;

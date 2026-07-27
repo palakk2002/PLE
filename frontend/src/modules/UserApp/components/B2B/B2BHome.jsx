@@ -569,10 +569,10 @@ const B2BHome = ({
                   Request for Quote <span className="text-sm">➔</span>
                 </button>
                 <button 
-                  onClick={() => navigate('/search')}
+                  onClick={() => navigate('/product-request/new')}
                   className="px-6 py-3 border border-zinc-800 bg-black/40 hover:bg-zinc-900 text-white font-extrabold text-xs uppercase rounded-xl transition-all active:scale-95"
                 >
-                  Explore Solutions
+                  Request Product
                 </button>
               </div>
 
@@ -687,7 +687,7 @@ const B2BHome = ({
             </div>
 
             <div 
-              onClick={handleUploadBOQ}
+              onClick={() => navigate('/product-request/new')}
               className={`rounded-2xl p-5 cursor-pointer transition-all flex items-start gap-4 border ${
                 isDark 
                   ? "bg-zinc-955 border-zinc-900 hover:border-zinc-800 text-white" 
@@ -699,11 +699,11 @@ const B2BHome = ({
                   ? "bg-zinc-900 border-zinc-850 text-zinc-400" 
                   : "bg-gray-100 border-gray-200 text-gray-600"
               }`}>
-                <FiShoppingBag className="text-lg" />
+                <FiPlus className="text-lg" />
               </div>
               <div className="min-w-0">
-                <h4 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Bulk Order</h4>
-                <p className="text-xs text-zinc-505 mt-1 leading-relaxed">Competitive pricing for bulk & repeat orders.</p>
+                <h4 className={`text-sm font-bold ${isDark ? "text-white" : "text-gray-900"}`}>Request Product</h4>
+                <p className="text-xs text-zinc-505 mt-1 leading-relaxed">Request custom or unlisted items.</p>
               </div>
             </div>
 
