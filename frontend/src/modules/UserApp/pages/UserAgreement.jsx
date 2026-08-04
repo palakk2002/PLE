@@ -1,13 +1,1023 @@
-import { FiUsers, FiArrowLeft } from "react-icons/fi";
+import { FiUsers, FiArrowLeft, FiDownload } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
+import { useAuthStore } from "../../../shared/store/authStore";
+import { useB2bStore } from "../../../shared/store/b2bStore";
+import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
+import toast from "react-hot-toast";
 
 const UserAgreement = () => {
   const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const b2bUserRole = useB2bStore((state) => state.userRole);
+  const { isBusiness } = useBusinessBuyer();
+  
+  const isB2BUser = isBusiness || user?.role === 'b2bAdmin' || user?.role === 'b2bEmployee' || user?.isEmployee || b2bUserRole === 'business_buyer';
 
-  const sections = [
+  const b2bSections = [
+    {
+      title: "BUSINESS USER AGREEMENT (B2B)",
+      content: `Peoples League Of Electronics Private Limited\nVersion: 1.0`
+    },
+    {
+      title: "Chapter 1 – Introduction",
+      content: `1.1 Purpose
+This Business User Agreement ("Agreement") establishes the legally binding terms governing access to and use of the Business-to-Business ("B2B") Platform, Products, Services, software, applications, websites, procurement solutions, corporate wallet services, and related business offerings provided by Peoples League Of Electronics Private Limited ("Company", "PLE", "we", "our", or "us"). This Agreement is intended to define the rights, obligations, responsibilities, and commercial relationship between the Company and each registered Business User.
+
+1.2 Parties
+This Agreement is entered into between: Peoples League Of Electronics Private Limited, a company incorporated under the Companies Act, 2013, having its registered office at the address notified by the Company from time to time, and the business entity, organization, institution, government body, partnership, sole proprietorship, limited liability partnership, corporation, association, or other legally recognized entity that registers for or uses the Company's B2B Platform ("Business User", "Customer", or "Organization"). Each may be referred to individually as a "Party" and collectively as the "Parties."
+
+1.3 Scope of Agreement
+This Agreement governs the Business User's access to and use of:
+• the Company's B2B Platform;
+• business procurement services;
+• quotation and RFQ systems;
+• purchase order management;
+• supplier and marketplace services;
+• corporate wallet services;
+• employee wallet functionality;
+• payment solutions;
+• logistics coordination;
+• warranty services;
+• support services;
+• software applications;
+• APIs and integrations, where applicable; and
+• any other business services made available by the Company.
+This Agreement applies to all administrators, employees, authorized representatives, contractors, consultants, and other individuals accessing the Platform on behalf of the Business User.
+
+1.4 Acceptance of this Agreement
+By:
+• registering a Business Account;
+• creating an Administrator Account;
+• inviting employees;
+• accessing the Platform;
+• placing Purchase Orders;
+• depositing funds into the Corporate Wallet;
+• allocating funds to Employee Wallets;
+• using any Product or Service; or
+• otherwise continuing to use the Company's services,
+the Business User confirms that it has read, understood, and agrees to be legally bound by this Agreement. Where an individual accepts this Agreement on behalf of a Business User, such individual represents and warrants that they possess the necessary authority to legally bind that Business User.
+
+1.5 Definitions
+Unless otherwise defined elsewhere in this Agreement:
+• Administrator means an individual authorized by the Business User to manage the Business Account.
+• Authorized User means any individual permitted by the Business User to access the Platform.
+• Business Account means the registered organizational account maintained on the Platform.
+• Corporate Wallet means the organizational digital wallet maintained for a Business User.
+• Employee Wallet means an individual wallet assigned to an authorized employee under the Corporate Wallet.
+• Platform means the Company's websites, applications, software, APIs, procurement systems, and related digital services.
+• Products means goods supplied through the Platform.
+• Services means all business services provided by the Company.
+• Purchase Order or PO means an order submitted through the Platform or otherwise accepted by the Company.
+• Business Terms & Conditions means the Company's Business Terms & Conditions, including all applicable schedules.
+• Applicable Law means all laws, regulations, governmental orders, rules, directives, and judicial decisions applicable to the Parties.
+Capitalized terms not defined in this Agreement shall have the meanings assigned to them in the Business Terms & Conditions.
+
+1.6 Relationship with Other Policies
+This Agreement shall be read together with the Company's:
+• Business Terms & Conditions;
+• Privacy Policy;
+• Data Processing Requirements;
+• Corporate Wallet & Fund Management Policy;
+• Seller & Partner Policies, where applicable;
+• Warranty Policy;
+• Return Merchandise Authorization (RMA) Policy;
+• Shipping & Logistics Policies;
+• Cookies Policy;
+• Intellectual Property Policy; and
+• any additional policies or guidelines published by the Company from time to time.
+In the event of any inconsistency:
+1. a separately executed commercial agreement between the Parties shall prevail to the extent of the inconsistency;
+2. this Agreement shall prevail over operational policies;
+3. operational schedules and policies shall prevail for the specific subject matter they govern.
+
+1.7 Amendments
+The Company reserves the right to amend, update, modify, or replace this Agreement from time to time where reasonably necessary for:
+• legal compliance;
+• regulatory requirements;
+• operational improvements;
+• security enhancements;
+• new Products or Services;
+• technological developments; or
+• legitimate business purposes.
+Material changes shall become effective upon publication on the Platform or upon such later date as specified by the Company. Continued use of the Platform after the effective date of any amendment shall constitute acceptance of the revised Agreement. Where required by applicable law, the Company shall provide prior notice of material changes.
+
+1.8 Electronic Records and Communications
+The Business User agrees that:
+• this Agreement may be executed electronically;
+• electronic records shall have the same legal effect as physical records, where permitted by applicable law;
+• electronic communications, notices, approvals, invoices, purchase confirmations, and transaction records may be maintained electronically;
+• electronic acceptance shall constitute legally binding acceptance; and
+• the Company may communicate through email, the Platform, SMS, or other approved electronic means.
+
+1.9 Independent Commercial Relationship
+Nothing contained in this Agreement shall be construed as creating:
+• a partnership;
+• joint venture;
+• employment relationship;
+• agency relationship;
+• fiduciary relationship;
+• franchise;
+• representative office; or
+• exclusive commercial arrangement
+between the Parties. Each Party shall remain an independent legal entity responsible for its own business operations.
+
+1.10 Good Faith
+The Parties agree to perform their respective obligations honestly, fairly, transparently, and in good faith. Each Party shall cooperate with the other to facilitate efficient commercial operations, resolve operational issues, and support the successful use of the Platform.
+
+1.11 Compliance with Applicable Law
+This Agreement shall be interpreted and enforced in accordance with:
+• the Companies Act, 2013;
+• the Information Technology Act, 2000;
+• the Digital Personal Data Protection Act, 2023;
+• the Indian Contract Act, 1872;
+• the Goods and Services Tax laws;
+• the Foreign Exchange Management Act, 1999, where applicable;
+• and all other applicable laws and regulations.
+Where any provision of this Agreement conflicts with mandatory legal requirements, the applicable law shall prevail to the extent of such inconsistency.`
+    },
+    {
+      title: "Chapter 2 – Business Eligibility",
+      content: `2.1 Purpose
+This Chapter establishes the eligibility requirements for organizations seeking to register for, access, or use the Business-to-Business ("B2B") Platform and Services provided by Peoples League Of Electronics Private Limited ("Company", "PLE"). Only eligible Business Users meeting the requirements of this Chapter may register and maintain a Business Account.
+
+2.2 Eligible Business Entities
+The Company's B2B Platform is intended exclusively for legitimate business and institutional use. Eligible entities may include:
+• Companies incorporated under applicable law;
+• Limited Liability Partnerships (LLPs);
+• Partnership Firms;
+• Sole Proprietorships;
+• Government Departments and Public Sector Undertakings;
+• Educational Institutions;
+• Hospitals and Healthcare Institutions;
+• Non-Governmental Organizations (NGOs);
+• Trusts and Societies;
+• Startups;
+• Manufacturers;
+• Importers and Exporters;
+• Distributors;
+• Wholesalers;
+• Retail Businesses purchasing for commercial purposes; and
+• any other entity approved by the Company.
+The Company reserves the right to determine whether an applicant qualifies as an eligible Business User.
+
+2.3 Legal Capacity
+The Business User represents and warrants that it:
+• is duly organized and validly existing under applicable law;
+• possesses the legal authority to conduct its business;
+• has the legal capacity to enter into binding contracts;
+• has obtained all necessary corporate approvals for entering into this Agreement; and
+• is not prohibited by law from using the Platform or purchasing Products or Services offered by the Company.
+
+2.4 Authorized Representative
+Registration on behalf of a Business User shall only be completed by an individual who:
+• is at least eighteen (18) years of age or has otherwise attained the legal age required under applicable law;
+• has authority to legally bind the Business User;
+• has been duly authorized by the Business User;
+• provides accurate registration information; and
+• accepts this Agreement on behalf of the Business User.
+The Company may request evidence of such authority at any time.
+
+2.5 Business Registration Requirements
+The Business User shall provide accurate and complete business information, which may include:
+• Legal Name;
+• Trade Name, if applicable;
+• Certificate of Incorporation or Registration;
+• GST Identification Number (GSTIN), where applicable;
+• Permanent Account Number (PAN);
+• Corporate Identification Number (CIN), where applicable;
+• LLP Identification Number (LLPIN), where applicable;
+• UDYAM Registration, where applicable;
+• Registered Office Address;
+• Principal Place of Business;
+• Authorized Contact Details;
+• Banking Information, where required; and
+• any additional information reasonably requested by the Company.
+Submission of information does not guarantee approval.
+
+2.6 Identity Verification (KYC)
+The Company may require the Business User and its authorized representatives to complete Know Your Customer ("KYC") verification. KYC verification may include:
+• identity verification;
+• business registration verification;
+• tax registration verification;
+• address verification;
+• banking verification;
+• verification of authorized signatories;
+• sanctions screening;
+• fraud prevention checks; and
+• any other due diligence considered necessary by the Company.
+The Company may engage third-party verification providers for this purpose.
+
+2.7 Accuracy of Information
+The Business User represents and warrants that all information provided:
+• is accurate;
+• is complete;
+• is current;
+• is not misleading;
+• is supported by authentic documentation where required; and
+• shall remain updated throughout the duration of the Business Account.
+The Business User shall promptly notify the Company of any material changes to its information.
+
+2.8 Ongoing Eligibility
+Eligibility is an ongoing requirement. The Business User shall continuously maintain:
+• valid legal existence;
+• applicable licenses and registrations;
+• tax compliance;
+• operational capacity;
+• regulatory compliance;
+• authority of its representatives; and
+• compliance with this Agreement.
+Failure to maintain eligibility may result in suspension or termination of the Business Account.
+
+2.9 Restricted Persons and Prohibited Entities
+The following may be restricted from accessing or using the Platform:
+• entities prohibited under applicable law;
+• entities subject to applicable sanctions or trade restrictions;
+• entities involved in unlawful activities;
+• organizations providing false or misleading information;
+• businesses previously suspended or terminated by the Company for material breaches;
+• entities using the Platform for fraudulent, abusive, or unauthorized purposes; and
+• any person or entity that, in the Company's reasonable judgment, presents an unacceptable legal, regulatory, financial, operational, or reputational risk.
+Any restriction or refusal shall be exercised in accordance with applicable law and the Company's internal risk management policies.
+
+2.10 Approval of Registration
+Business registration is subject to review and approval by the Company. The Company may:
+• approve;
+• conditionally approve;
+• request additional documentation;
+• defer approval pending verification; or
+• reject an application,
+where it reasonably determines that eligibility requirements have not been met or that approval would expose the Company to unacceptable legal, regulatory, financial, operational, or reputational risk. Unless required by applicable law, the Company is not obligated to disclose the detailed reasons for rejection.
+
+2.11 Business Responsibilities
+The Business User agrees to:
+• use the Platform solely for lawful business purposes;
+• ensure that only authorized individuals access the Business Account;
+• maintain the confidentiality of account credentials;
+• comply with all applicable laws and Company policies;
+• cooperate during verification or compliance reviews; and
+• promptly report any unauthorized access or suspected misuse of the Business Account.
+
+2.12 Good Faith
+The Business User and the Company shall act honestly, transparently, and in good faith throughout the registration, verification, and ongoing business relationship. The Business User shall provide truthful information and cooperate with reasonable verification requests, while the Company shall administer eligibility assessments fairly and consistently.
+
+2.13 Compliance with Applicable Law
+This Chapter shall be interpreted in accordance with:
+• the Companies Act, 2013;
+• the Indian Contract Act, 1872;
+• the Information Technology Act, 2000;
+• the Digital Personal Data Protection Act, 2023;
+• the Goods and Services Tax laws;
+• the Prevention of Money Laundering Act, 2002, where applicable;
+• the Foreign Exchange Management Act, 1999, where applicable; and
+• all other applicable laws and regulations.
+Where any provision of this Chapter conflicts with mandatory legal requirements, the applicable law shall prevail to the extent of such inconsistency.`
+    },
+    {
+      title: "Chapter 3 – Business Account",
+      content: `3.1 Purpose
+This Chapter establishes the terms governing the creation, administration, operation, security, and management of Business Accounts maintained on the Business-to-Business ("B2B") Platform operated by Peoples League Of Electronics Private Limited ("Company", "PLE"). A Business Account serves as the primary organizational account through which a Business User may access the Company's Products, Services, Corporate Wallet, procurement tools, employee management features, and other business functionalities.
+
+3.2 Business Account Registration
+Eligible Business Users may apply to register a Business Account by completing the registration process prescribed by the Company. Registration may require the Business User to provide:
+• business information;
+• authorized representative details;
+• statutory registrations;
+• contact information;
+• tax information;
+• verification documents;
+• banking information where required; and
+• any additional information reasonably requested by the Company.
+The Company may verify the information provided before activating the Business Account.
+
+3.3 Account Approval
+Business Accounts shall become active only after approval by the Company. The Company may:
+• approve the application;
+• request additional information;
+• approve the account subject to conditions;
+• temporarily suspend activation pending verification; or
+• reject the application.
+Approval of a Business Account does not guarantee approval for any specific Product, Service, credit facility, or commercial transaction.
+
+3.4 Business Account Structure
+Each Business Account shall operate under an organizational hierarchy. The account may include:
+• one or more Administrators;
+• department managers;
+• procurement managers;
+• finance personnel;
+• purchasing officers;
+• employees;
+• auditors;
+• viewers; and
+• other user roles approved by the Company.
+Access rights shall depend upon the permissions assigned by the Business User.
+
+3.5 Administrator Accounts
+The first approved user shall ordinarily become the Primary Administrator unless otherwise determined by the Business User. Administrators may:
+• invite employees;
+• remove employees;
+• assign user roles;
+• manage permissions;
+• manage the Corporate Wallet;
+• allocate funds;
+• approve purchases;
+• manage departments;
+• configure approval workflows;
+• monitor transactions;
+• access reports;
+• suspend employee access; and
+• perform other administrative functions made available by the Platform.
+Administrators act on behalf of the Business User.
+
+3.6 Employee Accounts
+The Business User may authorize employees to access the Platform. Employees may receive access to:
+• assigned procurement functions;
+• Employee Wallets;
+• quotations;
+• purchase requests;
+• approved budgets;
+• invoices;
+• transaction history;
+• project information; and
+• other features permitted by the Administrator.
+Employee access remains subject to the permissions established by the Business User.
+
+3.7 User Roles and Permissions
+The Platform may support role-based access control. Available roles may include:
+• Primary Administrator;
+• Administrator;
+• Finance Manager;
+• Procurement Manager;
+• Department Manager;
+• Project Manager;
+• Purchasing Officer;
+• Employee;
+• Finance Reviewer;
+• Auditor;
+• Read-Only User; and
+• any additional role introduced by the Company.
+Each role shall have only those permissions assigned by the Business User or the Platform.
+
+3.8 Responsibility for Authorized Users
+The Business User remains fully responsible for:
+• all actions performed through its Business Account;
+• activities conducted by Administrators;
+• activities conducted by employees;
+• purchases made using assigned permissions;
+• management of internal approvals;
+• maintenance of accurate user records; and
+• compliance with this Agreement.
+The Business User shall ensure that all Authorized Users comply with this Agreement and applicable Company policies.
+
+3.9 Account Security
+The Business User shall implement reasonable security measures, including:
+• maintaining secure passwords;
+• protecting login credentials;
+• enabling Multi-Factor Authentication (MFA), where available;
+• restricting unauthorized access;
+• periodically reviewing user permissions;
+• removing inactive users;
+• monitoring account activity; and
+• promptly reporting suspected security incidents.
+The Company may implement additional security measures where reasonably necessary.
+
+3.10 Account Information
+The Business User shall ensure that all Business Account information remains:
+• accurate;
+• complete;
+• current;
+• truthful; and
+• supported by authentic documentation where required.
+Material changes relating to ownership, contact information, authorized representatives, tax registrations, or legal status shall be updated promptly.
+
+3.11 Internal Organizational Management
+The Platform may allow Business Users to establish internal organizational structures, including:
+• departments;
+• branches;
+• regional offices;
+• subsidiaries;
+• business units;
+• project teams;
+• procurement groups;
+• approval hierarchies; and
+• cost centers.
+Such organizational structures are intended solely for operational convenience and do not alter the legal responsibilities of the Business User under this Agreement.
+
+3.12 Account Monitoring
+The Company may monitor Business Accounts for purposes including:
+• fraud prevention;
+• cybersecurity;
+• regulatory compliance;
+• operational performance;
+• service improvement;
+• technical support;
+• audit activities; and
+• enforcement of this Agreement.
+Monitoring shall be conducted in accordance with applicable law and the Company's Privacy Policy.
+
+3.13 Suspension of Business Accounts
+The Company may suspend a Business Account, in whole or in part, where it reasonably determines that:
+• this Agreement has been materially breached;
+• fraudulent or unauthorized activity is suspected;
+• required verification cannot be completed;
+• applicable laws require suspension;
+• security of the Platform may be compromised;
+• payment obligations remain materially overdue;
+• false information has been provided; or
+• continued access presents significant legal, regulatory, operational, financial, or reputational risk.
+Where reasonably practicable, the Company may provide notice before suspension.
+
+3.14 Closure of Business Accounts
+A Business Account may be closed:
+• at the request of the Business User;
+• upon mutual agreement of the Parties;
+• following termination of this Agreement;
+• upon dissolution of the Business User;
+• where required by law; or
+• by the Company in accordance with this Agreement.
+Closure shall not affect:
+• outstanding payment obligations;
+• pending Purchase Orders;
+• ongoing warranty claims;
+• dispute resolution procedures;
+• audit rights; or
+• obligations intended to survive termination.
+
+3.15 Account Records
+The Company may maintain records relating to:
+• Business Account registration;
+• user access;
+• login history;
+• administrative actions;
+• employee invitations;
+• permission changes;
+• procurement activity;
+• Corporate Wallet transactions;
+• Employee Wallet transactions;
+• audit logs;
+• communications; and
+• security events.
+Such records may be retained for operational management, regulatory compliance, auditing, fraud prevention, dispute resolution, and legal purposes.
+
+3.16 No Transfer of Business Account
+A Business Account is personal to the registered Business User. The Business User shall not:
+• sell;
+• assign;
+• transfer;
+• lease;
+• sublicense;
+• permit unauthorized access to; or
+• otherwise dispose of
+the Business Account without the Company's prior written consent. Any approved transfer shall remain subject to the Company's verification procedures.
+
+3.17 Good Faith
+The Parties shall cooperate in good faith to maintain secure, accurate, and efficient Business Account operations. The Business User shall responsibly manage its Administrators and Authorized Users, and the Company shall administer the Platform in a fair, transparent, and commercially reasonable manner.
+
+3.18 Compliance with Applicable Law
+This Chapter shall be interpreted in accordance with:
+• the Companies Act, 2013;
+• the Indian Contract Act, 1872;
+• the Information Technology Act, 2000;
+• the Digital Personal Data Protection Act, 2023;
+• the Goods and Services Tax laws;
+• applicable cybersecurity regulations; and
+• all other applicable laws and regulations.
+Where any provision of this Chapter conflicts with mandatory legal requirements, the applicable law shall prevail to the extent of such inconsistency.`
+    },
+    {
+      title: "Chapter 4 – Corporate Wallet & Employee Wallet",
+      content: `4.1 Purpose
+This Chapter governs the creation, administration, funding, allocation, management, and use of the Corporate Wallet and Employee Wallet services provided by Peoples League Of Electronics Private Limited ("Company", "PLE") through its Business-to-Business ("B2B") Platform. The Corporate Wallet enables Business Users to centrally manage organizational purchasing funds while allowing authorized employees to conduct approved business transactions within limits established by the Business User. The Wallet Services are designed solely as an internal business payment and fund management tool within the Platform and shall not be construed as a banking service, deposit account, electronic money, prepaid payment instrument, or regulated financial product unless expressly stated otherwise and required by applicable law.
+
+4.2 Wallet Structure
+Each approved Business Account may be assigned one or more Corporate Wallets by the Company. The Wallet structure consists of:
+• Corporate Wallet, managed by the Business User through its Administrators;
+• Employee Wallets, assigned to Authorized Employees;
+• transaction records;
+• allocation records;
+• audit logs; and
+• associated wallet management tools made available by the Platform.
+The Company reserves the right to modify wallet functionality as the Platform evolves.
+
+4.3 Corporate Wallet
+The Corporate Wallet serves as the primary organizational wallet. It may be used to:
+• receive company-funded deposits;
+• maintain organizational purchasing balances;
+• allocate funds to Employee Wallets;
+• approve departmental budgets;
+• manage project allocations;
+• receive refunds;
+• maintain transaction records;
+• monitor expenditures; and
+• perform other functions provided by the Platform.
+The Corporate Wallet shall remain under the control of the Business User through its designated Administrators.
+
+4.4 Employee Wallet
+The Company may assign an individual Employee Wallet to each Authorized Employee. An Employee Wallet may:
+• receive allocations from the Corporate Wallet;
+• receive personal deposits made by the Employee, where permitted;
+• receive approved refunds;
+• make purchases authorized by the Business User;
+• maintain transaction history;
+• display available balances; and
+• perform other wallet functions supported by the Platform.
+An Employee Wallet shall remain linked to the Business User's Corporate Wallet and shall not constitute an independent business account.
+
+4.5 Sources of Funds
+Funds within the Wallet system may originate from one or more of the following sources:
+(a) Company Funds
+Funds deposited into the Corporate Wallet by the Business User.
+(b) Employee Personal Funds
+Funds voluntarily deposited by an Employee into the Employee Wallet using approved payment methods.
+(c) Refund Credits
+Amounts credited following approved refunds, cancellations, warranty claims, or other adjustments.
+(d) Promotional Credits
+Credits, incentives, rewards, cashback, or promotional balances issued by the Company.
+(e) Other Credits
+Any additional credit category introduced by the Company from time to time.
+The Platform may separately identify each category of funds for accounting and operational purposes.
+
+4.6 Administrator Authority
+Subject to permissions configured by the Business User, Administrators may:
+• deposit Company Funds into the Corporate Wallet;
+• allocate Company Funds to Employee Wallets;
+• approve or reject funding requests;
+• establish departmental budgets;
+• set employee spending limits;
+• approve purchases;
+• freeze Employee Wallets;
+• suspend wallet access;
+• monitor wallet activity;
+• review reports;
+• reallocate available Company Funds; and
+• perform additional administrative functions provided by the Platform.
+Administrators act solely on behalf of the Business User.
+
+4.7 Employee Authority
+Employees may, subject to permissions granted by the Business User:
+• receive Company Fund allocations;
+• deposit personal funds into their Employee Wallet;
+• use available balances for authorized purchases;
+• submit purchase requests;
+• request additional funding;
+• review wallet balances;
+• access transaction history;
+• download available statements; and
+• perform other wallet functions permitted by the Platform.
+Employees shall use the Wallet solely for lawful business purposes unless expressly authorized by the Business User.
+
+4.8 Allocation of Company Funds
+Administrators may allocate Company Funds from the Corporate Wallet to one or more Employee Wallets. Allocations may be based upon:
+• departments;
+• projects;
+• business units;
+• purchase requests;
+• employee roles;
+• procurement requirements;
+• expense budgets; or
+• other organizational criteria established by the Business User.
+Allocated Company Funds remain organizational assets of the Business User until applied to an authorized transaction.
+
+4.9 Employee Personal Funds
+Employees may voluntarily deposit personal funds into their Employee Wallet where the Platform permits. Personal funds:
+• shall remain separately identifiable from Company Funds;
+• may be used for purchases permitted by the Platform;
+• shall not automatically become Company property;
+• may be subject to separate refund procedures; and
+• shall remain subject to applicable payment processing requirements.
+The Company shall maintain reasonable operational separation between Company Funds and Employee Personal Funds within its records.
+
+4.10 Spending Limits
+The Business User may establish spending controls including:
+• maximum transaction values;
+• daily spending limits;
+• weekly spending limits;
+• monthly spending limits;
+• departmental budgets;
+• project budgets;
+• merchant restrictions;
+• Product category restrictions;
+• approval thresholds; and
+• other configurable spending controls supported by the Business User.
+The Company shall not be responsible for internal spending policies established by the Business User.
+
+4.11 Purchase Approval Workflow
+Where enabled by the Business User, purchases may require one or more internal approvals before completion. Approval workflows may include:
+• employee request;
+• manager approval;
+• finance approval;
+• procurement approval;
+• administrator approval; or
+• any other approval hierarchy configured by the Business User.
+The Company provides the workflow functionality but is not responsible for internal approval decisions.
+
+4.12 Wallet Transactions
+Wallet transactions may include:
+• Company deposits;
+• employee deposits;
+• fund allocations;
+• purchase payments;
+• refunds;
+• cancellations;
+• promotional credits;
+• wallet adjustments;
+• administrative corrections; and
+• other transactions supported by the Platform.
+Each transaction may generate an electronic record.
+
+4.13 Refunds and Reversals
+Approved refunds may be credited to:
+• the original funding source;
+• the Corporate Wallet;
+• the Employee Wallet;
+• another approved payment method; or
+• another destination determined under the applicable refund policy.
+Where purchases were funded using multiple funding sources, refunds may be apportioned in accordance with the Platform's refund procedures.
+
+4.14 Wallet Suspension
+The Company may suspend or restrict Wallet functionality where it reasonably determines that:
+• fraudulent activity is suspected;
+• unauthorized access has occurred;
+• legal or regulatory requirements require suspension;
+• payment verification is incomplete;
+• material security concerns exist;
+• this Agreement has been materially breached; or
+• continued operation presents significant legal, financial, operational, or reputational risk.
+Where reasonably practicable, the Company shall provide notice of such suspension.
+
+4.15 Audit Trail
+The Platform may maintain comprehensive electronic records relating to:
+• deposits;
+• allocations;
+• spending;
+• approvals;
+• transfers;
+• refunds;
+• administrative actions;
+• login activity;
+• wallet adjustments;
+• security events; and
+• other wallet-related activities.
+Such records may be retained for accounting, auditing, fraud prevention, regulatory compliance, dispute resolution, and operational purposes.
+
+4.16 Wallet Balances
+Wallet balances displayed on the Platform represent the recorded available balance at the time of display and may be subject to pending authorizations, processing delays, reversals, settlements, or technical adjustments. The Company reserves the right to correct any clerical, accounting, or technical errors affecting wallet balances after providing appropriate notice where reasonably practicable.
+
+4.17 No Interest or Investment
+Unless expressly required by applicable law or agreed in writing:
+• Wallet balances shall not earn interest;
+• Wallet balances shall not constitute investments;
+• Wallet balances shall not create any fiduciary relationship between the Company and the Business User or Employee; and
+• the Company shall not be liable for any opportunity cost associated with maintaining Wallet balances.
+
+4.18 Good Faith
+The Parties shall administer and use the Corporate Wallet and Employee Wallet honestly, responsibly, and in good faith. The Business User shall establish appropriate internal controls over wallet usage, and the Company shall administer the Wallet Services in a fair, transparent, and commercially reasonable manner.
+
+4.19 Compliance with Applicable Law
+This Chapter shall be interpreted in accordance with:
+• the Companies Act, 2013;
+• the Indian Contract Act, 1872;
+• the Information Technology Act, 2000;
+• the Digital Personal Data Protection Act, 2023;
+• the Goods and Services Tax laws;
+• the Prevention of Money Laundering Act, 2002, where applicable;
+• the Foreign Exchange Management Act, 1999, where applicable; and
+• all other applicable laws and regulations.
+Where any provision of this Chapter conflicts with mandatory legal requirements, the applicable law shall prevail to the extent of such inconsistency.`
+    },
+    {
+      title: "Chapter 5 – Orders & Procurement",
+      content: `5.1 Purpose
+This Chapter governs the procurement lifecycle for Products and Services acquired through the Business-to-Business ("B2B") Platform operated by Peoples League Of Electronics Private Limited ("Company", "PLE"). It establishes the procedures governing product discovery, requests for quotations, purchase requests, approvals, Purchase Orders, order acceptance, modifications, cancellations, fulfillment, and related procurement activities.
+
+5.2 Scope
+This Chapter applies to all procurement activities conducted through the Platform, including:
+• Product browsing;
+• Requests for Quotations (RFQs);
+• quotations;
+• purchase requests;
+• Purchase Orders (POs);
+• corporate procurement;
+• employee purchases;
+• departmental procurement;
+• project procurement;
+• recurring orders;
+• supplier-assisted procurement; and
+• any other procurement services offered by the Company.
+
+5.3 Procurement Workflow
+The Platform may support one or more procurement workflows, including:
+• Direct Purchase;
+• Request for Quotation (RFQ);
+• Purchase Request;
+• Multi-level Approval Workflow;
+• Department-Based Procurement;
+• Budget-Controlled Procurement;
+• Tender-Based Procurement;
+• Contract Procurement; and
+• Custom procurement workflows approved by the Company.
+The availability of any workflow may depend on the Business User's subscription, configuration, or commercial arrangement.
+
+5.4 Product Information
+The Company endeavors to provide accurate information regarding Products and Services, including:
+• Product descriptions;
+• specifications;
+• technical documentation;
+• compatibility information;
+• pricing;
+• warranty information;
+• availability;
+• certifications;
+• Manufacturer information; and
+• Product images.
+The Business User remains responsible for determining whether a Product is suitable for its intended use. Minor typographical, technical, or clerical errors may be corrected by the Company without creating any contractual obligation.
+
+5.5 Requests for Quotation (RFQs)
+Business Users may submit RFQs through the Platform. An RFQ may include:
+• Product specifications;
+• quantity;
+• delivery location;
+• preferred delivery timeline;
+• technical requirements;
+• project requirements;
+• warranty expectations;
+• commercial terms; and
+• any additional procurement information.
+Submission of an RFQ does not create any obligation upon either Party.
+
+5.6 Quotations
+The Company may issue quotations based on information provided by the Business User. Unless expressly stated otherwise, quotations:
+• are non-binding invitations to contract;
+• remain subject to Product availability;
+• may include validity periods;
+• may be withdrawn before acceptance;
+• may be revised to correct clerical or technical errors; and
+• do not constitute acceptance of a Purchase Order.
+A quotation shall expire upon the earlier of its stated validity period or withdrawal by the Company.
+
+5.7 Purchase Requests
+Where enabled by the Business User, employees may submit internal purchase requests through the Platform. Purchase requests may be routed through internal approval workflows configured by the Business User. The Company is not responsible for the Business User's internal procurement approvals or authorization procedures.
+
+5.8 Purchase Orders
+A Purchase Order ("PO") may be submitted electronically through the Platform or by any other method accepted by the Company. A Purchase Order should accurately specify, where applicable:
+• Product details;
+• quantities;
+• agreed pricing;
+• delivery location;
+• delivery schedule;
+• billing information;
+• applicable tax information;
+• reference numbers;
+• payment terms; and
+• any special procurement requirements.
+The Business User shall ensure that all Purchase Orders are accurate and complete.
+
+5.9 Order Acceptance
+Submission of a Purchase Order does not automatically create a binding contract. A Purchase Order shall be deemed accepted only when the Company:
+• issues written confirmation;
+• generates an order confirmation through the Platform;
+• dispatches the Product;
+• begins performance of the applicable Services; or
+• otherwise expressly accepts the Purchase Order.
+The Company reserves the right to reject any Purchase Order prior to acceptance.
+
+5.10 Pricing and Availability
+Product prices and availability may change prior to acceptance of a Purchase Order. The Company reserves the right to:
+• correct pricing errors;
+• revise quotations before acceptance;
+• decline orders affected by material pricing inaccuracies;
+• substitute discontinued Products where agreed;
+• allocate inventory during shortages; and
+• update Product availability without prior notice.
+Where a material pricing error exists, the Company may contact the Business User to obtain revised approval before processing the order.
+
+5.11 Order Modifications
+The Business User may request modifications to a Purchase Order before dispatch or commencement of Services. Modification requests may include changes to:
+• Product quantity;
+• delivery location;
+• delivery schedule;
+• billing information;
+• authorized recipient; or
+• other commercial terms.
+The Company shall use commercially reasonable efforts to accommodate such requests but does not guarantee acceptance. Approved modifications may affect pricing, availability, delivery timelines, or other commercial terms.
+
+5.12 Order Cancellation
+Purchase Orders may be cancelled only:
+• before acceptance by the Company;
+• in accordance with the applicable Contract;
+• where permitted by applicable law; or
+• with the Company's written approval.
+The Company may recover reasonable costs incurred before cancellation, including procurement, logistics, customization, or administrative expenses, where permitted by applicable law and the applicable commercial agreement. Customized, special-order, or non-standard Products may not be eligible for cancellation after acceptance.
+
+5.13 Backorders and Partial Fulfilment
+Where Products are temporarily unavailable, the Company may, subject to the Business User's instructions and the applicable commercial arrangement:
+• place Products on backorder;
+• fulfill the order in installments;
+• substitute equivalent Products with the Business User's approval;
+• revise delivery schedules; or
+• cancel the unavailable portion of the order.
+The Company shall make commercially reasonable efforts to communicate significant delays or changes.
+
+5.14 Delivery and Risk
+Delivery shall be governed by:
+• the applicable Purchase Order;
+• the Business Terms & Conditions;
+• Schedule C – Logistics & Delivery Standards;
+• any agreed Incoterms®, where applicable; and
+• any separately executed commercial agreement.
+Risk and ownership shall transfer in accordance with the applicable contractual terms.
+
+5.15 Order Records
+The Company may maintain records relating to:
+• RFQs;
+• quotations;
+• purchase requests;
+• Purchase Orders;
+• approvals;
+• order confirmations;
+• delivery records;
+• invoices;
+• communications;
+• amendments; and
+• procurement history.
+Such records may be retained for operational, accounting, auditing, regulatory, legal, and dispute resolution purposes.
+
+5.16 Fraud Prevention
+The Company may suspend, investigate, reject, or cancel any procurement activity where it reasonably suspects:
+• unauthorized transactions;
+• fraudulent activity;
+• identity misuse;
+• payment fraud;
+• procurement abuse;
+• false representations;
+• sanctions violations; or
+• other unlawful or prohibited conduct.
+The Company may request additional verification before proceeding with the transaction.
+
+5.17 Good Faith
+The Parties shall conduct procurement activities honestly, transparently, and in good faith. The Business User shall submit accurate procurement information and comply with internal approval processes, while the Company shall administer procurement services in a fair, commercially reasonable, and professional manner.
+
+5.18 Compliance with Applicable Law
+This Chapter shall be interpreted in accordance with:
+• the Indian Contract Act, 1872;
+• the Sale of Goods Act, 1930;
+• the Companies Act, 2013;
+• the Goods and Services Tax laws;
+• the Information Technology Act, 2000;
+• applicable import and export regulations;
+• applicable competition laws; and
+• all other applicable laws and regulations.
+Where any provision of this Chapter conflicts with mandatory legal requirements, the applicable law shall prevail to the extent of such inconsistency.`
+    },
+    {
+      title: "Chapter 6 – Payments",
+      content: `6.1 Purpose
+This Chapter establishes the terms governing payments for Products and Services purchased through the Business-to-Business ("B2B") Platform operated by Peoples League Of Electronics Private Limited ("Company", "PLE"). It governs payment methods, Corporate Wallet payments, Employee Wallet payments, invoices, taxes, credit facilities, payment verification, refunds, and related financial transactions.
+
+6.2 Payment Methods
+The Company may accept one or more of the following payment methods, subject to availability and applicable law:
+• Corporate Wallet;
+• Employee Wallet;
+• Bank Transfer (NEFT, RTGS, IMPS);
+• Unified Payments Interface (UPI);
+• Net Banking;
+• Credit or Debit Cards;
+• Payment Gateway Services;
+• Letter of Credit (LC);
+• Escrow arrangements;
+• Approved Credit Facilities; and
+• any other payment method approved by the Company.
+The availability of any payment method may vary based on the Business User, Product, transaction value, jurisdiction, or commercial agreement.
+
+6.3 Corporate Wallet Payments
+The Business User may make payments using funds available in its Corporate Wallet. Payments made from the Corporate Wallet shall:
+• be deducted from the available wallet balance;
+• generate an electronic transaction record;
+• be reflected in the Business User's transaction history; and
+• be subject to the Corporate Wallet & Employee Wallet provisions of this Agreement.
+The Business User is responsible for maintaining sufficient available funds prior to initiating a transaction.
+
+6.4 Employee Wallet Payments
+Where permitted by the Business User, Employees may complete transactions using their Employee Wallet. An Employee Wallet transaction may utilize:
+• Company-allocated funds;
+• Employee Personal Funds; or
+• a combination of both,
+in accordance with the Business User's configured payment preferences and Platform rules. The Platform may display the funding source used for each transaction.
+
+6.5 Internal Approval Prior to Payment
+The Business User may configure internal approval workflows before payment is authorized. Such workflows may include:
+• employee purchase requests;
+• department manager approval;
+• procurement approval;
+• finance approval;
+• administrator approval; or
+• other approval hierarchies determined by the Business User.
+The Company provides the technical functionality for such workflows but is not responsible for the Business User's internal financial controls or approval decisions.
+
+6.6 Invoices
+The Company may issue invoices electronically or in another legally recognized format. Invoices may include:
+• invoice number;
+• invoice date;
+• Purchase Order reference;
+• Product descriptions;
+• quantity;
+• unit price;
+• taxes;
+• discounts;
+• freight charges;
+• total payable amount;
+• payment due date; and
+• payment instructions.
+Invoices shall constitute the official commercial record unless corrected by the Company.
+
+6.7 Taxes
+Unless expressly stated otherwise:
+• all applicable taxes shall be calculated in accordance with applicable law;
+• Goods and Services Tax (GST) shall be charged where applicable;
+• statutory deductions shall remain the responsibility of the applicable Party;
+• the Business User shall provide valid tax information where required; and
+• each Party shall comply with applicable tax laws.
+The Company may modify tax calculations where required by changes in applicable law.
+
+6.8 Credit Facilities
+Where separately approved, the Company may extend commercial credit facilities to eligible Business Users. Approval of a credit facility shall remain entirely discretionary. Credit facilities may include:
+• approved credit limits;
+• deferred payment terms;
+• project-based credit;
+• milestone-based payments;
+• revolving commercial credit; or
+• other commercial arrangements agreed in writing.
+Credit facilities shall remain subject to Schedule B – Credit Policy.
+
+6.9 Payment Due Date
+Payments shall become due in accordance with:
+• the applicable invoice;
+• approved quotation;
+• Purchase Order;
+• commercial agreement;
+• credit arrangement; or
+• other agreed payment terms.
+Payment shall be deemed completed only after cleared funds are received by the Company or a successful Wallet transaction has been confirmed by the Platform.
+
+6.10 Failed or Declined Payments
+Where a payment fails or is declined, the Company may:
+• suspend order processing;
+• cancel the pending transaction;
+• request an alternative payment method;
+• suspend Wallet functionality;
+• suspend applicable credit facilities; or
+• take other commercially reasonable actions necessary to complete the transaction.
+The Business User remains responsible for ensuring timely payment using an approved payment method.
+
+6.11 Payment Verification
+The Company may verify payments before confirming an order. Verification may include:
+• payment gateway confirmation;
+• banking confirmation;
+• Wallet verification;
+• fraud detection;
+• identity verification;
+• transaction monitoring; and
+• regulatory compliance checks.
+Order fulfillment may be delayed until verification is successfully completed.
+
+6.12 Refunds
+Approved refunds shall be processed in accordance with:
+• this Agreement;
+• the applicable Purchase Order;
+• the Business Terms & Conditions;
+• the Return Merchandise Authorization (RMA) Policy;
+• the Corporate Wallet & Employee Wallet provisions; and
+• applicable law.
+Refunds may be credited to:
+• the original payment source;
+• the Corporate Wallet;
+• the Employee Wallet; or
+• another method approved by the Company and permitted by law.
+
+6.13 Chargebacks and Payment Disputes
+The Business User shall promptly notify the Company of any disputed payment. The Parties shall cooperate in good faith to investigate and resolve payment disputes. Unauthorized or fraudulent chargebacks may result in:
+• suspension of the Business Account;
+• suspension of Wallet Services;
+• suspension of credit facilities;
+• recovery proceedings; or
+• other contractual or legal remedies available to the Company.
+
+6.14 Financial Records
+The Company may maintain records relating to:
+• payments;
+• invoices;
+• Wallet transactions;
+• credit facilities;
+• refunds;
+• payment disputes; and
+• statutory accounting details.
+Such records may be retained in accordance with applicable tax, accounting, and legal requirements.`
+    }
+  ];
+
+  const b2cSections = [
     {
       title: "1. Introduction",
       content: `Welcome to Peoples League Of Electronics Private Limited ("Company", "PLE", "we", "our", or "us"). This User Agreement ("Agreement") governs your access to and use of the consumer ("B2C") services offered through the Company's websites, mobile applications, and other digital platforms (collectively, the "Platform"). This Agreement establishes the rights, responsibilities, and obligations between the Company and registered Users of the Platform. It applies to all consumer accounts created for personal, household, or non-commercial use.
@@ -436,25 +1446,55 @@ Pin Code: 590010`
     }
   ];
 
+  const activeSections = isB2BUser ? b2bSections : b2cSections;
+
+  const handleDownload = () => {
+    const header = isB2BUser ? "BUSINESS USER AGREEMENT (B2B)\nPeoples League Of Electronics Private Limited\n\n" : "USER AGREEMENT (B2C)\nPeoples League Of Electronics Private Limited\n\n";
+    const textContent = header + activeSections.map(s => `${s.title}\n\n${s.content}`).join("\n\n----------------------------------------\n\n");
+    const blob = new Blob([textContent], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = isB2BUser ? "PLE_Business_User_Agreement_B2B.txt" : "PLE_User_Agreement_B2C.txt";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success("User Agreement downloaded successfully");
+  };
+
   return (
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
         <div className="max-w-3xl mx-auto px-4 py-6 pb-24 min-h-screen">
           {/* Header */}
-          <div className="flex items-center gap-3 mb-6">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
-              aria-label="Go Back"
-            >
-              <FiArrowLeft className="text-xl text-gray-700" />
-            </button>
-            <div>
-              <h1 className="text-xl md:text-2xl font-extrabold text-gray-800 flex items-center gap-2">
-                <FiUsers className="text-[#7B0A0A]" /> User Agreement
-              </h1>
-              <p className="text-xs text-gray-500 font-medium">Last updated: June 2026</p>
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
+                aria-label="Go Back"
+              >
+                <FiArrowLeft className="text-xl text-gray-700" />
+              </button>
+              <div>
+                <h1 className="text-xl md:text-2xl font-extrabold text-gray-800 flex items-center gap-2">
+                  <FiUsers className="text-[#7B0A0A]" /> {isB2BUser ? "Business User Agreement" : "User Agreement"}
+                </h1>
+                <p className="text-xs text-gray-500 font-medium">
+                  {isB2BUser ? "Peoples League Of Electronics Private Limited | Version 1.0" : "Last updated: June 2026"}
+                </p>
+              </div>
             </div>
+            {isB2BUser && (
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-1.5 px-3.5 py-2 bg-primary-600 text-white rounded-xl text-xs font-bold shadow-sm hover:bg-primary-700 transition-colors"
+              >
+                <FiDownload className="text-sm" />
+                <span>Download</span>
+              </button>
+            )}
           </div>
 
           {/* Content Card */}
@@ -464,11 +1504,13 @@ Pin Code: 590010`
             className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm space-y-6"
           >
             <p className="text-sm text-gray-600 leading-relaxed font-semibold">
-              This Agreement details the B2C user rights, guidelines, and obligations for using our customer portal, apps, and services.
+              {isB2BUser
+                ? "This Business User Agreement governs access to and use of the B2B Platform, Corporate & Employee Wallet services, procurement workflows, and related business offerings provided by Peoples League Of Electronics Private Limited."
+                : "This Agreement details the B2C user rights, guidelines, and obligations for using our customer portal, apps, and services."}
             </p>
 
             <div className="border-t border-gray-100 pt-6 space-y-6">
-              {sections.map((section, idx) => (
+              {activeSections.map((section, idx) => (
                 <div key={idx} className="space-y-2">
                   <h3 className="text-base font-bold text-gray-800">{section.title}</h3>
                   <div className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">{section.content}</div>
@@ -478,7 +1520,9 @@ Pin Code: 590010`
 
             <div className="border-t border-gray-100 pt-6 text-center">
               <p className="text-xs text-gray-500">
-                If you have questions about this Agreement, please contact our support desk at support@ple.com.
+                {isB2BUser
+                  ? "If you have questions about this Business User Agreement, please contact our B2B legal desk at b2blegal@peoplesleagueofelectronics.com."
+                  : "If you have questions about this Agreement, please contact our support desk at support@ple.com."}
               </p>
             </div>
           </motion.div>

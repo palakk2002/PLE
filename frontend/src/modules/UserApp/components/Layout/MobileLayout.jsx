@@ -80,7 +80,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     };
   }, []);
 
-      const isLegalPath = pathname.startsWith('/legal/') || pathname === '/privacy-policy' || pathname === '/terms-and-conditions' || pathname === '/user-agreement' || pathname === '/return-policy' || pathname === '/warranty-policy';
+      const isLegalPath = pathname.startsWith('/legal/') || pathname === '/privacy-policy' || pathname === '/terms-and-conditions' || pathname === '/user-agreement' || pathname === '/return-policy' || pathname === '/warranty-policy' || pathname === '/business-onboarding-policy' || pathname === '/execution-acceptance-policy';
 
       const paddingClasses = shouldNoPadding 
         ? "px-0" 

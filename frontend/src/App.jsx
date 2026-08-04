@@ -228,6 +228,9 @@ const UserAgreement = lazy(() => import("./modules/UserApp/pages/UserAgreement")
 const LegalPage = lazy(() => import("./modules/UserApp/pages/LegalPage"));
 const UserReturnPolicy = lazy(() => import("./modules/UserApp/pages/ReturnPolicy"));
 const UserWarrantyPolicy = lazy(() => import("./modules/UserApp/pages/WarrantyPolicy"));
+const BusinessOnboardingPolicy = lazy(() => import("./modules/UserApp/pages/BusinessOnboardingPolicy"));
+const ExecutionAcceptancePolicy = lazy(() => import("./modules/UserApp/pages/ExecutionAcceptancePolicy"));
+const ShippingDeliveryPolicy = lazy(() => import("./modules/UserApp/pages/ShippingDeliveryPolicy"));
 const AboutUs = lazy(() => import("./modules/UserApp/pages/AboutUs"));
 const Returns = lazy(() => import("./modules/UserApp/pages/Returns"));
 const ReturnRequestForm = lazy(() => import("./modules/UserApp/pages/ReturnRequestForm"));
@@ -764,6 +767,30 @@ const AppRoutes = () => {
         element={
           <RouteWrapper>
             <UserAgreement />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/business-onboarding-policy"
+        element={
+          <RouteWrapper>
+            <BusinessOnboardingPolicy />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/execution-acceptance-policy"
+        element={
+          <RouteWrapper>
+            <ExecutionAcceptancePolicy />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/shipping-and-delivery-policy"
+        element={
+          <RouteWrapper>
+            <ShippingDeliveryPolicy />
           </RouteWrapper>
         }
       />

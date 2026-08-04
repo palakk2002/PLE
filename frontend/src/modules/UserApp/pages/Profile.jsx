@@ -548,6 +548,14 @@ const MobileProfile = () => {
 
   const legalOptions = [
     {
+      id: "execution-acceptance",
+      label: "Execution & Acceptance Policy",
+      icon: FiFileText,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/execution-acceptance-policy",
+    },
+    {
       id: "privacy",
       label: "Privacy Policy",
       icon: FiFileText,
@@ -578,6 +586,22 @@ const MobileProfile = () => {
       color: "text-[#7B0A0A]",
       bg: "bg-red-50",
       link: "/return-policy",
+    },
+    {
+      id: "business-onboarding",
+      label: "Business Onboarding Policy",
+      icon: FiFileText,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/business-onboarding-policy",
+    },
+    {
+      id: "shipping-delivery",
+      label: "Shipping and Delivery Policy",
+      icon: FiFileText,
+      color: "text-[#7B0A0A]",
+      bg: "bg-red-50",
+      link: "/shipping-and-delivery-policy",
     },
     {
       id: "warranty",
