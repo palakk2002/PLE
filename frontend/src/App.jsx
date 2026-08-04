@@ -686,6 +686,7 @@ const AppRoutes = () => {
         }
       />
 
+
       <Route
         path="/loyalty-history"
         element={
@@ -807,6 +808,14 @@ const AppRoutes = () => {
         element={
           <RouteWrapper>
             <UserReturnPolicy />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/warranty-policy"
+        element={
+          <RouteWrapper>
+            <UserWarrantyPolicy />
           </RouteWrapper>
         }
       />

@@ -55,6 +55,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     pathname === '/user-agreement' ||
     pathname === '/return-policy' ||
     pathname === '/warranty-policy' ||
+    pathname === '/warranty-policy' ||
     pathname === '/about-us' ||
     pathname.startsWith('/legal/');
 

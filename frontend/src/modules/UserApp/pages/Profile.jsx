@@ -54,6 +54,7 @@ import { MyProductEnquiries } from "../components/Enquiry/MyProductEnquiries";
 import { useB2BAdminStore } from "../../B2BAdmin/store/b2bAdminStore";
 
 
+
 const MobileProfile = () => {
   const navigate = useNavigate();
   const { isBusiness, setUserRole } = useBusinessBuyer();
@@ -102,6 +103,7 @@ const MobileProfile = () => {
 
 
 
+
   useEffect(() => {
     if ((isB2CUser || isB2BUser) && user) {
       fetchBalance();
@@ -117,6 +119,7 @@ const MobileProfile = () => {
       fetchDbCompanyProfile();
     }
   }, [user, isB2BUser, isB2BAdmin, fetchDbEmployees, fetchDbCompanyProfile]);
+
 
 
 
