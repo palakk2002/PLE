@@ -25,17 +25,17 @@ const ProtectedRoute = ({ children }) => {
   const isExpired = tokenExpiryMs ? Date.now() >= tokenExpiryMs : false;
 
   if (!isAuthenticated || !accessToken) {
-    return <Navigate to="/portal" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (isExpired) {
     useAuthStore.getState().logout();
-    return <Navigate to="/portal" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   if (resolvedRole && !['customer', 'business_buyer', 'b2badmin', 'b2bemployee'].includes(resolvedRole)) {
     useAuthStore.getState().logout();
-    return <Navigate to="/portal" state={{ from: location }} replace />;
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   return children;
