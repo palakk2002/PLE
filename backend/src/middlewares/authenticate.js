@@ -15,9 +15,13 @@ export const authenticate = asyncHandler(async (req, res, next) => {
 
     try {
         const decoded = verifyAccessToken(token);
+        if (decoded && decoded.type === '2fa_pending') {
+            throw new ApiError(401, 'Complete 2FA verification to access this resource.');
+        }
         req.user = decoded; // { id, role, email }
         next();
     } catch (err) {
+        if (err instanceof ApiError) throw err;
         throw new ApiError(401, 'Invalid or expired token.');
     }
 });

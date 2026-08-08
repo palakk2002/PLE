@@ -11,6 +11,8 @@ const errorHandler = (err, req, res, next) => {
         error = new ApiError(statusCode, message, error.errors || [], err.stack);
     }
 
+
+
     // Mongoose duplicate key error
     if (err.code === 11000) {
         const field = Object.keys(err.keyValue)[0];

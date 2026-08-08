@@ -5,9 +5,11 @@ import Vendor from '../../../models/Vendor.model.js';
 import ManagedVendorUser from '../../../models/ManagedVendorUser.model.js';
 import Admin from '../../../models/Admin.model.js';
 import { generateTokens } from '../../../utils/generateToken.js';
+import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.service.js';
 import { sendOTP } from '../../../services/otp.service.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { sendEmail } from '../../../services/email.service.js';
+import { initiateProfileUpdateOTP, verifyProfileUpdateOTP, resendProfileUpdateOTP } from '../../../services/profileOtp.service.js';
 import {
     clearRefreshSession,
     decodeRefreshTokenOrThrow,
@@ -39,6 +41,16 @@ export const register = asyncHandler(async (req, res) => {
     let gstCertificate = '';
     let msmeCertificate = '';
     let identityProof = '';
+    let registrationProofUrl = '';
+    let registrationProofName = '';
+    let registrationProofUploadedAt = null;
+    let registrationProofCreatedBy = '';
+    let businessLetterUrl = '';
+    let businessLetterName = '';
+    let businessLetterUploadedAt = null;
+    let partnershipAgreementUrl = '';
+    let partnershipAgreementName = '';
+    let partnershipAgreementUploadedAt = null;
 
     if (req.files) {
         if (req.files.gstCertificate?.[0]) {
@@ -65,6 +77,37 @@ export const register = asyncHandler(async (req, res) => {
             );
             identityProof = uploaded.url;
         }
+        if (req.files.registrationProof?.[0]) {
+            const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+                req.files.registrationProof[0].path,
+                'vendors/verification/registration_proof',
+                'auto'
+            );
+            registrationProofUrl = uploaded.url;
+            registrationProofName = req.files.registrationProof[0].originalname;
+            registrationProofUploadedAt = new Date();
+            registrationProofCreatedBy = 'Vendor';
+        }
+        if (req.files.businessLetter?.[0]) {
+            const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+                req.files.businessLetter[0].path,
+                'vendors/verification/business_letters',
+                'auto'
+            );
+            businessLetterUrl = uploaded.url;
+            businessLetterName = req.files.businessLetter[0].originalname;
+            businessLetterUploadedAt = new Date();
+        }
+        if (req.files.partnershipAgreement?.[0]) {
+            const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+                req.files.partnershipAgreement[0].path,
+                'vendors/verification/partnership_agreements',
+                'auto'
+            );
+            partnershipAgreementUrl = uploaded.url;
+            partnershipAgreementName = req.files.partnershipAgreement[0].originalname;
+            partnershipAgreementUploadedAt = new Date();
+        }
     }
 
     const vendor = await Vendor.create({
@@ -89,29 +132,43 @@ export const register = asyncHandler(async (req, res) => {
         gstCertificate,
         msmeCertificate,
         identityProof,
+        registrationProofUrl,
+        registrationProofName,
+        registrationProofUploadedAt,
+        registrationProofCreatedBy,
+        businessLetterUrl,
+        businessLetterName,
+        businessLetterUploadedAt,
+        partnershipAgreementUrl,
+        partnershipAgreementName,
+        partnershipAgreementUploadedAt,
         verificationStatus: 'Pending',
         status: 'pending'
     });
-    await sendOTP(vendor, 'vendor_verification');
+    // Send OTP and notifications asynchronously in the background so registration returns instantly
+    sendOTP(vendor, 'vendor_verification').catch((err) => {
+        console.error(`Background OTP sending failed for ${vendor.email}:`, err.message);
+    });
 
     // Notify all active admins about a new vendor registration request.
-    const admins = await Admin.find({ isActive: true }).select('_id');
-    await Promise.all(
-        admins.map((admin) =>
-            createNotification({
-                recipientId: admin._id,
-                recipientType: 'admin',
-                title: 'New Vendor Registration',
-                message: `${vendor.storeName || vendor.name} has registered and is awaiting review.`,
-                type: 'system',
-                data: {
-                    vendorId: String(vendor._id),
-                    vendorEmail: vendor.email,
-                    status: vendor.status,
-                },
-            })
-        )
-    );
+    Admin.find({ isActive: true }).select('_id').then((admins) => {
+        Promise.all(
+            admins.map((admin) =>
+                createNotification({
+                    recipientId: admin._id,
+                    recipientType: 'admin',
+                    title: 'New Vendor Registration',
+                    message: `${vendor.storeName || vendor.name} has registered and is awaiting review.`,
+                    type: 'system',
+                    data: {
+                        vendorId: String(vendor._id),
+                        vendorEmail: vendor.email,
+                        status: vendor.status,
+                    },
+                }).catch(() => {})
+            )
+        );
+    }).catch(() => {});
 
     res.status(201).json(new ApiResponse(201, { email: vendor.email }, 'Registration submitted. Please verify your email and await admin approval.'));
 });
@@ -269,6 +326,19 @@ export const login = asyncHandler(async (req, res) => {
     const isMatch = await vendor.comparePassword(password);
     if (!isMatch) throw new ApiError(401, 'Invalid credentials.');
 
+    if (vendor.twoFactorEnabled) {
+        const tokenPayload = isManaged
+            ? { id: vendor._id, role: 'managed_vendor', email: vendor.username, shopId: vendor.shopId._id }
+            : { id: vendor._id, role: 'vendor', email: vendor.email };
+        const tempToken = signPreAuthToken(tokenPayload);
+        await send2FAOtp(vendor, isManaged ? 'managed_vendor' : 'vendor');
+        return res.status(200).json(new ApiResponse(200, {
+            status: '2FA_PENDING',
+            tempToken,
+            email: vendor.email || vendor.username
+        }, 'Two-factor authentication required.'));
+    }
+
     const tokenPayload = isManaged
         ? { id: vendor._id, role: 'managed_vendor', email: vendor.username, shopId: vendor.shopId._id }
         : { id: vendor._id, role: 'vendor', email: vendor.email };
@@ -360,29 +430,87 @@ export const getProfile = asyncHandler(async (req, res) => {
 
 // PUT /api/vendor/auth/profile
 export const updateProfile = asyncHandler(async (req, res) => {
+    let allowed, userModel, userDoc, email;
     if (req.user.role === 'managed_vendor') {
-        const allowed = ['name', 'phone'];
-        const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
-        const vendor = await ManagedVendorUser.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true }).select('-password').populate('shopId');
-        return res.status(200).json(new ApiResponse(200, vendor, 'Profile updated.'));
+        allowed = ['name', 'phone', 'companyName', 'gstNumber', 'address'];
+        userModel = 'ManagedVendorUser';
+        userDoc = await ManagedVendorUser.findById(req.user.id);
+        if (!userDoc) throw new ApiError(404, 'Vendor not found.');
+        email = userDoc.email;
+    } else {
+        allowed = [
+            'name',
+            'phone',
+            'storeName',
+            'storeDescription',
+            'storeLogo',
+            'address',
+            'shippingEnabled',
+            'freeShippingThreshold',
+            'defaultShippingRate',
+            'shippingMethods',
+            'handlingTime',
+            'processingTime',
+        ];
+        userModel = 'Vendor';
+        userDoc = await Vendor.findById(req.user.id);
+        if (!userDoc) throw new ApiError(404, 'Vendor not found.');
+        email = userDoc.email;
     }
-    const allowed = [
-        'name',
-        'phone',
-        'storeName',
-        'storeDescription',
-        'storeLogo',
-        'address',
-        'shippingEnabled',
-        'freeShippingThreshold',
-        'defaultShippingRate',
-        'shippingMethods',
-        'handlingTime',
-        'processingTime',
-    ];
+
     const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
-    const vendor = await Vendor.findByIdAndUpdate(req.user.id, updates, { new: true, runValidators: true }).select('-password -otp -otpExpiry');
-    res.status(200).json(new ApiResponse(200, vendor, 'Profile updated.'));
+    if (updates.gstNumber) updates.gstNumber = updates.gstNumber.toUpperCase();
+
+    const pendingUpdateId = await initiateProfileUpdateOTP({
+        userId: req.user.id,
+        userModel,
+        role: req.user.role,
+        email,
+        pendingData: updates
+    });
+
+    res.status(200).json(new ApiResponse(200, { pendingUpdateId }, 'OTP sent to your registered email to verify changes.'));
+});
+
+// POST /api/vendor/auth/profile/verify-otp
+export const verifyProfileOTP = asyncHandler(async (req, res) => {
+    const { pendingUpdateId, otp } = req.body;
+    if (!pendingUpdateId || !otp) {
+        throw new ApiError(400, 'pendingUpdateId and OTP are required.');
+    }
+
+    const pendingData = await verifyProfileUpdateOTP(pendingUpdateId, otp);
+
+    if (req.user.role === 'managed_vendor') {
+        const vendor = await ManagedVendorUser.findByIdAndUpdate(req.user.id, pendingData, { new: true, runValidators: true }).select('-password').populate('shopId');
+        return res.status(200).json(new ApiResponse(200, vendor, 'Profile updated successfully.'));
+    } else {
+        const vendor = await Vendor.findByIdAndUpdate(req.user.id, pendingData, { new: true, runValidators: true }).select('-password -otp -otpExpiry');
+        return res.status(200).json(new ApiResponse(200, vendor, 'Profile updated successfully.'));
+    }
+});
+
+// POST /api/vendor/auth/profile/resend-otp
+export const resendProfileOTP = asyncHandler(async (req, res) => {
+    const { pendingUpdateId } = req.body;
+    if (!pendingUpdateId) {
+        throw new ApiError(400, 'pendingUpdateId is required.');
+    }
+
+    let email;
+    if (req.user.role === 'managed_vendor') {
+        const userDoc = await ManagedVendorUser.findById(req.user.id);
+        if (!userDoc) throw new ApiError(404, 'Vendor not found.');
+        email = userDoc.email;
+    } else {
+        const userDoc = await Vendor.findById(req.user.id);
+        if (!userDoc) throw new ApiError(404, 'Vendor not found.');
+        email = userDoc.email;
+    }
+
+    await resendProfileUpdateOTP(pendingUpdateId, email);
+
+    res.status(200).json(new ApiResponse(200, null, 'OTP resent successfully. Please check your email.'));
 });
 
 // PUT /api/vendor/auth/bank-details

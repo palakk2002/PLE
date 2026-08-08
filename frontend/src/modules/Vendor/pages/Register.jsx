@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiPhone, FiShoppingBag, FiMapPin, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useVendorAuthStore } from "../store/vendorAuthStore";
 import toast from 'react-hot-toast';
+import api from '../../../shared/utils/api';
 
 const VendorRegister = () => {
   const navigate = useNavigate();
@@ -37,9 +38,154 @@ const VendorRegister = () => {
     },
   });
 
+  const companyTypeProofs = {
+    'Private Limited': { label: 'Certificate of Incorporation (CIN)', mandatory: true },
+    'LLP': { label: 'LLP Incorporation Certificate (LLPIN)', mandatory: true },
+    'Proprietorship': { label: 'Business Registration Proof', mandatory: true },
+    'Partnership': { label: 'Partnership Registration Proof', mandatory: true },
+    'Home Business': { label: 'Business Registration Proof', mandatory: true },
+    'Small Business': { label: 'Business Registration Proof', mandatory: true },
+    'MSME': { label: 'Business Registration Proof', mandatory: true },
+    'Startup': { label: 'Business Registration Proof', mandatory: true },
+    'Public Limited': { label: 'Certificate of Incorporation (CIN)', mandatory: true },
+    'Other': { label: 'Business Registration Proof', mandatory: true }
+  };
+
   const [gstCertificateFile, setGstCertificateFile] = useState(null);
   const [msmeCertificateFile, setMsmeCertificateFile] = useState(null);
   const [identityProofFile, setIdentityProofFile] = useState(null);
+  const [registrationProofFile, setRegistrationProofFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  const [generalSettings, setGeneralSettings] = useState(null);
+  const [businessLetterFile, setBusinessLetterFile] = useState(null);
+  const [businessLetterProgress, setBusinessLetterProgress] = useState(0);
+
+  const [partnershipAgreementFile, setPartnershipAgreementFile] = useState(null);
+  const [partnershipAgreementProgress, setPartnershipAgreementProgress] = useState(0);
+
+  const handlePartnershipAgreementChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const allowedExts = ['pdf', 'jpg', 'jpeg', 'png'];
+    if (!allowedTypes.includes(file.mimetype || file.type) && !allowedExts.includes(fileExt)) {
+      toast.error('Invalid file type. Only PDF, JPG, JPEG, and PNG are allowed.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds the 10MB limit.');
+      return;
+    }
+
+    setPartnershipAgreementFile(file);
+    setPartnershipAgreementProgress(10);
+    const interval = setInterval(() => {
+      setPartnershipAgreementProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 20;
+      });
+    }, 100);
+  };
+
+  const handleRemovePartnershipAgreement = () => {
+    setPartnershipAgreementFile(null);
+    setPartnershipAgreementProgress(0);
+  };
+
+  useEffect(() => {
+    const fetchGeneralSettings = async () => {
+      try {
+        const res = await api.get('/settings/general');
+        if (res?.data) {
+          setGeneralSettings(res.data);
+        }
+      } catch (err) {
+        console.error("Failed to load general settings:", err);
+      }
+    };
+    fetchGeneralSettings();
+  }, []);
+
+  const handleBusinessLetterChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const allowedExts = ['pdf', 'jpg', 'jpeg', 'png'];
+    if (!allowedTypes.includes(file.mimetype || file.type) && !allowedExts.includes(fileExt)) {
+      toast.error('Invalid file type. Only PDF, JPG, JPEG, and PNG are allowed.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds the 10MB limit.');
+      return;
+    }
+
+    setBusinessLetterFile(file);
+    setBusinessLetterProgress(10);
+    const interval = setInterval(() => {
+      setBusinessLetterProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 20;
+      });
+    }, 100);
+  };
+
+  const handleRemoveBusinessLetter = () => {
+    setBusinessLetterFile(null);
+    setBusinessLetterProgress(0);
+  };
+
+  const handleRegistrationProofChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate type
+    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const allowedExts = ['pdf', 'jpg', 'jpeg', 'png'];
+    if (!allowedTypes.includes(file.mimetype || file.type) && !allowedExts.includes(fileExt)) {
+      toast.error('Invalid file type. Only PDF, JPG, JPEG, and PNG are allowed.');
+      return;
+    }
+
+    // Validate size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size exceeds the 10MB limit.');
+      return;
+    }
+
+    setRegistrationProofFile(file);
+
+    // Simulate progress
+    setUploadProgress(10);
+    const interval = setInterval(() => {
+      setUploadProgress((prev) => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          return 100;
+        }
+        return prev + 15;
+      });
+    }, 100);
+  };
+
+  const handleRemoveRegistrationProof = () => {
+    setRegistrationProofFile(null);
+    setUploadProgress(0);
+  };
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -109,6 +255,27 @@ const VendorRegister = () => {
       }
     }
 
+    // Dynamic Registration Proof validation
+    const proofConfig = companyTypeProofs[formData.businessType];
+    if (proofConfig && proofConfig.mandatory && !registrationProofFile) {
+      toast.error(`Please upload your ${proofConfig.label}`);
+      return;
+    }
+
+    // Signed Business Letter validation
+    const isLetterRequired = generalSettings?.businessLetterRequiredTypes?.includes(formData.businessType);
+    if (isLetterRequired && !businessLetterFile) {
+      toast.error('Please upload the signed Business Declaration Letter.');
+      return;
+    }
+
+    // Signed & Sealed Partnership Agreement validation
+    const isAgreementRequired = generalSettings?.partnershipAgreementRequiredTypes?.includes(formData.businessType);
+    if (isAgreementRequired && !partnershipAgreementFile) {
+      toast.error('Please upload the signed & sealed Partnership Agreement.');
+      return;
+    }
+
     // Build multipart Form Data
     const data = new FormData();
     data.append('name', formData.name.trim());
@@ -148,6 +315,18 @@ const VendorRegister = () => {
       if (identityProofFile) {
         data.append('identityProof', identityProofFile);
       }
+    }
+
+    if (registrationProofFile) {
+      data.append('registrationProof', registrationProofFile);
+    }
+
+    if (businessLetterFile) {
+      data.append('businessLetter', businessLetterFile);
+    }
+
+    if (partnershipAgreementFile) {
+      data.append('partnershipAgreement', partnershipAgreementFile);
     }
 
     try {
@@ -273,6 +452,239 @@ const VendorRegister = () => {
                   <option value="Other">Other</option>
                 </select>
               </div>
+
+              {/* Dynamic Registration Proof Upload Field */}
+              {companyTypeProofs[formData.businessType] && (
+                <div className="bg-gray-50/50 p-4 rounded-2xl border-2 border-dashed border-gray-200">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    {companyTypeProofs[formData.businessType].label}{' '}
+                    {companyTypeProofs[formData.businessType].mandatory && <span className="text-red-500">*</span>}
+                  </label>
+                  
+                  {registrationProofFile ? (
+                    <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200">
+                      <div className="flex flex-col min-w-0 mr-4">
+                        <span className="text-sm font-medium text-gray-800 truncate">
+                          {registrationProofFile.name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {(registrationProofFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </span>
+                        {uploadProgress > 0 && (
+                          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div 
+                              className="bg-primary-600 h-1.5 rounded-full transition-all duration-300" 
+                              style={{ width: `${uploadProgress}%` }}
+                            ></div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700">
+                          Replace File
+                          <input
+                            type="file"
+                            accept="application/pdf,image/jpeg,image/png,image/jpg"
+                            onChange={handleRegistrationProofChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <span className="text-gray-300 text-xs">|</span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveRegistrationProof}
+                          className="text-xs font-semibold text-red-600 hover:text-red-700"
+                        >
+                          Remove File
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="application/pdf,image/jpeg,image/png,image/jpg"
+                        onChange={handleRegistrationProofChange}
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                        required={companyTypeProofs[formData.businessType].mandatory}
+                      />
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        Accepted formats: PDF, JPG, JPEG, PNG (Max size: 10MB)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Signed Business Declaration Letter Upload Field */}
+              {generalSettings?.businessLetterRequiredTypes?.includes(formData.businessType) && (
+                <div className="bg-gray-50/50 p-4 rounded-2xl border-2 border-dashed border-gray-200 space-y-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Signed Business Declaration Letter <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-[11px] text-gray-500">
+                      As a {formData.businessType}, you must upload a signed & stamped declaration letter.
+                    </p>
+                  </div>
+
+                  {generalSettings.businessLetterTemplateUrl ? (
+                    <div className="bg-primary-50/50 p-3 rounded-xl border border-primary-100 flex items-center justify-between text-xs">
+                      <span className="text-gray-700 font-medium">Declaration Template:</span>
+                      <a
+                        href={generalSettings.businessLetterTemplateUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary-700 font-bold hover:underline"
+                      >
+                        Download Template ({generalSettings.businessLetterTemplateName || "Download"})
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100 text-xs text-yellow-800">
+                      Warning: Template file is not set by admin. Please contact support, or upload your own letter.
+                    </div>
+                  )}
+
+                  {businessLetterFile ? (
+                    <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200">
+                      <div className="flex flex-col min-w-0 mr-4">
+                        <span className="text-sm font-medium text-gray-800 truncate">
+                          {businessLetterFile.name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {(businessLetterFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </span>
+                        {businessLetterProgress > 0 && (
+                          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div 
+                              className="bg-primary-600 h-1.5 rounded-full transition-all duration-300" 
+                              style={{ width: `${businessLetterProgress}%` }}
+                            ></div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700">
+                          Replace File
+                          <input
+                            type="file"
+                            accept="application/pdf,image/jpeg,image/png,image/jpg"
+                            onChange={handleBusinessLetterChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <span className="text-gray-300 text-xs">|</span>
+                        <button
+                          type="button"
+                          onClick={handleRemoveBusinessLetter}
+                          className="text-xs font-semibold text-red-600 hover:text-red-700"
+                        >
+                          Remove File
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="application/pdf,image/jpeg,image/png,image/jpg"
+                        onChange={handleBusinessLetterChange}
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                        required
+                      />
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        Accepted formats: PDF, JPG, JPEG, PNG (Max size: 10MB)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Signed & Sealed Partnership Agreement Upload Field */}
+              {generalSettings?.partnershipAgreementRequiredTypes?.includes(formData.businessType) && (
+                <div className="bg-gray-50/50 p-4 rounded-2xl border-2 border-dashed border-gray-200 space-y-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="block text-sm font-semibold text-gray-700">
+                      Signed & Sealed Partnership Agreement <span className="text-red-500">*</span>
+                    </label>
+                    <p className="text-[11px] text-gray-500">
+                      As a {formData.businessType}, you must upload a signed & sealed/stamped copy of the partnership agreement.
+                    </p>
+                  </div>
+
+                  {generalSettings.partnershipAgreementTemplateUrl ? (
+                    <div className="bg-primary-50/50 p-3 rounded-xl border border-primary-100 flex items-center justify-between text-xs">
+                      <span className="text-gray-700 font-medium">Agreement Template:</span>
+                      <a
+                        href={generalSettings.partnershipAgreementTemplateUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-primary-700 font-bold hover:underline"
+                      >
+                        Download Template ({generalSettings.partnershipAgreementTemplateName || "Download"})
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100 text-xs text-yellow-800">
+                      Warning: Template file is not set by admin. Please contact support, or upload your own signed agreement.
+                    </div>
+                  )}
+
+                  {partnershipAgreementFile ? (
+                    <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-gray-200">
+                      <div className="flex flex-col min-w-0 mr-4">
+                        <span className="text-sm font-medium text-gray-800 truncate">
+                          {partnershipAgreementFile.name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {(partnershipAgreementFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </span>
+                        {partnershipAgreementProgress > 0 && (
+                          <div className="w-full bg-gray-200 rounded-full h-1.5 mt-2">
+                            <div 
+                              className="bg-primary-600 h-1.5 rounded-full transition-all duration-300" 
+                              style={{ width: `${partnershipAgreementProgress}%` }}
+                            ></div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <label className="cursor-pointer text-xs font-semibold text-primary-600 hover:text-primary-700">
+                          Replace File
+                          <input
+                            type="file"
+                            accept="application/pdf,image/jpeg,image/png,image/jpg"
+                            onChange={handlePartnershipAgreementChange}
+                            className="hidden"
+                          />
+                        </label>
+                        <span className="text-gray-300 text-xs">|</span>
+                        <button
+                          type="button"
+                          onClick={handleRemovePartnershipAgreement}
+                          className="text-xs font-semibold text-red-600 hover:text-red-700"
+                        >
+                          Remove File
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="file"
+                        accept="application/pdf,image/jpeg,image/png,image/jpg"
+                        onChange={handlePartnershipAgreementChange}
+                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100"
+                        required
+                      />
+                      <p className="text-[11px] text-gray-500 mt-1">
+                        Accepted formats: PDF, JPG, JPEG, PNG (Max size: 10MB)
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">

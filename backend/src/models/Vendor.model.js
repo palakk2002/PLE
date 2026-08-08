@@ -67,6 +67,10 @@ const vendorSchema = new mongoose.Schema(
         resetOtp: { type: String, select: false },
         resetOtpExpiry: { type: Date, select: false },
         resetOtpVerified: { type: Boolean, default: false, select: false },
+        twoFactorEnabled: { type: Boolean, default: false },
+        twoFactorOtp: { type: String, select: false },
+        twoFactorOtpExpiry: { type: Date, select: false },
+        twoFactorAttempts: { type: Number, default: 0, select: false },
         refreshTokenHash: { type: String, select: false },
         refreshTokenExpiresAt: { type: Date, select: false },
         joinDate: { type: Date, default: Date.now },
@@ -105,7 +109,17 @@ const vendorSchema = new mongoose.Schema(
         },
         verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
         verifiedAt: { type: Date },
-        verificationRemark: { type: String }
+        verificationRemark: { type: String },
+        registrationProofName: { type: String },
+        registrationProofUrl: { type: String },
+        registrationProofUploadedAt: { type: Date },
+        registrationProofCreatedBy: { type: String },
+        businessLetterUrl: { type: String },
+        businessLetterName: { type: String },
+        businessLetterUploadedAt: { type: Date },
+        partnershipAgreementUrl: { type: String },
+        partnershipAgreementName: { type: String },
+        partnershipAgreementUploadedAt: { type: Date }
     },
     { timestamps: true }
 );

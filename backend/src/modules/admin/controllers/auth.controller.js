@@ -3,6 +3,7 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Admin from '../../../models/Admin.model.js';
 import { generateTokens } from '../../../utils/generateToken.js';
+import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.service.js';
 import {
     clearRefreshSession,
     decodeRefreshTokenOrThrow,
@@ -25,6 +26,16 @@ export const login = asyncHandler(async (req, res) => {
 
     const isMatch = await admin.comparePassword(password);
     if (!isMatch) throw new ApiError(401, 'Invalid credentials.');
+
+    if (admin.twoFactorEnabled) {
+        const tempToken = signPreAuthToken({ id: admin._id, role: admin.role || 'admin', email: admin.email });
+        await send2FAOtp(admin, admin.role || 'admin');
+        return res.status(200).json(new ApiResponse(200, {
+            status: '2FA_PENDING',
+            tempToken,
+            email: admin.email
+        }, 'Two-factor authentication required.'));
+    }
 
     const { accessToken, refreshToken } = generateTokens({ id: admin._id, role: 'admin', email: admin.email });
     await persistRefreshSession(admin, refreshToken);

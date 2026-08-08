@@ -16,12 +16,14 @@ import { isValidEmail } from '../../../shared/utils/helpers';
 import toast from 'react-hot-toast';
 import MobileLayout from '../components/Layout/MobileLayout';
 import PageTransition from '../../../shared/components/PageTransition';
+import TwoFactorVerify from '../../../shared/components/TwoFactorVerify';
 import { useBusinessBuyer } from '../hooks/useBusinessBuyer';
 
 const MobileLogin = ({ isB2BRoute }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, isAuthenticated } = useAuthStore();
+  const [twoFactorData, setTwoFactorData] = useState(null);
   const { login: loginB2B, isLoading: isB2BLoading, isAuthenticated: isB2BAuthenticated } = useB2BAdminStore();
   const { setUserRole } = useBusinessBuyer();
 
@@ -93,6 +95,15 @@ const MobileLogin = ({ isB2BRoute }) => {
     try {
       if (isBusinessMode) {
         const result = await loginB2B({ businessEmail: data.email, password: data.password });
+        if (result?.twoFactorRequired) {
+          setTwoFactorData({
+            tempToken: result.tempToken,
+            email: result.email,
+            apiVerifyEndpoint: '/b2b-user/auth/2fa/verify-login',
+            isB2B: true
+          });
+          return;
+        }
         if (result?.success || result === true) {
           const { adminProfile } = useB2BAdminStore.getState();
           
@@ -115,6 +126,15 @@ const MobileLogin = ({ isB2BRoute }) => {
       console.log('Login submit start', data);
       try {
         const result = await login(data.email, data.password, rememberMe);
+        if (result?.twoFactorRequired) {
+          setTwoFactorData({
+            tempToken: result.tempToken,
+            email: result.email,
+            apiVerifyEndpoint: '/user/auth/2fa/verify-login',
+            isB2B: false
+          });
+          return;
+        }
         console.log('Login successful');
         
         // Check if the user who just logged in is actually a B2B user
@@ -153,6 +173,15 @@ const MobileLogin = ({ isB2BRoute }) => {
         if (errorMsg.includes('invalid') || errorMsg.includes('not found') || errorMsg.includes('failed')) {
           try {
             const b2bResult = await loginB2B({ businessEmail: data.email, password: data.password });
+            if (b2bResult?.twoFactorRequired) {
+              setTwoFactorData({
+                tempToken: b2bResult.tempToken,
+                email: b2bResult.email,
+                apiVerifyEndpoint: '/b2b-user/auth/2fa/verify-login',
+                isB2B: true
+              });
+              return;
+            }
             if (b2bResult?.success || b2bResult === true) {
               const { adminProfile } = useB2BAdminStore.getState();
               // Manually sync authStore to prevent secondary login failure errors for BOTH admin and employee
@@ -204,6 +233,58 @@ const MobileLogin = ({ isB2BRoute }) => {
       toast.error(error?.message || 'Login failed. Please try again.');
     }
   };
+
+  if (twoFactorData) {
+    const handleSuccess = (payload) => {
+      const accessToken = payload.accessToken || payload.data?.accessToken;
+      const user = payload.user || payload.data?.user;
+
+      if (twoFactorData.isB2B) {
+        if (accessToken) {
+          sessionStorage.setItem('b2bAdminToken', accessToken);
+        }
+        useB2BAdminStore.setState({ isAuthenticated: true, adminProfile: user });
+        useB2bStore.getState().setUserRole('business_buyer');
+        
+        localStorage.setItem('token', accessToken);
+        sessionStorage.setItem('token', accessToken);
+        useAuthStore.setState({ isAuthenticated: true, token: accessToken, user });
+      } else {
+        const userRole = user?.role;
+        const b2bState = useB2bStore.getState();
+        const isMockEmployee = b2bState.companies?.some(c => 
+          c.employees?.some(e => e.email?.toLowerCase() === user?.email?.toLowerCase())
+        );
+
+        if (userRole === 'b2bAdmin' || userRole === 'b2bEmployee' || isMockEmployee) {
+          localStorage.setItem('b2bAdminToken', accessToken);
+          useB2BAdminStore.setState({ isAuthenticated: true, adminProfile: user });
+          b2bState.setUserRole('business_buyer');
+        } else {
+          b2bState.setUserRole('customer');
+        }
+      }
+
+      toast.success('Login successful!');
+      navigate('/home', { replace: true });
+    };
+
+    return (
+      <PageTransition>
+        <MobileLayout>
+          <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 bg-gray-50 dark:bg-zinc-955">
+            <TwoFactorVerify
+              tempToken={twoFactorData.tempToken}
+              email={twoFactorData.email}
+              apiVerifyEndpoint={twoFactorData.apiVerifyEndpoint}
+              onSuccess={handleSuccess}
+              onCancel={() => setTwoFactorData(null)}
+            />
+          </div>
+        </MobileLayout>
+      </PageTransition>
+    );
+  }
 
   return (
     <PageTransition>

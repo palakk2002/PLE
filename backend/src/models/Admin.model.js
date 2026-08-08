@@ -9,6 +9,10 @@ const adminSchema = new mongoose.Schema(
         role: { type: String, enum: ['admin', 'superadmin'], default: 'admin' },
         avatar: { type: String },
         isActive: { type: Boolean, default: true },
+        twoFactorEnabled: { type: Boolean, default: false },
+        twoFactorOtp: { type: String, select: false },
+        twoFactorOtpExpiry: { type: Date, select: false },
+        twoFactorAttempts: { type: Number, default: 0, select: false },
         refreshTokenHash: { type: String, select: false },
         refreshTokenExpiresAt: { type: Date, select: false },
         // FCM Tokens

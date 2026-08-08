@@ -71,6 +71,9 @@ const ManagedShopDetails = () => {
     password: "",
     role: "managed_vendor",
     status: "active",
+    companyName: "",
+    gstNumber: "",
+    address: "",
   });
 
   const filteredShopProducts = useMemo(() => {
@@ -146,6 +149,9 @@ const ManagedShopDetails = () => {
       password: "",
       role: "managed_vendor",
       status: "active",
+      companyName: "",
+      gstNumber: "",
+      address: "",
     });
     setIsModalOpen(true);
   };
@@ -159,6 +165,9 @@ const ManagedShopDetails = () => {
       password: "", // blank, optional for edit password reset
       role: user.role || "managed_vendor",
       status: user.status || "active",
+      companyName: user.companyName || "",
+      gstNumber: user.gstNumber || "",
+      address: user.address || "",
     });
     setIsModalOpen(true);
   };
@@ -182,6 +191,9 @@ const ManagedShopDetails = () => {
           phone: formData.phone,
           role: formData.role,
           status: formData.status,
+          companyName: formData.companyName,
+          gstNumber: formData.gstNumber,
+          address: formData.address,
         };
         if (formData.password) {
           updatePayload.password = formData.password;
@@ -327,9 +339,10 @@ const ManagedShopDetails = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="bg-gray-50 border-b border-gray-100 text-xs font-bold text-gray-400 uppercase">
-                      <th className="p-4 pl-6">Name</th>
+                      <th className="p-4 pl-6">Name & Company</th>
                       <th className="p-4">Username</th>
                       <th className="p-4">Phone</th>
+                      <th className="p-4">GST Number</th>
                       <th className="p-4">Role</th>
                       <th className="p-4">Status</th>
                       <th className="p-4 pr-6 text-right">Actions</th>
@@ -339,13 +352,21 @@ const ManagedShopDetails = () => {
                     {vendorUsers.map((user) => (
                       <tr key={user._id} className="hover:bg-gray-50/50">
                         <td className="p-4 pl-6 font-bold text-gray-850 flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                          <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 shrink-0">
                             <FiUser />
                           </div>
-                          {user.name}
+                          <div>
+                            <div>{user.name}</div>
+                            {user.companyName && (
+                              <div className="text-[11px] font-medium text-[#C07A3D]">
+                                {user.companyName}
+                              </div>
+                            )}
+                          </div>
                         </td>
                         <td className="p-4 font-mono text-xs">{user.username}</td>
                         <td className="p-4">{user.phone || "N/A"}</td>
+                        <td className="p-4 font-mono text-xs text-gray-500">{user.gstNumber || "N/A"}</td>
                         <td className="p-4">
                           <span className="bg-gray-100 px-2 py-0.5 rounded text-xs font-semibold capitalize">
                             {user.role}
@@ -549,35 +570,72 @@ const ManagedShopDetails = () => {
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="bg-white rounded-3xl p-6 shadow-2xl relative w-full max-w-md z-10 space-y-4"
+              className="bg-white rounded-3xl p-6 shadow-2xl relative w-full max-w-lg z-10 space-y-4 max-h-[90vh] overflow-y-auto"
             >
               <h2 className="text-xl font-bold text-gray-800">
                 {editingUser ? "Edit Vendor User" : "Create Vendor User"}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700">Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C07A3D]/40 text-sm"
-                    placeholder="Rahul Kumar"
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700">Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C07A3D]/40 text-sm"
+                      placeholder="Rahul Kumar"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700">Username / Login ID *</label>
+                    <input
+                      type="text"
+                      required
+                      disabled={!!editingUser}
+                      value={formData.username}
+                      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none disabled:opacity-50 text-sm"
+                      placeholder="e.g. rahul"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700">Company Name</label>
+                    <input
+                      type="text"
+                      value={formData.companyName}
+                      onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none text-sm"
+                      placeholder="e.g. Acme Corp"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-xs font-semibold text-gray-700">GST Number</label>
+                    <input
+                      type="text"
+                      value={formData.gstNumber}
+                      onChange={(e) => setFormData({ ...formData, gstNumber: e.target.value })}
+                      className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none text-sm"
+                      placeholder="e.g. 27AAAAA1111A1Z1"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-700">Username / Login ID *</label>
-                  <input
-                    type="text"
-                    required
-                    disabled={!!editingUser}
-                    value={formData.username}
-                    onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none disabled:opacity-50 text-sm"
-                    placeholder="e.g. rahul"
+                  <label className="text-xs font-semibold text-gray-700">Address</label>
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    rows={2}
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none text-sm"
+                    placeholder="Enter Address"
                   />
                 </div>
 

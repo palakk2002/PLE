@@ -43,6 +43,7 @@ import { isValidEmail, isValidPhone } from "../../../shared/utils/helpers";
 import toast from "react-hot-toast";
 import PageTransition from "../../../shared/components/PageTransition";
 import PasswordStrengthMeter from "../components/Mobile/PasswordStrengthMeter";
+import OTPVerificationModal from "../../../shared/components/OTPVerificationModal";
 import { useUserNotificationStore } from "../store/userNotificationStore";
 import { useWishlistStore } from "../../../shared/store/wishlistStore";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
@@ -61,11 +62,15 @@ const MobileProfile = () => {
   const {
     user,
     updateProfile,
+    verifyProfileOTP,
+    resendProfileOTP,
     uploadProfileAvatar,
     changePassword,
     logout,
     isLoading,
   } = useAuthStore();
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [pendingUpdateId, setPendingUpdateId] = useState(null);
   const avatarInputRef = useRef(null);
   const [activeTab, setActiveTab] = useState("menu"); // 'menu', 'personal', 'password'
   const [isDesktop, setIsDesktop] = useState(
@@ -319,13 +324,18 @@ const MobileProfile = () => {
 
   const onPersonalSubmit = async (data) => {
     try {
-      await updateProfile({
+      const res = await updateProfile({
         name: data?.name,
         phone: data?.phone,
         gender: data?.gender,
         dob: data?.dob,
       });
-      toast.success("Profile updated successfully!");
+      if (res?.success && res.pendingUpdateId) {
+        setPendingUpdateId(res.pendingUpdateId);
+        setShowOtpModal(true);
+      } else {
+        toast.success("Profile updated successfully!");
+      }
     } catch (error) {
       toast.error(error.message || "Failed to update profile");
     }
@@ -632,7 +642,7 @@ const MobileProfile = () => {
           <div className="hidden lg:block px-4 py-8">
             <div className="flex items-center gap-4">
               <button
-                onClick={() => navigate("/")}
+                onClick={() => navigate("/home")}
                 className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
               >
                 <FiArrowLeft className="text-xl text-gray-700" />
@@ -650,7 +660,7 @@ const MobileProfile = () => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() =>
-                  activeTab === "menu" ? navigate("/") : setActiveTab("menu")
+                  activeTab === "menu" ? navigate("/home") : setActiveTab("menu")
                 }
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
@@ -2105,6 +2115,23 @@ const MobileProfile = () => {
             </div>
           )}
         </AnimatePresence>
+        
+        <OTPVerificationModal
+          isOpen={showOtpModal}
+          onClose={() => {
+            setShowOtpModal(false);
+            setPendingUpdateId(null);
+          }}
+          email={user?.email}
+          onVerify={async (otp) => {
+            await verifyProfileOTP(pendingUpdateId, otp);
+            toast.success("Profile updated successfully!");
+          }}
+          onResend={async () => {
+            await resendProfileOTP(pendingUpdateId);
+            toast.success("OTP resent successfully!");
+          }}
+        />
       </MobileLayout>
     </PageTransition>
   );

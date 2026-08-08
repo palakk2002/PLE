@@ -27,6 +27,11 @@ export const useVendorAuthStore = create(
             password,
           });
           const authData = response?.data || {};
+          if (authData?.status === '2FA_PENDING') {
+            set({ isLoading: false });
+            return { twoFactorRequired: true, tempToken: authData.tempToken, email: authData.email };
+          }
+
           const vendor = authData.vendor;
           const accessToken = authData.accessToken;
           const refreshToken = authData.refreshToken;
@@ -48,6 +53,37 @@ export const useVendorAuthStore = create(
           sessionStorage.setItem("vendor-refresh-token", refreshToken);
           localStorage.removeItem("vendor-token");
           localStorage.removeItem("vendor-refresh-token");
+
+          return { success: true, vendor };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      verify2FA: async (tempToken, otp) => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post("/vendor/auth/2fa/verify-login", { tempToken, otp });
+          const authData = response?.data || {};
+          const vendor = authData.vendor;
+          const accessToken = authData.accessToken;
+          const refreshToken = authData.refreshToken;
+
+          if (!vendor || !accessToken || !refreshToken) {
+            throw new Error("Invalid verification response");
+          }
+
+          set({
+            vendor,
+            token: accessToken,
+            refreshToken,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+
+          sessionStorage.setItem("vendor-token", accessToken);
+          sessionStorage.setItem("vendor-refresh-token", refreshToken);
 
           return { success: true, vendor };
         } catch (error) {
@@ -138,12 +174,27 @@ export const useVendorAuthStore = create(
         set({ isLoading: true });
         try {
           const response = await updateVendorProfile(profileData);
+          set({ isLoading: false });
+          return { success: true, pendingUpdateId: response.data?.pendingUpdateId };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      // Verify vendor profile update OTP
+      verifyProfileOTP: async (pendingUpdateId, otp) => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post('/vendor/auth/profile/verify-otp', {
+            pendingUpdateId,
+            otp
+          });
           const data = response?.data ?? response;
-          // Merge returned vendor data back into state so UI stays in sync
           const updatedVendor =
             data && (data._id || data.id)
               ? data
-              : (data?.vendor ?? { ...get().vendor, ...profileData });
+              : (data?.vendor ?? { ...get().vendor });
 
           set({
             vendor: updatedVendor,
@@ -155,6 +206,25 @@ export const useVendorAuthStore = create(
           set({ isLoading: false });
           throw error;
         }
+      },
+
+      // Resend vendor profile update OTP
+      resendProfileOTP: async (pendingUpdateId) => {
+        set({ isLoading: true });
+        try {
+          await api.post('/vendor/auth/profile/resend-otp', {
+            pendingUpdateId
+          });
+          set({ isLoading: false });
+          return { success: true };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      setVendor: (updatedVendor) => {
+        set({ vendor: updatedVendor });
       },
 
       // Initialize vendor auth state from localStorage

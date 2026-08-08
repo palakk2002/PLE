@@ -572,3 +572,27 @@ export const uploadIdentityProof = (file) => {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
 };
+
+/**
+ * Upload Registration Proof
+ * @param {File} file
+ */
+export const uploadRegistrationProof = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/vendor/business-profile/upload-registration', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+};
+
+/**
+ * Upload Partnership Agreement
+ * @param {File} file
+ */
+export const uploadPartnershipAgreement = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/vendor/business-profile/upload-partnership', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+};

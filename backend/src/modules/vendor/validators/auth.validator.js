@@ -19,6 +19,13 @@ export const registerSchema = Joi.object({
     state: Joi.string().trim().allow('').optional(),
     pincode: Joi.string().trim().allow('').optional(),
     address: Joi.any().optional(),
+    registrationProofName: Joi.string().trim().allow('').optional(),
+    registrationProofUrl: Joi.string().trim().allow('').optional(),
+    registrationProofUploadedAt: Joi.any().optional(),
+    registrationProofCreatedBy: Joi.string().trim().allow('').optional(),
+    partnershipAgreementName: Joi.string().trim().allow('').optional(),
+    partnershipAgreementUrl: Joi.string().trim().allow('').optional(),
+    partnershipAgreementUploadedAt: Joi.any().optional(),
 });
 
 export const loginSchema = Joi.object({

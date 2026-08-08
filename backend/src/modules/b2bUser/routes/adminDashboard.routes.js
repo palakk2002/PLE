@@ -11,7 +11,10 @@ import {
     getCompanyProfile, 
     updateCompanyProfile, 
     getAdminProfile, 
-    updateAdminProfile 
+    updateAdminProfile,
+    verifyAdminProfileOTP,
+    resendAdminProfileOTP,
+    uploadLegalDocument
 } from '../controllers/profile.controller.js';
 import * as rfqController from '../controllers/rfq.controller.js';
 import * as notificationController from '../../user/controllers/notification.controller.js';
@@ -32,10 +35,13 @@ router.get('/dashboard', getDashboardOverview);
 // Company Profile (Admin only for editing, both Admin and Employee for viewing)
 router.get('/company', getCompanyProfile);
 router.put('/company', requireAdmin, updateCompanyProfile);
+router.put('/company/legal-document', requireAdmin, uploadDocumentSingle('file'), uploadLegalDocument);
 
 // Admin Profile (Admin only)
 router.get('/profile', requireAdmin, getAdminProfile);
 router.put('/profile', requireAdmin, updateAdminProfile);
+router.post('/profile/verify-otp', requireAdmin, verifyAdminProfileOTP);
+router.post('/profile/resend-otp', requireAdmin, resendAdminProfileOTP);
 
 // Employees (Admin only)
 router.get('/employees', requireAdmin, getEmployees);

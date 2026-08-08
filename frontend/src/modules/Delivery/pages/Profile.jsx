@@ -6,11 +6,15 @@ import { FiUser, FiMail, FiPhone, FiTruck, FiEdit2, FiSave, FiX, FiLogOut } from
 import PageTransition from '../../../shared/components/PageTransition';
 import toast from 'react-hot-toast';
 import { formatPrice } from '../../../shared/utils/helpers';
+import OTPVerificationModal from '../../../shared/components/OTPVerificationModal';
+import TwoFactorToggle from '../../../shared/components/TwoFactorToggle';
 
 const DeliveryProfile = () => {
   const navigate = useNavigate();
-  const { deliveryBoy, updateProfile, fetchProfile, fetchProfileSummary, isLoading, logout } = useDeliveryAuthStore();
+  const { deliveryBoy, updateProfile, verifyProfileOTP, resendProfileOTP, fetchProfile, fetchProfileSummary, isLoading, logout } = useDeliveryAuthStore();
   const [isEditing, setIsEditing] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [pendingUpdateId, setPendingUpdateId] = useState(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const [profileMetrics, setProfileMetrics] = useState({
     totalDeliveries: 0,
@@ -83,17 +87,22 @@ const DeliveryProfile = () => {
       return;
     }
     try {
-      await updateProfile({
+      const res = await updateProfile({
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         phone: formData.phone.trim(),
         vehicleType: formData.vehicleType?.trim() || '',
         vehicleNumber: formData.vehicleNumber?.trim() || '',
       });
-      setIsEditing(false);
-      toast.success('Profile updated successfully');
-    } catch {
-      // Error toast handled by API interceptor.
+      if (res?.success && res.pendingUpdateId) {
+        setPendingUpdateId(res.pendingUpdateId);
+        setShowOtpModal(true);
+      } else {
+        setIsEditing(false);
+        toast.success('Profile updated successfully');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to update profile');
     }
   };
 
@@ -308,6 +317,16 @@ const DeliveryProfile = () => {
           </div>
         </motion.div>
 
+        {/* Two-Factor Authentication */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35 }}
+          className="bg-white rounded-2xl p-4 shadow-sm"
+        >
+          <TwoFactorToggle apiPrefix="/delivery/auth" />
+        </motion.div>
+
         {/* Logout Button */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -325,6 +344,24 @@ const DeliveryProfile = () => {
           </button>
         </motion.div>
       </div>
+
+      <OTPVerificationModal
+        isOpen={showOtpModal}
+        onClose={() => {
+          setShowOtpModal(false);
+          setPendingUpdateId(null);
+        }}
+        email={deliveryBoy?.email}
+        onVerify={async (otp) => {
+          await verifyProfileOTP(pendingUpdateId, otp);
+          setIsEditing(false);
+          toast.success('Profile updated successfully');
+        }}
+        onResend={async () => {
+          await resendProfileOTP(pendingUpdateId);
+          toast.success('OTP resent successfully');
+        }}
+      />
     </PageTransition>
   );
 };

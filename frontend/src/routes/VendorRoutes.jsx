@@ -34,6 +34,7 @@ const VendorCustomerDetail = lazy(() => import("../modules/Vendor/pages/Customer
 const VendorInventoryReports = lazy(() => import("../modules/Vendor/pages/InventoryReports"));
 const VendorPerformanceMetrics = lazy(() => import("../modules/Vendor/pages/PerformanceMetrics"));
 const VendorDocuments = lazy(() => import("../modules/Vendor/pages/Documents"));
+const VendorLegalDocuments = lazy(() => import("../modules/Vendor/pages/VendorLegalDocuments"));
 const VendorNotifications = lazy(() => import("../modules/Vendor/pages/Notifications"));
 const VendorSupportTickets = lazy(() => import("../modules/Vendor/pages/SupportTickets"));
 const VendorSupportEscalations = lazy(() => import("../modules/Vendor/pages/SupportEscalations"));
@@ -108,6 +109,7 @@ export default function VendorRoutes() {
         <Route path="inventory-reports" element={<VendorInventoryReports />} />
         <Route path="performance-metrics" element={<VendorPerformanceMetrics />} />
         <Route path="documents" element={<VendorDocuments />} />
+        <Route path="legal-documents" element={<VendorLegalDocuments />} />
         <Route path="language-settings" element={<VendorLanguageSettings />} />
         <Route path="settings" element={<VendorSettings />} />
         <Route path="settings/store" element={<VendorSettings />} />

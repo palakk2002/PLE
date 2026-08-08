@@ -3,12 +3,20 @@ import { FiSave, FiUser, FiLock, FiShield } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import toast from 'react-hot-toast';
+import OTPVerificationModal from '../../../../shared/components/OTPVerificationModal';
+import TwoFactorToggle from '../../../../shared/components/TwoFactorToggle';
 
 const ProfileSettings = () => {
-  const { vendor, updateProfile, logout } = useVendorAuthStore();
+  const { vendor, updateProfile, verifyProfileOTP, resendProfileOTP, logout } = useVendorAuthStore();
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [pendingUpdateId, setPendingUpdateId] = useState(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    email: '',
+    companyName: '',
+    gstNumber: '',
+    address: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -21,6 +29,10 @@ const ProfileSettings = () => {
         ...prev,
         name: vendor.name || '',
         phone: vendor.phone || '',
+        email: vendor.email || vendor.username || '',
+        companyName: vendor.companyName || '',
+        gstNumber: vendor.gstNumber || '',
+        address: vendor.address || '',
       }));
     }
   }, [vendor]);
@@ -35,13 +47,24 @@ const ProfileSettings = () => {
     if (!vendor) return;
 
     try {
-      await updateProfile({
+      const payload = {
         name: formData.name,
         phone: formData.phone,
-      });
-      toast.success('Profile updated successfully');
-    } catch {
-      // api.js shows toast
+      };
+      if (vendor.role === 'managed_vendor') {
+        payload.companyName = formData.companyName;
+        payload.gstNumber = formData.gstNumber;
+        payload.address = formData.address;
+      }
+      const res = await updateProfile(payload);
+      if (res?.success && res.pendingUpdateId) {
+        setPendingUpdateId(res.pendingUpdateId);
+        setShowOtpModal(true);
+      } else {
+        toast.success('Profile updated successfully');
+      }
+    } catch (err) {
+      toast.error(err.message || 'Failed to update profile');
     }
   };
 
@@ -144,17 +167,16 @@ const ProfileSettings = () => {
                   />
                 </div>
 
-                <div>
+                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Email <span className="text-red-500">*</span>
+                    Email / Username <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="email"
+                    type="text"
                     name="email"
                     value={formData.email}
-                    onChange={handleChange}
-                    required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    disabled
+                    className="w-full px-4 py-2 border border-gray-350 bg-gray-50 rounded-lg focus:outline-none disabled:opacity-75 cursor-not-allowed"
                   />
                 </div>
 
@@ -171,6 +193,49 @@ const ProfileSettings = () => {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
                 </div>
+
+                {vendor.role === 'managed_vendor' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Company Name
+                      </label>
+                      <input
+                        type="text"
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        GST Number
+                      </label>
+                      <input
+                        type="text"
+                        name="gstNumber"
+                        value={formData.gstNumber}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Address
+                      </label>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleChange}
+                        rows={2}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="flex justify-end pt-4 border-t border-gray-200">
@@ -250,6 +315,8 @@ const ProfileSettings = () => {
           {/* Security Section */}
           {activeSection === 'security' && (
             <div className="space-y-6">
+              <TwoFactorToggle apiPrefix="/vendor/auth" />
+              
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h3 className="text-sm font-semibold text-blue-800 mb-2">Account Status</h3>
                 <div className="space-y-2 text-sm text-blue-700">
@@ -290,6 +357,23 @@ const ProfileSettings = () => {
           )}
         </div>
       </div>
+      
+      <OTPVerificationModal
+        isOpen={showOtpModal}
+        onClose={() => {
+          setShowOtpModal(false);
+          setPendingUpdateId(null);
+        }}
+        email={vendor?.email}
+        onVerify={async (otp) => {
+          await verifyProfileOTP(pendingUpdateId, otp);
+          toast.success('Profile updated successfully');
+        }}
+        onResend={async () => {
+          await resendProfileOTP(pendingUpdateId);
+          toast.success('OTP resent successfully');
+        }}
+      />
     </motion.div>
   );
 };

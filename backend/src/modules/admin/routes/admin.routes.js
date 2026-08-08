@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
+import * as twoFactorController from '../../../controllers/twoFactor.controller.js';
 import * as vendorController from '../controllers/vendor.controller.js';
 import * as orderController from '../controllers/order.controller.js';
 import * as catalogController from '../controllers/catalog.controller.js';
@@ -259,6 +260,14 @@ router.post('/auth/login', authLimiter, authController.login);
 router.post('/auth/refresh', validate(refreshTokenSchema), authController.refresh);
 router.post('/auth/logout', validate(logoutSchema), authController.logout);
 router.get('/auth/profile', ...adminAuth, authController.getProfile);
+
+// 2FA routes
+router.get('/auth/2fa/status', ...adminAuth, twoFactorController.get2FAStatus);
+router.post('/auth/2fa/enable', ...adminAuth, twoFactorController.initiateEnable2FA);
+router.post('/auth/2fa/verify-enable', ...adminAuth, twoFactorController.verifyEnable2FA);
+router.post('/auth/2fa/disable', ...adminAuth, twoFactorController.disable2FA);
+router.post('/auth/2fa/verify-login', twoFactorController.verifyLogin2FA);
+router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
 
 // ─── Analytics ────────────────────────────────────────────────────────────────
 router.get('/analytics/dashboard', ...adminAuth, analyticsController.getDashboardStats);

@@ -18,6 +18,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'Shop Chats', path: '/b2b-dashboard/shop-chats', icon: FiMessageSquare },
     { name: 'Purchase Orders', path: '/b2b-dashboard/purchase-orders', icon: FiDollarSign },
     { name: 'Company Profile', path: '/b2b-dashboard/company-profile', icon: FiBriefcase },
+    { name: 'Legal Documents', path: '/b2b-dashboard/legal-documents', icon: FiFileText },
     { name: 'Admin Profile', path: '/b2b-dashboard/admin-profile', icon: FiUser },
     { name: 'Notifications', path: '/b2b-dashboard/notifications', icon: FiBell },
     { name: 'Settings', path: '/b2b-dashboard/settings', icon: FiSettings },

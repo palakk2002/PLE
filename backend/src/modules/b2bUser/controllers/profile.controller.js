@@ -3,6 +3,11 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import B2BCompany from '../../../models/B2BCompany.model.js';
 import User from '../../../models/User.model.js';
+import {
+    uploadLocalFileToCloudinaryAndCleanupWithType,
+    cleanupLocalFiles,
+} from '../../../services/upload.service.js';
+import { initiateProfileUpdateOTP, verifyProfileUpdateOTP, resendProfileUpdateOTP } from '../../../services/profileOtp.service.js';
 
 /**
  * @desc    Get company profile
@@ -120,8 +125,9 @@ export const updateAdminProfile = asyncHandler(async (req, res) => {
         throw new ApiError(403, 'Invalid Company Owner Secret Key.');
     }
 
-    if (adminName || name) admin.name = adminName || name;
-    if (adminPhone || phone) admin.phone = adminPhone || phone;
+    const updates = {};
+    if (adminName || name) updates.name = adminName || name;
+    if (adminPhone || phone) updates.phone = adminPhone || phone;
 
     const emailToUpdate = adminEmail || req.body.email;
     if (emailToUpdate && emailToUpdate.toLowerCase() !== admin.email.toLowerCase()) {
@@ -129,12 +135,48 @@ export const updateAdminProfile = asyncHandler(async (req, res) => {
         if (existingUser) {
             throw new ApiError(400, 'A user with this email already exists.');
         }
-        admin.email = emailToUpdate.toLowerCase();
+        updates.email = emailToUpdate.toLowerCase();
     }
 
     if (newPassword) {
-        admin.password = newPassword;
+        updates.password = newPassword;
     }
+
+    const pendingUpdateId = await initiateProfileUpdateOTP({
+        userId: admin._id,
+        userModel: 'User',
+        role: admin.role || 'b2bAdmin',
+        email: admin.email,
+        pendingData: updates
+    });
+
+    res.status(200).json(new ApiResponse(200, { pendingUpdateId }, 'OTP sent to your registered email to verify changes.'));
+});
+
+/**
+ * @desc    Verify admin profile OTP
+ * @route   POST /api/b2b-user/admin/profile/verify-otp
+ * @access  Private (B2B Admin)
+ */
+export const verifyAdminProfileOTP = asyncHandler(async (req, res) => {
+    const { pendingUpdateId, otp } = req.body;
+    if (!pendingUpdateId || !otp) {
+        throw new ApiError(400, 'pendingUpdateId and OTP are required.');
+    }
+
+    const pendingData = await verifyProfileUpdateOTP(pendingUpdateId, otp);
+
+    const adminId = req.user.id || req.user._id;
+    const admin = await User.findById(adminId).select('+password');
+    if (!admin) {
+        throw new ApiError(404, 'User not found.');
+    }
+
+    // Apply the updates (including potential password hashing on save)
+    if (pendingData.name) admin.name = pendingData.name;
+    if (pendingData.phone) admin.phone = pendingData.phone;
+    if (pendingData.email) admin.email = pendingData.email;
+    if (pendingData.password) admin.password = pendingData.password;
 
     await admin.save();
 
@@ -145,4 +187,75 @@ export const updateAdminProfile = asyncHandler(async (req, res) => {
     adminResponse.adminPhone = admin.phone;
 
     res.status(200).json(new ApiResponse(200, adminResponse, 'Profile updated successfully.'));
+});
+
+/**
+ * @desc    Resend admin profile OTP
+ * @route   POST /api/b2b-user/admin/profile/resend-otp
+ * @access  Private (B2B Admin)
+ */
+export const resendAdminProfileOTP = asyncHandler(async (req, res) => {
+    const { pendingUpdateId } = req.body;
+    if (!pendingUpdateId) {
+        throw new ApiError(400, 'pendingUpdateId is required.');
+    }
+
+    const adminId = req.user.id || req.user._id;
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        throw new ApiError(404, 'User not found.');
+    }
+
+    await resendProfileUpdateOTP(pendingUpdateId, admin.email);
+
+    res.status(200).json(new ApiResponse(200, null, 'OTP resent successfully. Please check your email.'));
+});
+
+/**
+ * @desc    Upload/replace B2B legal document (acceptanceExecutionDocument)
+ * @route   PUT /api/b2b-user/admin/company/legal-document
+ * @access  Private (B2B Admin)
+ */
+export const uploadLegalDocument = asyncHandler(async (req, res) => {
+    const adminId = req.user.id;
+    const admin = await User.findById(adminId);
+    if (!admin) {
+        throw new ApiError(404, 'User not found.');
+    }
+
+    if (!req.file?.path) {
+        throw new ApiError(400, 'Document file is required.');
+    }
+
+    const company = await B2BCompany.findById(admin.companyId);
+    if (!company) {
+        await cleanupLocalFiles([req.file.path]);
+        throw new ApiError(404, 'Company not found.');
+    }
+
+    let uploaded = null;
+    try {
+        uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+            req.file.path,
+            'b2b/documents',
+            'auto'
+        );
+
+        company.acceptanceExecutionDocument = {
+            url: uploaded.url,
+            fileName: req.file.originalname,
+            mimeType: req.file.mimetype,
+            size: req.file.size,
+            uploadedAt: new Date()
+        };
+
+        await company.save();
+
+        res.status(200).json(new ApiResponse(200, company, 'Legal document uploaded successfully.'));
+    } catch (error) {
+        if (!uploaded) {
+            await cleanupLocalFiles([req.file?.path]);
+        }
+        throw error;
+    }
 });

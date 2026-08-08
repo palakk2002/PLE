@@ -5,8 +5,11 @@ import B2BCompany from '../../../models/B2BCompany.model.js';
 import User from '../../../models/User.model.js';
 import Settings from '../../../models/Settings.model.js';
 import { generateTokens } from '../../../utils/generateToken.js';
+import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.service.js';
 import crypto from 'crypto';
 import { sendEmail } from '../../../services/email.service.js';
+import { uploadLocalFileToCloudinaryAndCleanupWithType } from '../../../services/upload.service.js';
+
 
 // POST /api/b2b-user/auth/register
 export const registerB2BUser = asyncHandler(async (req, res) => {
@@ -16,12 +19,17 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Company and Admin data must be provided.');
     }
 
-    const { companyName, gstNumber, businessEmail, businessPhone, businessAddress, businessType, website, secretKey } = companyData;
+    const { companyName, gstNumber, businessEmail, businessPhone, businessAddress, businessType, website, secretKey, acceptanceExecutionDocument } = companyData;
     const { adminName, adminEmail, adminPhone, password } = adminData;
 
     if (!companyName || !gstNumber || !businessEmail || !businessPhone || !businessAddress || !businessType) {
         throw new ApiError(400, 'All required company fields must be provided.');
     }
+
+    if (!acceptanceExecutionDocument || !acceptanceExecutionDocument.url) {
+        throw new ApiError(400, 'Signed Acceptance & Execution Agreement is required.');
+    }
+
 
     if (!secretKey || secretKey.length < 6) {
         throw new ApiError(400, 'Owner Secret Key must be at least 6 characters.');
@@ -54,8 +62,10 @@ export const registerB2BUser = asyncHandler(async (req, res) => {
         companyType: businessType,
         website,
         ownerSecretKey: secretKey,
-        verificationStatus
+        verificationStatus,
+        acceptanceExecutionDocument
     });
+
 
     // 2. Create Admin
     const b2bAdmin = await User.create({
@@ -188,6 +198,21 @@ export const loginB2BUser = asyncHandler(async (req, res) => {
         throw new ApiError(401, 'Invalid email or password.');
     }
 
+    if (b2bAdmin.twoFactorEnabled) {
+        const tempToken = signPreAuthToken({ 
+            id: b2bAdmin._id, 
+            role: b2bAdmin.role, 
+            email: b2bAdmin.email,
+            companyId: b2bAdmin.companyId._id || b2bAdmin.companyId
+        });
+        await send2FAOtp(b2bAdmin, b2bAdmin.role);
+        return res.status(200).json(new ApiResponse(200, {
+            status: '2FA_PENDING',
+            tempToken,
+            email: b2bAdmin.email
+        }, 'Two-factor authentication required.'));
+    }
+
     const b2bCompany = b2bAdmin.companyId;
 
     if (b2bCompany.verificationStatus !== 'Approved') {
@@ -238,3 +263,22 @@ export const logoutB2BUser = asyncHandler(async (req, res) => {
     res.clearCookie('b2bRefreshToken');
     res.status(200).json(new ApiResponse(200, null, 'Logged out successfully.'));
 });
+
+// POST /api/b2b-user/auth/upload-agreement
+export const uploadB2BAgreement = asyncHandler(async (req, res) => {
+    if (!req.file) {
+        throw new ApiError(400, 'No file uploaded.');
+    }
+    const folder = 'b2b/agreements';
+    const result = await uploadLocalFileToCloudinaryAndCleanupWithType(req.file.path, folder, 'auto');
+    res.status(200).json(
+        new ApiResponse(200, {
+            url: result.url,
+            fileName: req.file.originalname,
+            mimeType: req.file.mimetype,
+            size: req.file.size,
+            uploadedAt: new Date()
+        }, 'Agreement uploaded successfully.')
+    );
+});
+

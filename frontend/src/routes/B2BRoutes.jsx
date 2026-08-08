@@ -8,6 +8,7 @@ import { useB2BAdminStore } from "../modules/B2BAdmin/store/b2bAdminStore";
 const B2BDashboardOverview = lazy(() => import("../modules/B2BAdmin/pages/DashboardOverview"));
 const B2BEmployeeManagement = lazy(() => import("../modules/B2BAdmin/pages/EmployeeManagement"));
 const B2BCompanyProfile = lazy(() => import("../modules/B2BAdmin/pages/CompanyProfile"));
+const B2BLegalDocuments = lazy(() => import("../modules/B2BAdmin/pages/LegalDocuments"));
 const B2BAdminProfile = lazy(() => import("../modules/B2BAdmin/pages/AdminProfile"));
 const B2BEmployeeProfile = lazy(() => import("../modules/B2BAdmin/pages/EmployeeProfile"));
 const B2BActivityLogs = lazy(() => import("../modules/B2BAdmin/pages/ActivityLogs"));
@@ -54,6 +55,7 @@ export default function B2BRoutes() {
         <Route path="shop-chats" element={<ShopChats />} />
         <Route path="purchase-orders" element={<B2BPurchaseOrders />} />
         <Route path="company-profile" element={<B2BCompanyProfile />} />
+        <Route path="legal-documents" element={<B2BLegalDocuments />} />
         <Route path="admin-profile" element={<B2BAdminProfile />} />
         <Route path="activity-logs" element={<B2BActivityLogs />} />
         <Route path="notifications" element={<B2BNotifications />} />

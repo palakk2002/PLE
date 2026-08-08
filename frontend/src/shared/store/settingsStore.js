@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import toast from "react-hot-toast";
 import logoImage from "../../../data/logos/ChatGPT Image Dec 2, 2025, 03_01_19 PM.png";
+import api from "../utils/api";
 
 const defaultSettings = {
   general: {
@@ -156,7 +157,7 @@ export const useSettingsStore = create(
       isLoading: false,
 
       // Initialize settings
-      initialize: () => {
+      initialize: async () => {
         const savedSettings = localStorage.getItem("admin-settings");
         if (savedSettings) {
           set({ settings: JSON.parse(savedSettings) });
@@ -166,6 +167,28 @@ export const useSettingsStore = create(
             "admin-settings",
             JSON.stringify(defaultSettings)
           );
+        }
+        
+        // Async fetch from backend to sync
+        try {
+          const res = await api.get('/admin/settings/general');
+          if (res?.data) {
+            const backendGeneral = res.data;
+            set((state) => {
+              const updated = {
+                ...state.settings,
+                general: {
+                  ...state.settings.general,
+                  ...backendGeneral,
+                }
+              };
+              localStorage.setItem("admin-settings", JSON.stringify(updated));
+              return { settings: updated };
+            });
+          }
+        } catch (error) {
+          // Silent catch to handle guest page / unauthenticated states gracefully
+          console.debug("Backend settings sync bypassed or unauthorized:", error.message);
         }
       },
 
@@ -179,7 +202,7 @@ export const useSettingsStore = create(
       },
 
       // Update settings
-      updateSettings: (category, settingsData) => {
+      updateSettings: async (category, settingsData) => {
         set({ isLoading: true });
         try {
           const currentSettings = get().settings;
@@ -190,6 +213,11 @@ export const useSettingsStore = create(
               ...settingsData,
             },
           };
+          
+          if (category === 'general') {
+            await api.put('/admin/settings/general', updatedSettings.general);
+          }
+          
           set({ settings: updatedSettings, isLoading: false });
           localStorage.setItem(
             "admin-settings",

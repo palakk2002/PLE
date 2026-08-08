@@ -164,7 +164,7 @@ export default function About() {
               className="pt-6"
             >
               <a
-                href="http://localhost:3000/b2b/register"
+                href="https://peoplesleagueofelectronics.com/business"
                 className="relative inline-flex items-center gap-2 px-8 py-4 bg-client-primary hover:bg-client-primary-hover text-black font-extrabold text-xs uppercase tracking-wider rounded-lg transition-all duration-300 hover:shadow-[0_0_25px_rgba(215,25,32,0.45)] group cursor-pointer overflow-hidden"
               >
                 {/* Gloss slide overlay on hover */}

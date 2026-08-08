@@ -120,18 +120,32 @@ export const uploadVendorRegistrationDocs = () =>
     multer({
         storage: imageDiskStorage,
         fileFilter: (req, file, cb) => {
-            const allowed = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-            if (allowed.includes(file.mimetype)) {
+            const allowed = [
+                'application/pdf',
+                'application/x-pdf',
+                'application/acrobat',
+                'applications/vnd.pdf',
+                'text/pdf',
+                'image/jpeg',
+                'image/png',
+                'image/jpg'
+            ];
+            const extension = file.originalname.split('.').pop().toLowerCase();
+            const allowedExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+            if (allowed.includes(file.mimetype) || allowedExtensions.includes(extension)) {
                 cb(null, true);
             } else {
                 cb(new ApiError(400, 'Invalid file type. Only PDF, JPG, JPEG, and PNG are allowed.'), false);
             }
         },
-        limits: { fileSize: 10 * 1024 * 1024 },
+        limits: { fileSize: 50 * 1024 * 1024 },
     }).fields([
         { name: 'gstCertificate', maxCount: 1 },
         { name: 'msmeCertificate', maxCount: 1 },
-        { name: 'identityProof', maxCount: 1 }
+        { name: 'identityProof', maxCount: 1 },
+        { name: 'registrationProof', maxCount: 1 },
+        { name: 'businessLetter', maxCount: 1 },
+        { name: 'partnershipAgreement', maxCount: 1 }
     ]);
 
 // CSV upload for bulk operations
@@ -147,7 +161,7 @@ export const uploadCSV = multer({
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB for CSV
 }).single('file');
 
-// Media upload supporting both image and video
+// Media upload supporting image, video, and documents
 export const uploadMediaSingle = (fieldName) =>
     multer({
         storage: imageDiskStorage,
@@ -161,19 +175,37 @@ export const uploadMediaSingle = (fieldName) =>
                 'video/webm',
                 'video/ogg',
                 'video/quicktime',
+                'application/pdf',
+                'application/msword',
+                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             ];
-            if (allowedMimes.includes(file.mimetype)) {
+            const extension = file.originalname.split('.').pop().toLowerCase();
+            const allowedExtensions = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'webm', 'ogg', 'mov'];
+            if (allowedMimes.includes(file.mimetype) || allowedExtensions.includes(extension)) {
                 cb(null, true);
             } else {
                 cb(
                     new ApiError(
                         400,
-                        'Invalid file type. Only images and MP4, WebM, OGG, or QuickTime videos are allowed.'
+                        'Invalid file type. Only images, videos, and documents (PDF/DOC/DOCX) are allowed.'
                     ),
                     false
                 );
             }
         },
-        limits: { fileSize: 50 * 1024 * 1024 }, // 50MB for video
+        limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+    }).single(fieldName);
+
+export const uploadPDFSingle = (fieldName) =>
+    multer({
+        storage: imageDiskStorage,
+        fileFilter: (req, file, cb) => {
+            if (file.mimetype === 'application/pdf') {
+                cb(null, true);
+            } else {
+                cb(new ApiError(400, 'Invalid file type. Only PDF files are allowed.'), false);
+            }
+        },
+        limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
     }).single(fieldName);
 

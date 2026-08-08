@@ -3,11 +3,15 @@ import { motion } from 'framer-motion';
 import { useB2BAdminStore } from '../store/b2bAdminStore';
 import toast from 'react-hot-toast';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import OTPVerificationModal from '../../../shared/components/OTPVerificationModal';
+import TwoFactorToggle from '../../../shared/components/TwoFactorToggle';
 
 const AdminProfile = () => {
-  const { adminProfile, fetchAdminProfile, updateAdminProfile, isLoading } = useB2BAdminStore();
+  const { adminProfile, fetchAdminProfile, updateAdminProfile, verifyAdminProfileOTP, resendAdminProfileOTP, isLoading } = useB2BAdminStore();
   const [showSecretKey, setShowSecretKey] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [pendingUpdateId, setPendingUpdateId] = useState(null);
   const [formData, setFormData] = useState({
     adminName: '',
     adminEmail: '',
@@ -48,13 +52,10 @@ const AdminProfile = () => {
     if (formData.newPassword) {
       updateData.newPassword = formData.newPassword;
     }
-    const success = await updateAdminProfile(updateData);
-    if (success) {
-      setFormData(prev => ({ ...prev, newPassword: '', secretKey: '' }));
-      setShowSecretKey(false);
-      setShowNewPassword(false);
-      toast.success('Profile updated successfully.');
-      fetchAdminProfile();
+    const res = await updateAdminProfile(updateData);
+    if (res?.success && res.pendingUpdateId) {
+      setPendingUpdateId(res.pendingUpdateId);
+      setShowOtpModal(true);
     }
   };
 
@@ -131,6 +132,31 @@ const AdminProfile = () => {
           </div>
         </form>
       </div>
+
+      <div className="mt-6">
+        <TwoFactorToggle apiPrefix="/b2b-user/auth" />
+      </div>
+
+      <OTPVerificationModal
+        isOpen={showOtpModal}
+        onClose={() => {
+          setShowOtpModal(false);
+          setPendingUpdateId(null);
+        }}
+        email={adminProfile?.adminEmail}
+        onVerify={async (otp) => {
+          const success = await verifyAdminProfileOTP(pendingUpdateId, otp);
+          if (success) {
+            setFormData(prev => ({ ...prev, newPassword: '', secretKey: '' }));
+            setShowSecretKey(false);
+            setShowNewPassword(false);
+            fetchAdminProfile();
+          }
+        }}
+        onResend={async () => {
+          await resendAdminProfileOTP(pendingUpdateId);
+        }}
+      />
     </motion.div>
   );
 };

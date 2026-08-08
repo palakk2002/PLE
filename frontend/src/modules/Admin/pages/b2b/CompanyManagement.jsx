@@ -28,6 +28,7 @@ const CompanyManagement = () => {
           phone: c.admin?.phone || c.businessPhone,
         },
         employees: new Array(c.employeeCount || 0).fill({}),
+        acceptanceExecutionDocument: c.acceptanceExecutionDocument,
       }));
       setCompanies(mappedCompanies);
     } catch (error) {
@@ -249,10 +250,43 @@ const CompanyManagement = () => {
             {/* Admin Information */}
             <div className="bg-gray-50 dark:bg-zinc-950 p-4 rounded-xl border dark:border-zinc-800 space-y-2 text-xs">
               <h4 className="font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-1"><FiUsers /> Company Admin Information</h4>
-              <p className="text-gray-650 dark:text-zinc-350">Admin Name: <span className="font-bold text-gray-850 dark:text-zinc-150">{selectedCompany.admin?.name}</span></p>
+              <p className="text-gray-655 dark:text-zinc-350">Admin Name: <span className="font-bold text-gray-850 dark:text-zinc-150">{selectedCompany.admin?.name}</span></p>
               <p className="text-gray-655 dark:text-zinc-350">Admin Email: <span className="font-bold text-gray-850 dark:text-zinc-150">{selectedCompany.admin?.email}</span></p>
               <p className="text-gray-655 dark:text-zinc-350">Admin Phone: <span className="font-bold text-gray-850 dark:text-zinc-150">{selectedCompany.admin?.phone}</span></p>
             </div>
+
+            {/* Acceptance & Execution Agreement */}
+            {selectedCompany.acceptanceExecutionDocument && selectedCompany.acceptanceExecutionDocument.url ? (
+              <div className="bg-gray-50 dark:bg-zinc-950 p-4 rounded-xl border dark:border-zinc-800 space-y-2 text-xs">
+                <h4 className="font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-1"><FiFileText /> Acceptance & Execution Agreement</h4>
+                <p className="text-gray-655 dark:text-zinc-350">File Name: <span className="font-bold text-gray-850 dark:text-zinc-150 truncate">{selectedCompany.acceptanceExecutionDocument.fileName || 'Signed_Agreement.pdf'}</span></p>
+                <p className="text-gray-655 dark:text-zinc-350">Uploaded Date: <span className="font-bold text-gray-850 dark:text-zinc-150">{selectedCompany.acceptanceExecutionDocument.uploadedAt ? new Date(selectedCompany.acceptanceExecutionDocument.uploadedAt).toLocaleString() : 'N/A'}</span></p>
+                <div className="flex gap-2 pt-1.5">
+                  <a 
+                    href={selectedCompany.acceptanceExecutionDocument.url} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/20 dark:text-blue-400 px-3 py-1.5 rounded-lg border border-blue-100 dark:border-blue-900/30 transition-colors"
+                  >
+                    <FiEye /> Preview Signed PDF
+                  </a>
+                  <a 
+                    href={selectedCompany.acceptanceExecutionDocument.url} 
+                    download={selectedCompany.acceptanceExecutionDocument.fileName || 'Signed_Agreement.pdf'} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="inline-flex items-center gap-1 text-[11px] font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700 px-3 py-1.5 rounded-lg border border-gray-205 transition-colors"
+                  >
+                    <FiDownload /> Download Signed PDF
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 dark:bg-zinc-950 p-4 rounded-xl border dark:border-zinc-800 space-y-2 text-xs">
+                <h4 className="font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-1"><FiFileText /> Acceptance & Execution Agreement</h4>
+                <p className="text-gray-500 italic">No document uploaded or available for this company.</p>
+              </div>
+            )}
 
             {/* Employee Information */}
             <div className="space-y-3">

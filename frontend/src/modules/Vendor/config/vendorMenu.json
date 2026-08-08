@@ -109,6 +109,13 @@
                      ]
     },
     {
+        "title":  "Legal Documents",
+        "route":  "/vendor/legal-documents",
+        "children":  [
+
+                     ]
+    },
+    {
         "title":  "Analytics",
         "route":  "/vendor/analytics",
         "children":  [

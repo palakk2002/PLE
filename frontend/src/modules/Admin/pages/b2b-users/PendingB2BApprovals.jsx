@@ -6,13 +6,24 @@ import DataTable from "../../components/DataTable";
 import ConfirmModal from "../../components/ConfirmModal";
 import { useB2BUserStore } from "../../store/b2bUserStore";
 import toast from "react-hot-toast";
+import api from "../../../../shared/utils/api";
+import { FiDownload } from "react-icons/fi";
 
 const PendingB2BApprovals = () => {
   const navigate = useNavigate();
   const { b2bUsers, updateB2BUserStatus, initialize } = useB2BUserStore();
 
+  const [platformTemplate, setPlatformTemplate] = useState(null);
+
   useEffect(() => {
     initialize();
+    api.get('/agreement-template/active')
+      .then(res => {
+        if (res.data?.data) {
+          setPlatformTemplate(res.data.data);
+        }
+      })
+      .catch(err => console.warn('Failed to load platform template for comparison', err));
   }, [initialize]);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -350,6 +361,70 @@ const PendingB2BApprovals = () => {
                     <p className="text-xs text-gray-500 font-medium">Total Employees</p>
                     <p className="text-sm font-semibold text-gray-800">{selectedUserForDetails.employeeCount ?? 0}</p>
                   </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold uppercase text-blue-600 mb-3 tracking-wider">Acceptance & Execution Agreement</h3>
+                <div className="bg-gray-50 p-4 rounded-xl space-y-3">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Upload Status</p>
+                    {selectedUserForDetails.acceptanceExecutionDocument?.url ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 bg-emerald-100 px-2 py-1 rounded-full mt-1">
+                        ✓ Signed PDF Uploaded
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold text-red-700 bg-red-100 px-2 py-1 rounded-full mt-1">
+                        ✗ Not Uploaded
+                      </span>
+                    )}
+                  </div>
+                  {selectedUserForDetails.acceptanceExecutionDocument?.url && (
+                    <>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">File Name</p>
+                        <p className="text-sm font-semibold text-gray-850 truncate">{selectedUserForDetails.acceptanceExecutionDocument.fileName || 'Signed_Agreement.pdf'}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Uploaded Date</p>
+                        <p className="text-sm font-semibold text-gray-850">
+                          {selectedUserForDetails.acceptanceExecutionDocument.uploadedAt ? new Date(selectedUserForDetails.acceptanceExecutionDocument.uploadedAt).toLocaleString() : 'N/A'}
+                        </p>
+                      </div>
+                      <div className="flex gap-2 pt-1.5">
+                        <a 
+                          href={selectedUserForDetails.acceptanceExecutionDocument.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg border border-blue-100 transition-colors"
+                        >
+                          <FiEye /> View Signed PDF
+                        </a>
+                        <a 
+                          href={selectedUserForDetails.acceptanceExecutionDocument.url} 
+                          download={selectedUserForDetails.acceptanceExecutionDocument.fileName || 'Signed_Agreement.pdf'} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="inline-flex items-center gap-1 text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg border border-gray-200 transition-colors"
+                        >
+                          <FiDownload /> Download Signed PDF
+                        </a>
+                      </div>
+                    </>
+                  )}
+                  {platformTemplate && (
+                    <div className="border-t border-gray-200 pt-3">
+                      <p className="text-xs text-gray-500 font-medium mb-1.5">Comparison Template</p>
+                      <a 
+                        href={platformTemplate.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="inline-flex items-center gap-1 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg border border-purple-100 transition-colors"
+                      >
+                        <FiDownload /> View Platform Template for Comparison
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
 

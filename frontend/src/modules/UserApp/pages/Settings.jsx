@@ -29,6 +29,7 @@ import { useThemeStore } from "../../../shared/store/themeStore";
 import { useB2bStore } from "../../../shared/store/b2bStore";
 import MobileLayout from "../components/Layout/MobileLayout";
 import PageTransition from "../../../shared/components/PageTransition";
+import TwoFactorToggle from "../../../shared/components/TwoFactorToggle";
 import toast from "react-hot-toast";
 import { isValidPhone } from "../../../shared/utils/helpers";
 
@@ -302,6 +303,22 @@ const MobileSettings = () => {
                           <div>
                             <span className="font-bold text-gray-700 dark:text-gray-200 text-sm block">Change Password</span>
                             <span className="text-gray-400 dark:text-gray-500 text-xs">Update your security credentials</span>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Two-Factor Authentication */}
+                      <button
+                        onClick={() => setActiveSection("2fa")}
+                        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors text-left"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-red-950/30 text-[#7B0A0A] dark:text-red-400 flex items-center justify-center">
+                            <FiShield className="text-lg" />
+                          </div>
+                          <div>
+                            <span className="font-bold text-gray-700 dark:text-gray-200 text-sm block">Two-Factor Authentication</span>
+                            <span className="text-gray-400 dark:text-gray-500 text-xs">Manage your 2FA settings</span>
                           </div>
                         </div>
                         <FiChevronRight className="text-gray-400" />
@@ -661,6 +678,25 @@ const MobileSettings = () => {
                   </div>
 
                   <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-b-2xl">
+                    <button
+                      onClick={() => setActiveSection("general")}
+                      className="w-full py-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl transition-colors text-center text-sm"
+                    >
+                      Back to Settings
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+              {/* 2FA Toggle Section */}
+              {activeSection === "2fa" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  className="space-y-6"
+                >
+                  <TwoFactorToggle apiPrefix="/user/auth" />
+                  <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
                     <button
                       onClick={() => setActiveSection("general")}
                       className="w-full py-2.5 bg-[#7B0A0A] hover:bg-[#AE020B] text-white font-bold rounded-xl transition-colors text-center text-sm"

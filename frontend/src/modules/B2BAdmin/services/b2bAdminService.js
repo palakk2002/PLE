@@ -3,6 +3,8 @@ import api from '../../../shared/utils/api';
 // ─── Auth ───────────────────────────────────────────────────────────────────
 export const loginB2BAdmin = (data) => api.post('/b2b-user/auth/login', data);
 export const registerB2BAdmin = (data) => api.post('/b2b-user/auth/register', data);
+export const verifyB2B2FA = (data) => api.post('/b2b-user/auth/2fa/verify-login', data);
+export const resendB2B2FA = (data) => api.post('/b2b-user/auth/2fa/resend', data);
 
 // ─── Dashboard ──────────────────────────────────────────────────────────────
 export const getDashboardOverview = () => api.get('/b2b-user/admin/dashboard');
@@ -16,6 +18,15 @@ export const deleteEmployee = (id) => api.delete(`/b2b-user/admin/employees/${id
 // ─── Profiles ───────────────────────────────────────────────────────────────
 export const getCompanyProfile = () => api.get('/b2b-user/admin/company');
 export const updateCompanyProfile = (data) => api.put('/b2b-user/admin/company', data);
+export const uploadCompanyLegalDocument = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return api.put('/b2b-user/admin/company/legal-document', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+};
 
 export const getAdminProfile = () => api.get('/b2b-user/admin/profile');
 export const updateAdminProfile = (data) => api.put('/b2b-user/admin/profile', data);

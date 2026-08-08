@@ -3,8 +3,10 @@ import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import User from '../../../models/User.model.js';
 import { generateTokens } from '../../../utils/generateToken.js';
+import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.service.js';
 import { sendOTP } from '../../../services/otp.service.js';
 import { sendEmail } from '../../../services/email.service.js';
+import { initiateProfileUpdateOTP, verifyProfileUpdateOTP, resendProfileUpdateOTP } from '../../../services/profileOtp.service.js';
 import {
     uploadLocalFileToCloudinaryAndCleanup,
     deleteFromCloudinary,
@@ -119,6 +121,16 @@ export const login = asyncHandler(async (req, res) => {
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) throw new ApiError(401, 'Invalid email or password.');
+
+    if (user.twoFactorEnabled) {
+        const tempToken = signPreAuthToken({ id: user._id, role: user.role || 'customer', email: user.email });
+        await send2FAOtp(user, user.role || 'customer');
+        return res.status(200).json(new ApiResponse(200, {
+            status: '2FA_PENDING',
+            tempToken,
+            email: user.email
+        }, 'Two-factor authentication required.'));
+    }
 
     const { accessToken, refreshToken } = generateTokens({ id: user._id, role: user.role || 'customer', email: user.email });
     await persistRefreshSession(user, refreshToken);
@@ -296,13 +308,52 @@ export const updateProfile = asyncHandler(async (req, res) => {
         dob: dob || "",
     };
 
+    const user = await User.findById(req.user.id);
+    if (!user) throw new ApiError(404, 'User not found.');
+
+    const pendingUpdateId = await initiateProfileUpdateOTP({
+        userId: user._id,
+        userModel: 'User',
+        role: user.role,
+        email: user.email,
+        pendingData: updatePayload
+    });
+
+    res.status(200).json(new ApiResponse(200, { pendingUpdateId }, 'OTP sent to your registered email to verify changes.'));
+});
+
+// POST /api/user/auth/profile/verify-otp
+export const verifyProfileOTP = asyncHandler(async (req, res) => {
+    const { pendingUpdateId, otp } = req.body;
+    if (!pendingUpdateId || !otp) {
+        throw new ApiError(400, 'pendingUpdateId and OTP are required.');
+    }
+
+    const pendingData = await verifyProfileUpdateOTP(pendingUpdateId, otp);
+
     const user = await User.findByIdAndUpdate(
         req.user.id,
-        updatePayload,
+        pendingData,
         { new: true, runValidators: true }
     );
     if (!user) throw new ApiError(404, 'User not found.');
-    res.status(200).json(new ApiResponse(200, user, 'Profile updated.'));
+
+    res.status(200).json(new ApiResponse(200, user, 'Profile updated successfully.'));
+});
+
+// POST /api/user/auth/profile/resend-otp
+export const resendProfileOTP = asyncHandler(async (req, res) => {
+    const { pendingUpdateId } = req.body;
+    if (!pendingUpdateId) {
+        throw new ApiError(400, 'pendingUpdateId is required.');
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) throw new ApiError(404, 'User not found.');
+
+    await resendProfileUpdateOTP(pendingUpdateId, user.email);
+
+    res.status(200).json(new ApiResponse(200, null, 'OTP resent successfully. Please check your email.'));
 });
 
 // POST /api/user/auth/change-password

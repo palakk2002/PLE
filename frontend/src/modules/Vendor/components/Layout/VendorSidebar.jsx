@@ -56,6 +56,7 @@ const iconMap = {
   "Inventory Reports": FiBarChart2,
   "Performance Metrics": FiTrendingUp,
   Documents: FiFile,
+  "Legal Documents": FiFileText,
   Analytics: FiBarChart2,
   Earnings: FiDollarSign,
   Settings: FiSettings,

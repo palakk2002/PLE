@@ -60,6 +60,13 @@ const b2bCompanySchema = new mongoose.Schema(
             type: String, 
             enum: ['Active', 'Inactive'], 
             default: 'Active' 
+        },
+        acceptanceExecutionDocument: {
+            url: { type: String },
+            fileName: { type: String },
+            mimeType: { type: String },
+            size: { type: Number },
+            uploadedAt: { type: Date }
         }
     },
     { timestamps: true }

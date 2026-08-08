@@ -673,6 +673,162 @@ const VendorDetail = () => {
                           )}
                         </div>
                       )}
+
+                      {vendor.registrationProofUrl && (
+                        <div className="flex items-center justify-between bg-white p-3 rounded-lg border">
+                          <div className="flex flex-col min-w-0 mr-4">
+                            <span className="text-xs font-semibold text-gray-700 truncate">
+                              {vendor.registrationProofName || 'Registration Proof'}
+                            </span>
+                            {vendor.registrationProofUploadedAt && (
+                              <span className="text-[10px] text-gray-400">
+                                Uploaded: {new Date(vendor.registrationProofUploadedAt).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a 
+                              href={vendor.registrationProofUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="text-xs text-purple-600 hover:underline font-semibold"
+                            >
+                              Preview
+                            </a>
+                            <span className="text-gray-300 text-xs">|</span>
+                            <a 
+                              href={vendor.registrationProofUrl} 
+                              download
+                              onClick={(e) => {
+                                e.preventDefault();
+                                fetch(vendor.registrationProofUrl)
+                                  .then(response => response.blob())
+                                  .then(blob => {
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    const filename = vendor.registrationProofUrl.split('/').pop() || 'document';
+                                    a.download = filename;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                  })
+                                  .catch(() => {
+                                    window.open(vendor.registrationProofUrl, '_blank');
+                                  });
+                              }}
+                              className="text-xs text-purple-600 hover:underline font-semibold"
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {vendor.businessLetterUrl && (
+                        <div className="flex items-center justify-between bg-white p-3 rounded-lg border">
+                          <div className="flex flex-col min-w-0 mr-4">
+                            <span className="text-xs font-semibold text-gray-700 truncate">
+                              {vendor.businessLetterName || 'Signed Declaration Letter'}
+                            </span>
+                            {vendor.businessLetterUploadedAt && (
+                              <span className="text-[10px] text-gray-400">
+                                Uploaded: {new Date(vendor.businessLetterUploadedAt).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a 
+                              href={vendor.businessLetterUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="text-xs text-purple-600 hover:underline font-semibold"
+                            >
+                              Preview
+                            </a>
+                            <span className="text-gray-300 text-xs">|</span>
+                            <a 
+                              href={vendor.businessLetterUrl} 
+                              download
+                              onClick={(e) => {
+                                e.preventDefault();
+                                fetch(vendor.businessLetterUrl)
+                                  .then(response => response.blob())
+                                  .then(blob => {
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    const filename = vendor.businessLetterUrl.split('/').pop() || 'business_letter';
+                                    a.download = filename;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                  })
+                                  .catch(() => {
+                                    window.open(vendor.businessLetterUrl, '_blank');
+                                  });
+                              }}
+                              className="text-xs text-purple-600 hover:underline font-semibold"
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </div>
+                      )}
+
+                      {vendor.partnershipAgreementUrl && (
+                        <div className="flex items-center justify-between bg-white p-3 rounded-lg border">
+                          <div className="flex flex-col min-w-0 mr-4">
+                            <span className="text-xs font-semibold text-gray-700 truncate">
+                              {vendor.partnershipAgreementName || 'Signed Partnership Agreement'}
+                            </span>
+                            {vendor.partnershipAgreementUploadedAt && (
+                              <span className="text-[10px] text-gray-400">
+                                Uploaded: {new Date(vendor.partnershipAgreementUploadedAt).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <a 
+                              href={vendor.partnershipAgreementUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="text-xs text-purple-600 hover:underline font-semibold"
+                            >
+                              Preview
+                            </a>
+                            <span className="text-gray-300 text-xs">|</span>
+                            <a 
+                              href={vendor.partnershipAgreementUrl} 
+                              download
+                              onClick={(e) => {
+                                e.preventDefault();
+                                fetch(vendor.partnershipAgreementUrl)
+                                  .then(response => response.blob())
+                                  .then(blob => {
+                                    const url = window.URL.createObjectURL(blob);
+                                    const a = document.createElement('a');
+                                    a.href = url;
+                                    const filename = vendor.partnershipAgreementUrl.split('/').pop() || 'partnership_agreement';
+                                    a.download = filename;
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    document.body.removeChild(a);
+                                    window.URL.revokeObjectURL(url);
+                                  })
+                                  .catch(() => {
+                                    window.open(vendor.partnershipAgreementUrl, '_blank');
+                                  });
+                              }}
+                              className="text-xs text-purple-600 hover:underline font-semibold"
+                            >
+                              Download
+                            </a>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {vendor.verificationStatus === 'Pending' && (

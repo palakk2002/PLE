@@ -17,13 +17,43 @@ export const useAdminAuthStore = create(
         set({ isLoading: true });
         try {
           const response = await apiLogin(email, password);
-          const { accessToken, refreshToken, admin } = response.data;
+          const data = response.data || response;
+          if (data?.status === '2FA_PENDING') {
+            set({ isLoading: false });
+            return { twoFactorRequired: true, tempToken: data.tempToken, email: data.email };
+          }
+          const { accessToken, refreshToken, admin } = data;
 
           // Store token under 'adminToken' key (used by adminService interceptor)
           sessionStorage.setItem('adminToken', accessToken);
           sessionStorage.setItem('adminRefreshToken', refreshToken);
           localStorage.removeItem('adminToken');
           localStorage.removeItem('adminRefreshToken');
+
+          set({
+            admin,
+            token: accessToken,
+            refreshToken,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+
+          return { success: true, admin };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      verify2FA: async (tempToken, otp) => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post('/admin/auth/2fa/verify-login', { tempToken, otp });
+          const data = response.data || response;
+          const { accessToken, refreshToken, admin } = data;
+
+          sessionStorage.setItem('adminToken', accessToken);
+          sessionStorage.setItem('adminRefreshToken', refreshToken);
 
           set({
             admin,

@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
+import * as twoFactorController from '../../../controllers/twoFactor.controller.js';
 import * as productController from '../controllers/product.controller.js';
 import * as orderController from '../controllers/order.controller.js';
 import * as customerController from '../controllers/customer.controller.js';
@@ -53,6 +54,16 @@ router.post('/auth/refresh', validate(refreshTokenSchema), authController.refres
 router.post('/auth/logout', validate(logoutSchema), authController.logout);
 router.get('/auth/profile', ...vendorAuth, authController.getProfile);
 router.put('/auth/profile', ...vendorAuth, authController.updateProfile);
+
+// 2FA routes
+router.get('/auth/2fa/status', ...vendorAuth, twoFactorController.get2FAStatus);
+router.post('/auth/2fa/enable', ...vendorAuth, twoFactorController.initiateEnable2FA);
+router.post('/auth/2fa/verify-enable', ...vendorAuth, twoFactorController.verifyEnable2FA);
+router.post('/auth/2fa/disable', ...vendorAuth, twoFactorController.disable2FA);
+router.post('/auth/2fa/verify-login', twoFactorController.verifyLogin2FA);
+router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
+router.post('/auth/profile/verify-otp', ...vendorAuth, authController.verifyProfileOTP);
+router.post('/auth/profile/resend-otp', ...vendorAuth, authController.resendProfileOTP);
 router.put('/auth/bank-details', ...strictVendorAuth, authController.updateBankDetails);
 
 // Business Profile Routes
@@ -62,6 +73,8 @@ router.put('/business-profile', ...strictVendorAuth, businessProfileController.u
 router.post('/business-profile/upload-gst', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadGSTCertificate);
 router.post('/business-profile/upload-msme', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadMSMECertificate);
 router.post('/business-profile/upload-identity', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadIdentityProof);
+router.post('/business-profile/upload-registration', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadRegistrationProof);
+router.post('/business-profile/upload-partnership', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadPartnershipAgreement);
 
 // Products
 router.get('/products', ...vendorAuth, productController.getVendorProducts);

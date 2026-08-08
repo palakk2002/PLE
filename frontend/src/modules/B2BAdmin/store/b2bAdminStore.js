@@ -162,6 +162,24 @@ export const useB2BAdminStore = create(
     }
   },
 
+  uploadCompanyLegalDocument: async (file) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await api.uploadCompanyLegalDocument(file);
+      const payload = response.data || response;
+      set({ companyProfile: payload });
+      toast.success('Legal document uploaded successfully');
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to upload legal document';
+      set({ error: msg });
+      toast.error(msg);
+      return false;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
   fetchAdminProfile: async () => {
     set({ isLoading: true, error: null });
     try {
@@ -179,12 +197,49 @@ export const useB2BAdminStore = create(
     set({ isLoading: true, error: null });
     try {
       const response = await api.updateAdminProfile(adminData);
+      set({ isLoading: false });
+      return { success: true, pendingUpdateId: response.data?.pendingUpdateId };
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to initiate admin profile update';
+      set({ error: msg });
+      toast.error(msg);
+      return { success: false };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  verifyAdminProfileOTP: async (pendingUpdateId, otp) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await api.post('/b2b-user/admin/profile/verify-otp', {
+        pendingUpdateId,
+        otp
+      });
       const payload = response.data || response;
       set({ adminProfile: payload });
       toast.success('Admin profile updated successfully');
       return true;
     } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to update admin profile';
+      const msg = err.response?.data?.message || 'Failed to verify OTP';
+      set({ error: msg });
+      toast.error(msg);
+      return false;
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  resendAdminProfileOTP: async (pendingUpdateId) => {
+    set({ isLoading: true, error: null });
+    try {
+      await api.post('/b2b-user/admin/profile/resend-otp', {
+        pendingUpdateId
+      });
+      toast.success('OTP resent successfully');
+      return true;
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Failed to resend OTP';
       set({ error: msg });
       toast.error(msg);
       return false;
@@ -199,6 +254,12 @@ export const useB2BAdminStore = create(
     try {
       const response = await api.loginB2BAdmin(credentials);
       const payload = response.data || response;
+
+      if (payload?.status === '2FA_PENDING') {
+        set({ isLoading: false });
+        return { twoFactorRequired: true, tempToken: payload.tempToken, email: payload.email };
+      }
+
       const accessToken = payload.accessToken || payload.data?.accessToken;
       const adminProfile = payload.b2bAdmin || payload.data?.b2bAdmin;
       
@@ -211,6 +272,30 @@ export const useB2BAdminStore = create(
       return { success: true, isEmployee: !!adminProfile?.isEmployee };
     } catch (err) {
       const msg = err.response?.data?.message || 'Login failed';
+      set({ error: msg });
+      return { success: false, error: msg };
+    } finally {
+      set({ isLoading: false });
+    }
+  },
+
+  verify2FA: async (tempToken, otp) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await api.verifyB2B2FA({ tempToken, otp });
+      const payload = response.data || response;
+      const accessToken = payload.accessToken || payload.data?.accessToken;
+      const adminProfile = payload.b2bAdmin || payload.data?.b2bAdmin;
+
+      if (accessToken) {
+        sessionStorage.setItem('b2bAdminToken', accessToken);
+        localStorage.removeItem('b2bAdminToken');
+      }
+
+      set({ isAuthenticated: true, adminProfile, error: null });
+      return { success: true, isEmployee: !!adminProfile?.isEmployee };
+    } catch (err) {
+      const msg = err.response?.data?.message || 'Verification failed';
       set({ error: msg });
       return { success: false, error: msg };
     } finally {

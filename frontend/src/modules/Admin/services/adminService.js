@@ -375,3 +375,13 @@ export const deletePortfolio = (id) => api.delete(`/admin/cms/portfolio/${id}`);
 
 export const getPortfolioPage = () => api.get('/admin/cms/portfolio-page');
 export const updatePortfolioPage = (data) => api.put('/admin/cms/portfolio-page', data);
+
+// ─── Agreement Template Management ──────────────────────────────────────────
+export const getAgreementTemplates = (params) => api.get('/admin/b2b-users/agreement-templates', { params });
+export const getAgreementTemplateConfigs = () => api.get('/admin/b2b-users/agreement-templates/configs');
+export const uploadAgreementTemplateGeneric = (formData) => api.post('/admin/b2b-users/agreement-templates', formData, {
+  headers: { 'Content-Type': 'multipart/form-data' }
+});
+export const updateAgreementTemplateStatus = (id, status) => api.patch(`/admin/b2b-users/agreement-templates/${id}/status`, { status });
+export const deleteAgreementTemplateGeneric = (id) => api.delete(`/admin/b2b-users/agreement-templates/${id}`);
+

@@ -773,4 +773,12 @@ router.get('/portfolio', asyncHandler(async (req, res) => {
 // Portfolio Page content
 router.get('/portfolio-page', getPortfolioPage);
 
+// GET /api/public/agreement-template/active (public agreement template)
+router.get('/agreement-template/active', asyncHandler(async (req, res) => {
+    const { default: AgreementTemplate } = await import('../models/AgreementTemplate.model.js');
+    const template = await AgreementTemplate.findOne({ templateKey: 'B2B_ACCEPTANCE_EXECUTION', status: 'Active' }).sort({ createdAt: -1 });
+    res.status(200).json(new ApiResponse(200, template, 'Active agreement template fetched.'));
+}));
+
 export default router;
+

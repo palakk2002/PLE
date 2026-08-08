@@ -58,6 +58,7 @@ const B2BProducts = lazy(() => import("../modules/Admin/pages/b2b/B2BProducts"))
 const B2BOrders = lazy(() => import("../modules/Admin/pages/b2b/B2BOrders"));
 const B2BSettings = lazy(() => import("../modules/Admin/pages/b2b/B2BSettings"));
 const CompanyManagement = lazy(() => import("../modules/Admin/pages/b2b/CompanyManagement"));
+const AgreementTemplateManagement = lazy(() => import("../modules/Admin/pages/b2b/AgreementTemplateManagement"));
 const AdminB2BEnquiries = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminB2BEnquiries"));
 const AdminRFQDetail = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminRFQDetail"));
 const AdminSellerResponses = lazy(() => import("../modules/Admin/pages/b2b-enquiries/AdminSellerResponses"));
@@ -215,6 +216,7 @@ export default function AdminRoutes() {
         <Route path="b2b/b2b-orders" element={<B2BOrders />} />
         <Route path="b2b/b2b-settings" element={<B2BSettings />} />
         <Route path="b2b/companies" element={<CompanyManagement />} />
+        <Route path="b2b/agreement-template" element={<AgreementTemplateManagement />} />
 
         <Route path="b2b-enquiries" element={<AdminB2BEnquiries />} />
         <Route path="b2b-enquiries/all" element={<AdminB2BEnquiries />} />

@@ -69,6 +69,12 @@ export const useAuthStore = create(
             15000
           );
           const payload = response?.data?.data || response?.data || response;
+          
+          if (payload?.status === '2FA_PENDING') {
+            set({ isLoading: false });
+            return { twoFactorRequired: true, tempToken: payload.tempToken, email: payload.email };
+          }
+
           const accessToken = payload?.accessToken;
           const refreshToken = payload?.refreshToken;
           const user = payload?.user;
@@ -110,6 +116,38 @@ export const useAuthStore = create(
             throw error;
           }
           
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      verify2FA: async (tempToken, otp) => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post('/user/auth/2fa/verify-login', { tempToken, otp });
+          const payload = response?.data?.data || response?.data || response;
+          const accessToken = payload?.accessToken;
+          const refreshToken = payload?.refreshToken;
+          const user = payload?.user;
+
+          if (!accessToken || !refreshToken || !user) {
+            throw new Error('Invalid login verification response from server.');
+          }
+
+          set({
+            user: user,
+            token: accessToken,
+            refreshToken,
+            isAuthenticated: true,
+            pendingEmail: null,
+            isLoading: false,
+          });
+
+          sessionStorage.setItem('token', accessToken);
+          sessionStorage.setItem('refresh-token', refreshToken);
+
+          return { success: true, user };
+        } catch (error) {
           set({ isLoading: false });
           throw error;
         }
@@ -324,7 +362,7 @@ export const useAuthStore = create(
         } catch (e) {}
       },
 
-      // Update user profile
+      // Update user profile (initiates OTP flow)
       updateProfile: async (profileData) => {
         set({ isLoading: true });
         try {
@@ -333,6 +371,22 @@ export const useAuthStore = create(
             phone: profileData?.phone,
             gender: profileData?.gender,
             dob: profileData?.dob,
+          });
+          set({ isLoading: false });
+          return { success: true, pendingUpdateId: response.data?.pendingUpdateId };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      // Verify profile update OTP
+      verifyProfileOTP: async (pendingUpdateId, otp) => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post('/user/auth/profile/verify-otp', {
+            pendingUpdateId,
+            otp
           });
           const payload = response?.data ?? response;
           const currentUser = get().user || {};
@@ -346,8 +400,22 @@ export const useAuthStore = create(
             user: updatedUser,
             isLoading: false,
           });
-          
           return { success: true, user: updatedUser };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      // Resend profile update OTP
+      resendProfileOTP: async (pendingUpdateId) => {
+        set({ isLoading: true });
+        try {
+          await api.post('/user/auth/profile/resend-otp', {
+            pendingUpdateId
+          });
+          set({ isLoading: false });
+          return { success: true };
         } catch (error) {
           set({ isLoading: false });
           throw error;

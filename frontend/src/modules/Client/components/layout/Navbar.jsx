@@ -176,7 +176,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             <ThemeToggle />
             <a
-              href="http://localhost:3000/b2b/register"
+              href="https://peoplesleagueofelectronics.com/business"
               className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-client-primary text-black text-xs font-black hover:bg-client-primary-hover transition-all duration-300 group shadow-[0_0_20px_rgba(215,25,32,0.2)] hover:shadow-[0_0_25px_rgba(215,25,32,0.4)]"
             >
               <span>Start Shopping</span>

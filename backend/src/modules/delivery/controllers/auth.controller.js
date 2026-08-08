@@ -4,8 +4,10 @@ import ApiError from '../../../utils/ApiError.js';
 import DeliveryBoy from '../../../models/DeliveryBoy.model.js';
 import Admin from '../../../models/Admin.model.js';
 import { generateTokens } from '../../../utils/generateToken.js';
+import { signPreAuthToken, send2FAOtp } from '../../../services/twoFactor.service.js';
 import { createNotification } from '../../../services/notification.service.js';
 import { sendEmail } from '../../../services/email.service.js';
+import { initiateProfileUpdateOTP, verifyProfileUpdateOTP, resendProfileUpdateOTP } from '../../../services/profileOtp.service.js';
 import { cleanupLocalFiles } from '../../../services/upload.service.js';
 import {
     clearRefreshSession,
@@ -187,6 +189,16 @@ export const login = asyncHandler(async (req, res) => {
     const isMatch = await deliveryBoy.comparePassword(password);
     if (!isMatch) throw new ApiError(401, 'Invalid credentials.');
 
+    if (deliveryBoy.twoFactorEnabled) {
+        const tempToken = signPreAuthToken({ id: deliveryBoy._id, role: 'delivery', email: deliveryBoy.email });
+        await send2FAOtp(deliveryBoy, 'delivery');
+        return res.status(200).json(new ApiResponse(200, {
+            status: '2FA_PENDING',
+            tempToken,
+            email: deliveryBoy.email
+        }, 'Two-factor authentication required.'));
+    }
+
     const { accessToken, refreshToken } = generateTokens({ id: deliveryBoy._id, role: 'delivery', email: deliveryBoy.email });
     await persistRefreshSession(deliveryBoy, refreshToken);
     res.status(200).json(new ApiResponse(200, {
@@ -300,10 +312,50 @@ export const updateProfile = asyncHandler(async (req, res) => {
         update.status = isAvailable ? 'available' : 'offline';
     }
 
+    const deliveryBoy = await DeliveryBoy.findById(req.user.id);
+    if (!deliveryBoy) throw new ApiError(404, 'Delivery boy not found.');
+
+    const pendingUpdateId = await initiateProfileUpdateOTP({
+        userId: deliveryBoy._id,
+        userModel: 'DeliveryBoy',
+        role: req.user.role || 'delivery',
+        email: deliveryBoy.email,
+        pendingData: update
+    });
+
+    res.status(200).json(new ApiResponse(200, { pendingUpdateId }, 'OTP sent to your registered email to verify changes.'));
+});
+
+// POST /api/delivery/auth/profile/verify-otp
+export const verifyProfileOTP = asyncHandler(async (req, res) => {
+    const { pendingUpdateId, otp } = req.body;
+    if (!pendingUpdateId || !otp) {
+        throw new ApiError(400, 'pendingUpdateId and OTP are required.');
+    }
+
+    const pendingData = await verifyProfileUpdateOTP(pendingUpdateId, otp);
+
     const deliveryBoy = await DeliveryBoy.findByIdAndUpdate(
         req.user.id,
-        update,
+        pendingData,
         { new: true, runValidators: true }
     );
-    res.status(200).json(new ApiResponse(200, deliveryBoy, 'Profile updated.'));
+    if (!deliveryBoy) throw new ApiError(404, 'Delivery boy not found.');
+
+    res.status(200).json(new ApiResponse(200, deliveryBoy, 'Profile updated successfully.'));
+});
+
+// POST /api/delivery/auth/profile/resend-otp
+export const resendProfileOTP = asyncHandler(async (req, res) => {
+    const { pendingUpdateId } = req.body;
+    if (!pendingUpdateId) {
+        throw new ApiError(400, 'pendingUpdateId is required.');
+    }
+
+    const deliveryBoy = await DeliveryBoy.findById(req.user.id);
+    if (!deliveryBoy) throw new ApiError(404, 'Delivery boy not found.');
+
+    await resendProfileUpdateOTP(pendingUpdateId, deliveryBoy.email);
+
+    res.status(200).json(new ApiResponse(200, null, 'OTP resent successfully. Please check your email.'));
 });

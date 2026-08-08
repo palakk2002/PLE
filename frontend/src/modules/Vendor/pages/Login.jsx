@@ -4,11 +4,13 @@ import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowLeft } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { useVendorAuthStore } from "../store/vendorAuthStore";
 import toast from 'react-hot-toast';
+import TwoFactorVerify from '../../../shared/components/TwoFactorVerify';
 
 const VendorLogin = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isAuthenticated, isLoading } = useVendorAuthStore();
+  const [twoFactorData, setTwoFactorData] = useState(null);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -41,7 +43,15 @@ const VendorLogin = () => {
     }
 
     try {
-      await login(formData.email, formData.password, rememberMe);
+      const result = await login(formData.email, formData.password, rememberMe);
+      if (result?.twoFactorRequired) {
+        setTwoFactorData({
+          tempToken: result.tempToken,
+          email: result.email,
+          apiVerifyEndpoint: '/vendor/auth/2fa/verify-login'
+        });
+        return;
+      }
       toast.success('Login successful!');
       const from = location.state?.from?.pathname || '/vendor/dashboard';
       navigate(from, { replace: true });
@@ -49,6 +59,26 @@ const VendorLogin = () => {
       toast.error(error.response?.data?.message || error.message || 'Invalid credentials');
     }
   };
+
+  if (twoFactorData) {
+    const handleSuccess = () => {
+      toast.success('Login successful!');
+      const from = location.state?.from?.pathname || '/vendor/dashboard';
+      navigate(from, { replace: true });
+    };
+
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 flex items-center justify-center p-4">
+        <TwoFactorVerify
+          tempToken={twoFactorData.tempToken}
+          email={twoFactorData.email}
+          apiVerifyEndpoint={twoFactorData.apiVerifyEndpoint}
+          onSuccess={handleSuccess}
+          onCancel={() => setTwoFactorData(null)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary-900 via-primary-800 to-primary-900 flex items-center justify-center p-4">

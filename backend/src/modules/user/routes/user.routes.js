@@ -31,8 +31,18 @@ import {
 } from '../validators/address.validator.js';
 import { placeOrderSchema, createReturnRequestSchema } from '../validators/order.validator.js';
 
+import * as twoFactorController from '../../../controllers/twoFactor.controller.js';
+
 const router = Router();
 const customerAuth = [authenticate, authorize('customer', 'b2bAdmin', 'b2bEmployee'), enforceAccountStatus];
+
+// 2FA routes
+router.get('/auth/2fa/status', ...customerAuth, twoFactorController.get2FAStatus);
+router.post('/auth/2fa/enable', ...customerAuth, twoFactorController.initiateEnable2FA);
+router.post('/auth/2fa/verify-enable', ...customerAuth, twoFactorController.verifyEnable2FA);
+router.post('/auth/2fa/disable', ...customerAuth, twoFactorController.disable2FA);
+router.post('/auth/2fa/verify-login', twoFactorController.verifyLogin2FA);
+router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
 
 // Auth routes
 router.post('/auth/register', authLimiter, validate(registerSchema), authController.register);
@@ -47,6 +57,8 @@ router.post('/auth/refresh', validate(refreshTokenSchema), authController.refres
 router.post('/auth/logout', validate(logoutSchema), authController.logout);
 router.get('/auth/profile', ...customerAuth, authController.getProfile);
 router.put('/auth/profile', ...customerAuth, validate(updateProfileSchema), authController.updateProfile);
+router.post('/auth/profile/verify-otp', ...customerAuth, authController.verifyProfileOTP);
+router.post('/auth/profile/resend-otp', ...customerAuth, authController.resendProfileOTP);
 router.post('/auth/profile/avatar', ...customerAuth, uploadSingle('avatar'), authController.uploadProfileAvatar);
 router.post('/auth/change-password', ...customerAuth, validate(changePasswordSchema), authController.changePassword);
 

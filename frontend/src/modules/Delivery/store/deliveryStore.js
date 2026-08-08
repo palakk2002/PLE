@@ -158,12 +158,15 @@ export const useDeliveryAuthStore = create(
         }
       },
 
-      // Delivery boy login action
       login: async (email, password, rememberMe = false) => {
         set({ isLoading: true });
         try {
           const response = await api.post('/delivery/auth/login', { email, password });
           const payload = response?.data ?? response;
+          if (payload?.status === '2FA_PENDING') {
+            set({ isLoading: false });
+            return { twoFactorRequired: true, tempToken: payload.tempToken, email: payload.email };
+          }
           const accessToken = payload?.accessToken;
           const refreshToken = payload?.refreshToken;
           const loginDeliveryBoy = normalizeDeliveryBoy(payload?.deliveryBoy);
@@ -232,6 +235,37 @@ export const useDeliveryAuthStore = create(
           });
 
           return { success: true, deliveryBoy: mockDeliveryBoy };
+        }
+      },
+
+      verify2FA: async (tempToken, otp) => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post('/delivery/auth/2fa/verify-login', { tempToken, otp });
+          const payload = response?.data ?? response;
+          const accessToken = payload?.accessToken;
+          const refreshToken = payload?.refreshToken;
+          const loginDeliveryBoy = normalizeDeliveryBoy(payload?.deliveryBoy);
+
+          if (!accessToken || !refreshToken || !loginDeliveryBoy) {
+            throw new Error('Invalid verification response from server.');
+          }
+
+          sessionStorage.setItem('delivery-token', accessToken);
+          sessionStorage.setItem('delivery-refresh-token', refreshToken);
+
+          set({
+            deliveryBoy: loginDeliveryBoy,
+            token: accessToken,
+            refreshToken,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+
+          return { success: true, deliveryBoy: loginDeliveryBoy };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
         }
       },
 
@@ -305,11 +339,42 @@ export const useDeliveryAuthStore = create(
         set({ isLoading: true });
         try {
           const response = await api.put('/delivery/auth/profile', profileData);
+          set({ isLoading: false });
+          return { success: true, pendingUpdateId: response.data?.pendingUpdateId };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      // Verify delivery boy profile update OTP
+      verifyProfileOTP: async (pendingUpdateId, otp) => {
+        set({ isLoading: true });
+        try {
+          const response = await api.post('/delivery/auth/profile/verify-otp', {
+            pendingUpdateId,
+            otp
+          });
           const payload = response?.data ?? response;
           const current = get().deliveryBoy || {};
           const deliveryBoy = normalizeDeliveryBoy({ ...current, ...payload });
           set({ deliveryBoy, isLoading: false });
-          return deliveryBoy;
+          return { success: true, deliveryBoy };
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      // Resend delivery boy profile update OTP
+      resendProfileOTP: async (pendingUpdateId) => {
+        set({ isLoading: true });
+        try {
+          await api.post('/delivery/auth/profile/resend-otp', {
+            pendingUpdateId
+          });
+          set({ isLoading: false });
+          return { success: true };
         } catch (error) {
           set({ isLoading: false });
           throw error;

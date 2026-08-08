@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as authController from '../controllers/auth.controller.js';
+import * as twoFactorController from '../../../controllers/twoFactor.controller.js';
 import * as orderController from '../controllers/order.controller.js';
 import * as notificationController from '../controllers/notification.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
@@ -40,6 +41,16 @@ router.post('/auth/refresh', validate(refreshTokenSchema), authController.refres
 router.post('/auth/logout', validate(logoutSchema), authController.logout);
 router.get('/auth/profile', ...deliveryAuth, authController.getProfile);
 router.put('/auth/profile', ...deliveryAuth, authController.updateProfile);
+router.post('/auth/profile/verify-otp', ...deliveryAuth, authController.verifyProfileOTP);
+router.post('/auth/profile/resend-otp', ...deliveryAuth, authController.resendProfileOTP);
+
+// 2FA routes
+router.get('/auth/2fa/status', ...deliveryAuth, twoFactorController.get2FAStatus);
+router.post('/auth/2fa/enable', ...deliveryAuth, twoFactorController.initiateEnable2FA);
+router.post('/auth/2fa/verify-enable', ...deliveryAuth, twoFactorController.verifyEnable2FA);
+router.post('/auth/2fa/disable', ...deliveryAuth, twoFactorController.disable2FA);
+router.post('/auth/2fa/verify-login', twoFactorController.verifyLogin2FA);
+router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
 
 // Orders
 router.get('/orders', ...deliveryAuth, orderController.getAssignedOrders);

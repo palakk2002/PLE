@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
-import { FiSave, FiSettings, FiImage, FiGlobe } from "react-icons/fi";
+import { FiSave, FiSettings, FiImage, FiGlobe, FiUpload, FiFileText, FiTrash2, FiShield } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useSettingsStore } from "../../../../shared/store/settingsStore";
 import AnimatedSelect from "../../components/AnimatedSelect";
 import toast from "react-hot-toast";
+import { uploadAdminMedia } from "../../services/adminService";
+import TwoFactorToggle from "../../../../shared/components/TwoFactorToggle";
 
 const GeneralSettings = () => {
   const { settings, updateSettings, initialize } = useSettingsStore();
@@ -77,6 +79,7 @@ const GeneralSettings = () => {
     { id: "contact", label: "Contact Info", icon: FiGlobe },
     { id: "theme", label: "Theme & Colors", icon: FiImage },
     { id: "vendors", label: "Vendor Settings", icon: FiSettings },
+    { id: "security", label: "Security Settings", icon: FiShield },
   ];
 
   return (
@@ -603,39 +606,255 @@ const GeneralSettings = () => {
                     </label>
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <span className="text-sm font-semibold text-gray-700">
-                        Vendor Analytics
-                      </span>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Allow vendors to view their analytics
-                      </p>
+                    <div className="flex items-center justify-between gap-3 p-4 border border-gray-200 rounded-lg">
+                      <div>
+                        <span className="text-sm font-semibold text-gray-700">
+                          Vendor Analytics
+                        </span>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Allow vendors to view their analytics
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          name="vendorAnalytics"
+                          checked={formData.vendorAnalytics !== false}
+                          onChange={handleChange}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
+                      </label>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        name="vendorAnalytics"
-                        checked={formData.vendorAnalytics !== false}
-                        onChange={handleChange}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-primary-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary-600"></div>
-                    </label>
+                  </div>
+                </div>
+
+                <div className="border-t border-gray-200 pt-6">
+                  <h3 className="text-lg font-bold text-gray-800 mb-4">
+                    Business Declaration Letter Template
+                  </h3>
+                  <p className="text-xs text-gray-500 mb-4">
+                    Upload a template that vendors must download, print, sign/stamp, and re-upload during registration.
+                  </p>
+
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                      <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-semibold text-gray-700">
+                        <FiUpload className="text-gray-500" />
+                        <span>Upload Template (PDF/DOCX)</span>
+                        <input
+                          type="file"
+                          accept="application/pdf,.docx,.doc"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+                            const loadingToast = toast.loading("Uploading template...");
+                            try {
+                              const response = await uploadAdminMedia(file, "settings/declaration_templates");
+                              const uploadedUrl = response.data?.data?.url || response.data?.url;
+                              const uploadedName = file.name;
+                              if (!uploadedUrl) throw new Error("Upload response did not contain URL");
+                              
+                              setFormData((prev) => ({
+                                ...prev,
+                                businessLetterTemplateUrl: uploadedUrl,
+                                businessLetterTemplateName: uploadedName,
+                                businessLetterTemplateUploadedAt: new Date().toISOString()
+                              }));
+                              toast.success("Template uploaded successfully", { id: loadingToast });
+                            } catch (err) {
+                              toast.error("Failed to upload template: " + err.message, { id: loadingToast });
+                            }
+                          }}
+                        />
+                      </label>
+
+                      {formData.businessLetterTemplateUrl && (
+                        <div className="flex items-center gap-3 bg-gray-50 p-2 px-3 rounded-lg border border-gray-200 text-xs text-gray-700">
+                          <FiFileText className="text-primary-600 text-sm" />
+                          <a
+                            href={formData.businessLetterTemplateUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-semibold text-primary-600 hover:underline truncate max-w-[200px]"
+                          >
+                            {formData.businessLetterTemplateName || "Download Template"}
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                businessLetterTemplateUrl: "",
+                                businessLetterTemplateName: "",
+                                businessLetterTemplateUploadedAt: ""
+                              }));
+                              toast.success("Template removed from settings (remember to save settings to persist)");
+                            }}
+                            className="text-red-500 hover:text-red-700 ml-1"
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                        Select Business Types requiring Signed Declaration Letter
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border border-gray-200 rounded-lg bg-gray-50/50">
+                        {['Home Business', 'Small Business', 'MSME', 'Startup', 'Proprietorship', 'Partnership', 'LLP', 'Private Limited', 'Public Limited', 'Other'].map((bType) => {
+                          const currentList = formData.businessLetterRequiredTypes || [];
+                          const isChecked = currentList.includes(bType);
+                          return (
+                            <label key={bType} className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => {
+                                  const updatedList = e.target.checked
+                                    ? [...currentList, bType]
+                                    : currentList.filter((item) => item !== bType);
+                                  setFormData({
+                                    ...formData,
+                                    businessLetterRequiredTypes: updatedList
+                                  });
+                                }}
+                                className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                              />
+                              <span>{bType}</span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-gray-200 pt-6">
+                      <h3 className="text-lg font-bold text-gray-800 mb-4">
+                        Partnership Agreement Template
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-4">
+                        Upload a partnership agreement template that vendors must download, print, sign & seal/stamp, and re-upload during registration.
+                      </p>
+
+                      <div className="space-y-4">
+                        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                          <label className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 text-sm font-semibold text-gray-700">
+                            <FiUpload className="text-gray-500" />
+                            <span>Upload Agreement Template (PDF/DOCX)</span>
+                            <input
+                              type="file"
+                              accept="application/pdf,.docx,.doc"
+                              className="hidden"
+                              onChange={async (e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                const loadingToast = toast.loading("Uploading agreement template...");
+                                try {
+                                  const response = await uploadAdminMedia(file, "settings/partnership_templates");
+                                  const uploadedUrl = response.data?.data?.url || response.data?.url;
+                                  const uploadedName = file.name;
+                                  if (!uploadedUrl) throw new Error("Upload response did not contain URL");
+                                  
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    partnershipAgreementTemplateUrl: uploadedUrl,
+                                    partnershipAgreementTemplateName: uploadedName,
+                                    partnershipAgreementTemplateUploadedAt: new Date().toISOString()
+                                  }));
+                                  toast.success("Partnership Agreement template uploaded successfully", { id: loadingToast });
+                                } catch (err) {
+                                  toast.error("Failed to upload agreement template: " + err.message, { id: loadingToast });
+                                }
+                              }}
+                            />
+                          </label>
+
+                          {formData.partnershipAgreementTemplateUrl && (
+                            <div className="flex items-center gap-3 bg-gray-50 p-2 px-3 rounded-lg border border-gray-200 text-xs text-gray-700">
+                              <FiFileText className="text-primary-600 text-sm" />
+                              <a
+                                href={formData.partnershipAgreementTemplateUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="font-semibold text-primary-600 hover:underline truncate max-w-[200px]"
+                              >
+                                {formData.partnershipAgreementTemplateName || "Download Agreement"}
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData((prev) => ({
+                                    ...prev,
+                                    partnershipAgreementTemplateUrl: "",
+                                    partnershipAgreementTemplateName: "",
+                                    partnershipAgreementTemplateUploadedAt: ""
+                                  }));
+                                  toast.success("Partnership Agreement template removed (remember to save settings to persist)");
+                                }}
+                                className="text-red-500 hover:text-red-700 ml-1"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Select Business Types requiring Signed & Sealed Partnership Agreement
+                          </label>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 p-4 border border-gray-200 rounded-lg bg-gray-50/50">
+                            {['Home Business', 'Small Business', 'MSME', 'Startup', 'Proprietorship', 'Partnership', 'LLP', 'Private Limited', 'Public Limited', 'Other'].map((bType) => {
+                              const currentList = formData.partnershipAgreementRequiredTypes || [];
+                              const isChecked = currentList.includes(bType);
+                              return (
+                                <label key={bType} className="flex items-center gap-2 cursor-pointer text-xs font-medium text-gray-700 hover:text-gray-900">
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={(e) => {
+                                      const updatedList = e.target.checked
+                                        ? [...currentList, bType]
+                                        : currentList.filter((item) => item !== bType);
+                                      setFormData({
+                                        ...formData,
+                                        partnershipAgreementRequiredTypes: updatedList
+                                      });
+                                    }}
+                                    className="w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500"
+                                  />
+                                  <span>{bType}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+            )}
+
+          {activeSection === "security" && (
+            <div className="space-y-6">
+              <TwoFactorToggle apiPrefix="/admin/auth" />
             </div>
           )}
 
-          <div className="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 mt-4 sm:mt-6">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 sm:px-6 py-2 gradient-green text-white rounded-lg hover:shadow-glow-green transition-all font-semibold text-sm sm:text-base w-full sm:w-auto">
-              <FiSave />
-              Save Settings
-            </button>
-          </div>
+          {activeSection !== "security" && (
+            <div className="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 mt-4 sm:mt-6">
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2 gradient-green text-white rounded-lg hover:shadow-glow-green transition-all font-semibold text-sm sm:text-base w-full sm:w-auto">
+                <FiSave />
+                Save Settings
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </motion.div>

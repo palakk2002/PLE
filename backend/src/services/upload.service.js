@@ -64,7 +64,9 @@ export const uploadFileToCloudinary = async (
         const cleanFolder = String(folder || 'general').split('/').pop().toLowerCase();
         let fallbackUrl = `https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop&q=60`;
         
-        if (cleanFolder.includes('category') || cleanFolder.includes('categories')) {
+        if (cleanFolder.includes('agreement') || cleanFolder.includes('templates') || resourceType === 'raw') {
+            fallbackUrl = `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`;
+        } else if (cleanFolder.includes('category') || cleanFolder.includes('categories')) {
             fallbackUrl = `https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&auto=format&fit=crop&q=60`;
         } else if (cleanFolder.includes('product') || cleanFolder.includes('products')) {
             fallbackUrl = `https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&auto=format&fit=crop&q=60`;

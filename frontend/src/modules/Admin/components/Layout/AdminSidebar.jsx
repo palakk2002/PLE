@@ -99,6 +99,7 @@ const getChildRoute = (parentRoute, childName) => {
       "B2B Products": "/admin/b2b/b2b-products",
       "B2B Orders": "/admin/b2b/b2b-orders",
       "B2B Settings": "/admin/b2b/b2b-settings",
+      "Agreement Templates": "/admin/b2b/agreement-template",
     },
     "/admin/b2b-enquiries": {
       "Pending RFQs": "/admin/b2b-enquiries/all?status=Submitted",

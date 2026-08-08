@@ -157,3 +157,91 @@ export const uploadIdentityProof = asyncHandler(async (req, res) => {
     const vendor = await handleDocumentUpload(req, 'identity', 'identityProof');
     res.status(200).json(new ApiResponse(200, { identityProof: vendor.identityProof, verificationStatus: vendor.verificationStatus }, 'Identity Proof uploaded successfully.'));
 });
+
+// POST /api/vendor/business-profile/upload-registration
+export const uploadRegistrationProof = asyncHandler(async (req, res) => {
+    if (!req.file?.path) {
+        throw new ApiError(400, 'Document file is required.');
+    }
+
+    const vendor = await Vendor.findById(req.user.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    let uploaded = null;
+    try {
+        uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+            req.file.path,
+            'vendors/verification/registration',
+            'auto'
+        );
+
+        if (vendor.registrationProofUrl && vendor.registrationProofUrl.includes('cloudinary')) {
+            const publicIdMatch = vendor.registrationProofUrl.match(/\/v\d+\/([^/.]+)\.[a-z0-9]+$/i);
+            if (publicIdMatch && publicIdMatch[1]) {
+                await deleteFromCloudinary(publicIdMatch[1]).catch(() => null);
+            }
+        }
+
+        vendor.registrationProofUrl = uploaded.url;
+        vendor.registrationProofName = req.file.originalname;
+        vendor.registrationProofUploadedAt = new Date();
+        vendor.registrationProofCreatedBy = vendor.name;
+
+        if (vendor.verificationStatus === 'Rejected') {
+            vendor.verificationStatus = 'Pending';
+        }
+
+        await vendor.save();
+
+        res.status(200).json(new ApiResponse(200, {
+            registrationProofUrl: vendor.registrationProofUrl,
+            registrationProofName: vendor.registrationProofName,
+            verificationStatus: vendor.verificationStatus
+        }, 'Registration Proof uploaded successfully.'));
+    } catch (error) {
+        if (!uploaded) {
+            await cleanupLocalFiles([req.file?.path]);
+        }
+        throw error;
+    }
+});
+
+// POST /api/vendor/business-profile/upload-partnership
+export const uploadPartnershipAgreement = asyncHandler(async (req, res) => {
+    if (!req.file?.path) {
+        throw new ApiError(400, 'Document file is required.');
+    }
+
+    const vendor = await Vendor.findById(req.user.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    let uploaded = null;
+    try {
+        uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
+            req.file.path,
+            'vendors/verification/partnership_agreements',
+            'auto'
+        );
+
+        vendor.partnershipAgreementUrl = uploaded.url;
+        vendor.partnershipAgreementName = req.file.originalname;
+        vendor.partnershipAgreementUploadedAt = new Date();
+
+        if (vendor.verificationStatus === 'Rejected') {
+            vendor.verificationStatus = 'Pending';
+        }
+
+        await vendor.save();
+
+        res.status(200).json(new ApiResponse(200, {
+            partnershipAgreementUrl: vendor.partnershipAgreementUrl,
+            partnershipAgreementName: vendor.partnershipAgreementName,
+            verificationStatus: vendor.verificationStatus
+        }, 'Partnership Agreement uploaded successfully.'));
+    } catch (error) {
+        if (!uploaded) {
+            await cleanupLocalFiles([req.file?.path]);
+        }
+        throw error;
+    }
+});

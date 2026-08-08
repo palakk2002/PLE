@@ -101,7 +101,7 @@ export const deleteShop = asyncHandler(async (req, res) => {
 
 // POST /api/admin/managed-vendors
 export const createVendorUser = asyncHandler(async (req, res) => {
-    const { name, phone, username, password, role, shopId } = req.body;
+    const { name, phone, username, password, role, shopId, companyName, gstNumber, address } = req.body;
     if (!name || !username || !password || !shopId) {
         throw new ApiError(400, 'Name, Username, Password, and Shop ID are required.');
     }
@@ -120,6 +120,9 @@ export const createVendorUser = asyncHandler(async (req, res) => {
         password,
         role: role || 'managed_vendor',
         shopId,
+        companyName: String(companyName || '').trim(),
+        gstNumber: String(gstNumber || '').trim().toUpperCase(),
+        address: String(address || '').trim(),
         createdBy: req.user.id,
         status: 'active'
     });
@@ -148,7 +151,7 @@ export const getVendorUsers = asyncHandler(async (req, res) => {
 
 // PUT /api/admin/managed-vendors/:id
 export const updateVendorUser = asyncHandler(async (req, res) => {
-    const { name, phone, password, role, status } = req.body;
+    const { name, phone, password, role, status, companyName, gstNumber, address } = req.body;
     const vendorUser = await ManagedVendorUser.findById(req.params.id);
     if (!vendorUser) throw new ApiError(404, 'Managed Vendor User not found.');
 
@@ -161,6 +164,9 @@ export const updateVendorUser = asyncHandler(async (req, res) => {
         }
         vendorUser.status = status;
     }
+    if (companyName !== undefined) vendorUser.companyName = String(companyName || '').trim();
+    if (gstNumber !== undefined) vendorUser.gstNumber = String(gstNumber || '').trim().toUpperCase();
+    if (address !== undefined) vendorUser.address = String(address || '').trim();
     if (password) {
         vendorUser.password = password; // hashed in pre-save hook
     }
