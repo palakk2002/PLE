@@ -251,15 +251,9 @@ const MobileHeader = () => {
   }, [hasPlayed]);
 
   const handleLogout = () => {
-    const isB2B = useB2bStore.getState().userRole === 'business_buyer';
     logout();
     setShowUserMenu(false);
-    navigate("/portal");
-    if (isB2B) {
-      navigate('/b2b/login');
-    } else {
-      navigate("/portal");
-    }
+    navigate("/");
   };
 
   // Animation content - straight line movement only, starting from behind logo

@@ -99,6 +99,46 @@ const productRequestSchema = new mongoose.Schema({
         refPath: 'targetEntityType',
         index: true
     },
+    productMasterId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Product',
+        index: true
+    },
+    fulfillmentType: {
+        type: String,
+        enum: ['PLE_SHOP', 'VENDOR', 'SPLIT', 'NONE'],
+        default: 'NONE'
+    },
+    pleFulfillment: {
+        availableQuantity: { type: Number, default: 0 },
+        status: { type: String, enum: ['AVAILABLE', 'PARTIAL', 'NOT_AVAILABLE'], default: 'NOT_AVAILABLE' }
+    },
+    assignedVendors: [{
+        vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' },
+        status: { type: String, enum: ['ASSIGNED', 'RESPONDED', 'REJECTED', 'UNAVAILABLE'], default: 'ASSIGNED' },
+        offeredPrice: { type: Number },
+        availableQuantity: { type: Number },
+        deliveryTimeline: { type: Number }, // in days
+        message: { type: String },
+        assignedAt: { type: Date, default: Date.now },
+        respondedAt: { type: Date }
+    }],
+    selectedFulfillment: {
+        pleQuantity: { type: Number, default: 0 },
+        vendors: [{
+            vendorId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vendor' },
+            quantity: { type: Number },
+            price: { type: Number }
+        }],
+        finalPrice: { type: Number },
+        estimatedDelivery: { type: Date },
+        notes: { type: String }
+    },
+    associatedOrderId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Order',
+        index: true
+    },
     productName: {
         type: String,
         required: true,
@@ -128,7 +168,21 @@ const productRequestSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Submitted', 'Under Review', 'Seller Responded', 'Accepted', 'Rejected', 'Product Added', 'Completed', 'Cancelled'],
+        enum: [
+            'Submitted', 
+            'Under Review', 
+            'PLE Sourcing',
+            'Vendor Sourcing', 
+            'Seller Responded', 
+            'Admin Review', 
+            'Final Proposal',
+            'Accepted', 
+            'Confirmed',
+            'Completed',
+            'Rejected', 
+            'Product Added', 
+            'Cancelled'
+        ],
         default: 'Submitted',
         index: true
     },

@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Hero from '../components/home/Hero';
+import CatalogueSection from '../components/home/Catalogue/CatalogueSection';
 import ServicesPreview from '../components/home/ServicesPreview';
 import WhyChooseUs from '../components/home/WhyChooseUs';
 import ComparisonTable from '../components/home/ComparisonTable';
@@ -26,6 +27,7 @@ export default function Home() {
   // Mapping from section IDs to components
   const componentMap = {
     hero: <Hero key="hero" />,
+    catalogue: <CatalogueSection key="catalogue" />,
     trustedBrands: <TrustedBrands key="trustedBrands" />,
     productCategories: <ProductCategories key="productCategories" />,
     portfolioHighlights: <PortfolioHighlights key="portfolioHighlights" />,

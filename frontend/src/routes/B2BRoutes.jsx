@@ -21,6 +21,9 @@ const B2BQuotations = lazy(() => import("../modules/B2BAdmin/pages/Quotations"))
 const B2BRFQDiscussions = lazy(() => import("../modules/B2BAdmin/pages/RFQDiscussions"));
 const B2BPurchaseOrders = lazy(() => import("../modules/B2BAdmin/pages/PurchaseOrders"));
 const ShopChats = lazy(() => import("../modules/B2BAdmin/pages/ShopChats"));
+const UserProductRequestHistory = lazy(() => import("../modules/UserApp/pages/ProductRequestHistory"));
+const UserProductRequestDetail = lazy(() => import("../modules/UserApp/pages/ProductRequestDetail"));
+const UserProductRequestForm = lazy(() => import("../modules/UserApp/pages/ProductRequestForm"));
 
 const B2BIndexRoute = () => {
   const { adminProfile } = useB2BAdminStore();
@@ -60,6 +63,9 @@ export default function B2BRoutes() {
         <Route path="activity-logs" element={<B2BActivityLogs />} />
         <Route path="notifications" element={<B2BNotifications />} />
         <Route path="settings" element={<B2BDashboardSettings />} />
+        <Route path="product-requests" element={<UserProductRequestHistory />} />
+        <Route path="product-requests/new" element={<UserProductRequestForm />} />
+        <Route path="product-requests/:id" element={<UserProductRequestDetail />} />
       </Route>
     </Routes>
   );

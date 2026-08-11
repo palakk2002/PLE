@@ -115,7 +115,7 @@ const Wallet = () => {
     }
 
     const options = {
-      key: key || process.env.REACT_APP_RAZORPAY_KEY_ID,
+      key: key || (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_RAZORPAY_KEY_ID : null) || process.env.REACT_APP_RAZORPAY_KEY_ID,
       amount: rzpAmount,
       currency: "INR",
       name: "Peoples League Of Electronics",

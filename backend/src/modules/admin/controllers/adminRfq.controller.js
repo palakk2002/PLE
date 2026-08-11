@@ -12,6 +12,7 @@ export const getAdminRFQs = asyncHandler(async (req, res) => {
     const rfqs = await RFQ.find()
         .populate('productId', 'name image price')
         .populate('companyId', 'companyName businessEmail')
+        .populate('buyerId', 'name email phone companyName businessAddress gstNumber')
         .populate('assignedVendorIds', 'storeName name email phone')
         .sort({ createdAt: -1 });
 
@@ -22,6 +23,7 @@ export const getAdminRFQs = asyncHandler(async (req, res) => {
 export const getAdminRFQDetail = asyncHandler(async (req, res) => {
     const rfq = await RFQ.findById(req.params.id)
         .populate('productId', 'name image price unit stockQuantity')
+        .populate('buyerId', 'name email phone companyName businessAddress gstNumber')
         .populate('assignedVendorIds', 'storeName name email phone');
 
     if (!rfq) {

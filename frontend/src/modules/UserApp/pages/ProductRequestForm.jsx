@@ -138,7 +138,7 @@ const ProductRequestForm = () => {
 
       if (res.success || res.statusCode === 201) {
         toast.success("Product request submitted successfully!");
-        navigate("/product-requests");
+        navigate(isB2B ? "/b2b-dashboard/product-requests" : "/product-requests");
       }
     } catch (error) {
       console.error(error);
@@ -146,160 +146,170 @@ const ProductRequestForm = () => {
     }
   };
 
+  const isB2B = useLocation().pathname.startsWith("/b2b-dashboard");
+
+  const content = (
+    <div className={`w-full pb-24 max-w-2xl mx-auto min-h-screen px-4 py-6 ${isB2B ? 'bg-white rounded-3xl border border-gray-150 p-6 shadow-sm mt-4' : 'bg-gray-50'}`}>
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          onClick={() => navigate(-1)}
+          className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
+        >
+          <FiArrowLeft className="text-xl text-gray-700" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-800">Request a Product</h1>
+          <p className="text-sm text-gray-500 mt-0.5">Let us know what product you are looking for</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {targetName && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Target Store</p>
+                <p className="text-sm font-bold text-[#7B0A0A]">{targetName}</p>
+              </div>
+              <span className="text-[10px] bg-red-100 text-[#7B0A0A] px-2 py-0.5 rounded-full font-bold">
+                Direct Request
+              </span>
+            </div>
+          )}
+          {/* Product Name */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Product Name *</label>
+            <input
+              type="text"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="Enter the name of the product"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
+            />
+          </div>
+
+          {/* Category */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Category *</label>
+            <select
+              required
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base bg-white"
+            >
+              <option value="" disabled>Select a category</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Groceries">Groceries</option>
+              <option value="Stationery">Stationery</option>
+              <option value="Hardware">Hardware</option>
+              <option value="Clothing">Clothing</option>
+              <option value="Office Supplies">Office Supplies</option>
+            </select>
+          </div>
+
+          {/* Quantity */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Quantity Required *</label>
+            <input
+              type="number"
+              required
+              min="1"
+              value={formData.quantity}
+              onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+              placeholder="E.g. 50"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
+            />
+          </div>
+
+          {/* Target Price */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Expected Budget (₹) *</label>
+            <input
+              type="number"
+              required
+              min="1"
+              value={formData.budget}
+              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+              placeholder="E.g. 15000"
+              className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Requirements / Specifications</label>
+            <textarea
+              rows={4}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Provide color, dimensions, material, model preferences..."
+              className="w-full p-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
+            />
+          </div>
+
+          {/* Reference Image Upload */}
+          <div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Reference Image (Optional)</label>
+            
+            {imagePreview ? (
+              <div className="relative rounded-2xl overflow-hidden border border-gray-200 aspect-video bg-gray-50 flex items-center justify-center">
+                <img src={imagePreview} alt="Preview" className="max-h-full max-w-full object-contain" />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-4 right-4 p-2 bg-red-650 hover:bg-red-750 text-white rounded-full transition-colors shadow"
+                >
+                  <FiTrash2 className="text-lg" />
+                </button>
+              </div>
+            ) : (
+              <div
+                onDragEnter={handleDrag}
+                onDragOver={handleDrag}
+                onDragLeave={handleDrag}
+                onDrop={handleDrop}
+                onClick={() => document.getElementById("img-upload").click()}
+                className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
+                  dragActive ? "border-red-500 bg-red-50/50" : "border-gray-300 hover:border-red-400"
+                }`}
+              >
+                <input
+                  id="img-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
+                <FiUploadCloud className="mx-auto text-4xl text-gray-400 mb-3" />
+                <p className="text-sm font-bold text-gray-700">Drag and drop your image here, or browse</p>
+                <p className="text-xs text-gray-500 mt-1">Supports JPG, PNG, WEBP (Max 5MB)</p>
+              </div>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-750 text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
+          >
+            <FiFileText />
+            <span>Submit Request</span>
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+
+  if (isB2B) {
+    return <PageTransition>{content}</PageTransition>;
+  }
+
   return (
     <PageTransition>
       <MobileLayout showBottomNav={true} showCartBar={true}>
-        <div className="w-full pb-24 max-w-2xl mx-auto min-h-screen bg-gray-50 px-4 py-6">
-          {/* Header */}
-          <div className="flex items-center gap-4 mb-8">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
-            >
-              <FiArrowLeft className="text-xl text-gray-700" />
-            </button>
-            <div>
-              <h1 className="text-2xl font-extrabold text-gray-800">Request a Product</h1>
-              <p className="text-sm text-gray-500 mt-0.5">Let us know what product you are looking for</p>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {targetName && (
-                <div className="bg-red-50 border border-red-200 rounded-2xl p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider">Target Store</p>
-                    <p className="text-sm font-bold text-[#7B0A0A]">{targetName}</p>
-                  </div>
-                  <span className="text-[10px] bg-red-100 text-[#7B0A0A] px-2 py-0.5 rounded-full font-bold">
-                    Direct Request
-                  </span>
-                </div>
-              )}
-              {/* Product Name */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Product Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter the name of the product"
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
-                />
-              </div>
-
-              {/* Category */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Category *</label>
-                <select
-                  required
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base bg-white"
-                >
-                  <option value="">Select a category</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Quantity */}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Quantity *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    value={formData.quantity}
-                    onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
-                  />
-                </div>
-
-                {/* Expected Budget */}
-                <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">Expected Budget (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    placeholder="E.g. 1500"
-                    value={formData.budget}
-                    onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                    className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
-                  />
-                </div>
-              </div>
-
-              {/* Description */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Detailed Description</label>
-                <textarea
-                  rows={4}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Describe specifications like size, color, brand preferences, or model number..."
-                  className="w-full p-4 rounded-xl border-2 border-gray-200 focus:outline-none focus:border-red-500 transition-colors text-base"
-                />
-              </div>
-
-              {/* Reference Image Upload */}
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">Reference Image (Optional)</label>
-                
-                {imagePreview ? (
-                  <div className="relative rounded-2xl overflow-hidden border border-gray-200 aspect-video bg-gray-50 flex items-center justify-center">
-                    <img src={imagePreview} alt="Preview" className="max-h-full max-w-full object-contain" />
-                    <button
-                      type="button"
-                      onClick={removeImage}
-                      className="absolute top-4 right-4 p-2 bg-red-650 hover:bg-red-750 text-white rounded-full transition-colors shadow"
-                    >
-                      <FiTrash2 className="text-lg" />
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    onDragEnter={handleDrag}
-                    onDragOver={handleDrag}
-                    onDragLeave={handleDrag}
-                    onDrop={handleDrop}
-                    onClick={() => document.getElementById("img-upload").click()}
-                    className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-colors ${
-                      dragActive ? "border-red-500 bg-red-50/50" : "border-gray-300 hover:border-red-400"
-                    }`}
-                  >
-                    <input
-                      id="img-upload"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <FiUploadCloud className="mx-auto text-4xl text-gray-400 mb-3" />
-                    <p className="text-sm font-bold text-gray-700">Drag and drop your image here, or browse</p>
-                    <p className="text-xs text-gray-500 mt-1">Supports JPG, PNG, WEBP (Max 5MB)</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                className="w-full py-3.5 bg-[#AE020B] hover:bg-[#8d0208] text-white font-extrabold rounded-xl text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                <FiFileText />
-                <span>Submit Request</span>
-              </button>
-            </form>
-          </div>
-        </div>
+        {content}
       </MobileLayout>
     </PageTransition>
   );

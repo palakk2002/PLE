@@ -127,6 +127,7 @@ import * as productRequestController from '../../b2bUser/controllers/productRequ
 router.post('/product-requests', ...customerAuth, productRequestController.createProductRequest);
 router.get('/product-requests', ...customerAuth, productRequestController.getUserProductRequests);
 router.get('/product-requests/:id', ...customerAuth, productRequestController.getProductRequestById);
+router.post('/product-requests/:id/confirm', ...customerAuth, productRequestController.confirmProductRequestProposal);
 
 // Chat routes (protected)
 import * as customerChatController from '../controllers/customerChat.controller.js';

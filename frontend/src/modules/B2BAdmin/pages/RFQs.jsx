@@ -37,37 +37,86 @@ const RFQs = () => {
     try {
       if (!silent) setLoading(true);
       else setRefreshing(true);
-      // Fetch both standard RFQs and Direct RFQs
-      const [standardRes, directRes] = await Promise.all([
+      // Fetch standard RFQs, Direct RFQs, and User RFQs
+      const [standardRes, directRes, userRes] = await Promise.all([
         api.get('/b2b-user/admin/rfq').catch(() => ({ data: [] })),
-        api.get('/b2b-user/employee/direct-rfq').catch(() => ({ data: [] }))
+        api.get('/b2b-user/employee/direct-rfq').catch(() => ({ data: [] })),
+        api.get('/user/rfq').catch(() => ({ data: [] }))
       ]);
       
       let allRfqs = [];
-      if (standardRes && standardRes.data && standardRes.data.data) {
-        // Filter out dummy RFQs created for PO generation of Direct RFQs
-        const standardList = standardRes.data.data.rfqs || standardRes.data.data || [];
-        const filteredStandard = Array.isArray(standardList) ? standardList.filter(r => !r.rfqId?.startsWith('DRFQ-')) : [];
-        allRfqs = [...allRfqs, ...filteredStandard];
-      }
       
-      if (directRes && directRes.data && directRes.data.data) {
-        // Normalize Direct RFQ fields to match Standard RFQ format for the table
-        const directList = directRes.data.data || [];
-        const normalizedDirectRfqs = Array.isArray(directList) ? directList.map(drfq => ({
-          ...drfq,
-          isDirect: true,
-          rfqId: drfq.directRfqId,
-          customProductName: drfq.customProductName || 'Direct RFQ Product',
-          category: 'Direct Sourcing',
-          createdByAdminId: null, // Employee
-          status: drfq.status,
-          createdAt: drfq.createdAt,
-          _id: drfq._id
-        })) : [];
-        allRfqs = [...allRfqs, ...normalizedDirectRfqs];
+      // 1. Standard RFQs
+      let standardList = [];
+      if (standardRes) {
+        if (Array.isArray(standardRes)) {
+          standardList = standardRes;
+        } else if (Array.isArray(standardRes.data)) {
+          standardList = standardRes.data;
+        } else if (standardRes.data && Array.isArray(standardRes.data.rfqs)) {
+          standardList = standardRes.data.rfqs;
+        } else if (standardRes.data && Array.isArray(standardRes.data.data)) {
+          standardList = standardRes.data.data;
+        } else if (standardRes.data && standardRes.data.data && Array.isArray(standardRes.data.data.rfqs)) {
+          standardList = standardRes.data.data.rfqs;
+        }
       }
+      const filteredStandard = Array.isArray(standardList) ? standardList.filter(r => !r.rfqId?.startsWith('DRFQ-')) : [];
+      allRfqs = [...allRfqs, ...filteredStandard];
 
+      // 2. Direct RFQs
+      let directList = [];
+      if (directRes) {
+        if (Array.isArray(directRes)) {
+          directList = directRes;
+        } else if (Array.isArray(directRes.data)) {
+          directList = directRes.data;
+        } else if (directRes.data && Array.isArray(directRes.data.data)) {
+          directList = directRes.data.data;
+        }
+      }
+      const normalizedDirectRfqs = Array.isArray(directList) ? directList.map(drfq => ({
+        ...drfq,
+        isDirect: true,
+        rfqId: drfq.directRfqId,
+        customProductName: drfq.customProductName || 'Direct RFQ Product',
+        category: 'Direct Sourcing',
+        createdByAdminId: null, // Employee
+        status: drfq.status,
+        createdAt: drfq.createdAt,
+        _id: drfq._id
+      })) : [];
+      allRfqs = [...allRfqs, ...normalizedDirectRfqs];
+
+      // 3. User RFQs
+      let userList = [];
+      if (userRes) {
+        if (Array.isArray(userRes)) {
+          userList = userRes;
+        } else if (Array.isArray(userRes.data)) {
+          userList = userRes.data;
+        } else if (userRes.data && Array.isArray(userRes.data.rfqs)) {
+          userList = userRes.data.rfqs;
+        } else if (userRes.data && Array.isArray(userRes.data.data)) {
+          userList = userRes.data.data;
+        } else if (userRes.data && userRes.data.data && Array.isArray(userRes.data.data.rfqs)) {
+          userList = userRes.data.data.rfqs;
+        }
+      }
+      const normalizedUserRfqs = Array.isArray(userList) ? userList.map(urfq => ({
+        ...urfq,
+        rfqId: urfq.rfqId || `RFQ-${urfq._id}`,
+        customProductName: urfq.customProductName || urfq.productId?.name || 'Wholesale Request',
+        category: urfq.category || 'General Sourcing',
+        status: urfq.status || 'Pending',
+        createdAt: urfq.createdAt,
+        _id: urfq._id
+      })) : [];
+      
+      const existingIds = new Set(allRfqs.map(r => String(r._id)));
+      const uniqueUserRfqs = normalizedUserRfqs.filter(r => !existingIds.has(String(r._id)));
+      allRfqs = [...allRfqs, ...uniqueUserRfqs];
+ 
       // Sort by creation date descending
       allRfqs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       

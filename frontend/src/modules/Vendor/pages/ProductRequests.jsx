@@ -131,10 +131,11 @@ const VendorProductRequests = () => {
     if (filterType === "General" && r.requestType !== "GENERAL") return false;
     if (filterType === "Direct" && r.requestType !== "SHOP_SPECIFIC") return false;
 
-    const hasVendorResponded = r.sellerResponses?.some((s) => String(s.sellerId) === String(vendorId));
+    const hasVendorResponded = r.sellerResponses?.some((s) => String(s.sellerId) === String(vendorId)) ||
+      r.assignedVendors?.some((v) => String(v.vendorId) === String(vendorId) && v.status === "RESPONDED");
 
     if (activeTab === "pending") {
-      return !hasVendorResponded && r.status !== "Rejected" && r.status !== "Product Added";
+      return !hasVendorResponded && r.status !== "Rejected" && r.status !== "Product Added" && r.status !== "Confirmed" && r.status !== "Completed";
     }
     if (activeTab === "responded") {
       return hasVendorResponded;

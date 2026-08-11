@@ -563,10 +563,10 @@ const B2BHome = ({
               
               <div className="relative z-10 flex items-center gap-4 mt-8">
                 <button 
-                  onClick={handleRfqClick}
+                  onClick={() => navigate('/b2b-dashboard/rfqs')}
                   className="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-750 text-white font-extrabold text-xs uppercase rounded-xl transition-all shadow-md active:scale-95"
                 >
-                  Request for Quote <span className="text-sm">➔</span>
+                  RFQ Details <span className="text-sm">➔</span>
                 </button>
                 <button 
                   onClick={() => navigate('/product-request/new')}
@@ -654,10 +654,10 @@ const B2BHome = ({
               </div>
 
               <button
-                onClick={handleRfqClick}
+                onClick={() => navigate('/b2b-dashboard/rfqs')}
                 className="w-full mt-6 py-3.5 bg-red-600 hover:bg-red-750 text-white font-extrabold text-xs uppercase rounded-xl transition-all shadow-md active:scale-95"
               >
-                Create New RFQ
+                RFQ Details
               </button>
             </div>
 

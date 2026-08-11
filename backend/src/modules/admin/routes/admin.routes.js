@@ -248,6 +248,9 @@ router.put('/settings/:key', ...adminAuth, settingsController.updateSettings);
 router.get('/product-requests', ...adminAuth, productRequestController.getAllProductRequests);
 router.put('/product-requests/:id/status', ...adminAuth, productRequestController.updateProductRequestStatus);
 router.delete('/product-requests/:id', ...adminAuth, productRequestController.deleteProductRequest);
+router.get('/product-requests/:id/sourcing-check', ...adminAuth, productRequestController.sourcingCheck);
+router.post('/product-requests/:id/assign-sourcing', ...adminAuth, productRequestController.assignSourcing);
+router.post('/product-requests/:id/select-fulfillment', ...adminAuth, productRequestController.selectFulfillment);
 
 // Product Enquiries
 router.get('/enquiries', ...adminAuth, productEnquiryController.getAdminEnquiries);

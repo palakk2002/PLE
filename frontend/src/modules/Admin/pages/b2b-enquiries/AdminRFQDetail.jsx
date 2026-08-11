@@ -19,7 +19,8 @@ import {
   FiPlus,
   FiMessageSquare,
   FiSend,
-  FiAward
+  FiAward,
+  FiSearch
 } from "react-icons/fi";
 import { motion } from "framer-motion";
 import Badge from "../../../../shared/components/Badge";
@@ -47,6 +48,20 @@ const AdminRFQDetail = () => {
   const [activeNegotiationQuote, setActiveNegotiationQuote] = useState(null);
   const [adminVendorMessage, setAdminVendorMessage] = useState("");
   const [sendingAdminVendorMsg, setSendingAdminVendorMsg] = useState(false);
+
+  // Vendor Search state
+  const [vendorSearchQuery, setVendorSearchQuery] = useState('');
+
+  const filteredVendors = useMemo(() => {
+    if (!vendorSearchQuery) return allVendors;
+    const q = vendorSearchQuery.toLowerCase();
+    return allVendors.filter(v => 
+      (v.storeName || '').toLowerCase().includes(q) ||
+      (v.name || '').toLowerCase().includes(q) ||
+      (v.email || '').toLowerCase().includes(q) ||
+      (v.phone || '').toLowerCase().includes(q)
+    );
+  }, [allVendors, vendorSearchQuery]);
 
   const fetchRfqDetail = async () => {
     try {
@@ -375,6 +390,16 @@ const AdminRFQDetail = () => {
             </button>
           )}
 
+          {['Approved', 'Under Review', 'Sent To Vendors', 'Quotations Received', 'Vendor Evaluation', 'Vendor Negotiation'].includes(rfq.status) && (
+            <button
+              onClick={handleAssignVendors}
+              disabled={assigning}
+              className="flex-1 md:flex-none py-2.5 px-4 bg-[#C07A3D] hover:bg-[#A9662E] text-white text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+            >
+              <FiBriefcase className="w-4 h-4" /> {assigning ? 'Dispatching...' : 'Dispatch Sourcing campaign'}
+            </button>
+          )}
+
           {['Sent To Vendors', 'Quotations Received'].includes(rfq.status) && (
             <button
               onClick={() => handleUpdateStatus("Vendor Evaluation", "Super Admin started evaluating quotations.")}
@@ -436,7 +461,6 @@ const AdminRFQDetail = () => {
               </div>
             </div>
           </div>
-
           {/* Sourcing Vendor Assigner */}
           {['Approved', 'Under Review', 'Sent To Vendors', 'Quotations Received', 'Vendor Evaluation', 'Vendor Negotiation'].includes(rfq.status) && (
             <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm space-y-4">
@@ -444,38 +468,62 @@ const AdminRFQDetail = () => {
                 <h3 className="text-xs font-extrabold text-gray-400 uppercase tracking-wider flex items-center gap-2">
                   <FiBriefcase className="text-[#C07A3D]" /> Vendor Sourcing Assignments
                 </h3>
-                <button
-                  onClick={handleAssignVendors}
-                  disabled={assigning}
-                  className="py-1.5 px-3.5 bg-[#C07A3D] hover:bg-[#A9662E] text-white rounded-lg text-[10px] font-bold transition-all disabled:opacity-50"
-                >
-                  {assigning ? 'Dispatching...' : 'Dispatch Sourcing campaign'}
-                </button>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto p-1 text-xs">
-                {allVendors.map((vendor) => {
-                  const isChecked = selectedVendors.includes(vendor._id);
-                  return (
-                    <label
-                      key={vendor._id}
-                      className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-colors ${
-                        isChecked ? 'border-[#C07A3D] bg-[#C07A3D]/5' : 'border-gray-200'
-                      }`}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => handleVendorCheckboxChange(vendor._id)}
-                        className="rounded text-[#C07A3D] focus:ring-[#C07A3D] border-gray-300 w-4 h-4"
-                      />
-                      <div>
-                        <span className="font-bold text-gray-800">{vendor.storeName || vendor.name}</span>
-                        <span className="text-[10px] text-gray-400 block">{vendor.email}</span>
-                      </div>
-                    </label>
-                  );
-                })}
+              {/* Vendor Search Bar */}
+              <div className="relative">
+                <FiSearch className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                <input
+                  type="text"
+                  value={vendorSearchQuery}
+                  onChange={(e) => setVendorSearchQuery(e.target.value)}
+                  placeholder="Search vendors by store name, email or phone..."
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#C07A3D] text-xs font-semibold text-gray-700 placeholder-gray-400 transition-all"
+                />
+                {vendorSearchQuery && (
+                  <button 
+                    onClick={() => setVendorSearchQuery('')}
+                    className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 font-bold text-xs"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-2.5 p-1 text-xs">
+                {filteredVendors.length > 0 ? (
+                  filteredVendors.map((vendor) => {
+                    const isChecked = selectedVendors.includes(vendor._id);
+                    return (
+                      <label
+                        key={vendor._id}
+                        className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer hover:bg-gray-50 transition-all ${
+                          isChecked ? 'border-[#C07A3D] bg-[#C07A3D]/5 shadow-sm' : 'border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3.5">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => handleVendorCheckboxChange(vendor._id)}
+                            className="rounded text-[#C07A3D] focus:ring-[#C07A3D] border-gray-300 w-4 h-4 cursor-pointer"
+                          />
+                          <div>
+                            <span className="font-bold text-gray-800 text-sm">{vendor.storeName || vendor.name}</span>
+                            <span className="text-[10px] text-gray-400 font-medium block mt-0.5">{vendor.email}</span>
+                          </div>
+                        </div>
+                        {vendor.phone && (
+                          <span className="text-[10px] text-gray-500 font-bold bg-gray-55/60 px-2 py-1 rounded-lg">{vendor.phone}</span>
+                        )}
+                      </label>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-6 text-gray-400 font-bold">
+                    No vendors found matching your search.
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -562,8 +610,56 @@ const AdminRFQDetail = () => {
             </div>
           )}
 
+        </div>
+
+        {/* Activity timeline & Chat Box (1/3 width) */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm space-y-4">
+            <h3 className="text-xs font-extrabold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
+              <FiClock className="text-[#C07A3D]" /> RFQ Event Timeline
+            </h3>
+
+            <div className="space-y-5 text-xs max-h-[380px] overflow-y-auto pr-2">
+              {rfq.approvalHistory && rfq.approvalHistory.length > 0 ? (
+                rfq.approvalHistory.map((log, i) => (
+                  <div key={i} className="flex gap-3 text-xs">
+                    <div className="flex flex-col items-center shrink-0">
+                      <div className="w-3.5 h-3.5 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white ring-4 ring-gray-50">
+                        <FiCheck className="w-2 h-2 text-gray-500" />
+                      </div>
+                      {i < rfq.approvalHistory.length - 1 && (
+                        <div className="w-0.5 h-12 bg-gray-150 mt-1.5" />
+                      )}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-bold text-gray-850 text-sm leading-none">{log.action}</span>
+                        <span className="text-[9px] text-gray-400">
+                          {new Date(log.createdAt).toLocaleDateString('en-IN', {
+                            day: 'numeric',
+                            month: 'short'
+                          })}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-gray-450 mt-0.5">By: {log.updaterType}</p>
+                      {log.notes && (
+                        <p className="text-gray-550 mt-1 font-semibold bg-gray-50 p-2 rounded-xl border border-gray-100">
+                          {log.notes}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-4 text-gray-400 font-bold">
+                  No timeline records.
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Real-time Discussion Panel */}
-          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col h-[480px] overflow-hidden">
+          <div className="bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col h-[400px] overflow-hidden">
             <div className="p-4 bg-gray-50 border-b border-gray-150 flex items-center justify-between">
               <h3 className="text-xs font-extrabold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
                 <FiMessageSquare className="text-[#C07A3D]" /> Procurement Discussions Panel
@@ -572,13 +668,13 @@ const AdminRFQDetail = () => {
             </div>
 
             {/* Chat Feed */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {rfq.negotiationMessages && rfq.negotiationMessages.length > 0 ? (
                 rfq.negotiationMessages.map((msg, i) => {
                   const isSelf = msg.senderType === 'SuperAdmin';
                   return (
                     <div key={i} className={`flex flex-col ${isSelf ? 'items-end' : 'items-start'}`}>
-                      <div className={`max-w-[75%] rounded-2xl p-4 text-xs font-semibold ${
+                      <div className={`max-w-[85%] rounded-2xl p-3 text-xs font-semibold ${
                         isSelf
                           ? 'bg-[#C07A3D] text-white rounded-tr-none'
                           : 'bg-gray-100 text-gray-800 rounded-tl-none'
@@ -603,7 +699,7 @@ const AdminRFQDetail = () => {
             </div>
 
             {/* Input bar */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-150 bg-gray-50 flex items-center gap-3">
+            <form onSubmit={handleSendMessage} className="p-3 border-t border-gray-150 bg-gray-50 flex items-center gap-2">
               <textarea
                 rows={1}
                 value={message}
@@ -619,54 +715,6 @@ const AdminRFQDetail = () => {
                 <FiSend className="w-4 h-4" />
               </button>
             </form>
-          </div>
-
-        </div>
-
-        {/* Activity timeline (1/3 width) */}
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm space-y-4">
-            <h3 className="text-xs font-extrabold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
-              <FiClock className="text-[#C07A3D]" /> RFQ Event Timeline
-            </h3>
-
-            <div className="space-y-5 text-xs max-h-[480px] overflow-y-auto pr-2">
-              {rfq.approvalHistory && rfq.approvalHistory.length > 0 ? (
-                rfq.approvalHistory.map((log, i) => (
-                  <div key={i} className="flex gap-3 text-xs">
-                    <div className="flex flex-col items-center shrink-0">
-                      <div className="w-3.5 h-3.5 rounded-full bg-gray-200 flex items-center justify-center border-2 border-white ring-4 ring-gray-50">
-                        <FiCheck className="w-2 h-2 text-gray-500" />
-                      </div>
-                      {i < rfq.approvalHistory.length - 1 && (
-                        <div className="w-0.5 h-12 bg-gray-150 mt-1.5" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-bold text-gray-850 text-sm leading-none">{log.action}</span>
-                        <span className="text-[9px] text-gray-400">
-                          {new Date(log.createdAt).toLocaleDateString('en-IN', {
-                            day: 'numeric',
-                            month: 'short'
-                          })}
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-gray-450 mt-0.5">By: {log.updaterType}</p>
-                      {log.notes && (
-                        <p className="text-gray-505 mt-1 font-semibold bg-gray-50 p-2 rounded-xl border border-gray-100">
-                          {log.notes}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-4 text-gray-400 font-bold">
-                  No timeline records.
-                </div>
-              )}
-            </div>
           </div>
         </div>
 

@@ -233,3 +233,115 @@ export const getProductRequestById = asyncHandler(async (req, res) => {
         new ApiResponse(200, request, 'Product request fetched successfully')
     );
 });
+
+// @desc    B2B Buyer confirms the final sourcing proposal & creates standard Order
+// @route   POST /api/user/product-requests/:id/confirm
+// @access  Private (B2B User/Admin)
+export const confirmProductRequestProposal = asyncHandler(async (req, res) => {
+    const userId = req.user.id || req.user._id;
+    const request = await ProductRequest.findOne({ requestId: req.params.id, userId });
+
+    if (!request) {
+        throw new ApiError(404, 'Product request not found or unauthorized.');
+    }
+
+    if (request.status !== 'Final Proposal') {
+        throw new ApiError(400, 'Request is not in Final Proposal state.');
+    }
+
+    // 1. Re-validate latest stock & pricing of selected source(s)
+    const { default: Product } = await import('../../../models/Product.model.js');
+    const { default: Order } = await import('../../../models/Order.model.js');
+    const { generateOrderId } = await import('../../../utils/generateOrderId.js');
+
+    const proposal = request.selectedFulfillment;
+    const orderItems = [];
+
+    // Check PLE Shop fulfillment if quantity > 0
+    if (proposal.pleQuantity > 0) {
+        const { ManagedShop } = await import('../../../models/ManagedShop.model.js');
+        const pleShop = await ManagedShop.findOne({ name: 'PLE Shop' }) || await ManagedShop.findOne({ status: 'active' });
+        const pleProduct = pleShop ? await Product.findOne({ shopId: pleShop._id, name: { $regex: new RegExp(request.productName, 'i') }, isActive: true }) : null;
+
+        if (!pleProduct || pleProduct.stockQuantity < proposal.pleQuantity) {
+            throw new ApiError(400, 'Fulfillment failed. PLE Shop stock has changed and is now insufficient.');
+        }
+
+        // Deduct PLE Shop stock
+        pleProduct.stockQuantity -= proposal.pleQuantity;
+        if (pleProduct.stockQuantity === 0) pleProduct.stock = 'out_of_stock';
+        await pleProduct.save();
+
+        orderItems.push({
+            productId: pleProduct._id,
+            name: pleProduct.name,
+            image: pleProduct.image || request.image,
+            price: proposal.finalPrice,
+            quantity: proposal.pleQuantity
+        });
+    }
+
+    // Check Vendor fulfillments
+    if (proposal.vendors && proposal.vendors.length > 0) {
+        for (const v of proposal.vendors) {
+            const vProduct = await Product.findOne({
+                vendorId: v.vendorId,
+                name: { $regex: new RegExp(request.productName, 'i') },
+                isActive: true
+            });
+
+            if (!vProduct || vProduct.stockQuantity < v.quantity) {
+                throw new ApiError(400, 'Fulfillment failed. Sourcing vendor stock is insufficient.');
+            }
+
+            // Deduct Vendor stock
+            vProduct.stockQuantity -= v.quantity;
+            if (vProduct.stockQuantity === 0) vProduct.stock = 'out_of_stock';
+            await vProduct.save();
+
+            orderItems.push({
+                productId: vProduct._id,
+                vendorId: v.vendorId,
+                name: vProduct.name,
+                image: vProduct.image || request.image,
+                price: v.price || proposal.finalPrice,
+                quantity: v.quantity
+            });
+        }
+    }
+
+    // 2. Create the Order
+    const subtotal = orderItems.reduce((acc, item) => acc + (item.price * item.quantity), 0);
+    const order = await Order.create({
+        orderId: generateOrderId(),
+        userId,
+        items: orderItems,
+        subtotal,
+        total: subtotal,
+        paymentMethod: 'wallet', // Standard B2B wallet payment
+        paymentStatus: 'pending',
+        status: 'pending',
+        requestProductId: request._id
+    });
+
+    request.status = 'Confirmed';
+    request.associatedOrderId = order._id;
+
+    request.timeline.push({
+        status: 'Confirmed',
+        comment: `Proposal accepted. Order ${order.orderId} created successfully.`
+    });
+
+    request.auditLog.push({
+        action: 'Confirmed Sourcing',
+        performedBy: userId,
+        performerType: 'User',
+        reason: `Buyer accepted proposal. Standard order created.`
+    });
+
+    await request.save();
+
+    res.status(200).json(
+        new ApiResponse(200, { request, order }, 'Proposal accepted and order created')
+    );
+});

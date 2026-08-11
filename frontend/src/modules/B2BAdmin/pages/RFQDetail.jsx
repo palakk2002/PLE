@@ -52,6 +52,9 @@ const RFQDetail = () => {
   const [sending, setSending] = useState(false);
   const chatEndRef = useRef(null);
 
+  // Custom Confirmation Modal state
+  const [modalConfig, setModalConfig] = useState(null); // { type: 'approve' | 'renegotiate', reason: '' }
+
   const fetchRfqDetail = async () => {
     try {
       setLoading(true);
@@ -214,23 +217,50 @@ const RFQDetail = () => {
 
   const [approvingPO, setApprovingPO] = useState(false);
 
-  const handleApprove = async () => {
-    const confirmed = window.confirm('Are you sure you want to Approve this recommendation and generate a Purchase Order? This action cannot be undone.');
-    if (!confirmed) return;
-    try {
-      setApprovingPO(true);
-      const res = await api.post(`/b2b-user/admin/rfq/${id}/approve`);
-      if (res.success || res.data) {
-        toast.success('✅ Purchase Order Generated Successfully! Check Purchase Orders section.');
-        fetchRfqDetail();
-      } else {
-        toast.error('Approval failed. Please try again.');
+  const handleApprove = () => {
+    setModalConfig({ type: 'approve', reason: '' });
+  };
+
+  const handleRequestRenegotiation = () => {
+    setModalConfig({ type: 'renegotiate', reason: '' });
+  };
+
+  const handleModalConfirm = async () => {
+    if (!modalConfig) return;
+    const { type, reason } = modalConfig;
+
+    if (type === 'approve') {
+      try {
+        setApprovingPO(true);
+        setModalConfig(null); // Close modal
+        const res = await api.post(`/b2b-user/admin/rfq/${id}/approve`);
+        if (res.success || res.data) {
+          toast.success('✅ Purchase Order Generated Successfully! Check Purchase Orders section.');
+          fetchRfqDetail();
+        } else {
+          toast.error('Approval failed. Please try again.');
+        }
+      } catch (error) {
+        console.error('Approve PO error:', error);
+        toast.error(error.response?.data?.message || 'Failed to generate Purchase Order. Please check backend logs.');
+      } finally {
+        setApprovingPO(false);
       }
-    } catch (error) {
-      console.error('Approve PO error:', error);
-      toast.error(error.response?.data?.message || 'Failed to generate Purchase Order. Please check backend logs.');
-    } finally {
-      setApprovingPO(false);
+    } else if (type === 'renegotiate') {
+      if (!reason.trim()) {
+        toast.error("Notes/Instructions are required for re-negotiation.");
+        return;
+      }
+      try {
+        setModalConfig(null); // Close modal
+        const res = await api.post(`/b2b-user/admin/rfq/${id}/request-renegotiation`, { message: reason });
+        if (res.success || res.data) {
+          toast.success('Re-negotiation request submitted to Super Admin.');
+          fetchRfqDetail();
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Failed to request re-negotiation');
+      }
     }
   };
 
@@ -245,23 +275,6 @@ const RFQDetail = () => {
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject');
-    }
-  };
-
-  const handleRequestRenegotiation = async () => {
-    const reason = prompt("Please enter renegotiation instructions/feedback for vendors:");
-    if (!reason) {
-      if (reason === "") toast.error("Notes are required for re-negotiation.");
-      return;
-    }
-    try {
-      const res = await api.post(`/b2b-user/admin/rfq/${id}/request-renegotiation`, { message: reason });
-      if (res.success || res.data) {
-        toast.success('Re-negotiation request submitted to Super Admin.');
-        fetchRfqDetail();
-      }
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to request re-negotiation');
     }
   };
 
@@ -665,7 +678,7 @@ const RFQDetail = () => {
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {rfq.negotiationMessages && rfq.negotiationMessages.length > 0 ? (
                   rfq.negotiationMessages.map((msg, i) => {
-                    const isSelf = msg.senderType === 'B2BAdmin' || msg.senderType === 'Employee';
+                    const isSelf = msg.senderType?.toLowerCase() === 'b2badmin' || msg.senderType?.toLowerCase() === 'b2bemployee' || msg.senderType === 'Employee';
                     const isInternal = msg.isInternalNote;
 
                     return (
@@ -793,6 +806,65 @@ const RFQDetail = () => {
           </div>
         </div>
       </div>
+      {/* Custom Confirmation Modal */}
+      {modalConfig && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-xs transition-opacity p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 border border-gray-100">
+            <div className="flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                modalConfig.type === 'approve' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+              }`}>
+                {modalConfig.type === 'approve' ? <FiCheckCircle className="w-5 h-5" /> : <FiClock className="w-5 h-5" />}
+              </div>
+              <div>
+                <h3 className="font-extrabold text-gray-900 text-base">
+                  {modalConfig.type === 'approve' ? 'Approve & Issue PO' : 'Request Re-Negotiation'}
+                </h3>
+                <p className="text-xs text-gray-400 font-semibold mt-0.5">
+                  RFQ Reference: {rfq?.rfqId}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-xs text-gray-600 font-semibold leading-relaxed">
+              {modalConfig.type === 'approve' ? (
+                'Are you sure you want to approve this vendor recommendation and generate the official Purchase Order? This action will finalize the transaction.'
+              ) : (
+                <div className="space-y-3">
+                  <p>Please enter specific instructions or feedback for the Super Admin/Vendor to guide the re-negotiation:</p>
+                  <textarea
+                    rows={4}
+                    value={modalConfig.reason}
+                    onChange={(e) => setModalConfig({ ...modalConfig, reason: e.target.value })}
+                    placeholder="E.g., Target price needs to be reduced by 5%, or request 15 days faster delivery time..."
+                    className="w-full border border-gray-200 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#C07A3D] font-semibold text-gray-700 placeholder-gray-400 resize-none"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 justify-end pt-2">
+              <button
+                onClick={() => setModalConfig(null)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs font-bold rounded-xl transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleModalConfirm}
+                disabled={modalConfig.type === 'renegotiate' && !modalConfig.reason.trim()}
+                className={`px-4 py-2 text-white text-xs font-bold rounded-xl transition-all shadow-sm ${
+                  modalConfig.type === 'approve'
+                    ? 'bg-emerald-600 hover:bg-emerald-700'
+                    : 'bg-[#C07A3D] hover:bg-[#A9662E] disabled:opacity-50 disabled:cursor-not-allowed'
+                }`}
+              >
+                Confirm Action
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 };

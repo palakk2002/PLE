@@ -228,7 +228,7 @@ const RFQDiscussions = () => {
               <div className="flex-1 overflow-y-auto p-6 space-y-4">
                 {selectedRfq.negotiationMessages && selectedRfq.negotiationMessages.length > 0 ? (
                   selectedRfq.negotiationMessages.map((msg, i) => {
-                    const isSelf = msg.senderType === 'B2BAdmin' || msg.senderType === 'Employee';
+                    const isSelf = msg.senderType?.toLowerCase() === 'b2badmin' || msg.senderType?.toLowerCase() === 'b2bemployee' || msg.senderType === 'Employee';
                     const isInternal = msg.isInternalNote;
 
                     return (

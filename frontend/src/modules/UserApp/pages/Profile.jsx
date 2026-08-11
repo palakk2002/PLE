@@ -352,13 +352,8 @@ const MobileProfile = () => {
   };
 
   const handleLogout = () => {
-    const isB2B = useB2bStore.getState().userRole === 'business_buyer';
     logout();
-    if (isB2B) {
-      navigate('/b2b/login');
-    } else {
-      navigate("/");
-    }
+    navigate("/");
     toast.success("Logged out successfully");
   };
 

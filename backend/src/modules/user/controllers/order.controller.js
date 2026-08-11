@@ -509,7 +509,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 finalPaymentMethod = 'wallet';
             }
 
-            if (finalPaymentMethod === 'card' || (finalPaymentMethod === 'mixed' && remainingToPay > 0)) {
+            if (finalPaymentMethod === 'card' || finalPaymentMethod === 'online' || finalPaymentMethod === 'razorpay' || (finalPaymentMethod === 'mixed' && remainingToPay > 0)) {
                 const amountToPayRzp = finalPaymentMethod === 'mixed' ? remainingToPay : total;
                 try {
                     const razorpayInstance = new Razorpay({

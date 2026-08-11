@@ -20,18 +20,19 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'Company Profile', path: '/b2b-dashboard/company-profile', icon: FiBriefcase },
     { name: 'Legal Documents', path: '/b2b-dashboard/legal-documents', icon: FiFileText },
     { name: 'Admin Profile', path: '/b2b-dashboard/admin-profile', icon: FiUser },
+    { name: 'Request Products', path: '/b2b-dashboard/product-requests', icon: FiBriefcase },
     { name: 'Notifications', path: '/b2b-dashboard/notifications', icon: FiBell },
     { name: 'Settings', path: '/b2b-dashboard/settings', icon: FiSettings },
   ].filter(item => {
     if (isEmployee) {
-      return ['RFQs', 'Quotations', 'RFQ Discussions', 'Shop Chats'].includes(item.name);
+      return ['RFQs', 'Quotations', 'RFQ Discussions', 'Shop Chats', 'Request Products'].includes(item.name);
     }
     return true;
   });
 
   const handleLogout = async () => {
     await logout();
-    navigate('/b2b/login');
+    navigate('/');
   };
 
   return (

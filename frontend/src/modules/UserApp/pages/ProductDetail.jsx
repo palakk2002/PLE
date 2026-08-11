@@ -493,6 +493,18 @@ const MobileProductDetail = () => {
       toast.error("Product is out of stock");
       return;
     }
+
+    // Verify if product has variants and user has selected one
+    const hasVariants = 
+      (Array.isArray(product?.variants?.sizes) && product.variants.sizes.length > 0) ||
+      (Array.isArray(product?.variants?.colors) && product.variants.colors.length > 0) ||
+      (Array.isArray(product?.variants?.attributes) && product.variants.attributes.length > 0);
+
+    if (hasVariants && (!selectedVariant || Object.keys(selectedVariant).length === 0)) {
+      toast.error("Please select a variant option (size, color, etc.) first!");
+      return;
+    }
+
     const attributeAxes = Array.isArray(product?.variants?.attributes)
       ? product.variants.attributes.filter(
           (attr) => Array.isArray(attr?.values) && attr.values.length > 0,
@@ -661,11 +673,46 @@ const MobileProductDetail = () => {
 
           <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-16 lg:px-8 lg:items-start">
             {/* Left Column: Product Image */}
-            <div className="px-4 py-2 lg:p-0 sticky top-24 mb-6 lg:mb-0">
-              <ImageGallery
-                images={productImages}
-                productName={product.name}
-              />
+            <div className="px-4 py-2 lg:p-0 sticky top-24 mb-6 lg:mb-0 relative">
+              <div className="relative group">
+                <ImageGallery
+                  images={productImages}
+                  productName={product.name}
+                />
+                
+                {/* Floating Wishlist and Share buttons */}
+                <div className="absolute top-4 right-4 flex flex-col gap-2.5 z-30">
+                  <button
+                    onClick={handleFavorite}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 active:scale-90 border ${
+                      isFavorite
+                        ? "bg-red-50 text-red-600 border-red-200"
+                        : "bg-white/90 backdrop-blur-xs text-gray-700 border-gray-200 hover:bg-white"
+                    }`}
+                    title={isFavorite ? "Remove from Wishlist" : "Add to Wishlist"}
+                  >
+                    <FiHeart className={`text-lg ${isFavorite ? "fill-red-600" : ""}`} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (navigator.share) {
+                        navigator.share({
+                          title: product.name,
+                          text: `Check out ${product.name}`,
+                          url: window.location.href,
+                        });
+                      } else {
+                        navigator.clipboard.writeText(window.location.href);
+                        toast.success("Link copied to clipboard");
+                      }
+                    }}
+                    className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-xs text-gray-700 border border-gray-200 flex items-center justify-center shadow-lg transition-all duration-300 active:scale-90 hover:bg-white"
+                    title="Share Product"
+                  >
+                    <FiShare2 className="text-lg" />
+                  </button>
+                </div>
+              </div>
               {product.flashSale && (
                 <div className="mt-3 flex justify-center lg:justify-start">
                   <Badge variant="flash" size="lg">
@@ -1165,27 +1212,43 @@ const MobileProductDetail = () => {
                   )}
 
                   <div className="col-span-6 flex gap-4 mt-2">
-                    {isBusiness && (
-                      <button
-                        onClick={handleEnquiryClick}
-                        className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2"
-                      >
-                        <FiFileText className="text-xl" />
-                        <span>Enquire Now</span>
-                      </button>
+                    {rawIsBusiness && (
+                      <>
+                        <button
+                          onClick={handleEnquiryClick}
+                          className="flex-1 py-4 bg-[#7B0A0A]/5 text-[#7B0A0A] hover:bg-[#7B0A0A]/10 border-2 border-[#7B0A0A]/20 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 text-sm"
+                        >
+                          <FiFileText className="text-lg shrink-0" />
+                          <span className="truncate">Enquire Now</span>
+                        </button>
+                        <button
+                          onClick={() => setIsQuoteModalOpen(true)}
+                          className="flex-1 py-4 bg-[#7B0A0A] text-white hover:bg-[#AE020B] rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm text-sm"
+                        >
+                          <FiFileText className="text-lg shrink-0" />
+                          <span className="truncate">Request RFQ</span>
+                        </button>
+                      </>
                     )}
                     <button
                       onClick={handleFavorite}
-                      className={`flex-1 py-4 rounded-xl font-semibold transition-all duration-300 border-2 flex items-center justify-center ${
-                        isFavorite
-                          ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
-                          : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                      }`}
+                      className={rawIsBusiness
+                        ? `w-14 h-14 shrink-0 rounded-xl transition-all duration-300 border-2 flex items-center justify-center ${
+                            isFavorite
+                              ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
+                              : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                          }`
+                        : `flex-1 py-4 rounded-xl font-semibold transition-all duration-300 border-2 flex items-center justify-center ${
+                            isFavorite
+                              ? "bg-red-50 text-red-500 border-red-200 hover:bg-red-100"
+                              : "bg-white text-gray-700 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                          }`
+                      }
                     >
                       <FiHeart
                         className={`text-2xl ${isFavorite ? "fill-current" : ""}`}
                       />
-                      <span className="ml-2">Wishlist</span>
+                      {!rawIsBusiness && <span className="ml-2">Wishlist</span>}
                     </button>
 
                     <button
@@ -1201,10 +1264,13 @@ const MobileProductDetail = () => {
                           toast.success("Link copied to clipboard");
                         }
                       }}
-                      className="flex-1 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-semibold transition-all duration-300 hover:border-gray-300 hover:bg-gray-50 flex items-center justify-center"
+                      className={rawIsBusiness
+                        ? "w-14 h-14 shrink-0 bg-white text-gray-700 border-2 border-gray-200 rounded-xl transition-all duration-300 hover:border-gray-300 hover:bg-gray-50 flex items-center justify-center"
+                        : "flex-1 py-4 bg-white text-gray-700 border-2 border-gray-200 rounded-xl font-semibold transition-all duration-300 hover:border-gray-300 hover:bg-gray-50 flex items-center justify-center"
+                      }
                     >
                       <FiShare2 className="text-2xl" />
-                      <span className="ml-2">Share</span>
+                      {!rawIsBusiness && <span className="ml-2">Share</span>}
                     </button>
                   </div>
                 </div>
@@ -1368,78 +1434,60 @@ const MobileProductDetail = () => {
       </PageTransition>
 
       {/* Sticky Bottom Action Bar (Mobile Only) */}
+      {/* Mobile Bottom Sticky Action Bar */}
       <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-[9999] safe-area-bottom shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleFavorite}
-            className={`p-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center ${
-              isFavorite
-                ? "bg-red-50 text-red-600 border-2 border-red-200"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            <FiHeart
-              className={`text-xl ${isFavorite ? "fill-red-600" : ""}`}
-            />
-          </button>
-          <button
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: product.name,
-                  text: `Check out ${product.name}`,
-                  url: window.location.href,
-                });
-              } else {
-                navigator.clipboard.writeText(window.location.href);
-                toast.success("Link copied to clipboard");
-              }
-            }}
-            className="p-3 bg-gray-100 text-gray-700 rounded-xl font-semibold transition-all duration-300"
-          >
-            <FiShare2 className="text-xl" />
-          </button>
-          {isBusiness && (
-            <button
-              onClick={handleEnquiryClick}
-              className="p-3 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 rounded-xl font-semibold transition-all duration-300"
-              title="Enquire Now"
-            >
-              <FiFileText className="text-xl" />
-            </button>
+        <div className="flex items-center gap-2.5 w-full">
+          {rawIsBusiness && (
+            <>
+              <button
+                onClick={handleEnquiryClick}
+                className="h-12 w-12 shrink-0 bg-[#7B0A0A]/5 text-[#7B0A0A] border border-[#7B0A0A]/20 rounded-xl font-semibold flex items-center justify-center transition-all duration-300 active:scale-95"
+                title="Enquire Now"
+              >
+                <FiFileText className="text-xl" />
+              </button>
+              <button
+                onClick={() => setIsQuoteModalOpen(true)}
+                className="flex-1 h-12 bg-[#7B0A0A] text-white rounded-xl font-bold text-xs uppercase flex items-center justify-center gap-1.5 transition-all duration-300 active:scale-95 shadow-sm"
+                title="Request RFQ"
+              >
+                <FiFileText className="text-lg" />
+                <span>Request RFQ</span>
+              </button>
+            </>
           )}
           {isBusiness ? (
             <button
               onClick={handleAddToCart}
               disabled={product.stock === "out_of_stock"}
-              className={`flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${
                 product.stock === "out_of_stock"
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow"
               }`}
             >
               <FiShoppingBag className="text-lg" />
-              <span>Add Bulk to Cart</span>
+              <span>Add Bulk</span>
             </button>
           ) : isInCart ? (
             <button
               onClick={handleRemoveFromCart}
-              className="flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100"
+              className="flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 bg-red-50 text-red-600 border border-red-100 active:scale-95"
             >
-              <FiTrash2 className="text-xl" />
+              <FiTrash2 className="text-lg" />
               <span>Remove</span>
             </button>
           ) : (
             <button
               onClick={handleAddToCart}
               disabled={product.stock === "out_of_stock"}
-              className={`flex-1 py-4 rounded-xl font-semibold text-base transition-all duration-300 flex items-center justify-center gap-2 ${
+              className={`flex-1 h-12 rounded-xl font-bold text-xs uppercase transition-all duration-300 flex items-center justify-center gap-2 active:scale-95 ${
                 product.stock === "out_of_stock"
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-gradient-to-r from-[#9B1C1C] via-[#7B0A0A] to-[#4C0505] text-white hover:opacity-90 hover:shadow-glow"
               }`}
             >
-              <FiShoppingBag className="text-xl" />
+              <FiShoppingBag className="text-lg" />
               <span>
                 {product.stock === "out_of_stock"
                   ? "Out of Stock"

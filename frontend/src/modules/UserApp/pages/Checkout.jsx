@@ -434,12 +434,6 @@ const MobileCheckout = () => {
     if (step === 1) {
       setStep(2);
     } else if (step === 2) {
-      if (formData.paymentMethod === "upi") {
-        setShippingDetails(normalizedShipping);
-        setShowUpiRedirect(true);
-        return;
-      }
-
       setIsPlacingOrder(true);
       try {
         const userWalletBalance = user?.role === 'b2bEmployee' ? (user?.b2bWalletBalance || 0) : (walletBalance || 0);
@@ -879,34 +873,51 @@ const MobileCheckout = () => {
 
                       <div className="space-y-3 mb-6">
                         {(!useWallet || ((user?.role === 'b2bEmployee' ? user?.b2bWalletBalance : walletBalance) || 0) < finalTotal) ? (
-                          ["card", "upi", "cash", "bank"].map((method) => (
+                          [
+                            {
+                              id: "card",
+                              title: "Online Payment (Razorpay)",
+                              desc: "Pay securely via Credit/Debit Cards, UPI, NetBanking & Wallets",
+                              badge: "Instant & Secure",
+                              icon: "⚡"
+                            },
+                            {
+                              id: "cash",
+                              title: "Cash on Delivery (COD)",
+                              desc: "Pay in cash upon physical order delivery",
+                              badge: "Pay at Doorstep",
+                              icon: "💵"
+                            }
+                          ].map((option) => (
                             <label
-                              key={method}
-                              className={`flex items-center gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                                formData.paymentMethod === method
-                                  ? "border-primary-500 bg-primary-50"
-                                  : "border-gray-200"
+                              key={option.id}
+                              className={`flex items-start gap-3 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                                formData.paymentMethod === option.id
+                                  ? "border-primary-500 bg-primary-50/60 shadow-sm"
+                                  : "border-gray-200 hover:border-gray-300 bg-white"
                               }`}
                             >
                               <input
                                 type="radio"
                                 name="paymentMethod"
-                                value={method}
-                                checked={formData.paymentMethod === method}
+                                value={option.id}
+                                checked={formData.paymentMethod === option.id}
                                 onChange={handleInputChange}
-                                className="w-5 h-5 text-primary-500"
+                                className="w-5 h-5 text-primary-500 mt-1 cursor-pointer"
                               />
-                              <span className="font-semibold text-gray-800 capitalize text-base flex flex-col">
-                                <span>
-                                  {method === "card"
-                                    ? "Credit/Debit Card"
-                                    : method === "upi"
-                                      ? "UPI Payment (GPay / PhonePe / Paytm)"
-                                      : method === "cash"
-                                        ? "Cash on Delivery"
-                                        : "Bank Transfer"}
-                                </span>
-                              </span>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-bold text-gray-800 text-base flex items-center gap-1.5">
+                                    <span>{option.icon} {option.title}</span>
+                                  </span>
+                                  <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 border border-gray-200">
+                                    {option.badge}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-0.5 font-medium">
+                                  {option.desc}
+                                </p>
+                              </div>
                             </label>
                           ))
                         ) : (
@@ -916,41 +927,6 @@ const MobileCheckout = () => {
                           </div>
                         )}
                       </div>
-
-                    {formData.paymentMethod === "upi" && (
-                      <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-6 space-y-4">
-                        <div className="flex items-center gap-2 text-[#7B0A0A]">
-                          <span className="text-sm font-black uppercase tracking-wider">📱 Choose UPI Application</span>
-                        </div>
-                        <p className="text-xs text-[#7B0A0A] font-medium">
-                          Select one of the supported UPI apps. You will be redirected to authorize the payment securely.
-                        </p>
-                        <div className="grid grid-cols-3 gap-3">
-                          {[
-                            { id: "gpay", label: "Google Pay", color: "border-red-400 bg-red-50/50 text-[#7B0A0A]", icon: "🟢" },
-                            { id: "phonepe", label: "PhonePe", color: "border-red-400 bg-red-50/50 text-[#7B0A0A]", icon: "🟣" },
-                            { id: "paytm", label: "Paytm", color: "border-red-400 bg-red-50/50 text-[#7B0A0A]", icon: "🔵" },
-                          ].map((app) => (
-                            <button
-                              key={app.id}
-                              type="button"
-                              onClick={() => setSelectedUpiApp(app.id)}
-                              className={`p-3 rounded-xl border-2 flex flex-col items-center justify-center gap-1.5 transition-all text-xs font-bold ${
-                                selectedUpiApp === app.id
-                                  ? `${app.color} ring-2 ring-red-500 ring-offset-2`
-                                  : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
-                              }`}
-                            >
-                              <span className="text-xl">{app.icon}</span>
-                              <span>{app.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                        <p className="text-[11px] text-[#7B0A0A] text-center font-medium mt-1">
-                          Payment app: <strong className="capitalize">{selectedUpiApp === "gpay" ? "Google Pay" : selectedUpiApp}</strong> will be launched upon clicking "Place Order".
-                        </p>
-                      </div>
-                    )}
 
                     {/* B2C/B2B Smart Shipping Options */}
                     <div className="mb-6">
@@ -1334,15 +1310,6 @@ const MobileCheckout = () => {
             />
           )}
         </AnimatePresence>
-
-        {/* UPI Redirect Modal */}
-        <UpiRedirectModal
-          show={showUpiRedirect}
-          upiApp={selectedUpiApp}
-          totalAmount={finalTotal}
-          onSuccess={handleCompleteUpiOrder}
-          onCancel={() => setShowUpiRedirect(false)}
-        />
       </MobileLayout>
     </PageTransition>
   );

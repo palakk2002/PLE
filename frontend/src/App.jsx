@@ -52,6 +52,9 @@ function App() {
           <CartDrawer />
           <Toaster
             position="top-right"
+            containerStyle={{
+              zIndex: 999999,
+            }}
             toastOptions={{
               duration: 3000,
               style: {
@@ -70,6 +73,12 @@ function App() {
                 iconTheme: {
                   primary: "#FF6161",
                   secondary: "#fff",
+                },
+                style: {
+                  border: "1px solid #FF3B30",
+                  background: "#FFF2F2",
+                  color: "#D32F2F",
+                  fontWeight: "bold",
                 },
               },
             }}

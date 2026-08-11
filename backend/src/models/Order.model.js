@@ -101,6 +101,7 @@ const orderSchema = new mongoose.Schema(
         isDeleted: { type: Boolean, default: false, index: true },
         deletedAt: Date,
         deletedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
+        requestProductId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductRequest', index: true }
     },
     { timestamps: true }
 );

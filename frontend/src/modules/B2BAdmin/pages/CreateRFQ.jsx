@@ -363,23 +363,52 @@ const CreateRFQ = () => {
 
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-gray-700">Required Quantity *</label>
-              <div className="flex bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#D71920]">
-                <input
-                  type="number"
-                  required
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  placeholder="100"
-                  className="w-full bg-transparent p-3 text-xs focus:outline-none font-medium"
-                />
-                <input
-                  type="text"
-                  value={unit}
-                  onChange={(e) => setUnit(e.target.value)}
-                  placeholder="pcs"
-                  className="w-20 bg-gray-100 text-center text-xs font-bold border-l border-gray-250 focus:outline-none text-gray-700"
-                />
+              <div className="flex gap-2">
+                <div className="flex flex-1 bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-[#D71920]">
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    placeholder="100"
+                    className="w-full bg-transparent p-3 text-xs focus:outline-none font-medium"
+                  />
+                  <select
+                    value={['pcs', 'kg', 'liters', 'meters', 'dozens', 'boxes', 'crates', 'packs', 'sets', 'tons'].includes(unit) ? unit : 'custom'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val !== 'custom') {
+                        setUnit(val);
+                      } else {
+                        setUnit('');
+                      }
+                    }}
+                    className="w-24 bg-gray-100 text-center text-xs font-bold border-l border-gray-200 focus:outline-none text-gray-700 cursor-pointer"
+                  >
+                    <option value="pcs">pcs</option>
+                    <option value="kg">kg</option>
+                    <option value="liters">liters</option>
+                    <option value="meters">meters</option>
+                    <option value="dozens">dozens</option>
+                    <option value="boxes">boxes</option>
+                    <option value="crates">crates</option>
+                    <option value="packs">packs</option>
+                    <option value="sets">sets</option>
+                    <option value="tons">tons</option>
+                    <option value="custom">Custom...</option>
+                  </select>
+                </div>
+                {(!['pcs', 'kg', 'liters', 'meters', 'dozens', 'boxes', 'crates', 'packs', 'sets', 'tons'].includes(unit) || unit === '') && (
+                  <input
+                    type="text"
+                    required
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                    placeholder="Specify Unit"
+                    className="w-28 bg-white border border-gray-250 rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-[#D71920] font-bold text-center text-gray-800"
+                  />
+                )}
               </div>
             </div>
 

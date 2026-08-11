@@ -1,0 +1,109 @@
+.ple-catalogue-container {
+  perspective: 1500px;
+  position: relative;
+}
+
+.ple-catalogue-book {
+  position: relative;
+  transition: transform 0.5s ease;
+  transform-style: preserve-3d;
+}
+
+.ple-catalogue-page-container {
+  position: absolute;
+  top: 0;
+  width: 50%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s cubic-bezier(0.645, 0.045, 0.355, 1);
+  transform-origin: left center;
+  z-index: 1;
+}
+
+.ple-catalogue-page-container.left {
+  left: 0;
+  transform-origin: right center;
+}
+
+.ple-catalogue-page-container.right {
+  right: 0;
+  transform-origin: left center;
+}
+
+.ple-catalogue-page-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  background-color: var(--app-bg);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.ple-catalogue-page-face.front {
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+
+.ple-catalogue-page-face.back {
+  z-index: 1;
+  transform: rotateY(180deg);
+}
+
+/* realistic book shadows and spine effects */
+.ple-catalogue-spine {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    rgba(0, 0, 0, 0) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(0, 0, 0, 0) 75%,
+    rgba(0, 0, 0, 0.25) 100%
+  );
+  z-index: 10;
+  pointer-events: none;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Outer page edges effect */
+.ple-catalogue-page-edge-left {
+  position: absolute;
+  top: 2%;
+  bottom: 2%;
+  left: -5px;
+  width: 5px;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,0.1));
+  pointer-events: none;
+}
+
+.ple-catalogue-page-edge-right {
+  position: absolute;
+  top: 2%;
+  bottom: 2%;
+  right: -5px;
+  width: 5px;
+  background: linear-gradient(270deg, transparent, rgba(0,0,0,0.1));
+  pointer-events: none;
+}
+
+/* Custom horizontal scroll for thumbnails */
+.ple-thumbnail-strip::-webkit-scrollbar {
+  height: 6px;
+}
+.ple-thumbnail-strip::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ple-thumbnail-strip::-webkit-scrollbar-thumb {
+  background: rgba(215, 25, 32, 0.3);
+  border-radius: 3px;
+}
+.ple-thumbnail-strip::-webkit-scrollbar-thumb:hover {
+  background: rgba(215, 25, 32, 0.6);
+}

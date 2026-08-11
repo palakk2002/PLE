@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useBusinessBuyer } from '../../hooks/useBusinessBuyer';
 import { useAuthStore } from '../../../../shared/store/authStore';
+import { useB2BAdminStore } from '../../../B2BAdmin/store/b2bAdminStore';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiX, FiCheckCircle, FiSend, FiFileText, FiCalendar, FiBriefcase, FiDollarSign, FiPaperclip, FiSearch } from 'react-icons/fi';
 import toast from 'react-hot-toast';
@@ -10,8 +11,11 @@ import api from '../../../../shared/utils/api';
 export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
   const { businessProfile, getWholesaleSpecs } = useBusinessBuyer();
   const { user } = useAuthStore();
-  const isEmployee = user?.role === 'b2bEmployee';
-  const isAdmin = user?.role === 'b2bAdmin';
+  const { adminProfile } = useB2BAdminStore();
+
+  const activeUser = adminProfile || user;
+  const isEmployee = activeUser?.role === 'b2bEmployee' || activeUser?.role === 'employee' || activeUser?.isEmployee;
+  const isAdmin = activeUser?.role === 'b2bAdmin';
 
   const specs = product ? getWholesaleSpecs(product.id, product.price) : { moq: 1, tiers: [] };
 
@@ -121,7 +125,8 @@ export const B2BRequestQuoteModal = ({ isOpen, onClose, product }) => {
           targetPrice,
           requirementDetails: notes,
           expectedDeliveryDate: expectedDeliveryDate || undefined,
-          attachment: attachmentUrl
+          attachment: attachmentUrl,
+          status: 'Submitted'
         });
       } else {
         await api.post('/user/rfq', {

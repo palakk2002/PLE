@@ -12,25 +12,25 @@ export const getVendorProductRequests = asyncHandler(async (req, res) => {
 
     const isIndependentVendor = req.user.role === 'vendor';
     const isManagedVendor = req.user.role === 'managed_vendor';
+    const sellerId = req.user._id || req.user.id;
 
     let visibilityFilter = {};
 
     if (isIndependentVendor) {
-        // Can view general requests OR direct requests for this vendor ID
+        // Must be explicitly assigned in assignedVendors OR be target of shop_specific
         visibilityFilter = {
             $or: [
-                { requestType: 'GENERAL' },
-                { requestType: 'SHOP_SPECIFIC', targetEntityType: 'Vendor', targetEntityId: req.user._id || req.user.id }
+                { 'assignedVendors.vendorId': sellerId },
+                { requestType: 'SHOP_SPECIFIC', targetEntityType: 'Vendor', targetEntityId: sellerId }
             ]
         };
     } else if (isManagedVendor) {
-        // Can view general requests OR direct requests for their shop ID
         if (!req.user.shopId) {
             throw new ApiError(400, 'Managed vendor is not assigned to a shop.');
         }
         visibilityFilter = {
             $or: [
-                { requestType: 'GENERAL' },
+                { 'assignedVendors.vendorId': req.user.shopId },
                 { requestType: 'SHOP_SPECIFIC', targetEntityType: 'ManagedShop', targetEntityId: req.user.shopId }
             ]
         };
@@ -43,7 +43,7 @@ export const getVendorProductRequests = asyncHandler(async (req, res) => {
     // Apply status filter
     if (status) {
         if (status === 'Pending') {
-            filter.status = { $in: ['Submitted', 'Under Review'] };
+            filter.status = { $in: ['Submitted', 'Under Review', 'Vendor Sourcing'] };
         } else {
             filter.status = status;
         }
@@ -115,26 +115,66 @@ export const respondToProductRequest = asyncHandler(async (req, res) => {
                 throw new ApiError(403, 'Unauthorized. This request was directed to another shop.');
             }
         }
+    } else {
+        // For general sourcing, make sure they are in assignedVendors list
+        const isAssigned = request.assignedVendors.some(v => String(v.vendorId) === String(sellerId));
+        if (!isAssigned) {
+            throw new ApiError(403, 'Unauthorized. You are not assigned to bid on this request.');
+        }
     }
 
-    // Add response
+    // 2. Validate current stock of vendor's product before accepting response
+    const { default: Product } = await import('../../../models/Product.model.js');
+    const vendorProduct = await Product.findOne({
+        vendorId: sellerId,
+        name: { $regex: new RegExp(request.productName, 'i') },
+        isActive: true
+    });
+
+    let finalResponseType = responseType;
+    if (responseType === 'Can Supply') {
+        if (!vendorProduct || vendorProduct.stockQuantity <= 0 || vendorProduct.stock === 'out_of_stock') {
+            finalResponseType = 'Cannot Supply';
+        } else if (vendorProduct.stockQuantity < request.quantity) {
+            // Partial stock is acceptable but let's log/inform
+        }
+    }
+
+    // Add to legacy sellerResponses array for B2B user view
     request.sellerResponses.push({
         sellerId,
         sellerType: isIndependentVendor ? 'Vendor' : 'ManagedVendorUser',
-        responseType,
-        offeredPrice: responseType === 'Can Supply' ? Number(offeredPrice) : undefined,
-        deliveryTimeline: responseType === 'Can Supply' ? Number(deliveryTimeline) : undefined,
-        message,
+        responseType: finalResponseType,
+        offeredPrice: finalResponseType === 'Can Supply' ? Number(offeredPrice) : undefined,
+        deliveryTimeline: finalResponseType === 'Can Supply' ? Number(deliveryTimeline) : undefined,
+        message: finalResponseType === 'Cannot Supply' ? 'Unavailable / Insufficient stock' : message,
         date: new Date()
     });
 
+    // Update assignment tracking subdocument
+    const assignmentIdx = request.assignedVendors.findIndex(v => String(v.vendorId) === String(sellerId));
+    if (assignmentIdx !== -1) {
+        request.assignedVendors[assignmentIdx].status = finalResponseType === 'Can Supply' ? 'RESPONDED' : 'UNAVAILABLE';
+        request.assignedVendors[assignmentIdx].offeredPrice = offeredPrice;
+        request.assignedVendors[assignmentIdx].availableQuantity = vendorProduct ? vendorProduct.stockQuantity : 0;
+        request.assignedVendors[assignmentIdx].deliveryTimeline = deliveryTimeline;
+        request.assignedVendors[assignmentIdx].message = message;
+        request.assignedVendors[assignmentIdx].respondedAt = new Date();
+    }
+
     const previousStatus = request.status;
-    request.status = 'Seller Responded';
+    
+    // If vendor cannot supply, fallback request status back to Admin Review/Vendor Sourcing
+    if (finalResponseType === 'Cannot Supply') {
+        request.status = 'Admin Review';
+    } else {
+        request.status = 'Seller Responded';
+    }
 
     // Add to timeline
     request.timeline.push({
-        status: 'Seller Responded',
-        comment: message || `Vendor submitted a response: ${responseType}`
+        status: request.status,
+        comment: message || `Vendor submitted a response: ${finalResponseType}`
     });
 
     // Add to audit log
@@ -142,18 +182,17 @@ export const respondToProductRequest = asyncHandler(async (req, res) => {
         action: 'Responded',
         performedBy: sellerId,
         performerType: isIndependentVendor ? 'Vendor' : 'ManagedVendorUser',
-        reason: `Transitioned from ${previousStatus} to Seller Responded.`
+        reason: `Vendor responded: ${finalResponseType}. Request status transitioned from ${previousStatus} to ${request.status}.`
     });
 
     await request.save();
 
-    // Notify the user (customer)
+    // Notify Super Admin
     await Notification.create({
-        recipientId: request.userId,
-        recipientType: 'user',
+        recipientType: 'admin',
         type: 'system',
-        title: 'Vendor Responded to Request',
-        message: `A vendor has responded to your product request "${request.productName}": "${responseType}".`,
+        title: 'Vendor Sourcing Response',
+        message: `Vendor ${req.user.name} responded to sourcing request "${request.productName}" with: ${finalResponseType}.`,
         data: {
             relatedId: request._id.toString(),
             onModel: 'ProductRequest'
