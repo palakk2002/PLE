@@ -61,6 +61,8 @@ const ProductForm = () => {
     returnable: true,
     cancelable: true,
     taxIncluded: false,
+    gstMode: "category",
+    gstRate: 18,
     description: "",
     tags: [],
     variants: {
@@ -191,6 +193,8 @@ const ProductForm = () => {
       returnable: product.returnable !== undefined ? product.returnable : true,
       cancelable: product.cancelable !== undefined ? product.cancelable : true,
       taxIncluded: product.taxIncluded || false,
+      gstMode: product.gstMode || "category",
+      gstRate: product.gstRate !== undefined ? Number(product.gstRate) : (product.taxRate ? Number(product.taxRate) : 18),
       description: product.description || "",
       tags: product.tags || [],
       variants: normalizedVariants,
@@ -793,6 +797,124 @@ const ProductForm = () => {
             </div>
           </div>
         )}
+
+        {/* GST Configuration (Seller Controlled GST System) */}
+        <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm space-y-4">
+          <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                GST Configuration
+              </h2>
+              <p className="text-xs text-gray-500 mt-0.5">
+                Set GST rate manually according to your billing setup or use category default.
+              </p>
+            </div>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+              Seller Controlled GST
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-2">
+                GST Source / Mode
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <label
+                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                    formData.gstMode === "category"
+                      ? "border-primary-500 bg-primary-50/30 text-primary-900"
+                      : "border-gray-200 hover:bg-gray-50 text-gray-700"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="gstMode"
+                    value="category"
+                    checked={formData.gstMode === "category"}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, gstMode: e.target.value }))}
+                    className="mt-0.5 text-primary-600 focus:ring-primary-500"
+                  />
+                  <div>
+                    <span className="text-sm font-bold block">Use Category GST</span>
+                    <span className="text-xs text-gray-500 block">
+                      Inherits default GST rate configured for the selected product category.
+                    </span>
+                  </div>
+                </label>
+
+                <label
+                  className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
+                    formData.gstMode === "custom"
+                      ? "border-primary-500 bg-primary-50/30 text-primary-900"
+                      : "border-gray-200 hover:bg-gray-50 text-gray-700"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="gstMode"
+                    value="custom"
+                    checked={formData.gstMode === "custom"}
+                    onChange={(e) => setFormData((prev) => ({ ...prev, gstMode: e.target.value }))}
+                    className="mt-0.5 text-primary-600 focus:ring-primary-500"
+                  />
+                  <div>
+                    <span className="text-sm font-bold block">Custom GST</span>
+                    <span className="text-xs text-gray-500 block">
+                      Specify custom GST rate according to seller's invoice/billing setup.
+                    </span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            {formData.gstMode === "category" ? (
+              <div className="p-3 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
+                <span className="text-xs text-gray-600">Active Effective GST:</span>
+                <span className="text-sm font-bold text-primary-700">
+                  Using Category GST: {categories.find((c) => String(c.id || c._id) === String(formData.categoryId))?.gstRate ?? 18}%
+                </span>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+                  Custom GST Rate (%) <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-2 mb-2">
+                  {[0, 5, 12, 18, 28].map((rate) => (
+                    <button
+                      key={rate}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, gstRate: rate, taxRate: rate }))}
+                      className={`px-3 py-1 text-xs rounded-lg font-semibold border transition-colors ${
+                        Number(formData.gstRate) === rate
+                          ? "bg-primary-600 text-white border-primary-600"
+                          : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                      }`}
+                    >
+                      {rate}%
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  name="gstRate"
+                  value={formData.gstRate}
+                  onChange={(e) => {
+                    const val = Math.max(0, Math.min(100, Number(e.target.value) || 0));
+                    setFormData((prev) => ({ ...prev, gstRate: val, taxRate: val }));
+                  }}
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
+                  placeholder="e.g. 18"
+                />
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Product Condition & Refurbished Settings */}
         <RefurbishedFieldsSection

@@ -56,6 +56,12 @@ export const verifyVendorResetOTP = (email, otp) =>
 export const resetVendorPassword = (email, password, confirmPassword) =>
     api.post('/vendor/auth/reset-password', { email, password, confirmPassword });
 
+export const requestChangePasswordOTP = (currentPassword, newPassword) =>
+    api.post('/vendor/auth/change-password/request-otp', { currentPassword, newPassword });
+
+export const verifyChangePasswordOTP = (otp) =>
+    api.post('/vendor/auth/change-password/verify-otp', { otp });
+
 /**
  * Login vendor — returns { accessToken, refreshToken, vendor }
  * @param {string} email
@@ -596,3 +602,20 @@ export const uploadPartnershipAgreement = (file) => {
         headers: { 'Content-Type': 'multipart/form-data' }
     });
 };
+
+/**
+ * Bulk create vendor orders
+ * @param {Array} orders
+ */
+export const createBulkOrders = (orders) => {
+    return api.post('/vendor/orders/bulk', { orders });
+};
+
+/**
+ * Bulk create vendor products
+ * @param {Array} products
+ */
+export const createBulkProducts = (products) => {
+    return api.post('/vendor/products/bulk', { products });
+};
+

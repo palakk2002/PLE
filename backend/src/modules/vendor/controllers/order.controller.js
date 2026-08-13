@@ -2,6 +2,7 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Order from '../../../models/Order.model.js';
+import Product from '../../../models/Product.model.js';
 import Commission from '../../../models/Commission.model.js';
 import Settlement from '../../../models/Settlement.model.js';
 import mongoose from 'mongoose';
@@ -30,11 +31,19 @@ export const getVendorOrders = asyncHandler(async (req, res) => {
     const numericLimit = Math.max(1, Number(limit) || 20);
     const skip = (numericPage - 1) * numericLimit;
 
-    const filter = status
-        ? { vendorItems: { $elemMatch: { vendorId: req.user.id, status } } }
-        : { 'vendorItems.vendorId': req.user.id };
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
 
-    const orders = await Order.find(filter).sort({ createdAt: -1 }).skip(skip).limit(numericLimit);
+    const filter = status
+        ? { vendorItems: { $elemMatch: { vendorId: { $in: vendorIdsToMatch }, status } } }
+        : { 'vendorItems.vendorId': { $in: vendorIdsToMatch } };
+
+    const orders = await Order.find(filter)
+        .populate('userId', 'name email phone')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(numericLimit);
     const total = await Order.countDocuments(filter);
     res.status(200).json(new ApiResponse(200, { orders, total, page: numericPage, pages: Math.ceil(total / numericLimit) }, 'Orders fetched.'));
 });
@@ -47,10 +56,14 @@ export const getVendorOrderById = asyncHandler(async (req, res) => {
         idFilter.push({ _id: id });
     }
 
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
     const order = await Order.findOne({
         $or: idFilter,
-        'vendorItems.vendorId': req.user.id,
-    });
+        'vendorItems.vendorId': { $in: vendorIdsToMatch },
+    }).populate('userId', 'name email phone');
     if (!order) throw new ApiError(404, 'Order not found.');
 
     res.status(200).json(new ApiResponse(200, order, 'Order fetched.'));
@@ -75,12 +88,16 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
         idFilter.push({ _id: id });
     }
 
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
     const order = await Order.findOne({
         $or: idFilter,
-        'vendorItems.vendorId': req.user.id,
+        'vendorItems.vendorId': { $in: vendorIdsToMatch },
     });
     if (!order) throw new ApiError(404, 'Order not found.');
-    const vendorItem = order.vendorItems.find((vi) => String(vi.vendorId) === String(req.user.id));
+    const vendorItem = order.vendorItems.find((vi) => vendorIdsToMatch.map(String).includes(String(vi.vendorId)));
     if (!vendorItem) throw new ApiError(404, 'Vendor order item not found.');
 
     const currentStatus = String(vendorItem.status || 'pending');
@@ -91,7 +108,7 @@ export const updateOrderStatus = asyncHandler(async (req, res) => {
 
     // Update only this vendor's items status
     order.vendorItems = order.vendorItems.map((vi) =>
-        vi.vendorId.toString() === req.user.id ? { ...vi.toObject(), status } : vi
+        vendorIdsToMatch.map(String).includes(String(vi.vendorId)) ? { ...vi.toObject(), status } : vi
     );
     const oldStatus = order.status;
     order.status = deriveTopLevelOrderStatus(order.vendorItems, order.status);
@@ -160,20 +177,24 @@ export const getEarnings = asyncHandler(async (req, res) => {
     const numericSettlementsLimit = Math.max(1, Number(settlementsLimit) || 50);
     const settlementSkip = (numericSettlementsPage - 1) * numericSettlementsLimit;
 
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
     const [commissionDocs, totalCommissions, settlements, totalSettlements] = await Promise.all([
-        Commission.find({ vendorId: req.user.id })
+        Commission.find({ vendorId: { $in: vendorIdsToMatch } })
             .populate('orderId', 'orderId status')
             .sort({ createdAt: -1 })
             .skip(commissionSkip)
             .limit(numericLimit),
-        Commission.countDocuments({ vendorId: req.user.id }),
-        Settlement.find({ vendorId: req.user.id })
+        Commission.countDocuments({ vendorId: { $in: vendorIdsToMatch } }),
+        Settlement.find({ vendorId: { $in: vendorIdsToMatch } })
             .sort({ createdAt: -1 })
             .skip(settlementSkip)
             .limit(numericSettlementsLimit),
-        Settlement.countDocuments({ vendorId: req.user.id }),
+        Settlement.countDocuments({ vendorId: { $in: vendorIdsToMatch } }),
     ]);
-    const allCommissionsForSummary = await Commission.find({ vendorId: req.user.id })
+    const allCommissionsForSummary = await Commission.find({ vendorId: { $in: vendorIdsToMatch } })
         .populate('orderId', 'orderId status')
         .sort({ createdAt: -1 });
 
@@ -240,6 +261,181 @@ export const getEarnings = asyncHandler(async (req, res) => {
                 },
             },
             'Earnings fetched.'
+        )
+    );
+});
+
+// POST /api/vendor/orders/bulk
+export const createBulkOrders = asyncHandler(async (req, res) => {
+    const { orders } = req.body;
+    if (!Array.isArray(orders) || orders.length === 0) {
+        throw new ApiError(400, 'Please provide an array of orders to create.');
+    }
+
+    if (orders.length > 500) {
+        throw new ApiError(400, 'Bulk order upload is limited to 500 orders per batch.');
+    }
+
+    const vendorId = req.user.id;
+    const isManaged = req.user.role === 'managed_vendor';
+    const shopId = req.user.shopId;
+
+    let vendorName = 'Vendor';
+    if (isManaged) {
+        vendorName = req.user.storeName || req.user.name || 'Managed Vendor';
+    } else {
+        const vendorDoc = await mongoose.model('Vendor').findById(vendorId).select('storeName name');
+        if (vendorDoc) {
+            vendorName = vendorDoc.storeName || vendorDoc.name || 'Vendor';
+        }
+    }
+
+    const createdOrders = [];
+    const errors = [];
+
+    for (let index = 0; index < orders.length; index++) {
+        const orderData = orders[index];
+        const rowNum = index + 1;
+
+        try {
+            const { customer, shippingAddress, items, paymentMethod = 'cod', paymentStatus = 'pending', notes } = orderData;
+
+            const custName = customer?.name || shippingAddress?.name;
+            const custPhone = customer?.phone || shippingAddress?.phone;
+            const custEmail = customer?.email || shippingAddress?.email;
+            const addr = shippingAddress?.address;
+            const city = shippingAddress?.city;
+            const state = shippingAddress?.state;
+            const zipCode = shippingAddress?.zipCode;
+
+            if (!custName || !custPhone || !addr || !city || !state || !zipCode) {
+                throw new Error(`Row #${rowNum}: Missing mandatory customer/shipping info (Name, Phone, Address, City, State, Pincode).`);
+            }
+
+            if (!Array.isArray(items) || items.length === 0) {
+                throw new Error(`Row #${rowNum}: Order must contain at least 1 item.`);
+            }
+
+            const formattedItems = [];
+            let calculatedSubtotal = 0;
+
+            for (const item of items) {
+                const qty = Math.max(1, Number(item.quantity) || 1);
+                let productDoc = null;
+
+                if (item.productId && mongoose.Types.ObjectId.isValid(item.productId)) {
+                    productDoc = await Product.findById(item.productId);
+                } else if (item.name || item.productName) {
+                    const searchName = (item.name || item.productName).trim();
+                    const productFilter = isManaged
+                        ? { $or: [{ shopId }, { vendorId }, { vendorUserId: vendorId }], name: new RegExp(`^${searchName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i') }
+                        : { vendorId, name: new RegExp(`^${searchName.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, 'i') };
+                    productDoc = await Product.findOne(productFilter);
+                }
+
+                const price = Number(item.price !== undefined && item.price !== null && item.price !== '' ? item.price : (productDoc?.price || 0));
+                const name = item.name || productDoc?.name || 'Bulk Order Item';
+                const image = productDoc?.image || productDoc?.images?.[0] || '';
+
+                formattedItems.push({
+                    productId: productDoc?._id || null,
+                    vendorId: isManaged ? (shopId || vendorId) : vendorId,
+                    name,
+                    image,
+                    price,
+                    quantity: qty,
+                    variant: item.variant || {},
+                });
+
+                calculatedSubtotal += price * qty;
+
+                // Update stock if product exists and stock quantity is tracked
+                if (productDoc && typeof productDoc.stockQuantity === 'number') {
+                    productDoc.stockQuantity = Math.max(0, productDoc.stockQuantity - qty);
+                    if (productDoc.stockQuantity === 0) {
+                        productDoc.stock = 'out_of_stock';
+                    } else if (productDoc.stockQuantity <= (productDoc.lowStockThreshold || 5)) {
+                        productDoc.stock = 'low_stock';
+                    }
+                    await productDoc.save();
+                }
+            }
+
+            const uniqueId = `ORD-BLK-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}-${rowNum}`;
+            const targetVendorId = isManaged ? (shopId || vendorId) : vendorId;
+
+            const vendorGroup = {
+                vendorId: targetVendorId,
+                vendorName,
+                items: formattedItems,
+                subtotal: calculatedSubtotal,
+                shipping: Number(orderData.shipping || 0),
+                tax: Number(orderData.tax || 0),
+                discount: Number(orderData.discount || 0),
+                status: 'pending',
+            };
+
+            const grandTotal = calculatedSubtotal + vendorGroup.shipping + vendorGroup.tax - vendorGroup.discount;
+
+            const validPaymentMethod = ['card', 'cash', 'bank', 'wallet', 'upi', 'cod'].includes(String(paymentMethod).toLowerCase())
+                ? String(paymentMethod).toLowerCase()
+                : 'cod';
+
+            const newOrder = await Order.create({
+                orderId: uniqueId,
+                guestInfo: {
+                    name: custName,
+                    phone: custPhone,
+                    email: custEmail || '',
+                },
+                items: formattedItems,
+                vendorItems: [vendorGroup],
+                shippingAddress: {
+                    name: custName,
+                    email: custEmail || '',
+                    phone: custPhone,
+                    address: addr,
+                    city,
+                    state,
+                    zipCode,
+                    country: shippingAddress?.country || 'India',
+                },
+                paymentMethod: validPaymentMethod,
+                paymentStatus: paymentStatus === 'paid' ? 'paid' : 'pending',
+                status: 'pending',
+                subtotal: calculatedSubtotal,
+                shipping: vendorGroup.shipping,
+                tax: vendorGroup.tax,
+                discount: vendorGroup.discount,
+                total: Math.max(0, grandTotal),
+            });
+
+            createdOrders.push({
+                row: rowNum,
+                orderId: newOrder.orderId,
+                id: newOrder._id,
+                customer: custName,
+                total: newOrder.total,
+            });
+        } catch (err) {
+            errors.push({
+                row: rowNum,
+                message: err.message || `Error processing row #${rowNum}`,
+            });
+        }
+    }
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                totalAttempted: orders.length,
+                successCount: createdOrders.length,
+                failedCount: errors.length,
+                createdOrders,
+                errors,
+            },
+            `Bulk order creation completed. Created: ${createdOrders.length}, Failed: ${errors.length}.`
         )
     );
 });

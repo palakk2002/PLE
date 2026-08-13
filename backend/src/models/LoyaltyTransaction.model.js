@@ -39,6 +39,6 @@ const loyaltyTransactionSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const LoyaltyTransaction = mongoose.model('LoyaltyTransaction', loyaltyTransactionSchema);
+const LoyaltyTransaction = mongoose.models.LoyaltyTransaction || mongoose.model('LoyaltyTransaction', loyaltyTransactionSchema);
 export { LoyaltyTransaction };
 export default LoyaltyTransaction;

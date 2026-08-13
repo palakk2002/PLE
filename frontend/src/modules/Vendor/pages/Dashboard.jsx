@@ -7,11 +7,16 @@ import {
   FiDollarSign,
   FiTrendingUp,
   FiArrowRight,
+  FiBarChart2,
 } from "react-icons/fi";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
 import { useVendorProductStore } from "../store/vendorProductStore";
-import { getVendorOrders, getVendorEarnings } from "../services/vendorService";
+import { getVendorOrders, getVendorEarnings, getVendorAnalyticsOverview } from "../services/vendorService";
 import { formatPrice } from "../../../shared/utils/helpers";
+import RevenueLineChart from "../../Admin/components/Analytics/RevenueLineChart";
+import SalesBarChart from "../../Admin/components/Analytics/SalesBarChart";
+import OrderStatusPieChart from "../../Admin/components/Analytics/OrderStatusPieChart";
+import TimePeriodFilter from "../../Admin/components/Analytics/TimePeriodFilter";
 
 const VendorDashboard = () => {
   const navigate = useNavigate();
@@ -30,7 +35,12 @@ const VendorDashboard = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const vendorId = vendor?.id;
+  const [analyticsPeriod, setAnalyticsPeriod] = useState("month");
+  const [analyticsData, setAnalyticsData] = useState([]);
+  const [statusData, setStatusData] = useState([]);
+  const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(false);
+
+  const vendorId = vendor?.id || vendor?._id;
 
   useEffect(() => {
     if (!vendorId) return;
@@ -41,9 +51,6 @@ const VendorDashboard = () => {
     }
 
     const loadDashboardData = async () => {
-      if (vendor?.role === "managed_vendor") {
-        return; // Managed vendors cannot view orders/earnings
-      }
       setIsLoading(true);
       try {
         // Fetch orders and earnings in parallel
@@ -81,7 +88,28 @@ const VendorDashboard = () => {
     };
 
     loadDashboardData();
-  }, [vendorId, fetchProducts, products.length, vendor?.role]);
+  }, [vendorId, fetchProducts, products.length]);
+
+  useEffect(() => {
+    if (!vendorId) return;
+
+    const fetchAnalytics = async () => {
+      setIsAnalyticsLoading(true);
+      try {
+        const res = await getVendorAnalyticsOverview({ period: analyticsPeriod });
+        const data = res?.data ?? res;
+        setAnalyticsData(Array.isArray(data?.timeseries) ? data.timeseries : []);
+        setStatusData(Array.isArray(data?.statusBreakdown) ? data.statusBreakdown : []);
+      } catch {
+        setAnalyticsData([]);
+        setStatusData([]);
+      } finally {
+        setIsAnalyticsLoading(false);
+      }
+    };
+
+    fetchAnalytics();
+  }, [vendorId, analyticsPeriod]);
 
   // Sync product counts whenever the product store updates
   useEffect(() => {
@@ -94,7 +122,7 @@ const VendorDashboard = () => {
   }, [products, totalProductsCount]);
 
   const statCards = useMemo(() => {
-    const base = [
+    return [
       {
         icon: FiPackage,
         label: "Total Products",
@@ -104,23 +132,6 @@ const VendorDashboard = () => {
         textColor: "text-blue-700",
         link: "/vendor/products",
       },
-    ];
-
-    if (vendor?.role === "managed_vendor") {
-      base.push({
-        icon: FiPackage,
-        label: "In Stock Products",
-        value: stats.inStockProducts,
-        color: "bg-teal-500",
-        bgColor: "bg-teal-50",
-        textColor: "text-teal-700",
-        link: "/vendor/products",
-      });
-      return base;
-    }
-
-    return [
-      ...base,
       {
         icon: FiShoppingBag,
         label: "Total Orders",
@@ -149,7 +160,7 @@ const VendorDashboard = () => {
         link: "/vendor/earnings",
       },
     ];
-  }, [stats, vendor?.role]);
+  }, [stats]);
 
   const topProducts = useMemo(() => products.slice(0, 5), [products]);
 
@@ -180,7 +191,7 @@ const VendorDashboard = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${vendor?.role === 'managed_vendor' ? 'lg:grid-cols-2' : 'lg:grid-cols-4'} gap-4`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat, index) => (
           <motion.div
             key={index}
@@ -203,6 +214,39 @@ const VendorDashboard = () => {
             </p>
           </motion.div>
         ))}
+      </div>
+
+      {/* Revenue & Performance Analytics Charts */}
+      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 pb-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <FiBarChart2 className="text-primary-600 text-xl" />
+              Revenue & Performance Analytics
+            </h2>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Sales, revenue trends, and order status breakdown.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <TimePeriodFilter activePeriod={analyticsPeriod} onPeriodChange={setAnalyticsPeriod} />
+            <button
+              onClick={() => navigate("/vendor/analytics")}
+              className="text-xs font-semibold text-primary-600 hover:text-primary-700 bg-primary-50 px-3 py-2 rounded-lg transition-colors border border-primary-100 flex items-center gap-1"
+            >
+              Full Report <FiArrowRight />
+            </button>
+          </div>
+        </div>
+
+        {isAnalyticsLoading ? (
+          <div className="py-12 text-center text-gray-400">Loading analytics charts...</div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RevenueLineChart data={analyticsData} period={analyticsPeriod} />
+            <SalesBarChart data={analyticsData} period={analyticsPeriod} />
+          </div>
+        )}
       </div>
 
       {/* B2B Overview Widget */}

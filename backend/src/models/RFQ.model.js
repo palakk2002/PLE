@@ -105,6 +105,6 @@ const rfqSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const RFQ = mongoose.model('RFQ', rfqSchema);
+const RFQ = mongoose.models.RFQ || mongoose.model('RFQ', rfqSchema);
 export default RFQ;
 export { RFQ };

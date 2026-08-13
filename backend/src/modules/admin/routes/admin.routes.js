@@ -256,8 +256,6 @@ router.post('/product-requests/:id/select-fulfillment', ...adminAuth, productReq
 router.get('/enquiries', ...adminAuth, productEnquiryController.getAdminEnquiries);
 router.put('/enquiries/:id/reply', ...adminAuth, productEnquiryController.replyToEnquiry);
 
-export default router;
-
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 router.post('/auth/login', authLimiter, authController.login);
 router.post('/auth/refresh', validate(refreshTokenSchema), authController.refresh);
@@ -309,3 +307,13 @@ router.get('/ple-shop/threads', ...adminAuth, pleShopChatController.getPLEShopTh
 router.get('/ple-shop/threads/:id/messages', ...adminAuth, pleShopChatController.getPLEShopMessages);
 router.post('/ple-shop/threads/:id/messages', ...adminAuth, pleShopChatController.sendPLEShopMessage);
 router.patch('/ple-shop/threads/:id/read', ...adminAuth, pleShopChatController.markPLEShopRead);
+
+// ─── Admin Managed Vendor Chat Routes ──────────────────────────────────────────
+import * as adminManagedVendorChatController from '../controllers/adminManagedVendorChat.controller.js';
+router.get('/managed-vendor-chat/threads', ...adminAuth, adminManagedVendorChatController.getAdminManagedVendorThreads);
+router.post('/managed-vendor-chat/threads/initiate', ...adminAuth, adminManagedVendorChatController.initiateOrGetThread);
+router.get('/managed-vendor-chat/threads/:threadId/messages', ...adminAuth, adminManagedVendorChatController.getAdminManagedVendorMessages);
+router.post('/managed-vendor-chat/threads/:threadId/messages', ...adminAuth, adminManagedVendorChatController.sendAdminManagedVendorMessage);
+router.patch('/managed-vendor-chat/threads/:threadId/read', ...adminAuth, adminManagedVendorChatController.markAdminManagedVendorThreadRead);
+
+export default router;

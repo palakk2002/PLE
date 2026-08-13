@@ -58,6 +58,8 @@ const productSchema = new mongoose.Schema(
         rating: { type: Number, default: 0, min: 0, max: 5 },
         reviewCount: { type: Number, default: 0 },
         taxRate: { type: Number, default: 18 },
+        gstMode: { type: String, enum: ['category', 'custom'], default: 'category', index: true },
+        gstRate: { type: Number, min: 0, max: 100, default: 18 },
         b2bEnabled: { type: Boolean, default: false },
         salesChannel: {
             type: String,
@@ -185,6 +187,7 @@ productSchema.pre('save', function (next) {
     next();
 });
 
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 export { Product };
 export default Product;
+

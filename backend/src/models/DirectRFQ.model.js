@@ -45,6 +45,6 @@ const directRfqSchema = new mongoose.Schema({
     messages: [messageSchema]
 }, { timestamps: true });
 
-const DirectRFQ = mongoose.model('DirectRFQ', directRfqSchema);
+const DirectRFQ = mongoose.models.DirectRFQ || mongoose.model('DirectRFQ', directRfqSchema);
 export default DirectRFQ;
 export { DirectRFQ };

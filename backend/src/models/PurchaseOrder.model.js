@@ -67,6 +67,6 @@ const purchaseOrderSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const PurchaseOrder = mongoose.model('PurchaseOrder', purchaseOrderSchema);
+const PurchaseOrder = mongoose.models.PurchaseOrder || mongoose.model('PurchaseOrder', purchaseOrderSchema);
 export default PurchaseOrder;
 export { PurchaseOrder };

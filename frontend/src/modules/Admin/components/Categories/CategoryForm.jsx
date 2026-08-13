@@ -33,6 +33,7 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
     isActive: true,
     order: 0,
     isRefurbishedCategory: false,
+    gstRate: 18,
   });
 
   useEffect(() => {
@@ -46,6 +47,7 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
         isActive: category.isActive !== undefined ? category.isActive : true,
         order: category.order || 0,
         isRefurbishedCategory: !!category.isRefurbishedCategory,
+        gstRate: category.gstRate !== undefined ? Number(category.gstRate) : 18,
       });
     } else if (parentId !== null) {
       setFormData({
@@ -57,6 +59,7 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
         isActive: true,
         order: 0,
         isRefurbishedCategory: parentCategory?.isRefurbishedCategory || false,
+        gstRate: parentCategory?.gstRate !== undefined ? Number(parentCategory.gstRate) : 18,
       });
     }
   }, [category, parentId, parentCategory]);
@@ -406,6 +409,42 @@ const CategoryForm = ({ category, parentId, onClose, onSave }) => {
                   Settings
                 </h3>
                 <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Default Category GST Rate (%)
+                    </label>
+                    <div className="flex items-center gap-2 mb-2">
+                      {[0, 5, 12, 18, 28].map((rate) => (
+                        <button
+                          key={rate}
+                          type="button"
+                          onClick={() => setFormData((prev) => ({ ...prev, gstRate: rate }))}
+                          className={`px-3 py-1 text-xs rounded-lg font-semibold border transition-colors ${
+                            Number(formData.gstRate) === rate
+                              ? "bg-primary-600 text-white border-primary-600"
+                              : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                          }`}
+                        >
+                          {rate}%
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="number"
+                      name="gstRate"
+                      value={formData.gstRate}
+                      onChange={(e) => setFormData((prev) => ({ ...prev, gstRate: Math.max(0, Math.min(100, Number(e.target.value) || 0)) }))}
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      placeholder="e.g. 18"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Products assigned to this category set to "Use Category GST" will inherit this default rate.
+                    </p>
+                  </div>
+
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Display Order

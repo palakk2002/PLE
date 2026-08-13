@@ -57,6 +57,8 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
     returnable: true,
     cancelable: true,
     taxIncluded: false,
+    gstMode: "category",
+    gstRate: 18,
     description: "",
     tags: [],
     variants: {
@@ -153,6 +155,8 @@ const ProductFormModal = ({ isOpen, onClose, productId, onSuccess }) => {
               product.cancelable !== undefined ? product.cancelable : true,
             taxIncluded:
               product.taxIncluded !== undefined ? product.taxIncluded : false,
+            gstMode: product.gstMode || "category",
+            gstRate: product.gstRate !== undefined ? Number(product.gstRate) : (product.taxRate ? Number(product.taxRate) : 18),
             description: product.description || "",
             tags: product.tags || [],
             variants: {

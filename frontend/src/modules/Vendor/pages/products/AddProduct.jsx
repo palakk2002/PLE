@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { FiSave, FiUpload, FiX } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
@@ -100,6 +100,16 @@ const AddProduct = () => {
       ),
     [formData.variants?.sizes, formData.variants?.colors, formData.variants?.attributes]
   );
+
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const cond = params.get("condition");
+    if (cond && ["refurbished", "renewed", "open_box", "brand_new"].includes(cond)) {
+      setFormData((prev) => ({ ...prev, condition: cond }));
+    }
+  }, [location.search]);
 
   useEffect(() => {
     initCategories();
@@ -674,6 +684,63 @@ const AddProduct = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm"
                   placeholder="0.00"
                 />
+              </div>
+
+              {/* GST Rate Selector */}
+              <div className="md:col-span-2 p-3 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-gray-800">
+                    GST Rate Configuration
+                  </label>
+                  <div className="flex gap-3 text-xs font-semibold">
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="gstMode"
+                        value="category"
+                        checked={(formData.gstMode || "category") === "category"}
+                        onChange={handleChange}
+                        className="text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span>Category Default</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="gstMode"
+                        value="custom"
+                        checked={formData.gstMode === "custom"}
+                        onChange={handleChange}
+                        className="text-emerald-600 focus:ring-emerald-500"
+                      />
+                      <span>Custom Rate</span>
+                    </label>
+                  </div>
+                </div>
+
+                {formData.gstMode === "custom" ? (
+                  <div className="flex items-center gap-2 pt-1">
+                    <span className="text-xs text-gray-600 font-medium">Select GST:</span>
+                    {[0, 5, 12, 18, 28].map((rate) => (
+                      <button
+                        key={rate}
+                        type="button"
+                        onClick={() => setFormData((prev) => ({ ...prev, gstRate: rate, taxRate: rate }))}
+                        className={`px-3 py-1 rounded-lg text-xs font-bold border transition-colors ${
+                          Number(formData.gstRate) === rate
+                            ? "bg-emerald-600 text-white border-emerald-600 shadow-sm"
+                            : "bg-white text-gray-700 border-gray-200 hover:bg-gray-100"
+                        }`}
+                      >
+                        {rate}%
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-emerald-800 font-medium">
+                    This product will automatically inherit the Category's default GST rate.
+                  </p>
+                )}
               </div>
             </div>
           </div>

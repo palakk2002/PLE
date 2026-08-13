@@ -5,11 +5,16 @@ import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import toast from 'react-hot-toast';
 import OTPVerificationModal from '../../../../shared/components/OTPVerificationModal';
 import TwoFactorToggle from '../../../../shared/components/TwoFactorToggle';
+import { requestChangePasswordOTP, verifyChangePasswordOTP } from '../../services/vendorService';
 
 const ProfileSettings = () => {
   const { vendor, updateProfile, verifyProfileOTP, resendProfileOTP, logout } = useVendorAuthStore();
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [pendingUpdateId, setPendingUpdateId] = useState(null);
+  const [showPasswordOtpModal, setShowPasswordOtpModal] = useState(false);
+  const [passwordOtpEmail, setPasswordOtpEmail] = useState('');
+  const [isRequestingPasswordOtp, setIsRequestingPasswordOtp] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -87,17 +92,17 @@ const ProfileSettings = () => {
       return;
     }
 
+    setIsRequestingPasswordOtp(true);
     try {
-      // In a real app, this would be an API call to change password
-      toast.success('Password changed successfully');
-      setFormData({
-        ...formData,
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: '',
-      });
+      const res = await requestChangePasswordOTP(formData.currentPassword, formData.newPassword);
+      const email = res?.data?.email || vendor?.email || vendor?.username;
+      setPasswordOtpEmail(email);
+      setShowPasswordOtpModal(true);
+      toast.success(res?.message || `Verification OTP sent to ${email}`);
     } catch (error) {
-      toast.error('Failed to change password');
+      toast.error(error?.response?.data?.message || error?.message || 'Failed to request password change OTP');
+    } finally {
+      setIsRequestingPasswordOtp(false);
     }
   };
 
@@ -303,10 +308,11 @@ const ProfileSettings = () => {
               <div className="flex justify-end pt-4 border-t border-gray-200">
                 <button
                   type="submit"
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base"
+                  disabled={isRequestingPasswordOtp}
+                  className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base disabled:opacity-50"
                 >
                   <FiSave />
-                  Change Password
+                  {isRequestingPasswordOtp ? 'Sending OTP...' : 'Change Password'}
                 </button>
               </div>
             </form>
@@ -372,6 +378,29 @@ const ProfileSettings = () => {
         onResend={async () => {
           await resendProfileOTP(pendingUpdateId);
           toast.success('OTP resent successfully');
+        }}
+      />
+
+      <OTPVerificationModal
+        isOpen={showPasswordOtpModal}
+        onClose={() => {
+          setShowPasswordOtpModal(false);
+        }}
+        email={passwordOtpEmail}
+        onVerify={async (otp) => {
+          await verifyChangePasswordOTP(otp);
+          toast.success('Password changed successfully');
+          setShowPasswordOtpModal(false);
+          setFormData((prev) => ({
+            ...prev,
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+          }));
+        }}
+        onResend={async () => {
+          const res = await requestChangePasswordOTP(formData.currentPassword, formData.newPassword);
+          toast.success(res?.message || 'OTP resent successfully');
         }}
       />
     </motion.div>

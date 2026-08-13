@@ -83,4 +83,4 @@ const aboutPageSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-export default mongoose.model('AboutPage', aboutPageSchema);
+export default mongoose.models.AboutPage || mongoose.model('AboutPage', aboutPageSchema);

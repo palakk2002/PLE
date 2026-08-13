@@ -19,6 +19,7 @@ const VendorBottomNav = () => {
     ? [
         { path: "/vendor/dashboard", icon: FiHome, label: "Home" },
         { path: "/vendor/products", icon: FiPackage, label: "Products" },
+        { path: "/vendor/orders", icon: FiShoppingBag, label: "Orders" },
       ]
     : [
         { path: "/vendor/dashboard", icon: FiHome, label: "Home" },

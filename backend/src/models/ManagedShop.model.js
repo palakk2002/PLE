@@ -14,6 +14,6 @@ const managedShopSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const ManagedShop = mongoose.model('ManagedShop', managedShopSchema);
+const ManagedShop = mongoose.models.ManagedShop || mongoose.model('ManagedShop', managedShopSchema);
 export { ManagedShop };
 export default ManagedShop;

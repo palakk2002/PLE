@@ -4,6 +4,7 @@ import User from '../models/User.model.js';
 import { Vendor } from '../models/Vendor.model.js';
 import DeliveryBoy from '../models/DeliveryBoy.model.js';
 import { Admin } from '../models/Admin.model.js';
+import ManagedVendorUser from '../models/ManagedVendorUser.model.js';
 import { sendPushNotification } from '../services/firebaseAdmin.js';
 import ApiResponse from '../utils/ApiResponse.js';
 import ApiError from '../utils/ApiError.js';
@@ -16,6 +17,8 @@ async function findUserByRole(userId, role) {
     if (!userId) return null;
     if (role === 'vendor') {
         return await Vendor.findById(userId);
+    } else if (role === 'managed_vendor') {
+        return await ManagedVendorUser.findById(userId);
     } else if (role === 'delivery') {
         return await DeliveryBoy.findById(userId);
     } else if (role === 'admin' || role === 'superadmin') {

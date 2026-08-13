@@ -14,6 +14,7 @@ import {
   FiPercent,
   FiBell,
   FiMessageCircle,
+  FiMessageSquare,
   FiFileText,
   FiBarChart2,
   FiSettings,
@@ -65,6 +66,7 @@ const iconMap = {
   "B2B Users": FiUsers,
   "Wallet Management": FiCreditCard,
   "My Shops": FiBriefcase,
+  "Managed Vendor Chats": FiMessageSquare,
   "About Page": FiLayout,
   "Portfolio Page": FiImage,
 };
@@ -129,6 +131,7 @@ const getChildRoute = (parentRoute, childName) => {
       "Commission Rates": "/admin/vendors/commission-rates",
       "Vendor Analytics": "/admin/vendors/vendor-analytics",
       "Managed Shops": "/admin/vendors/managed-shops",
+      "Managed Vendor Chats": "/admin/managed-vendor-chats",
       "Product Approvals": "/admin/vendors/product-approvals",
     },
     "/admin/b2b-users": {
@@ -153,6 +156,7 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/support": {
       "Live Chat": "/admin/support/live-chat",
       "PLE Shop Chats": "/admin/ple-shop-chats",
+      "Managed Vendor Chats": "/admin/managed-vendor-chats",
       "Ticket Types": "/admin/support/ticket-types",
       Tickets: "/admin/support/tickets",
     },

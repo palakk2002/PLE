@@ -13,4 +13,4 @@ const portfolioSchema = new mongoose.Schema({
     clientUrl: { type: String }
 }, { timestamps: true });
 
-export default mongoose.model('Portfolio', portfolioSchema);
+export default mongoose.models.Portfolio || mongoose.model('Portfolio', portfolioSchema);

@@ -9,6 +9,11 @@ const orderItemSchema = new mongoose.Schema({
     quantity: Number,
     variant: { type: mongoose.Schema.Types.Mixed, default: {} },
     variantKey: String,
+    gstMode: { type: String, default: 'category' },
+    gstRate: { type: Number, default: 18 },
+    gstAmount: { type: Number, default: 0 },
+    taxableAmount: { type: Number, default: 0 },
+    taxIncluded: { type: Boolean, default: false },
 });
 
 const vendorItemGroupSchema = new mongoose.Schema({
@@ -119,6 +124,6 @@ orderSchema.index(
     }
 );
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 export { Order };
 export default Order;

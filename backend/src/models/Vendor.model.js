@@ -6,6 +6,9 @@ const vendorSchema = new mongoose.Schema(
         name: { type: String, required: true, trim: true },
         email: { type: String, required: true, unique: true, lowercase: true, index: true },
         password: { type: String, required: true, select: false },
+        changePasswordOtp: { type: String, select: false },
+        changePasswordOtpExpiry: { type: Date, select: false },
+        pendingNewPassword: { type: String, select: false },
         phone: { type: String },
         storeName: { type: String, required: true },
         storeLogo: { type: String },
@@ -134,6 +137,6 @@ vendorSchema.methods.comparePassword = async function (candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
 };
 
-const Vendor = mongoose.model('Vendor', vendorSchema);
+const Vendor = mongoose.models.Vendor || mongoose.model('Vendor', vendorSchema);
 export { Vendor };
 export default Vendor;

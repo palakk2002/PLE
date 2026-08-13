@@ -25,6 +25,6 @@ const vendorChatMessageSchema = new mongoose.Schema(
 
 vendorChatMessageSchema.index({ threadId: 1, createdAt: 1 });
 
-const VendorChatMessage = mongoose.model('VendorChatMessage', vendorChatMessageSchema);
+const VendorChatMessage = mongoose.models.VendorChatMessage || mongoose.model('VendorChatMessage', vendorChatMessageSchema);
 export { VendorChatMessage };
 export default VendorChatMessage;

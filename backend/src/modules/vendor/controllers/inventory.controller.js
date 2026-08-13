@@ -6,9 +6,20 @@ import mongoose from 'mongoose';
 
 export const getInventoryReport = asyncHandler(async (req, res) => {
     const { lowStockOnly } = req.query;
-    const vendorObjectId = new mongoose.Types.ObjectId(req.user.id);
 
-    const products = await Product.find({ vendorId: req.user.id })
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
+    const vendorObjectIds = vendorIdsToMatch
+        .filter((id) => mongoose.Types.ObjectId.isValid(id))
+        .map((id) => new mongoose.Types.ObjectId(id));
+
+    const productQuery = req.user.role === 'managed_vendor'
+        ? { $or: [{ shopId: req.user.shopId }, { vendorId: { $in: vendorIdsToMatch } }, { vendorUserId: req.user.id }] }
+        : { vendorId: req.user.id };
+
+    const products = await Product.find(productQuery)
         .select('name price stockQuantity lowStockThreshold')
         .lean();
 
@@ -32,7 +43,7 @@ export const getInventoryReport = asyncHandler(async (req, res) => {
     const soldRows = await Order.aggregate([
         {
             $match: {
-                'vendorItems.vendorId': vendorObjectId,
+                'vendorItems.vendorId': { $in: vendorObjectIds },
                 status: { $nin: ['cancelled', 'returned'] },
                 isDeleted: { $ne: true },
             },
@@ -40,7 +51,7 @@ export const getInventoryReport = asyncHandler(async (req, res) => {
         { $unwind: '$vendorItems' },
         {
             $match: {
-                'vendorItems.vendorId': vendorObjectId,
+                'vendorItems.vendorId': { $in: vendorObjectIds },
                 'vendorItems.status': { $ne: 'cancelled' },
             },
         },

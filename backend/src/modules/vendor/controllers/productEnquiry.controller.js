@@ -8,7 +8,11 @@ import Notification from '../../../models/Notification.model.js';
 // @route   GET /api/vendor/enquiries
 // @access  Private
 export const getVendorEnquiries = asyncHandler(async (req, res) => {
-    const enquiries = await ProductEnquiry.find({ vendorId: req.user.id })
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
+    const enquiries = await ProductEnquiry.find({ vendorId: { $in: vendorIdsToMatch } })
         .populate('userId', 'name email role')
         .populate('productId', 'name image slug')
         .sort({ createdAt: -1 });
@@ -38,7 +42,6 @@ export const getVendorEnquiries = asyncHandler(async (req, res) => {
 // @desc    Reply to a product enquiry
 // @route   PUT /api/vendor/enquiries/:id/reply
 // @access  Private
-// export const replyToEnquiry = asyncHandler(async (req, res) => {
 export const replyToEnquiry = asyncHandler(async (req, res) => {
     const { status, responseText } = req.body;
     
@@ -46,7 +49,11 @@ export const replyToEnquiry = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Please provide status or response text.');
     }
 
-    const enquiry = await ProductEnquiry.findOne({ enquiryId: req.params.id, vendorId: req.user.id });
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
+    const enquiry = await ProductEnquiry.findOne({ enquiryId: req.params.id, vendorId: { $in: vendorIdsToMatch } });
     if (!enquiry) {
         throw new ApiError(404, 'Enquiry not found or unauthorized.');
     }

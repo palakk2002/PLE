@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiSettings, FiCreditCard, FiTruck, FiUser, FiBriefcase } from 'react-icons/fi';
+import { FiSettings, FiCreditCard, FiTruck, FiUser, FiBriefcase, FiPercent } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import StoreSettings from './settings/StoreSettings';
 import PaymentSettings from './settings/PaymentSettings';
 import ShippingSettings from './settings/ShippingSettings';
 import ProfileSettings from './settings/ProfileSettings';
 import BusinessProfile from './settings/BusinessProfile';
+import GstSettings from './GstSettings';
 
 const VendorSettings = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const VendorSettings = () => {
   // Get active tab from URL or default to 'store'
   const getActiveTabFromUrl = () => {
     const path = location.pathname;
+    if (path.includes('/gst')) return 'gst';
     if (path.includes('/payment') || path.includes('/payment-settings')) return 'payment';
     if (path.includes('/shipping') || path.includes('/shipping-settings')) return 'shipping';
     if (path.includes('/business')) return 'business';
@@ -32,6 +34,8 @@ const VendorSettings = () => {
     setActiveTab(tabId);
     if (tabId === 'store') {
       navigate('/vendor/settings/store');
+    } else if (tabId === 'gst') {
+      navigate('/vendor/settings/gst');
     } else if (tabId === 'payment') {
       navigate('/vendor/settings/payment');
     } else if (tabId === 'shipping') {
@@ -43,6 +47,7 @@ const VendorSettings = () => {
 
   const tabs = [
     { id: 'store', label: 'Store Settings', icon: FiSettings, component: StoreSettings, route: '/vendor/settings' },
+    { id: 'gst', label: 'GST Settings', icon: FiPercent, component: GstSettings, route: '/vendor/settings/gst' },
     { id: 'payment', label: 'Payment Settings', icon: FiCreditCard, component: PaymentSettings, route: '/vendor/settings/payment-settings' },
     { id: 'shipping', label: 'Shipping Settings', icon: FiTruck, component: ShippingSettings, route: '/vendor/settings/shipping-settings' },
     { id: 'business', label: 'Business Profile', icon: FiBriefcase, component: BusinessProfile, route: '/vendor/settings/business' },

@@ -215,6 +215,6 @@ productRequestSchema.pre('save', function (next) {
     next();
 });
 
-const ProductRequest = mongoose.model('ProductRequest', productRequestSchema);
+const ProductRequest = mongoose.models.ProductRequest || mongoose.model('ProductRequest', productRequestSchema);
 
 export default ProductRequest;

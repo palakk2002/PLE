@@ -24,21 +24,31 @@ const OrderDetail = () => {
     const [loading, setLoading] = useState(true);
     const [updatingStatus, setUpdatingStatus] = useState(false);
 
-    const vendorId = vendor?.id;
+    const vendorIdsToMatch = [
+        vendor?.id?.toString(),
+        vendor?._id?.toString(),
+        vendor?.shopId?.toString(),
+        vendor?.shopId?._id?.toString(),
+    ].filter(Boolean);
+
     const shippingAddress = order?.shippingAddress ?? order?.address ?? null;
     const customerName =
-        order?.customer?.name ??
-        order?.userId?.name ??
-        order?.guestInfo?.name ??
+        (typeof order?.userId === 'object' && order?.userId?.name) ||
+        order?.shippingAddress?.name ||
+        order?.shippingAddress?.fullName ||
+        order?.guestInfo?.name ||
+        order?.customer?.name ||
         'Guest';
+
     const customerEmail =
-        order?.customer?.email ??
-        order?.userId?.email ??
-        order?.guestInfo?.email ??
+        (typeof order?.userId === 'object' && order?.userId?.email) ||
+        order?.shippingAddress?.email ||
+        order?.guestInfo?.email ||
+        order?.customer?.email ||
         'N/A';
 
     useEffect(() => {
-        if (!id || !vendorId) return;
+        if (!id || !vendor) return;
 
         const fetchOrder = async () => {
             setLoading(true);
@@ -55,7 +65,7 @@ const OrderDetail = () => {
         };
 
         fetchOrder();
-    }, [id, vendorId]);
+    }, [id, vendor]);
 
     const handleStatusChange = async (newStatus) => {
         if (!order) return;
@@ -65,11 +75,12 @@ const OrderDetail = () => {
             // Optimistically update local state
             setOrder((prev) => ({
                 ...prev,
-                vendorItems: prev.vendorItems?.map((vi) =>
-                    vi.vendorId?.toString() === vendorId?.toString()
+                vendorItems: prev.vendorItems?.map((vi) => {
+                    const itemVid = (vi.vendorId?._id || vi.vendorId)?.toString();
+                    return vendorIdsToMatch.includes(itemVid)
                         ? { ...vi, status: newStatus }
-                        : vi
-                ),
+                        : vi;
+                }),
                 status: newStatus,
             }));
             toast.success(`Order status updated to ${newStatus}`);
@@ -97,9 +108,11 @@ const OrderDetail = () => {
     };
 
     // Derive per-vendor status from vendorItems
-    const vendorItem = order?.vendorItems?.find(
-        (vi) => vi.vendorId?.toString() === vendorId?.toString()
-    );
+    const vendorItem = order?.vendorItems?.find((vi) => {
+        const itemVendorId = (vi.vendorId?._id || vi.vendorId)?.toString();
+        return vendorIdsToMatch.includes(itemVendorId);
+    }) || (order?.vendorItems?.length === 1 ? order?.vendorItems[0] : null);
+
     const currentStatus = String(vendorItem?.status ?? order?.status ?? 'pending').toLowerCase();
     const allowedStatuses = transitionMap[currentStatus] || [currentStatus];
     const visibleStatusOptions = statusOptions.filter((option) =>
@@ -109,9 +122,11 @@ const OrderDetail = () => {
     const earnedPoints = order?.loyaltyPointsEarned ?? 0;
     const redeemedPoints = order?.loyaltyPointsRedeemed ?? 0;
 
-    // Items this vendor sold in this order
-    const vendorItems = vendorItem?.items ?? [];
-    const vendorSubtotal = vendorItem?.subtotal ?? 0;
+    // Items this vendor sold in this order (fallback to order.items)
+    const vendorItems = (vendorItem?.items && vendorItem.items.length > 0)
+        ? vendorItem.items
+        : (order?.items ?? []);
+    const vendorSubtotal = vendorItem?.subtotal ?? order?.subtotal ?? order?.total ?? 0;
 
     if (loading) {
         return (

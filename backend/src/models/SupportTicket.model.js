@@ -26,6 +26,6 @@ const supportTicketSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const SupportTicket = mongoose.model('SupportTicket', supportTicketSchema);
+const SupportTicket = mongoose.models.SupportTicket || mongoose.model('SupportTicket', supportTicketSchema);
 export { SupportTicket };
 export default SupportTicket;

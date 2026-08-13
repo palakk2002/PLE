@@ -20,6 +20,6 @@ const vendorShippingZoneSchema = new mongoose.Schema(
 
 vendorShippingZoneSchema.index({ vendorId: 1, name: 1 });
 
-const VendorShippingZone = mongoose.model('VendorShippingZone', vendorShippingZoneSchema);
+const VendorShippingZone = mongoose.models.VendorShippingZone || mongoose.model('VendorShippingZone', vendorShippingZoneSchema);
 export { VendorShippingZone };
 export default VendorShippingZone;

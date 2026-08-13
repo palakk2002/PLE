@@ -125,6 +125,16 @@ const Orders = () => {
       description: 'View and manage your orders',
     },
     {
+      path: '/vendor/orders/bulk-orders',
+      label: 'Bulk Orders',
+      icon: FiShoppingBag,
+      gradient: 'from-emerald-500 via-emerald-600 to-emerald-700',
+      lightGradient: 'from-emerald-50 via-emerald-100/80 to-emerald-50',
+      shadowColor: 'shadow-emerald-500/20',
+      hoverShadow: 'hover:shadow-emerald-500/30',
+      description: 'Create & upload orders in bulk (Grid/Excel)',
+    },
+    {
       path: '/vendor/orders/order-tracking',
       label: 'Order Tracking',
       icon: FiMapPin,

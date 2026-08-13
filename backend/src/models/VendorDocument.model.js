@@ -33,6 +33,6 @@ const vendorDocumentSchema = new mongoose.Schema(
 
 vendorDocumentSchema.index({ vendorId: 1, createdAt: -1 });
 
-const VendorDocument = mongoose.model('VendorDocument', vendorDocumentSchema);
+const VendorDocument = mongoose.models.VendorDocument || mongoose.model('VendorDocument', vendorDocumentSchema);
 export { VendorDocument };
 export default VendorDocument;

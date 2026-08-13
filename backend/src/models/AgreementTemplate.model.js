@@ -20,5 +20,5 @@ const agreementTemplateSchema = new mongoose.Schema(
 // Index for quick queries
 agreementTemplateSchema.index({ templateKey: 1, status: 1 });
 
-const AgreementTemplate = mongoose.model('AgreementTemplate', agreementTemplateSchema);
+const AgreementTemplate = mongoose.models.AgreementTemplate || mongoose.model('AgreementTemplate', agreementTemplateSchema);
 export default AgreementTemplate;

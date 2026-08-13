@@ -8,5 +8,5 @@ const attributeSetSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const AttributeSet = mongoose.model('AttributeSet', attributeSetSchema);
+const AttributeSet = mongoose.models.AttributeSet || mongoose.model('AttributeSet', attributeSetSchema);
 export default AttributeSet;

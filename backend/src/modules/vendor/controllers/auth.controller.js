@@ -534,3 +534,94 @@ export const updateBankDetails = asyncHandler(async (req, res) => {
 
     res.status(200).json(new ApiResponse(200, vendor, 'Bank details updated.'));
 });
+
+// POST /api/vendor/auth/change-password/request-otp
+export const requestChangePasswordOTP = asyncHandler(async (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+        throw new ApiError(400, 'Current password and new password are required.');
+    }
+    if (newPassword.length < 6) {
+        throw new ApiError(400, 'New password must be at least 6 characters.');
+    }
+
+    let user;
+    if (req.user.role === 'managed_vendor') {
+        user = await ManagedVendorUser.findById(req.user.id).select('+password +changePasswordOtp +changePasswordOtpExpiry +pendingNewPassword');
+    } else {
+        user = await Vendor.findById(req.user.id).select('+password +changePasswordOtp +changePasswordOtpExpiry +pendingNewPassword');
+    }
+
+    if (!user) throw new ApiError(404, 'Vendor user not found.');
+
+    const isMatch = await user.comparePassword(currentPassword);
+    if (!isMatch) {
+        throw new ApiError(400, 'Current password is incorrect.');
+    }
+
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    user.changePasswordOtp = otp;
+    user.changePasswordOtpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    user.pendingNewPassword = newPassword;
+    await user.save({ validateBeforeSave: false });
+
+    const recipientEmail = user.email || user.username;
+    try {
+        await sendEmail({
+            to: recipientEmail,
+            subject: 'Vendor Password Change Verification Code',
+            text: `Your OTP for changing your password is ${otp}. It expires in 10 minutes.`,
+            html: `<div style="font-family: Arial, sans-serif; padding: 20px;">
+                <h2 style="color: #C07A3D;">Password Change Request</h2>
+                <p>Hello <strong>${user.name || 'Vendor'}</strong>,</p>
+                <p>Your verification code to confirm your new password is:</p>
+                <div style="background: #f4f4f4; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 4px; color: #333;">${otp}</div>
+                <p>This code expires in 10 minutes. If you did not request this change, please contact support immediately.</p>
+            </div>`,
+        });
+    } catch (err) {
+        console.warn(`[Change Password OTP] Email send failed for ${recipientEmail}: ${err.message}`);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[Change Password OTP] Code generated for ${recipientEmail}: ${otp}`);
+        }
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200, { email: recipientEmail }, `Verification code (OTP) sent to ${recipientEmail}.`)
+    );
+});
+
+// POST /api/vendor/auth/change-password/verify-otp
+export const verifyChangePasswordOTP = asyncHandler(async (req, res) => {
+    const { otp } = req.body;
+    if (!otp) throw new ApiError(400, 'OTP is required.');
+
+    let user;
+    if (req.user.role === 'managed_vendor') {
+        user = await ManagedVendorUser.findById(req.user.id).select('+password +changePasswordOtp +changePasswordOtpExpiry +pendingNewPassword');
+    } else {
+        user = await Vendor.findById(req.user.id).select('+password +changePasswordOtp +changePasswordOtpExpiry +pendingNewPassword');
+    }
+
+    if (!user) throw new ApiError(404, 'Vendor user not found.');
+    if (!user.changePasswordOtp || !user.changePasswordOtpExpiry) {
+        throw new ApiError(400, 'No password change request found or OTP expired.');
+    }
+    if (user.changePasswordOtpExpiry < new Date()) {
+        throw new ApiError(400, 'OTP has expired. Please request a new OTP.');
+    }
+    if (user.changePasswordOtp !== String(otp).trim()) {
+        throw new ApiError(400, 'Invalid OTP code. Please check and try again.');
+    }
+    if (!user.pendingNewPassword) {
+        throw new ApiError(400, 'No pending new password found. Please try again.');
+    }
+
+    user.password = user.pendingNewPassword;
+    user.changePasswordOtp = undefined;
+    user.changePasswordOtpExpiry = undefined;
+    user.pendingNewPassword = undefined;
+    await user.save();
+
+    return res.status(200).json(new ApiResponse(200, null, 'Password changed successfully.'));
+});

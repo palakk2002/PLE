@@ -54,6 +54,8 @@ const productBaseSchema = {
     cancelable: Joi.boolean().optional(),
     taxIncluded: Joi.boolean().optional(),
     taxRate: Joi.number().min(0).max(100).optional(),
+    gstMode: Joi.string().valid('category', 'custom').optional(),
+    gstRate: Joi.number().min(0).max(100).optional(),
     warrantyPeriod: Joi.string().allow('').optional(),
     guaranteePeriod: Joi.string().allow('').optional(),
     hsnCode: Joi.string().allow('').optional(),
@@ -112,6 +114,7 @@ export const createCategorySchema = Joi.object({
     parentId: objectId.allow(null, '').optional(),
     order: Joi.number().integer().min(0).optional(),
     isActive: Joi.boolean().optional(),
+    gstRate: Joi.number().min(0).max(100).optional(),
 });
 
 export const updateCategorySchema = Joi.object({
@@ -122,6 +125,7 @@ export const updateCategorySchema = Joi.object({
     parentId: objectId.allow(null, '').optional(),
     order: Joi.number().integer().min(0).optional(),
     isActive: Joi.boolean().optional(),
+    gstRate: Joi.number().min(0).max(100).optional(),
 }).min(1);
 
 export const reorderCategoriesSchema = Joi.object({

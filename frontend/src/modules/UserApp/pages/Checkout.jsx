@@ -218,19 +218,35 @@ const MobileCheckout = () => {
     return 50;
   };
 
+  const calculateItemisedGST = (tot, coupDisc) => {
+    let totalTaxSum = 0;
+    const discountRatio = tot > 0 ? Math.min(1, coupDisc / tot) : 0;
+    (items || []).forEach((item) => {
+      const itemQty = Math.max(1, Number(item.quantity || 1));
+      const itemPrice = Math.max(0, Number(item.price || 0));
+      const itemSubtotal = itemPrice * itemQty;
+      const itemDisc = itemSubtotal * discountRatio;
+      const netTaxable = Math.max(0, itemSubtotal - itemDisc);
+      const effectiveGstRate = Number(item.gstRate ?? item.resolvedGstRate ?? item.taxRate ?? 18);
+      const itemTax = (netTaxable * effectiveGstRate) / 100;
+      totalTaxSum += itemTax;
+    });
+    return parseFloat(totalTaxSum.toFixed(2));
+  };
+
   const total = getTotal();
   const shipping = calculateShippingFallback();
   const couponDiscount = appliedCoupon ? appliedDiscount : 0;
-  const prePointsTotal = total + shipping + taxAmount(total, couponDiscount);
+  const tax = calculateItemisedGST(total, couponDiscount);
+  const prePointsTotal = total + shipping + tax;
   const maxRedeemableCash = Math.min(prePointsTotal, appliedPoints * (loyaltyConfig?.redemptionRatio || 0.2));
   const pointsDiscount = maxRedeemableCash;
   const discount = couponDiscount + pointsDiscount;
   const taxableAmount = Math.max(0, total - couponDiscount);
-  const tax = taxableAmount * 0.18;
   const finalTotal = Math.max(0, prePointsTotal - pointsDiscount);
 
   function taxAmount(tot, coupDisc) {
-    return Math.max(0, tot - coupDisc) * 0.18;
+    return calculateItemisedGST(tot, coupDisc);
   }
 
   useEffect(() => {

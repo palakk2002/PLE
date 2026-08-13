@@ -79,7 +79,7 @@ ${order.shippingAddress?.city || "N/A"}, ${order.shippingAddress?.state || "N/A"
 ${order.shippingAddress?.country || "N/A"}
 
 Items:
-${orderItems.map(item => `- ${item.name} x${item.quantity} - ${formatPrice(item.price * item.quantity)}`).join("\n")}
+${orderItems.map(item => `- ${item.name} x${item.quantity} (GST ${item.gstRate !== undefined ? item.gstRate : 18}%) - ${formatPrice((item.price || 0) * (item.quantity || 1))}`).join("\n")}
 
 ========================================
 Subtotal: ${formatPrice(order.subtotal)}

@@ -11,6 +11,7 @@ const categorySchema = new mongoose.Schema(
         order: { type: Number, default: 0 },
         isActive: { type: Boolean, default: true },
         isRefurbishedCategory: { type: Boolean, default: false },
+        gstRate: { type: Number, min: 0, max: 100, default: 18 },
     },
     { timestamps: true }
 );
@@ -18,6 +19,6 @@ const categorySchema = new mongoose.Schema(
 categorySchema.index({ parentId: 1, order: 1 });
 categorySchema.index({ isRefurbishedCategory: 1 });
 
-const Category = mongoose.model('Category', categorySchema);
+const Category = mongoose.models.Category || mongoose.model('Category', categorySchema);
 export { Category };
 export default Category;

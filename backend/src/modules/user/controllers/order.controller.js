@@ -20,6 +20,7 @@ import { createNotification } from '../../../services/notification.service.js';
 import { calculateVendorShippingForGroups } from '../../../services/vendorShipping.service.js';
 import { getIO } from '../../../config/socket.js';
 import { sendNotificationToUser } from '../../../utils/pushNotificationHelper.js';
+import { resolveProductGST, calculateItemGST } from '../../../utils/gstUtils.js';
 
 const normalizeVariantPart = (value) => String(value || '').trim().toLowerCase();
 const normalizeAxisName = (value) =>
@@ -242,7 +243,8 @@ export const placeOrder = asyncHandler(async (req, res) => {
     for (const item of items) {
         const product = await Product.findById(item.productId)
             .populate('vendorId', 'commissionRate storeName shippingEnabled defaultShippingRate freeShippingThreshold')
-            .populate('shopId', 'name logo');
+            .populate('shopId', 'name logo')
+            .populate('categoryId', 'name gstRate');
         if (!product) throw new ApiError(404, `Product not found: ${item.productId}`);
         if (product.stock === 'out_of_stock') throw new ApiError(400, `${product.name} is out of stock.`);
         if (product.stockQuantity < item.quantity) throw new ApiError(400, `Only ${product.stockQuantity} units of ${product.name} available.`);
@@ -270,6 +272,10 @@ export const placeOrder = asyncHandler(async (req, res) => {
         }
         const itemSubtotal = itemPrice * item.quantity;
         subtotal += itemSubtotal;
+
+        // Resolve seller-controlled GST for this product/category
+        const itemGstRate = resolveProductGST(product, product.categoryId);
+        const { taxableAmount, gstAmount } = calculateItemGST(itemPrice, item.quantity, itemGstRate, 0, product.taxIncluded);
 
         const variantImage =
             variantKey
@@ -300,6 +306,11 @@ export const placeOrder = asyncHandler(async (req, res) => {
             variant: item.variant,
             variantKey: variantKey || undefined,
             hasVariantStock: hasVariantStock || undefined,
+            gstMode: product.gstMode || 'category',
+            gstRate: itemGstRate,
+            gstAmount,
+            taxableAmount,
+            taxIncluded: !!product.taxIncluded,
         };
         enrichedItems.push(enriched);
 
@@ -315,10 +326,12 @@ export const placeOrder = asyncHandler(async (req, res) => {
                 freeShippingThreshold: freeShippingThresholdVal,
                 items: [],
                 subtotal: 0,
+                tax: 0,
             };
         }
         vendorMap[vid].items.push(enriched);
         vendorMap[vid].subtotal += itemSubtotal;
+        vendorMap[vid].tax = parseFloat(((vendorMap[vid].tax || 0) + gstAmount).toFixed(2));
     }
 
     // 2. Validate coupon
@@ -379,8 +392,9 @@ export const placeOrder = asyncHandler(async (req, res) => {
         }
     }
 
-    // 4. Calculate tax (18%)
-    const tax = parseFloat(((subtotal - couponDiscount - loyaltyDiscount) * 0.18).toFixed(2));
+    // 4. Calculate tax aggregated from itemized GST snapshots
+    const totalGstFromItems = enrichedItems.reduce((sum, item) => sum + (item.gstAmount || 0), 0);
+    const tax = parseFloat(totalGstFromItems.toFixed(2));
     const total = parseFloat(Math.max(0, subtotal - couponDiscount - loyaltyDiscount + shipping + tax).toFixed(2));
 
     // 5. Build vendor item groups
@@ -390,7 +404,7 @@ export const placeOrder = asyncHandler(async (req, res) => {
         items: v.items,
         subtotal: v.subtotal,
         shipping: Number(shippingByVendor[String(v.vendorId)] || 0),
-        tax: parseFloat((v.subtotal * 0.18).toFixed(2)),
+        tax: parseFloat((v.tax || 0).toFixed(2)),
         discount: 0,
         status: 'pending',
     }));

@@ -194,7 +194,7 @@ const calculateVariantAggregateStock = (variants = {}) => {
 };
 
 const sanitizeCategoryPayload = (payload = {}) => {
-    const allowed = ['name', 'description', 'image', 'icon', 'parentId', 'order', 'isActive', 'isRefurbishedCategory'];
+    const allowed = ['name', 'description', 'image', 'icon', 'parentId', 'order', 'isActive', 'isRefurbishedCategory', 'gstRate'];
     const sanitized = {};
     for (const key of allowed) {
         if (Object.prototype.hasOwnProperty.call(payload, key)) {

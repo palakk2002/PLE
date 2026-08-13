@@ -18,12 +18,20 @@ const getCustomerKey = (order) => {
 };
 
 export const getPerformanceMetrics = asyncHandler(async (req, res) => {
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
+    const productQuery = req.user.role === 'managed_vendor'
+        ? { $or: [{ shopId: req.user.shopId }, { vendorId: { $in: vendorIdsToMatch } }, { vendorUserId: req.user.id }] }
+        : { vendorId: req.user.id };
+
     const [orders, totalProducts, commissions] = await Promise.all([
-        Order.find({ 'vendorItems.vendorId': req.user.id })
+        Order.find({ 'vendorItems.vendorId': { $in: vendorIdsToMatch } })
             .select('userId guestInfo shippingAddress orderId status isDeleted vendorItems')
             .lean(),
-        Product.countDocuments({ vendorId: req.user.id }),
-        Commission.find({ vendorId: req.user.id })
+        Product.countDocuments(productQuery),
+        Commission.find({ vendorId: { $in: vendorIdsToMatch } })
             .select('vendorEarnings status')
             .lean(),
     ]);
@@ -34,7 +42,7 @@ export const getPerformanceMetrics = asyncHandler(async (req, res) => {
         if (orderStatus === 'cancelled' || orderStatus === 'returned') return false;
 
         const vendorItem = (order?.vendorItems || []).find(
-            (item) => String(item?.vendorId) === String(req.user.id)
+            (item) => vendorIdsToMatch.map(String).includes(String(item?.vendorId))
         );
         const vendorStatus = String(vendorItem?.status || '').toLowerCase();
         if (vendorStatus === 'cancelled') return false;
@@ -62,7 +70,7 @@ export const getPerformanceMetrics = asyncHandler(async (req, res) => {
 
     const deliveredOrders = activeOrders.filter((order) => {
         const vendorItem = (order?.vendorItems || []).find(
-            (item) => String(item?.vendorId) === String(req.user.id)
+            (item) => vendorIdsToMatch.map(String).includes(String(item?.vendorId))
         );
         return String(vendorItem?.status || order?.status || '').toLowerCase() === 'delivered';
     }).length;

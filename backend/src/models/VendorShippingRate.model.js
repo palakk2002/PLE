@@ -35,6 +35,6 @@ const vendorShippingRateSchema = new mongoose.Schema(
 
 vendorShippingRateSchema.index({ vendorId: 1, zoneId: 1, name: 1 });
 
-const VendorShippingRate = mongoose.model('VendorShippingRate', vendorShippingRateSchema);
+const VendorShippingRate = mongoose.models.VendorShippingRate || mongoose.model('VendorShippingRate', vendorShippingRateSchema);
 export { VendorShippingRate };
 export default VendorShippingRate;

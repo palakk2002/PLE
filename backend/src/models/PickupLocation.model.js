@@ -15,5 +15,5 @@ const pickupLocationSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const PickupLocation = mongoose.model('PickupLocation', pickupLocationSchema);
+const PickupLocation = mongoose.models.PickupLocation || mongoose.model('PickupLocation', pickupLocationSchema);
 export default PickupLocation;

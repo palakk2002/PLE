@@ -2,6 +2,7 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Vendor from '../../../models/Vendor.model.js';
+import ManagedVendorUser from '../../../models/ManagedVendorUser.model.js';
 import {
     uploadLocalFileToCloudinaryAndCleanupWithType,
     deleteFromCloudinary,
@@ -12,6 +13,27 @@ const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
 // GET /api/vendor/business-profile
 export const getBusinessProfile = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        const managedUser = await ManagedVendorUser.findById(req.user.id).populate('shopId').lean();
+        if (!managedUser) throw new ApiError(404, 'Vendor not found.');
+        const profile = {
+            businessType: 'Managed Shop',
+            gstRegistered: !!(managedUser.gstNumber || managedUser.shopId?.gst),
+            businessName: managedUser.shopId?.name || managedUser.companyName || managedUser.name,
+            tradeName: managedUser.shopId?.name || '',
+            gstNumber: managedUser.gstNumber || managedUser.shopId?.gst || '',
+            panNumber: '',
+            ownerName: managedUser.name,
+            businessAddress: managedUser.address || managedUser.shopId?.address || '',
+            city: '',
+            state: '',
+            pincode: '',
+            verificationStatus: 'Approved',
+            verifiedAt: managedUser.createdAt,
+        };
+        return res.status(200).json(new ApiResponse(200, profile, 'Business profile fetched.'));
+    }
+
     const vendor = await Vendor.findById(req.user.id).select(
         'businessType gstRegistered businessName tradeName gstNumber panNumber gstCertificate msmeCertificate ownerName businessAddress city state pincode identityProof verificationStatus verifiedBy verifiedAt verificationRemark'
     );

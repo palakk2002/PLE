@@ -284,6 +284,9 @@ ${order.trackingNumber ? `Tracking Number: ${order.trackingNumber}` : ""}
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">
                   Unit Price
                 </th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase">
+                  GST Rate
+                </th>
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase">
                   Total
                 </th>
@@ -292,6 +295,7 @@ ${order.trackingNumber ? `Tracking Number: ${order.trackingNumber}` : ""}
             <tbody className="divide-y divide-gray-200">
               {items.map((item, index) => {
                 const itemTotal = (item.price || 0) * (item.quantity || 1);
+                const itemGstRate = item.gstRate !== undefined ? item.gstRate : 18;
                 return (
                   <tr key={item.id || index} className="hover:bg-gray-50">
                     <td className="px-4 py-3 text-sm text-gray-800">
@@ -302,6 +306,9 @@ ${order.trackingNumber ? `Tracking Number: ${order.trackingNumber}` : ""}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-700 text-right">
                       {formatPrice(item.price || 0)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-700 text-center font-mono text-xs font-bold">
+                      {itemGstRate}%
                     </td>
                     <td className="px-4 py-3 text-sm font-semibold text-gray-800 text-right">
                       {formatPrice(itemTotal)}

@@ -13,9 +13,11 @@ const VendorDashboard = lazy(() => import("../modules/Vendor/pages/Dashboard"));
 const VendorProducts = lazy(() => import("../modules/Vendor/pages/Products"));
 const VendorManageProducts = lazy(() => import("../modules/Vendor/pages/products/ManageProducts"));
 const VendorAddProduct = lazy(() => import("../modules/Vendor/pages/products/AddProduct"));
+const VendorBulkProducts = lazy(() => import("../modules/Vendor/pages/products/BulkProducts"));
 const VendorProductForm = lazy(() => import("../modules/Vendor/pages/products/ProductForm"));
 const VendorOrders = lazy(() => import("../modules/Vendor/pages/Orders"));
 const VendorAllOrders = lazy(() => import("../modules/Vendor/pages/orders/AllOrders"));
+const VendorBulkOrders = lazy(() => import("../modules/Vendor/pages/orders/BulkOrders"));
 const VendorOrderTracking = lazy(() => import("../modules/Vendor/pages/orders/OrderTracking"));
 const VendorOrderDetail = lazy(() => import("../modules/Vendor/pages/orders/OrderDetail"));
 const VendorAnalytics = lazy(() => import("../modules/Vendor/pages/Analytics"));
@@ -54,6 +56,7 @@ const VendorDeliverySettings = lazy(() => import("../modules/Vendor/pages/Vendor
 const VendorFestivalCampaigns = lazy(() => import("../modules/Vendor/pages/FestivalCampaigns"));
 const VendorProductRequests = lazy(() => import("../modules/Vendor/pages/ProductRequests"));
 const VendorProductEnquiries = lazy(() => import("../modules/Vendor/pages/ProductEnquiries"));
+const ManagedVendorAdminChat = lazy(() => import("../modules/Vendor/pages/ManagedVendorAdminChat"));
 
 const OfferDashboard = lazy(() => import("../modules/offers/pages/OfferDashboard"));
 const OfferList = lazy(() => import("../modules/offers/pages/OfferList"));
@@ -82,9 +85,11 @@ export default function VendorRoutes() {
         <Route path="products" element={<VendorProducts />} />
         <Route path="products/manage-products" element={<VendorManageProducts />} />
         <Route path="products/add-product" element={<VendorAddProduct />} />
+        <Route path="products/bulk-upload" element={<VendorBulkProducts />} />
         <Route path="products/:id" element={<VendorProductForm />} />
         <Route path="orders" element={<VendorOrders />} />
         <Route path="orders/all-orders" element={<VendorAllOrders />} />
+        <Route path="orders/bulk-orders" element={<VendorBulkOrders />} />
         <Route path="orders/order-tracking" element={<VendorOrderTracking />} />
         <Route path="orders/:id" element={<VendorOrderDetail />} />
         <Route path="analytics" element={<VendorAnalytics />} />
@@ -113,6 +118,7 @@ export default function VendorRoutes() {
         <Route path="language-settings" element={<VendorLanguageSettings />} />
         <Route path="settings" element={<VendorSettings />} />
         <Route path="settings/store" element={<VendorSettings />} />
+        <Route path="settings/gst" element={<VendorSettings />} />
         <Route path="settings/payment" element={<VendorSettings />} />
         <Route path="settings/payment-settings" element={<VendorSettings />} />
         <Route path="settings/shipping" element={<VendorSettings />} />
@@ -145,6 +151,7 @@ export default function VendorRoutes() {
         <Route path="festival-campaigns" element={<VendorFestivalCampaigns />} />
         <Route path="product-requests" element={<VendorProductRequests />} />
         <Route path="product-enquiries" element={<VendorProductEnquiries />} />
+        <Route path="admin-chat" element={<ManagedVendorAdminChat />} />
         <Route path="profile" element={<VendorProfileSettings />} />
       </Route>
     </Routes>

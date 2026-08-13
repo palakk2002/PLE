@@ -84,6 +84,6 @@ b2bCompanySchema.methods.compareSecretKey = async function (candidateKey) {
     return bcrypt.compare(candidateKey, this.ownerSecretKey);
 };
 
-const B2BCompany = mongoose.model('B2BCompany', b2bCompanySchema);
+const B2BCompany = mongoose.models.B2BCompany || mongoose.model('B2BCompany', b2bCompanySchema);
 export default B2BCompany;
 

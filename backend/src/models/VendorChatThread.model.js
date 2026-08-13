@@ -40,6 +40,6 @@ const vendorChatThreadSchema = new mongoose.Schema(
 
 vendorChatThreadSchema.index({ vendorId: 1, customerUserId: 1, orderRef: 1 }, { unique: true });
 
-const VendorChatThread = mongoose.model('VendorChatThread', vendorChatThreadSchema);
+const VendorChatThread = mongoose.models.VendorChatThread || mongoose.model('VendorChatThread', vendorChatThreadSchema);
 export { VendorChatThread };
 export default VendorChatThread;

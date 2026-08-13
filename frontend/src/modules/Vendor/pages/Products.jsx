@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import {
   FiPackage,
   FiPlus,
+  FiUploadCloud,
 } from "react-icons/fi";
 
 const Products = () => {
@@ -28,6 +29,26 @@ const Products = () => {
       shadowColor: "shadow-green-500/20",
       hoverShadow: "hover:shadow-green-500/30",
       description: "Create a new product",
+    },
+    {
+      path: "/vendor/products/bulk-upload",
+      label: "Bulk Upload Products",
+      icon: FiUploadCloud,
+      gradient: "from-amber-500 via-amber-600 to-amber-700",
+      lightGradient: "from-amber-50 via-amber-100/80 to-amber-50",
+      shadowColor: "shadow-amber-500/20",
+      hoverShadow: "hover:shadow-amber-500/30",
+      description: "Bulk upload products via Grid/Excel",
+    },
+    {
+      path: "/vendor/products/add-product?condition=refurbished",
+      label: "Add Refurbished Product",
+      icon: FiPlus,
+      gradient: "from-purple-500 via-purple-600 to-purple-700",
+      lightGradient: "from-purple-50 via-purple-100/80 to-purple-50",
+      shadowColor: "shadow-purple-500/20",
+      hoverShadow: "hover:shadow-purple-500/30",
+      description: "Add refurbished, renewed, or open-box product",
     },
   ];
 

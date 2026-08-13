@@ -7,6 +7,9 @@ const managedVendorUserSchema = new mongoose.Schema(
         phone: { type: String, trim: true },
         username: { type: String, required: true, unique: true, lowercase: true, index: true, trim: true },
         password: { type: String, required: true, select: false },
+        changePasswordOtp: { type: String, select: false },
+        changePasswordOtpExpiry: { type: Date, select: false },
+        pendingNewPassword: { type: String, select: false },
         role: { type: String, default: 'managed_vendor' },
         status: { type: String, enum: ['active', 'inactive'], default: 'active' },
         shopId: { type: mongoose.Schema.Types.ObjectId, ref: 'ManagedShop', required: true, index: true },
@@ -37,6 +40,6 @@ managedVendorUserSchema.methods.comparePassword = async function (candidatePassw
     return bcrypt.compare(candidatePassword, this.password);
 };
 
-const ManagedVendorUser = mongoose.model('ManagedVendorUser', managedVendorUserSchema);
+const ManagedVendorUser = mongoose.models.ManagedVendorUser || mongoose.model('ManagedVendorUser', managedVendorUserSchema);
 export { ManagedVendorUser };
 export default ManagedVendorUser;

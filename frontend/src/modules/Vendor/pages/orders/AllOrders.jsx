@@ -43,6 +43,25 @@ const AllOrders = () => {
     fetchOrders();
   }, [vendorId]);
 
+  const vendorIdsToMatch = useMemo(() => {
+    return [
+      vendor?.id?.toString(),
+      vendor?._id?.toString(),
+      vendor?.shopId?.toString(),
+      vendor?.shopId?._id?.toString(),
+    ].filter(Boolean);
+  }, [vendor]);
+
+  const getMatchingVendorItem = (order) => {
+    if (!order?.vendorItems || !Array.isArray(order.vendorItems)) return null;
+    return (
+      order.vendorItems.find((vi) => {
+        const itemVid = (vi.vendorId?._id || vi.vendorId)?.toString();
+        return vendorIdsToMatch.includes(itemVid);
+      }) || (order.vendorItems.length === 1 ? order.vendorItems[0] : null)
+    );
+  };
+
   const filteredOrders = useMemo(() => {
     let filtered = orders;
 
@@ -56,29 +75,23 @@ const AllOrders = () => {
 
     if (selectedStatus !== 'all') {
       filtered = filtered.filter((order) => {
-        const vendorItem = order.vendorItems?.find(
-          (vi) => vi.vendorId?.toString() === vendorId?.toString()
-        );
+        const vendorItem = getMatchingVendorItem(order);
         const status = (vendorItem?.status ?? order.status ?? '').toLowerCase();
         return status === selectedStatus.toLowerCase();
       });
     }
 
     return filtered;
-  }, [orders, searchQuery, selectedStatus, vendorId]);
+  }, [orders, searchQuery, selectedStatus, vendorIdsToMatch]);
 
   // Get per-vendor subtotal from vendorItems
   const getVendorSubtotal = (order) => {
-    const vendorItem = order.vendorItems?.find(
-      (vi) => vi.vendorId?.toString() === vendorId?.toString()
-    );
+    const vendorItem = getMatchingVendorItem(order);
     return vendorItem?.subtotal ?? order.total ?? order.totalAmount ?? 0;
   };
 
   const getOrderStatus = (order) => {
-    const vendorItem = order.vendorItems?.find(
-      (vi) => vi.vendorId?.toString() === vendorId?.toString()
-    );
+    const vendorItem = getMatchingVendorItem(order);
     return vendorItem?.status ?? order.status ?? 'pending';
   };
 
@@ -90,11 +103,12 @@ const AllOrders = () => {
           if ((o.orderId ?? o._id) !== orderId) return o;
           return {
             ...o,
-            vendorItems: o.vendorItems?.map((vi) =>
-              vi.vendorId?.toString() === vendorId?.toString()
+            vendorItems: o.vendorItems?.map((vi) => {
+              const itemVid = (vi.vendorId?._id || vi.vendorId)?.toString();
+              return vendorIdsToMatch.includes(itemVid)
                 ? { ...vi, status: newStatus }
-                : vi
-            ),
+                : vi;
+            }),
             status: newStatus,
           };
         })
@@ -131,10 +145,8 @@ const AllOrders = () => {
       label: 'Items',
       sortable: false,
       render: (_, row) => {
-        const vendorItem = row.vendorItems?.find(
-          (vi) => vi.vendorId?.toString() === vendorId?.toString()
-        );
-        const count = vendorItem?.items?.length ?? row.vendorItems?.length ?? 0;
+        const vendorItem = getMatchingVendorItem(row);
+        const count = vendorItem?.items?.length ?? row.items?.length ?? row.vendorItems?.length ?? 0;
         return (
           <span className="text-sm text-gray-700">{count} item(s)</span>
         );
@@ -212,15 +224,22 @@ const AllOrders = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
             All Orders
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             View and manage all your orders
           </p>
         </div>
+        <button
+          onClick={() => navigate('/vendor/orders/bulk-orders')}
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold rounded-xl shadow-md shadow-indigo-600/20 transition"
+        >
+          <FiShoppingBag className="w-4 h-4" />
+          <span>+ Create Bulk Orders</span>
+        </button>
       </div>
 
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">

@@ -45,6 +45,7 @@ const iconMap = {
   "Wallet History": FiCreditCard,
   "Pickup Locations": FiMapPin,
   Chat: FiMessageCircle,
+  "Admin Support Chat": FiMessageSquare,
   Promotions: FiTag,
   "My Offers": FiTag,
   "Festival Campaigns": FiTag,
@@ -69,9 +70,12 @@ const getChildRoute = (parentRoute, childName) => {
     "/vendor/products": {
       "Manage Products": "/vendor/products/manage-products",
       "Add Product": "/vendor/products/add-product",
+      "Bulk Upload Products": "/vendor/products/bulk-upload",
+      "Add Refurbished Product": "/vendor/products/add-product?condition=refurbished",
     },
     "/vendor/orders": {
       "All Orders": "/vendor/orders/all-orders",
+      "Bulk Orders": "/vendor/orders/bulk-orders",
       "Order Tracking": "/vendor/orders/order-tracking",
     },
     "/vendor/b2b-enquiries": {
@@ -87,6 +91,7 @@ const getChildRoute = (parentRoute, childName) => {
     },
     "/vendor/settings": {
       "Store Settings": "/vendor/settings/store",
+      "GST Settings": "/vendor/settings/gst",
       "Payment Settings": "/vendor/settings/payment",
       "Shipping Settings": "/vendor/settings/shipping",
     },
@@ -309,20 +314,10 @@ const VendorSidebar = ({ isOpen, onClose }) => {
       {/* Navigation Menu */}
       <nav className="flex-1 overflow-y-auto p-3 scrollbar-admin lg:pb-3">
         {(() => {
-          const allowedTitles = ["Dashboard", "Products", "Profile"];
+          const allowedTitles = ["Dashboard", "Products", "Orders", "Return Requests", "Admin Support Chat", "Profile"];
           const isManagedVendor = vendor?.role === "managed_vendor";
           const filteredMenu = isManagedVendor
-            ? vendorMenu
-                .filter((item) => allowedTitles.includes(item.title))
-                .map((item) => {
-                  if (item.title === "Products") {
-                    return {
-                      ...item,
-                      children: item.children.filter((child) => child !== "Add Refurbished Product")
-                    };
-                  }
-                  return item;
-                })
+            ? vendorMenu.filter((item) => allowedTitles.includes(item.title))
             : vendorMenu;
           return filteredMenu.map((item) => renderMenuItem(item));
         })()}

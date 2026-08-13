@@ -39,9 +39,9 @@ const getCustomerIdentity = (order) => ({
         '',
 });
 
-const getVendorItemTotal = (order, vendorId) => {
+const getVendorItemTotal = (order, vendorIdsToMatch) => {
     const vendorItem = order?.vendorItems?.find(
-        (vi) => String(vi?.vendorId) === String(vendorId)
+        (vi) => vendorIdsToMatch.map(String).includes(String(vi?.vendorId))
     );
     if (!vendorItem) return 0;
     const subtotal = toPositiveNumber(vendorItem?.subtotal);
@@ -51,19 +51,19 @@ const getVendorItemTotal = (order, vendorId) => {
     return Math.max(0, subtotal + shipping + tax - discount);
 };
 
-const getVendorItemStatus = (order, vendorId) => {
+const getVendorItemStatus = (order, vendorIdsToMatch) => {
     const vendorItem = order?.vendorItems?.find(
-        (vi) => String(vi?.vendorId) === String(vendorId)
+        (vi) => vendorIdsToMatch.map(String).includes(String(vi?.vendorId))
     );
     return String(vendorItem?.status || '').toLowerCase();
 };
 
-const shouldIncludeOrderForMetrics = (order, vendorId) => {
+const shouldIncludeOrderForMetrics = (order, vendorIdsToMatch) => {
     if (order?.isDeleted) return false;
     const orderStatus = String(order?.status || '').toLowerCase();
     if (orderStatus === 'cancelled' || orderStatus === 'returned') return false;
 
-    const vendorItemStatus = getVendorItemStatus(order, vendorId);
+    const vendorItemStatus = getVendorItemStatus(order, vendorIdsToMatch);
     if (vendorItemStatus === 'cancelled') return false;
 
     return true;
@@ -75,19 +75,23 @@ export const getVendorCustomers = asyncHandler(async (req, res) => {
     const numericLimit = Math.max(parseInt(limit, 10) || 10, 1);
     const skip = (numericPage - 1) * numericLimit;
 
-    const orders = await Order.find({ 'vendorItems.vendorId': req.user.id })
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
+    const orders = await Order.find({ 'vendorItems.vendorId': { $in: vendorIdsToMatch } })
         .sort({ createdAt: -1 })
         .select('userId guestInfo shippingAddress vendorItems status createdAt date orderId isDeleted')
         .lean();
 
     const customerMap = {};
     for (const order of orders) {
-        if (!shouldIncludeOrderForMetrics(order, req.user.id)) continue;
+        if (!shouldIncludeOrderForMetrics(order, vendorIdsToMatch)) continue;
 
         const customerId = getCustomerIdFromOrder(order);
         const identity = getCustomerIdentity(order);
         const orderDate = order?.createdAt ?? order?.date ?? null;
-        const orderTotal = getVendorItemTotal(order, req.user.id);
+        const orderTotal = getVendorItemTotal(order, vendorIdsToMatch);
 
         if (!customerMap[customerId]) {
             customerMap[customerId] = {
@@ -169,14 +173,18 @@ export const getVendorCustomerById = asyncHandler(async (req, res) => {
     const numericLimit = Math.max(parseInt(limit, 10) || 10, 1);
     const skip = (numericPage - 1) * numericLimit;
 
-    const orders = await Order.find({ 'vendorItems.vendorId': req.user.id })
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
+    const orders = await Order.find({ 'vendorItems.vendorId': { $in: vendorIdsToMatch } })
         .sort({ createdAt: -1 })
         .select('userId guestInfo shippingAddress vendorItems status createdAt date orderId isDeleted')
         .lean();
 
     const customerOrders = orders
         .filter((order) => getCustomerIdFromOrder(order) === customerId)
-        .filter((order) => shouldIncludeOrderForMetrics(order, req.user.id));
+        .filter((order) => shouldIncludeOrderForMetrics(order, vendorIdsToMatch));
 
     if (customerOrders.length === 0) {
         throw new ApiError(404, 'Customer not found.');
@@ -185,7 +193,7 @@ export const getVendorCustomerById = asyncHandler(async (req, res) => {
     const firstOrder = customerOrders[0];
     const identity = getCustomerIdentity(firstOrder);
     const totalSpent = customerOrders.reduce(
-        (sum, order) => sum + getVendorItemTotal(order, req.user.id),
+        (sum, order) => sum + getVendorItemTotal(order, vendorIdsToMatch),
         0
     );
 

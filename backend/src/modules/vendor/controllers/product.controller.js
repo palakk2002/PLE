@@ -2,6 +2,8 @@ import asyncHandler from '../../../utils/asyncHandler.js';
 import ApiResponse from '../../../utils/ApiResponse.js';
 import ApiError from '../../../utils/ApiError.js';
 import Product from '../../../models/Product.model.js';
+import Category from '../../../models/Category.model.js';
+import Brand from '../../../models/Brand.model.js';
 import { slugify } from '../../../utils/slugify.js';
 
 const deriveStockStatus = (stockQuantity = 0, lowStockThreshold = 10) => {
@@ -220,7 +222,7 @@ export const getVendorProducts = asyncHandler(async (req, res) => {
     if (salesChannel) filter.salesChannel = salesChannel;
     if (approvalStatus) filter.approvalStatus = approvalStatus;
 
-    const products = await Product.find(filter).populate('categoryId', 'name').populate('brandId', 'name').sort({ createdAt: -1 }).skip(skip).limit(numericLimit);
+    const products = await Product.find(filter).populate('categoryId', 'name gstRate').populate('brandId', 'name').sort({ createdAt: -1 }).skip(skip).limit(numericLimit);
     const total = await Product.countDocuments(filter);
     res.status(200).json(new ApiResponse(200, { products, total, page: numericPage, pages: Math.ceil(total / numericLimit) }, 'Products fetched.'));
 });
@@ -232,7 +234,7 @@ export const getVendorProductById = asyncHandler(async (req, res) => {
         : { _id: req.params.id, vendorId: req.user.id };
 
     const product = await Product.findOne(query)
-        .populate('categoryId', 'name parentId')
+        .populate('categoryId', 'name parentId gstRate')
         .populate('brandId', 'name');
     if (!product) throw new ApiError(404, 'Product not found or access denied.');
     res.status(200).json(new ApiResponse(200, product, 'Product fetched.'));
@@ -392,4 +394,187 @@ export const updateStock = asyncHandler(async (req, res) => {
     await product.save();
 
     res.status(200).json(new ApiResponse(200, product, 'Stock updated.'));
+});
+
+// POST /api/vendor/products/bulk
+export const createBulkProducts = asyncHandler(async (req, res) => {
+    const { products } = req.body;
+    if (!Array.isArray(products) || products.length === 0) {
+        throw new ApiError(400, 'Please provide an array of products to upload.');
+    }
+
+    if (products.length > 500) {
+        throw new ApiError(400, 'Bulk product upload is limited to 500 products per batch.');
+    }
+
+    const isManaged = req.user.role === 'managed_vendor';
+    const createdProducts = [];
+    const errors = [];
+
+    // Find default category if categoryId not specified
+    let defaultCategory = await Category.findOne({ isActive: true });
+
+    for (let index = 0; index < products.length; index++) {
+        const item = products[index];
+        const rowNum = index + 1;
+
+        try {
+            const name = String(item.name || '').trim();
+            const price = Number(item.price);
+            const stockQuantity = Math.max(0, Number(item.stockQuantity || item.stock || 0));
+
+            if (!name) {
+                throw new Error(`Row #${rowNum}: Missing product name.`);
+            }
+            if (!Number.isFinite(price) || price < 0) {
+                throw new Error(`Row #${rowNum}: Invalid or missing product price.`);
+            }
+
+            let categoryId = item.categoryId;
+            let subcategoryId = item.subcategoryId;
+            let brandId = item.brandId;
+
+            if (!categoryId && item.categoryName) {
+                const catDoc = await Category.findOne({ name: new RegExp(`^${item.categoryName.trim()}$`, 'i') });
+                if (catDoc) categoryId = catDoc._id;
+            }
+            if (!categoryId && defaultCategory) {
+                categoryId = defaultCategory._id;
+            }
+
+            if (!categoryId) {
+                throw new Error(`Row #${rowNum}: No valid category found for product ${name}.`);
+            }
+
+            if (!subcategoryId && item.subcategoryName) {
+                const subCatDoc = await Category.findOne({
+                    name: new RegExp(`^${item.subcategoryName.trim()}$`, 'i'),
+                    parentId: categoryId
+                });
+                if (subCatDoc) subcategoryId = subCatDoc._id;
+            }
+
+            if (!brandId && item.brandName) {
+                const brandDoc = await Brand.findOne({ name: new RegExp(`^${item.brandName.trim()}$`, 'i') });
+                if (brandDoc) {
+                    brandId = brandDoc._id;
+                }
+            }
+
+            const targetSalesChannel = ['B2C', 'B2B', 'BOTH'].includes(item.salesChannel) ? item.salesChannel : 'B2C';
+            if ((targetSalesChannel === 'B2B' || targetSalesChannel === 'BOTH') && (!item.b2bWholesalePrice || isNaN(item.b2bWholesalePrice) || Number(item.b2bWholesalePrice) <= 0)) {
+                throw new Error(`Row #${rowNum}: Missing or invalid B2B Wholesale Price for ${targetSalesChannel} product '${name}'.`);
+            }
+
+            let baseSlug = slugify(name);
+            let slug = `${baseSlug}-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+            const stock = deriveStockStatus(stockQuantity, Number(item.lowStockThreshold || 10));
+
+            const parseBool = (val, defaultVal = true) => {
+                if (val === undefined || val === null || val === '') return defaultVal;
+                if (typeof val === 'boolean') return val;
+                const str = String(val).trim().toLowerCase();
+                if (['yes', 'true', '1'].includes(str)) return true;
+                if (['no', 'false', '0'].includes(str)) return false;
+                return defaultVal;
+            };
+
+            const productData = {
+                name,
+                slug,
+                description: item.description || '',
+                price,
+                originalPrice: Number(item.originalPrice || price),
+                unit: item.unit || 'Piece',
+                categoryId,
+                subcategoryId: subcategoryId || undefined,
+                brandId: brandId || undefined,
+                vendorId: isManaged ? undefined : req.user.id,
+                shopId: isManaged ? req.user.shopId : undefined,
+                vendorUserId: isManaged ? req.user.id : undefined,
+                createdBy: req.user.id,
+                approvalStatus: isManaged ? 'pending' : 'approved',
+                stockQuantity,
+                lowStockThreshold: Number(item.lowStockThreshold || 10),
+                minimumOrderQuantity: item.minimumOrderQuantity ? Math.max(1, Number(item.minimumOrderQuantity)) : 1,
+                totalAllowedQuantity: item.totalAllowedQuantity ? Math.max(1, Number(item.totalAllowedQuantity)) : undefined,
+                warrantyPeriod: item.warrantyPeriod || '',
+                guaranteePeriod: item.guaranteePeriod || '',
+                hsnCode: item.hsnCode || '',
+                stock,
+                image: item.image || item.primaryImage || '',
+                images: Array.isArray(item.images) ? item.images : (item.image ? [item.image] : []),
+                
+                // Policies / Flags & GST
+                codAllowed: parseBool(item.codAllowed, true),
+                returnable: parseBool(item.returnable, true),
+                cancelable: parseBool(item.cancelable, true),
+                taxIncluded: parseBool(item.taxIncluded, false),
+                gstMode: ['category', 'custom'].includes(String(item.gstMode || '').toLowerCase()) ? String(item.gstMode).toLowerCase() : 'category',
+                gstRate: item.gstRate !== undefined && item.gstRate !== '' ? Number(item.gstRate) : (item.taxRate ? Number(item.taxRate) : 18),
+                taxRate: item.gstRate !== undefined && item.gstRate !== '' ? Number(item.gstRate) : (item.taxRate ? Number(item.taxRate) : 18),
+
+                // B2B Details
+                salesChannel: ['B2C', 'B2B', 'BOTH'].includes(item.salesChannel) ? item.salesChannel : 'B2C',
+                b2bWholesalePrice: item.b2bWholesalePrice ? Number(item.b2bWholesalePrice) : undefined,
+                b2bMinOrderQty: item.b2bMinOrderQty ? Number(item.b2bMinOrderQty) : 1,
+                b2bUnitsPerCarton: item.b2bUnitsPerCarton ? Number(item.b2bUnitsPerCarton) : undefined,
+                b2bGstRate: item.b2bGstRate ? String(item.b2bGstRate) : '18',
+                b2bPackagingType: item.b2bPackagingType || 'standard',
+                b2bLeadTimeDays: item.b2bLeadTimeDays ? Number(item.b2bLeadTimeDays) : undefined,
+                b2bCreditTerms: item.b2bCreditTerms || 'prepaid',
+
+                // Refurbished / Condition details
+                condition: item.condition || (parseBool(item.isRefurbished, false) ? 'refurbished' : 'brand_new'),
+                refurbishedGrade: item.refurbishedGrade || undefined,
+                productAgeMonths: item.productAgeMonths || item.usageAge || undefined,
+                purchaseYear: item.purchaseYear ? Number(item.purchaseYear) : undefined,
+                deviceHealthBattery: item.deviceHealthBattery ? Number(item.deviceHealthBattery) : undefined,
+                deviceHealthCosmetic: item.deviceHealthCosmetic || undefined,
+                deviceHealthFunctional: item.deviceHealthFunctional || undefined,
+                repairHistory: item.repairHistory || item.refurbishedNotes || undefined,
+                refurbishedWarrantyDuration: item.refurbishedWarrantyDuration || item.warrantyPeriod || undefined,
+                accessoryCharger: parseBool(item.accessoryCharger, false),
+                accessoryBox: parseBool(item.accessoryBox, false),
+                isTested: parseBool(item.isTested, false),
+                isCertified: parseBool(item.isCertified, false),
+
+                auditLog: [{
+                    action: 'created',
+                    userId: req.user.id,
+                    userType: isManaged ? 'managed_vendor' : 'vendor',
+                    timestamp: new Date(),
+                    reason: 'Bulk product created'
+                }],
+            };
+
+            const createdDoc = await Product.create(productData);
+            createdProducts.push({
+                row: rowNum,
+                id: createdDoc._id,
+                name: createdDoc.name,
+                price: createdDoc.price,
+            });
+        } catch (err) {
+            errors.push({
+                row: rowNum,
+                message: err.message || `Error processing row #${rowNum}`,
+            });
+        }
+    }
+
+    res.status(200).json(
+        new ApiResponse(
+            200,
+            {
+                totalAttempted: products.length,
+                successCount: createdProducts.length,
+                failedCount: errors.length,
+                createdProducts,
+                errors,
+            },
+            `Bulk product upload complete: ${createdProducts.length} created, ${errors.length} failed.`
+        )
+    );
 });

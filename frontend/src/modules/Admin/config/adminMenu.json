@@ -109,6 +109,11 @@
     "children": []
   },
   {
+    "title": "Managed Vendor Chats",
+    "route": "/admin/managed-vendor-chats",
+    "children": []
+  },
+  {
     "title": "Vendors",
     "route": "/admin/vendors",
     "children": [
@@ -116,6 +121,7 @@
       "Pending Approvals",
       "Commission Rates",
       "Vendor Analytics",
+      "Managed Vendor Chats",
       "Product Approvals"
     ]
   },
@@ -160,6 +166,7 @@
     "children": [
       "Live Chat",
       "PLE Shop Chats",
+      "Managed Vendor Chats",
       "Ticket Types",
       "Tickets"
     ]

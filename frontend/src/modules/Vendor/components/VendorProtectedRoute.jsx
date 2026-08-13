@@ -16,7 +16,10 @@ const decodeJwtPayload = (token) => {
 const VendorProtectedRoute = ({ children }) => {
   const { isAuthenticated, token } = useVendorAuthStore();
   const location = useLocation();
-  const accessToken = token || localStorage.getItem('vendor-token');
+  const accessToken =
+    token ||
+    sessionStorage.getItem('vendor-token') ||
+    localStorage.getItem('vendor-token');
   const payload = decodeJwtPayload(accessToken);
   const role = String(payload?.role || '').toLowerCase();
   const tokenExpiryMs =

@@ -37,16 +37,16 @@ const getDateRange = (period = 'month') => {
     };
 };
 
-const getVendorOrderStatus = (order, vendorId) => {
+const getVendorOrderStatus = (order, vendorIdsToMatch) => {
     const vendorItem = order?.vendorItems?.find(
-        (vi) => String(vi?.vendorId) === String(vendorId)
+        (vi) => vendorIdsToMatch.map(String).includes(String(vi?.vendorId))
     );
     return String(vendorItem?.status || order?.status || 'pending').toLowerCase();
 };
 
-const getVendorOrderRevenue = (order, vendorId) => {
+const getVendorOrderRevenue = (order, vendorIdsToMatch) => {
     const vendorItem = order?.vendorItems?.find(
-        (vi) => String(vi?.vendorId) === String(vendorId)
+        (vi) => vendorIdsToMatch.map(String).includes(String(vi?.vendorId))
     );
     return Number(vendorItem?.subtotal || vendorItem?.vendorEarnings || 0);
 };
@@ -54,11 +54,18 @@ const getVendorOrderRevenue = (order, vendorId) => {
 export const getAnalyticsOverview = asyncHandler(async (req, res) => {
     const period = String(req.query?.period || 'month').toLowerCase();
     const { start, end } = getDateRange(period);
-    const vendorObjectId = new mongoose.Types.ObjectId(req.user.id);
+
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
+    const productQuery = req.user.role === 'managed_vendor'
+        ? { $or: [{ shopId: req.user.shopId }, { vendorId: { $in: vendorIdsToMatch } }, { vendorUserId: req.user.id }] }
+        : { vendorId: req.user.id };
 
     const [orders, productsCount, commissions] = await Promise.all([
         Order.find({
-            'vendorItems.vendorId': req.user.id,
+            'vendorItems.vendorId': { $in: vendorIdsToMatch },
             isDeleted: { $ne: true },
             status: { $nin: ['cancelled', 'returned'] },
             createdAt: { $gte: start, $lte: end },
@@ -66,9 +73,9 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
             .select('createdAt date status vendorItems')
             .sort({ createdAt: 1 })
             .lean(),
-        Product.countDocuments({ vendorId: req.user.id }),
+        Product.countDocuments(productQuery),
         Commission.find({
-            vendorId: req.user.id,
+            vendorId: { $in: vendorIdsToMatch },
             status: { $ne: 'cancelled' },
             createdAt: { $gte: start, $lte: end },
         })
@@ -81,7 +88,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
     let activeOrdersCount = 0;
     for (const order of orders) {
         const vendorItem = order?.vendorItems?.find(
-            (vi) => String(vi?.vendorId) === String(vendorObjectId)
+            (vi) => vendorIdsToMatch.map(String).includes(String(vi?.vendorId))
         );
         if (!vendorItem) continue;
         if (String(vendorItem?.status || '').toLowerCase() === 'cancelled') continue;
@@ -89,7 +96,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
         const dateKey = toDateKey(order?.createdAt || order?.date);
         if (!dateKey) continue;
 
-        const revenue = getVendorOrderRevenue(order, req.user.id);
+        const revenue = getVendorOrderRevenue(order, vendorIdsToMatch);
         if (!dailyMap[dateKey]) {
             dailyMap[dateKey] = { date: dateKey, revenue: 0, orders: 0 };
         }
@@ -97,7 +104,7 @@ export const getAnalyticsOverview = asyncHandler(async (req, res) => {
         dailyMap[dateKey].orders += 1;
         activeOrdersCount += 1;
 
-        const status = getVendorOrderStatus(order, req.user.id);
+        const status = getVendorOrderStatus(order, vendorIdsToMatch);
         statusCounts[status] = (statusCounts[status] || 0) + 1;
     }
 

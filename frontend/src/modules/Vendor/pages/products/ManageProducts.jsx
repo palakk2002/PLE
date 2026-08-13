@@ -264,14 +264,22 @@ const ManageProducts = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
             Manage Products
           </h1>
           <p className="text-sm sm:text-base text-gray-600">
             View, edit, and manage your product catalog
           </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/vendor/products/bulk-upload')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-sm font-semibold rounded-xl shadow-md shadow-amber-600/20 transition"
+          >
+            <span>+ Bulk Upload Products</span>
+          </button>
         </div>
       </div>
 

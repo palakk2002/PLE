@@ -63,4 +63,4 @@ const transactionSchema = new mongoose.Schema({
 transactionSchema.index({ idempotencyKey: 1 }, { unique: true, sparse: true });
 transactionSchema.index({ userId: 1, createdAt: -1 });
 
-export default mongoose.model('WalletTransaction', transactionSchema);
+export default mongoose.models.WalletTransaction || mongoose.model('WalletTransaction', transactionSchema);

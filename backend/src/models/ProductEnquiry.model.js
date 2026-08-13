@@ -69,7 +69,7 @@ productEnquirySchema.pre('save', function(next) {
     next();
 });
 
-const ProductEnquiry = mongoose.model('ProductEnquiry', productEnquirySchema);
+const ProductEnquiry = mongoose.models.ProductEnquiry || mongoose.model('ProductEnquiry', productEnquirySchema);
 
 export { ProductEnquiry };
 export default ProductEnquiry;

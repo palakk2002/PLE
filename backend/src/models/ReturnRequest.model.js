@@ -37,6 +37,6 @@ const returnRequestSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const ReturnRequest = mongoose.model('ReturnRequest', returnRequestSchema);
+const ReturnRequest = mongoose.models.ReturnRequest || mongoose.model('ReturnRequest', returnRequestSchema);
 export { ReturnRequest };
 export default ReturnRequest;

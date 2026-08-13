@@ -9,5 +9,5 @@ const ticketTypeSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const TicketType = mongoose.model('TicketType', ticketTypeSchema);
+const TicketType = mongoose.models.TicketType || mongoose.model('TicketType', ticketTypeSchema);
 export default TicketType;

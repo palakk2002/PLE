@@ -9,5 +9,5 @@ const attributeSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const Attribute = mongoose.model('Attribute', attributeSchema);
+const Attribute = mongoose.models.Attribute || mongoose.model('Attribute', attributeSchema);
 export default Attribute;

@@ -68,5 +68,5 @@ deliveryBoySchema.methods.comparePassword = async function (candidatePassword) {
     return bcrypt.compare(candidatePassword, this.password);
 };
 
-const DeliveryBoy = mongoose.model('DeliveryBoy', deliveryBoySchema);
+const DeliveryBoy = mongoose.models.DeliveryBoy || mongoose.model('DeliveryBoy', deliveryBoySchema);
 export default DeliveryBoy;

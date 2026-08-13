@@ -40,7 +40,7 @@ import { uploadSingle, uploadMultiple, uploadDocumentSingle, uploadVendorRegistr
 
 const router = Router();
 const vendorAuth = [authenticate, authorize('vendor', 'managed_vendor'), enforceAccountStatus];
-const strictVendorAuth = [authenticate, authorize('vendor'), enforceAccountStatus];
+const strictVendorAuth = [authenticate, authorize('vendor', 'managed_vendor'), enforceAccountStatus];
 
 // Auth
 router.post('/auth/register', authLimiter, uploadVendorRegistrationDocs(), validate(registerSchema), authController.register);
@@ -64,6 +64,8 @@ router.post('/auth/2fa/verify-login', twoFactorController.verifyLogin2FA);
 router.post('/auth/2fa/resend', twoFactorController.resendLogin2FAOtp);
 router.post('/auth/profile/verify-otp', ...vendorAuth, authController.verifyProfileOTP);
 router.post('/auth/profile/resend-otp', ...vendorAuth, authController.resendProfileOTP);
+router.post('/auth/change-password/request-otp', ...vendorAuth, authController.requestChangePasswordOTP);
+router.post('/auth/change-password/verify-otp', ...vendorAuth, authController.verifyChangePasswordOTP);
 router.put('/auth/bank-details', ...strictVendorAuth, authController.updateBankDetails);
 
 // Business Profile Routes
@@ -78,6 +80,7 @@ router.post('/business-profile/upload-partnership', ...strictVendorAuth, uploadD
 
 // Products
 router.get('/products', ...vendorAuth, productController.getVendorProducts);
+router.post('/products/bulk', ...vendorAuth, productController.createBulkProducts);
 router.get('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'params'), productController.getVendorProductById);
 router.post('/products', ...vendorAuth, validate(createProductSchema), productController.createProduct);
 router.put('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'params'), validate(updateProductSchema), productController.updateProduct);
@@ -85,9 +88,10 @@ router.delete('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'pa
 router.patch('/stock/:productId', ...vendorAuth, productController.updateStock);
 
 // Orders
-router.get('/orders', ...strictVendorAuth, orderController.getVendorOrders);
-router.get('/orders/:id', ...strictVendorAuth, orderController.getVendorOrderById);
-router.patch('/orders/:id/status', ...strictVendorAuth, orderController.updateOrderStatus);
+router.get('/orders', ...vendorAuth, orderController.getVendorOrders);
+router.post('/orders/bulk', ...vendorAuth, orderController.createBulkOrders);
+router.get('/orders/:id', ...vendorAuth, orderController.getVendorOrderById);
+router.patch('/orders/:id/status', ...vendorAuth, orderController.updateOrderStatus);
 
 // Customers
 router.get('/customers', ...strictVendorAuth, customerController.getVendorCustomers);
@@ -180,4 +184,16 @@ import * as vendorProductRequestController from '../controllers/productRequest.c
 router.get('/product-requests', ...strictVendorAuth, vendorProductRequestController.getVendorProductRequests);
 router.put('/product-requests/:id/respond', ...strictVendorAuth, vendorProductRequestController.respondToProductRequest);
 
+// Managed Vendor Chat with Admin
+import * as managedVendorChatController from '../controllers/managedVendorChat.controller.js';
+router.get('/admin-chat/thread', ...strictVendorAuth, managedVendorChatController.getManagedVendorThread);
+router.get('/admin-chat/messages', ...strictVendorAuth, managedVendorChatController.getManagedVendorMessages);
+router.post('/admin-chat/messages', ...strictVendorAuth, managedVendorChatController.sendManagedVendorMessage);
+router.patch('/admin-chat/read', ...strictVendorAuth, managedVendorChatController.markManagedVendorThreadRead);
+
+// GST Settings routes
+import gstSettingsRoutes from './gstSettings.routes.js';
+router.use('/gst-settings', gstSettingsRoutes);
+
 export default router;
+

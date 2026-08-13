@@ -9,5 +9,5 @@ const zipcodeSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-const Zipcode = mongoose.model('Zipcode', zipcodeSchema);
+const Zipcode = mongoose.models.Zipcode || mongoose.model('Zipcode', zipcodeSchema);
 export default Zipcode;

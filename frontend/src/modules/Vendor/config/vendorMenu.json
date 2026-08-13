@@ -12,6 +12,7 @@
         "children":  [
                          "Manage Products",
                          "Add Product",
+                         "Bulk Upload Products",
                          "Add Refurbished Product"
                      ]
     },
@@ -20,6 +21,7 @@
         "route":  "/vendor/orders",
         "children":  [
                          "All Orders",
+                         "Bulk Orders",
                          "Order Tracking"
                      ]
     },
@@ -69,6 +71,13 @@
     {
         "title":  "Chat",
         "route":  "/vendor/chat",
+        "children":  [
+
+                     ]
+    },
+    {
+        "title":  "Admin Support Chat",
+        "route":  "/vendor/admin-chat",
         "children":  [
 
                      ]
@@ -150,6 +159,7 @@
         "route":  "/vendor/settings",
         "children":  [
                          "Store Settings",
+                         "GST Settings",
                          "Payment Settings",
                          "Shipping Settings"
                      ]

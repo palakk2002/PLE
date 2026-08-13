@@ -79,6 +79,7 @@ const LiveChat = lazy(() => import("../modules/Admin/pages/support/LiveChat"));
 const PLEShopChats = lazy(() => import("../modules/Admin/pages/support/PLEShopChats"));
 const TicketTypes = lazy(() => import("../modules/Admin/pages/support/TicketTypes"));
 const Tickets = lazy(() => import("../modules/Admin/pages/support/Tickets"));
+const AdminManagedVendorChatHub = lazy(() => import("../modules/Admin/pages/managedVendor/AdminManagedVendorChatHub"));
 const SalesReport = lazy(() => import("../modules/Admin/pages/reports/SalesReport"));
 const InventoryReport = lazy(() => import("../modules/Admin/pages/reports/InventoryReport"));
 const RevenueOverview = lazy(() => import("../modules/Admin/pages/finance/RevenueOverview"));
@@ -250,6 +251,7 @@ export default function AdminRoutes() {
         <Route path="support" element={<Tickets />} />
         <Route path="support/live-chat" element={<LiveChat />} />
         <Route path="ple-shop-chats" element={<PLEShopChats />} />
+        <Route path="managed-vendor-chats" element={<AdminManagedVendorChatHub />} />
         <Route path="support/ticket-types" element={<TicketTypes />} />
         <Route path="support/tickets" element={<Tickets />} />
         <Route path="reports" element={<SalesReport />} />

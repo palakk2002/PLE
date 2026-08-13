@@ -45,4 +45,4 @@ const portfolioPageSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-export default mongoose.model('PortfolioPage', portfolioPageSchema);
+export default mongoose.models.PortfolioPage || mongoose.model('PortfolioPage', portfolioPageSchema);

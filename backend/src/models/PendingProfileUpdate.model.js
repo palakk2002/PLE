@@ -47,6 +47,6 @@ const pendingProfileUpdateSchema = new mongoose.Schema(
 // Expire records after 15 minutes automatically using MongoDB TTL index
 pendingProfileUpdateSchema.index({ createdAt: 1 }, { expireAfterSeconds: 900 });
 
-const PendingProfileUpdate = mongoose.model('PendingProfileUpdate', pendingProfileUpdateSchema);
+const PendingProfileUpdate = mongoose.models.PendingProfileUpdate || mongoose.model('PendingProfileUpdate', pendingProfileUpdateSchema);
 export default PendingProfileUpdate;
 export { PendingProfileUpdate };
