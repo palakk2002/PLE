@@ -134,108 +134,116 @@ const CustomerVendorChat = () => {
   return (
     <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={false} noPadding={true}>
-        <div className="fixed inset-0 flex flex-col bg-gray-50 overflow-hidden">
-          {/* Header */}
-          <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center gap-3 flex-shrink-0 z-10 shadow-xs">
-            <button
-              onClick={() => navigate(-1)}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <FiArrowLeft className="text-xl text-gray-700" />
-            </button>
-            
-            {/* Vendor Details */}
-            <div className="flex-1 flex items-center gap-2">
-              <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
-                {vendorInfo.storeLogo ? (
-                  <img
-                    src={vendorInfo.storeLogo}
-                    alt={vendorInfo.storeName || vendorInfo.name}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-600 font-bold text-sm">
-                    <FiUser />
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="flex items-center gap-1">
-                  <h1 className="text-sm font-bold text-gray-800 line-clamp-1">
-                    {vendorInfo.storeName || vendorInfo.name || "Store"}
-                  </h1>
-                  {vendorInfo.isVerified && <FiCheckCircle className="text-blue-500 text-xs" />}
-                </div>
-                {vendorInfo.rating ? (
-                  <div className="flex items-center gap-0.5 text-xs text-gray-500">
-                    <FiStar className="text-yellow-400 fill-yellow-400 text-[10px]" />
-                    <span>{vendorInfo.rating} Store Rating</span>
-                  </div>
-                ) : (
-                  <p className="text-[10px] text-gray-400 font-semibold uppercase">Official Seller Store</p>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 pb-4">
-            <div className="text-center py-4">
-              <span className="text-[10px] bg-gray-200 text-gray-600 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
-                Pre-purchase Direct Enquiry Room
-              </span>
-            </div>
-
-            {messages.map((msg, idx) => {
-              const isCustomer = msg.sender === "customer";
-              return (
-                <div
-                  key={msg.id || idx}
-                  className={`flex flex-col ${isCustomer ? "items-end" : "items-start"}`}
-                >
-                  <div
-                    className={`max-w-[80%] p-3.5 rounded-2xl text-sm shadow-xs ${
-                      isCustomer
-                        ? "bg-[#7B0A0A] text-white rounded-br-none"
-                        : "bg-white border border-gray-150 text-gray-800 rounded-bl-none"
-                    }`}
-                  >
-                    <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
-                  </div>
-                  <span className="text-[9px] text-gray-400 mt-1 px-1">
-                    {new Date(msg.time).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </div>
-              );
-            })}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Reply Form */}
-          <form
-            onSubmit={handleSend}
-            className="bg-white border-t border-gray-200 px-4 py-3 flex-shrink-0 z-10 shadow-md"
-          >
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                placeholder="Ask about stock, sizes, custom orders..."
-                className="flex-1 bg-gray-50 border border-gray-250 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
-              />
+        <div className="fixed inset-0 top-0 bottom-0 left-0 right-0 bg-gray-100 flex justify-center items-start p-0 sm:px-4 z-50 overflow-hidden h-[100dvh]">
+          <div className="w-full max-w-2xl h-full h-[100dvh] flex flex-col bg-gray-50 sm:shadow-xl border-0 sm:border-x border-gray-200 overflow-hidden relative">
+            {/* Header */}
+            <div className="px-4 py-3 bg-white border-b border-gray-200 flex items-center gap-3 flex-shrink-0 sticky top-0 z-20 shadow-xs">
               <button
-                type="submit"
-                disabled={!newMessage.trim() || sending}
-                className="w-10 h-10 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 shadow-sm"
+                onClick={() => {
+                  if (window.history.state && window.history.state.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate("/profile");
+                  }
+                }}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <FiSend className="text-base" />
+                <FiArrowLeft className="text-xl text-gray-700" />
               </button>
+              
+              {/* Vendor Details */}
+              <div className="flex-1 flex items-center gap-2">
+                <div className="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-200 flex-shrink-0">
+                  {vendorInfo.storeLogo ? (
+                    <img
+                      src={vendorInfo.storeLogo}
+                      alt={vendorInfo.storeName || vendorInfo.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-primary-100 text-primary-600 font-bold text-sm">
+                      <FiUser />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1">
+                    <h1 className="text-sm font-bold text-gray-800 line-clamp-1">
+                      {vendorInfo.storeName || vendorInfo.name || "Store"}
+                    </h1>
+                    {vendorInfo.isVerified && <FiCheckCircle className="text-blue-500 text-xs" />}
+                  </div>
+                  {vendorInfo.rating ? (
+                    <div className="flex items-center gap-0.5 text-xs text-gray-500">
+                      <FiStar className="text-yellow-400 fill-yellow-400 text-[10px]" />
+                      <span>{vendorInfo.rating} Store Rating</span>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] text-gray-400 font-semibold uppercase">Official Seller Store</p>
+                  )}
+                </div>
+              </div>
             </div>
-          </form>
+
+            {/* Chat Messages */}
+            <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 pb-4">
+              <div className="text-center py-4">
+                <span className="text-[10px] bg-gray-200 text-gray-600 px-3 py-1 rounded-full font-bold uppercase tracking-wider">
+                  Pre-purchase Direct Enquiry Room
+                </span>
+              </div>
+
+              {messages.map((msg, idx) => {
+                const isCustomer = msg.sender === "customer";
+                return (
+                  <div
+                    key={msg.id || idx}
+                    className={`flex flex-col ${isCustomer ? "items-end" : "items-start"}`}
+                  >
+                    <div
+                      className={`max-w-[80%] p-3.5 rounded-2xl text-sm shadow-xs ${
+                        isCustomer
+                          ? "bg-[#7B0A0A] text-white rounded-br-none"
+                          : "bg-white border border-gray-150 text-gray-800 rounded-bl-none"
+                      }`}
+                    >
+                      <p className="whitespace-pre-wrap leading-relaxed">{msg.message}</p>
+                    </div>
+                    <span className="text-[9px] text-gray-400 mt-1 px-1">
+                      {new Date(msg.time).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                  </div>
+                );
+              })}
+              <div ref={chatEndRef} />
+            </div>
+
+            {/* Reply Form */}
+            <form
+              onSubmit={handleSend}
+              className="bg-white border-t border-gray-200 px-4 py-3 flex-shrink-0 sticky bottom-0 z-20 shadow-md"
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Ask about stock, sizes, custom orders..."
+                  className="flex-1 bg-gray-50 border border-gray-250 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 font-medium"
+                />
+                <button
+                  type="submit"
+                  disabled={!newMessage.trim() || sending}
+                  className="w-10 h-10 bg-[#7B0A0A] hover:bg-[#AE020B] text-white rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 shadow-sm"
+                >
+                  <FiSend className="text-base" />
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </MobileLayout>
     </PageTransition>

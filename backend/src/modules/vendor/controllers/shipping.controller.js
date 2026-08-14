@@ -26,6 +26,9 @@ export const getShippingZones = asyncHandler(async (req, res) => {
 });
 
 export const createShippingZone = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor shipping settings are managed by Administrator.');
+    }
     const name = String(req.body?.name || '').trim();
     if (!name) throw new ApiError(400, 'Zone name is required.');
 
@@ -39,6 +42,9 @@ export const createShippingZone = asyncHandler(async (req, res) => {
 });
 
 export const updateShippingZone = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor shipping settings are managed by Administrator.');
+    }
     const zone = await VendorShippingZone.findOne({ _id: req.params.id, vendorId: req.user.id });
     if (!zone) throw new ApiError(404, 'Shipping zone not found.');
 
@@ -57,6 +63,9 @@ export const updateShippingZone = asyncHandler(async (req, res) => {
 });
 
 export const deleteShippingZone = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor shipping settings are managed by Administrator.');
+    }
     const zone = await VendorShippingZone.findOneAndDelete({ _id: req.params.id, vendorId: req.user.id });
     if (!zone) throw new ApiError(404, 'Shipping zone not found.');
 
@@ -81,6 +90,9 @@ export const getShippingRates = asyncHandler(async (req, res) => {
 });
 
 export const createShippingRate = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor shipping settings are managed by Administrator.');
+    }
     const zoneId = String(req.body?.zoneId || '').trim();
     const name = String(req.body?.name || '').trim();
     if (!zoneId || !mongoose.Types.ObjectId.isValid(zoneId)) {
@@ -110,6 +122,9 @@ export const createShippingRate = asyncHandler(async (req, res) => {
 });
 
 export const updateShippingRate = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor shipping settings are managed by Administrator.');
+    }
     const rate = await VendorShippingRate.findOne({ _id: req.params.id, vendorId: req.user.id });
     if (!rate) throw new ApiError(404, 'Shipping rate not found.');
 
@@ -150,6 +165,9 @@ export const updateShippingRate = asyncHandler(async (req, res) => {
 });
 
 export const deleteShippingRate = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor shipping settings are managed by Administrator.');
+    }
     const rate = await VendorShippingRate.findOneAndDelete({ _id: req.params.id, vendorId: req.user.id });
     if (!rate) throw new ApiError(404, 'Shipping rate not found.');
 

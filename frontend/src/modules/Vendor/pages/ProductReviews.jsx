@@ -26,7 +26,7 @@ const ProductReviews = () => {
   const [selectedReview, setSelectedReview] = useState(null);
   const [responseText, setResponseText] = useState("");
 
-  const vendorId = vendor?.id;
+  const vendorId = vendor?.id || vendor?._id;
 
   useEffect(() => {
     if (!vendorId) {

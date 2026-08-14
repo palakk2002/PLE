@@ -37,7 +37,13 @@ const AboutUs = () => {
           {/* Header */}
           <div className="flex items-center gap-3 mb-8">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate("/profile");
+                }
+              }}
               className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-full transition-colors bg-white dark:bg-neutral-900 shadow-sm border border-gray-200 dark:border-neutral-800"
             >
               <FiArrowLeft className="text-xl text-gray-700 dark:text-gray-300" />

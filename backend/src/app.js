@@ -12,6 +12,7 @@ import userRoutes from './modules/user/routes/user.routes.js';
 import adminRoutes from './modules/admin/routes/admin.routes.js';
 import vendorRoutes from './modules/vendor/routes/vendor.routes.js';
 import deliveryRoutes from './modules/delivery/routes/delivery.routes.js';
+import deliveryWebhookRoutes from './routes/deliveryWebhook.routes.js';
 import b2bUserRoutes from './modules/b2bUser/routes/index.js';
 import fcmTokenRoutes from './routes/fcmTokenRoutes.js';
 import walletRoutes from './routes/wallet.routes.js';
@@ -58,6 +59,9 @@ app.options('*', cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'x-idempotency-key']
 }));
+
+// ─── Webhook Raw Body Routes (Must be mounted before global express.json) ─────
+app.use('/api/delivery', deliveryWebhookRoutes);
 
 // ─── Body Parsing ────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));

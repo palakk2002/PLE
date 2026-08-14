@@ -887,7 +887,13 @@ A Purchase Order may only be modified before acceptance by the Company unless ot
           <div className="flex items-center justify-between gap-3 mb-6">
             <div className="flex items-center gap-3">
               <button
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                  if (window.history.state && window.history.state.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate("/profile");
+                  }
+                }}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
               >
                 <FiArrowLeft className="text-xl text-gray-700" />

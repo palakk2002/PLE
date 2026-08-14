@@ -154,6 +154,18 @@ const ProfileSettings = () => {
         </div>
 
         <div className="p-3 sm:p-4 md:p-6">
+          {vendor?.role === 'managed_vendor' && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-3">
+              <FiShield className="text-xl mt-0.5 flex-shrink-0 text-amber-600" />
+              <div>
+                <h4 className="font-semibold text-sm">Managed Account Notice</h4>
+                <p className="text-xs sm:text-sm mt-1 text-amber-700">
+                  Your profile and account credentials are managed by the Shop Administrator. Direct profile edits and password changes are disabled. Please contact your Administrator for updates.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Profile Info Section */}
           {activeSection === 'profile' && (
             <form onSubmit={handleProfileSubmit} className="space-y-6">
@@ -167,8 +179,9 @@ const ProfileSettings = () => {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
+                    disabled={vendor?.role === 'managed_vendor'}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -194,12 +207,13 @@ const ProfileSettings = () => {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
+                    disabled={vendor?.role === 'managed_vendor'}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
-                {vendor.role === 'managed_vendor' && (
+                {vendor?.role === 'managed_vendor' && (
                   <>
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -210,7 +224,8 @@ const ProfileSettings = () => {
                         name="companyName"
                         value={formData.companyName}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        disabled
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                       />
                     </div>
 
@@ -223,7 +238,8 @@ const ProfileSettings = () => {
                         name="gstNumber"
                         value={formData.gstNumber}
                         onChange={handleChange}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        disabled
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                       />
                     </div>
 
@@ -235,23 +251,26 @@ const ProfileSettings = () => {
                         name="address"
                         value={formData.address}
                         onChange={handleChange}
+                        disabled
                         rows={2}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                       />
                     </div>
                   </>
                 )}
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-gray-200">
-                <button
-                  type="submit"
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base"
-                >
-                  <FiSave />
-                  Save Profile
-                </button>
-              </div>
+              {vendor?.role !== 'managed_vendor' && (
+                <div className="flex justify-end pt-4 border-t border-gray-200">
+                  <button
+                    type="submit"
+                    className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base"
+                  >
+                    <FiSave />
+                    Save Profile
+                  </button>
+                </div>
+              )}
             </form>
           )}
 
@@ -268,8 +287,9 @@ const ProfileSettings = () => {
                     name="currentPassword"
                     value={formData.currentPassword}
                     onChange={handleChange}
+                    disabled={vendor?.role === 'managed_vendor'}
                     required
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -282,9 +302,10 @@ const ProfileSettings = () => {
                     name="newPassword"
                     value={formData.newPassword}
                     onChange={handleChange}
+                    disabled={vendor?.role === 'managed_vendor'}
                     required
                     minLength={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                   <p className="text-xs text-gray-500 mt-1">Must be at least 6 characters</p>
                 </div>
@@ -298,23 +319,26 @@ const ProfileSettings = () => {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
+                    disabled={vendor?.role === 'managed_vendor'}
                     required
                     minLength={6}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:bg-gray-50 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
 
-              <div className="flex justify-end pt-4 border-t border-gray-200">
-                <button
-                  type="submit"
-                  disabled={isRequestingPasswordOtp}
-                  className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base disabled:opacity-50"
-                >
-                  <FiSave />
-                  {isRequestingPasswordOtp ? 'Sending OTP...' : 'Change Password'}
-                </button>
-              </div>
+              {vendor?.role !== 'managed_vendor' && (
+                <div className="flex justify-end pt-4 border-t border-gray-200">
+                  <button
+                    type="submit"
+                    disabled={isRequestingPasswordOtp}
+                    className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base disabled:opacity-50"
+                  >
+                    <FiSave />
+                    {isRequestingPasswordOtp ? 'Sending OTP...' : 'Change Password'}
+                  </button>
+                </div>
+              )}
             </form>
           )}
 

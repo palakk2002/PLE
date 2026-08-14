@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiUser, FiGlobe, FiCheckCircle, FiSun, FiMoon } from 'react-icons/fi';
@@ -12,6 +12,8 @@ const PortalSelection = () => {
   const navigate = useNavigate();
   const setUserRole = useB2bStore((state) => state.setUserRole);
   const [showSplash, setShowSplash] = useState(() => {
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+    if (isDesktop) return false;
     return !sessionStorage.getItem('splash-shown');
   });
   const { theme, setTheme } = useThemeStore();
@@ -19,6 +21,17 @@ const PortalSelection = () => {
 
   const [retailAgreed, setRetailAgreed] = useState(false);
   const [enterpriseAgreed, setEnterpriseAgreed] = useState(false);
+
+  useEffect(() => {
+    const checkDesktop = () => {
+      if (window.innerWidth >= 768) {
+        setShowSplash(false);
+      }
+    };
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   const handleSelectB2C = () => {
     if (!retailAgreed) {
@@ -47,7 +60,7 @@ const PortalSelection = () => {
             initial={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black md:hidden"
           >
             <video
               src={splashVideo}

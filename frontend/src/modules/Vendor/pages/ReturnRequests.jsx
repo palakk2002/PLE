@@ -23,7 +23,7 @@ const ReturnRequests = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
 
-  const vendorId = vendor?.id;
+  const vendorId = vendor?.id || vendor?._id;
 
   useEffect(() => {
     if (!vendorId) {

@@ -60,7 +60,13 @@ const UserNotifications = () => {
           >
             <div className="flex items-center gap-3">
               <button
-                onClick={() => navigate(-1)}
+                onClick={() => {
+                  if (window.history.state && window.history.state.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate("/profile");
+                  }
+                }}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors text-gray-700 dark:text-gray-200"
                 type="button"
                 title="Go Back"

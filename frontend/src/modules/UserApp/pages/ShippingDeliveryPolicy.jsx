@@ -997,7 +997,13 @@ shall be payable in accordance with applicable law and the terms of the transact
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate("/profile");
+                }
+              }}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
               aria-label="Go Back"
             >

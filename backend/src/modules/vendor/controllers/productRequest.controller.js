@@ -62,7 +62,7 @@ export const getVendorProductRequests = asyncHandler(async (req, res) => {
 
     const total = await ProductRequest.countDocuments(filter);
     const requests = await ProductRequest.find(filter)
-        .populate('userId', 'name email')
+        .populate('userId', 'name email phone')
         .populate({
             path: 'targetEntityId',
             select: 'storeName storeLogo rating address name logo location'

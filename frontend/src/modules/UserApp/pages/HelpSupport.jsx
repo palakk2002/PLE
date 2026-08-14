@@ -73,7 +73,13 @@ const HelpSupport = () => {
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate("/profile");
+                }
+              }}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
             >
               <FiArrowLeft className="text-xl text-gray-700" />

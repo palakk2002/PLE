@@ -105,7 +105,7 @@ const VendorLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0F0F0F] dark:text-gray-100 flex">
       {/* Sidebar */}
       <div className="print:hidden">
         <VendorSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

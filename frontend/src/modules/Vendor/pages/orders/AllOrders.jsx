@@ -23,7 +23,7 @@ const AllOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
 
-  const vendorId = vendor?.id;
+  const vendorId = vendor?.id || vendor?._id;
 
   useEffect(() => {
     if (!vendorId) return;
@@ -226,10 +226,10 @@ const AllOrders = () => {
       className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-1">
             All Orders
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             View and manage all your orders
           </p>
         </div>
@@ -242,9 +242,9 @@ const AllOrders = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-6 shadow-sm border border-gray-200 dark:border-white/5">
         {/* Filters */}
-        <div className="mb-6 pb-6 border-b border-gray-200">
+        <div className="mb-6 pb-6 border-b border-gray-200 dark:border-white/5">
           <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
             <div className="relative flex-1 w-full sm:min-w-[200px]">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -253,7 +253,7 @@ const AllOrders = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search by Order ID..."
-                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base"
+                className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-white/10 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base"
               />
             </div>
 
@@ -299,7 +299,7 @@ const AllOrders = () => {
         ) : (
           <div className="text-center py-12">
             <FiShoppingBag className="text-4xl text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-500 mb-2">No orders found</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-2">No orders found</p>
             <p className="text-sm text-gray-400">
               {searchQuery || selectedStatus !== 'all'
                 ? 'Try adjusting your filters'

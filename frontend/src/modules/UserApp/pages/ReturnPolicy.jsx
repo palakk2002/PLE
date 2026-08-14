@@ -1250,7 +1250,13 @@ Where an Order has been paid using multiple payment methods, the Company may pro
           {/* Header */}
           <div className="flex items-center gap-3 mb-6">
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate("/profile");
+                }
+              }}
               className="p-2 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
             >
               <FiArrowLeft className="text-xl text-gray-700" />

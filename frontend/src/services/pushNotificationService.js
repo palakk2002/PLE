@@ -71,13 +71,15 @@ export async function registerFCMToken(forceUpdate = false) {
     // Request permission
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) {
-      throw new Error('Notification permission not granted');
+      console.warn('ℹ️ Notification permission not granted by user.');
+      return null;
     }
     
     // Get token
     const token = await getFCMToken();
     if (!token) {
-      throw new Error('Failed to get FCM token');
+      console.warn('⚠️ Failed to get FCM token');
+      return null;
     }
     
     // Save to backend using the pre-configured axios api client
@@ -91,11 +93,12 @@ export async function registerFCMToken(forceUpdate = false) {
       console.log('✅ FCM token registered with backend');
       return token;
     } else {
-      throw new Error('Failed to register token with backend');
+      console.warn('⚠️ Failed to register token with backend');
+      return null;
     }
   } catch (error) {
-    console.error('❌ Error registering FCM token:', error);
-    throw error;
+    console.warn('⚠️ FCM token registration notice:', error?.message || error);
+    return null;
   }
 }
 

@@ -1,6 +1,6 @@
-// Import Firebase scripts
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js');
-importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging.js');
+// Import Firebase scripts (compat mode required for importScripts in ServiceWorker)
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/9.0.0/firebase-messaging-compat.js');
 
 // Firebase configuration (from project credentials)
 const firebaseConfig = {

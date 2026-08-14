@@ -149,9 +149,15 @@ const MobileSettings = () => {
           <div className="px-4 py-4 bg-white dark:bg-[#1A1A1A] border-b border-gray-200 dark:border-white/10 sticky top-0 z-30 shadow-sm">
             <div className="flex items-center gap-3">
               <button
-                onClick={() =>
-                  activeSection === "general" ? navigate(-1) : setActiveSection("general")
-                }
+                onClick={() => {
+                  if (activeSection !== "general") {
+                    setActiveSection("general");
+                  } else if (window.history.state && window.history.state.idx > 0) {
+                    navigate(-1);
+                  } else {
+                    navigate("/profile");
+                  }
+                }}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-full transition-colors text-gray-700 dark:text-gray-200"
               >
                 <FiArrowLeft className="text-xl" />

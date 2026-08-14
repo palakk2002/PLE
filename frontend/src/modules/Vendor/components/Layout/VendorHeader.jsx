@@ -51,7 +51,7 @@ const VendorHeader = ({ onMenuClick }) => {
 
   return (
     <header
-      className="bg-white border-b border-gray-200 fixed top-0 left-0 lg:left-64 right-0 z-30"
+      className="bg-white dark:bg-[#121212] border-b border-gray-200 dark:border-white/10 fixed top-0 left-0 lg:left-64 right-0 z-30"
       style={{
         paddingTop: "env(safe-area-inset-top, 0px)",
       }}>
@@ -61,7 +61,7 @@ const VendorHeader = ({ onMenuClick }) => {
           <Button
             onClick={onMenuClick}
             variant="icon"
-            className="lg:hidden text-gray-700"
+            className="lg:hidden text-gray-700 dark:text-gray-200"
             icon={FiMenu}
           />
 
@@ -69,10 +69,10 @@ const VendorHeader = ({ onMenuClick }) => {
           <div className="hidden lg:flex items-center gap-10">
             <img src={logoImage} alt="PLE Logo" className="h-10 w-auto object-contain" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-1">
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-1">
                 {pageName}
               </h1>
-              <p className="text-sm text-gray-600 flex items-center gap-2">
+              <p className="text-sm text-gray-600 dark:text-gray-300 flex items-center gap-2">
                 <FiShoppingBag className="text-primary-500" />
                 {storeName}
               </p>

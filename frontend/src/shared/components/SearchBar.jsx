@@ -100,7 +100,7 @@ const SearchBar = () => {
 
       try {
         const response = await api.get('/products', {
-          params: { q: searchQuery.trim(), page: 1, limit: MAX_SUGGESTIONS, sort: 'newest' },
+          params: { q: searchQuery.trim(), page: 1, limit: MAX_SUGGESTIONS, sort: 'rating' },
         });
         const payload = response?.data ?? response;
         const products = Array.isArray(payload?.products) ? payload.products : [];

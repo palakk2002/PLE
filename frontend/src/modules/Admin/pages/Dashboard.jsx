@@ -258,8 +258,8 @@ const Dashboard = () => {
       {/* Header */}
       <div className="flex flex-col gap-4">
         <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">Dashboard</h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">Dashboard</h1>
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Welcome back! Here's your business overview.
           </p>
         </div>
@@ -282,49 +282,49 @@ const Dashboard = () => {
 
       {/* Business Verification & Seller Overview */}
       <div className="space-y-4">
-        <h2 className="text-base sm:text-lg font-bold text-gray-900 px-1 flex items-center gap-2">
+        <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white px-1 flex items-center gap-2">
           <span className="w-2.5 h-5 bg-purple-600 rounded-full inline-block"></span>
           Business Verification & Seller Overview
         </h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 sm:p-6 shadow-md border border-indigo-100 relative overflow-hidden">
-            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Total Sellers</h3>
-            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.totalSellers}</p>
+          <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-indigo-100 dark:border-indigo-800/40 relative overflow-hidden">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">Total Sellers</h3>
+            <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{stats.totalSellers}</p>
           </div>
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 sm:p-6 shadow-md border border-green-100 relative overflow-hidden">
-            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">GST Sellers</h3>
-            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.gstSellers}</p>
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-green-100 dark:border-green-800/40 relative overflow-hidden">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">GST Sellers</h3>
+            <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{stats.gstSellers}</p>
           </div>
-          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 sm:p-6 shadow-md border border-blue-100 relative overflow-hidden">
-            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Non-GST Sellers</h3>
-            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.nonGstSellers}</p>
+          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-blue-100 dark:border-blue-800/40 relative overflow-hidden">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">Non-GST Sellers</h3>
+            <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{stats.nonGstSellers}</p>
           </div>
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 sm:p-6 shadow-md border border-amber-100 relative overflow-hidden">
-            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">MSME Sellers</h3>
-            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.msmeSellers}</p>
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-amber-100 dark:border-amber-800/40 relative overflow-hidden">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">MSME Sellers</h3>
+            <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{stats.msmeSellers}</p>
           </div>
-          <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 sm:p-6 shadow-md border border-purple-100 relative overflow-hidden">
-            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Home Businesses</h3>
-            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.homeBusinesses}</p>
+          <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/40 dark:to-pink-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-purple-100 dark:border-purple-800/40 relative overflow-hidden">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">Home Businesses</h3>
+            <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{stats.homeBusinesses}</p>
           </div>
-          <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 sm:p-6 shadow-md border border-yellow-100 relative overflow-hidden animate-pulse">
-            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Pending Verification</h3>
-            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.pendingVerification}</p>
+          <div className="bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/40 dark:to-amber-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-yellow-100 dark:border-yellow-800/40 relative overflow-hidden animate-pulse">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">Pending Verification</h3>
+            <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{stats.pendingVerification}</p>
           </div>
-          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl p-4 sm:p-6 shadow-md border border-emerald-100 relative overflow-hidden">
-            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Approved Sellers</h3>
-            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.approvedSellers}</p>
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-emerald-100 dark:border-emerald-800/40 relative overflow-hidden">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">Approved Sellers</h3>
+            <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{stats.approvedSellers}</p>
           </div>
-          <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl p-4 sm:p-6 shadow-md border border-red-100 relative overflow-hidden">
-            <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Rejected Sellers</h3>
-            <p className="text-gray-800 text-xl sm:text-2xl font-bold">{stats.rejectedSellers}</p>
+          <div className="bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/40 dark:to-rose-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-red-100 dark:border-red-800/40 relative overflow-hidden">
+            <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">Rejected Sellers</h3>
+            <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{stats.rejectedSellers}</p>
           </div>
         </div>
       </div>
 
       {/* B2B Marketplace Overview */}
       <div className="space-y-4">
-        <h2 className="text-base sm:text-lg font-bold text-gray-900 px-1 flex items-center gap-2">
+        <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white px-1 flex items-center gap-2">
           <span className="w-2.5 h-5 bg-[#C07A3D] rounded-full inline-block"></span>
           B2B Marketplace Overview
         </h2>
@@ -333,7 +333,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl p-4 sm:p-6 shadow-md border border-amber-100 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
+            className="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-amber-100 dark:border-amber-800/40 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
             onClick={() => navigate("/admin/b2b/business-users")}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500 to-orange-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
@@ -341,13 +341,13 @@ const Dashboard = () => {
               <div className="bg-gradient-to-br from-amber-500 to-orange-600 p-2.5 sm:p-3 rounded-lg shadow-md text-white">
                 <FiBriefcase className="text-lg sm:text-xl" />
               </div>
-              <div className="text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+              <div className="text-xs font-semibold px-2 py-1 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
                 +2 new
               </div>
             </div>
             <div className="relative z-10">
-              <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">Business Users</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{b2bStats.b2bUsers}</p>
+              <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">Business Users</h3>
+              <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{b2bStats.b2bUsers}</p>
             </div>
           </motion.div>
 
@@ -355,7 +355,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-gradient-to-br from-teal-50 to-emerald-50 rounded-xl p-4 sm:p-6 shadow-md border border-teal-100 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
+            className="bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/40 dark:to-emerald-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-teal-100 dark:border-teal-800/40 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
             onClick={() => navigate("/admin/b2b/b2b-products")}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-teal-500 to-emerald-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
@@ -363,13 +363,13 @@ const Dashboard = () => {
               <div className="bg-gradient-to-br from-teal-500 to-emerald-600 p-2.5 sm:p-3 rounded-lg shadow-md text-white">
                 <FiPackage className="text-lg sm:text-xl" />
               </div>
-              <div className="text-xs font-semibold px-2 py-1 rounded-full bg-teal-100 text-teal-700">
+              <div className="text-xs font-semibold px-2 py-1 rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300">
                 34 listed
               </div>
             </div>
             <div className="relative z-10">
-              <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">B2B Products</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{b2bStats.b2bProducts}</p>
+              <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">B2B Products</h3>
+              <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{b2bStats.b2bProducts}</p>
             </div>
           </motion.div>
 
@@ -377,7 +377,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-gradient-to-br from-indigo-50 to-blue-50 rounded-xl p-4 sm:p-6 shadow-md border border-indigo-100 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
+            className="bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-950/40 dark:to-blue-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-indigo-100 dark:border-indigo-800/40 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
             onClick={() => navigate("/admin/b2b/b2b-orders")}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-500 to-blue-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
@@ -385,13 +385,13 @@ const Dashboard = () => {
               <div className="bg-gradient-to-br from-indigo-500 to-blue-600 p-2.5 sm:p-3 rounded-lg shadow-md text-white">
                 <FiShoppingBag className="text-lg sm:text-xl" />
               </div>
-              <div className="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700">
+              <div className="text-xs font-semibold px-2 py-1 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300">
                 8 orders
               </div>
             </div>
             <div className="relative z-10">
-              <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">B2B Orders</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{b2bStats.b2bOrders}</p>
+              <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">B2B Orders</h3>
+              <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{b2bStats.b2bOrders}</p>
             </div>
           </motion.div>
 
@@ -399,7 +399,7 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-4 sm:p-6 shadow-md border border-emerald-100 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
+            className="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/40 dark:to-green-900/30 rounded-xl p-4 sm:p-6 shadow-md border border-emerald-100 dark:border-emerald-800/40 hover:shadow-lg transition-all duration-300 relative overflow-hidden cursor-pointer"
             onClick={() => navigate("/admin/b2b/b2b-orders")}
           >
             <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500 to-green-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
@@ -407,13 +407,13 @@ const Dashboard = () => {
               <div className="bg-gradient-to-br from-emerald-500 to-green-600 p-2.5 sm:p-3 rounded-lg shadow-md text-white">
                 <FiTrendingUp className="text-lg sm:text-xl" />
               </div>
-              <div className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+              <div className="text-xs font-semibold px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
                 Target: 80%
               </div>
             </div>
             <div className="relative z-10">
-              <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">B2B Revenue</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{formatCurrency(b2bStats.b2bRevenue)}</p>
+              <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">B2B Revenue</h3>
+              <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{formatCurrency(b2bStats.b2bRevenue)}</p>
             </div>
           </motion.div>
         </div>

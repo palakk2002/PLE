@@ -663,56 +663,56 @@ const AllOrders = () => {
       value: orderStats.awaiting,
       icon: FiClock,
       bgColor: "bg-gradient-to-br from-yellow-500 to-amber-600",
-      cardBg: "bg-gradient-to-br from-yellow-50 to-amber-50",
+      cardBg: "bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-950/40 dark:to-amber-900/30 dark:border-yellow-800/40",
     },
     {
       title: "Received",
       value: orderStats.received,
       icon: FiCheckCircle,
       bgColor: "bg-gradient-to-br from-blue-500 to-cyan-600",
-      cardBg: "bg-gradient-to-br from-blue-50 to-cyan-50",
+      cardBg: "bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/40 dark:to-cyan-900/30 dark:border-blue-800/40",
     },
     {
       title: "Processed",
       value: orderStats.processed,
       icon: FiPackage,
       bgColor: "bg-gradient-to-br from-indigo-500 to-purple-600",
-      cardBg: "bg-gradient-to-br from-indigo-50 to-purple-50",
+      cardBg: "bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/40 dark:to-purple-900/30 dark:border-indigo-800/40",
     },
     {
       title: "Shipped",
       value: orderStats.shipped,
       icon: FiTruck,
       bgColor: "bg-gradient-to-br from-blue-500 to-indigo-600",
-      cardBg: "bg-gradient-to-br from-blue-50 to-indigo-50",
+      cardBg: "bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-900/30 dark:border-blue-800/40",
     },
     {
       title: "Delivered",
       value: orderStats.delivered,
       icon: FiCheckCircle,
       bgColor: "bg-gradient-to-br from-green-500 to-emerald-600",
-      cardBg: "bg-gradient-to-br from-green-50 to-emerald-50",
+      cardBg: "bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/40 dark:to-emerald-900/30 dark:border-green-800/40",
     },
     {
       title: "Cancelled",
       value: orderStats.cancelled,
       icon: FiXCircle,
       bgColor: "bg-gradient-to-br from-red-500 to-rose-600",
-      cardBg: "bg-gradient-to-br from-red-50 to-rose-50",
+      cardBg: "bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/40 dark:to-rose-900/30 dark:border-red-800/40",
     },
     {
       title: "Returned",
       value: orderStats.returned,
       icon: FiRotateCw,
       bgColor: "bg-gradient-to-br from-orange-500 to-amber-600",
-      cardBg: "bg-gradient-to-br from-orange-50 to-amber-50",
+      cardBg: "bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-900/30 dark:border-orange-800/40",
     },
     {
       title: "Total Orders",
       value: orderStats.total,
       icon: FiShoppingBag,
       bgColor: "bg-gradient-to-br from-gray-600 to-gray-800",
-      cardBg: "bg-gradient-to-br from-gray-50 to-gray-100",
+      cardBg: "bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 dark:border-gray-700/40",
     },
   ];
 
@@ -723,10 +723,10 @@ const AllOrders = () => {
       className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">
             All Orders
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             View and manage all customer orders
           </p>
         </div>
@@ -742,7 +742,7 @@ const AllOrders = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className={`${card.cardBg} rounded-xl p-3 sm:p-4 shadow-md border-2 border-transparent hover:shadow-lg transition-all duration-300 relative overflow-hidden`}>
+              className={`${card.cardBg} rounded-xl p-3 sm:p-4 shadow-md border-2 border-transparent dark:border-white/5 hover:shadow-lg transition-all duration-300 relative overflow-hidden`}>
               {/* Decorative gradient overlay */}
               <div
                 className={`absolute top-0 right-0 w-24 h-24 sm:w-32 sm:h-32 ${card.bgColor} opacity-10 rounded-full -mr-12 -mt-12 sm:-mr-16 sm:-mt-16`}></div>
@@ -754,10 +754,10 @@ const AllOrders = () => {
                 </div>
               </div>
               <div className="relative z-10">
-                <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">
+                <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">
                   {card.title}
                 </h3>
-                <p className="text-gray-800 text-lg sm:text-xl font-bold">
+                <p className="text-gray-800 dark:text-white text-lg sm:text-xl font-bold">
                   {card.value.toLocaleString()}
                 </p>
               </div>
@@ -766,7 +766,7 @@ const AllOrders = () => {
         })}
       </div>
 
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 shadow-sm border border-gray-200 dark:border-white/5">
         <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
           <div className="relative flex-1 w-full sm:min-w-[200px]">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -775,7 +775,7 @@ const AllOrders = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by ID, name, or email..."
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-white/10 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base"
             />
           </div>
 
@@ -806,11 +806,11 @@ const AllOrders = () => {
                     setDateRange({ ...dateRange, startDate: e.target.value })
                   }
                   max={dateRange.endDate || undefined}
-                  className="w-full sm:w-auto pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base min-w-[140px]"
+                  className="w-full sm:w-auto pl-10 pr-4 py-2.5 bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-white/10 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base min-w-[140px]"
                   placeholder="Start Date"
                 />
               </div>
-              <span className="text-gray-500 hidden sm:inline">to</span>
+              <span className="text-gray-500 dark:text-gray-400 hidden sm:inline">to</span>
               <div className="relative flex-1 sm:flex-initial">
                 <input
                   type="date"
@@ -819,7 +819,7 @@ const AllOrders = () => {
                     setDateRange({ ...dateRange, endDate: e.target.value })
                   }
                   min={dateRange.startDate || undefined}
-                  className="w-full sm:w-auto px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base min-w-[140px]"
+                  className="w-full sm:w-auto px-4 py-2.5 bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-white/10 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-sm sm:text-base min-w-[140px]"
                   placeholder="End Date"
                 />
               </div>

@@ -72,7 +72,7 @@ const Brand = () => {
     const [showFilters, setShowFilters] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
-    const [sortBy, setSortBy] = useState("newest");
+    const [sortBy, setSortBy] = useState("rating");
     const [filters, setFilters] = useState({
         minPrice: "",
         maxPrice: "",

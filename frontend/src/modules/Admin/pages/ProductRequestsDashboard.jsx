@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FiSearch, FiLayers, FiAlertCircle, FiCheckCircle, FiXCircle, FiTrendingUp, FiSettings, FiEdit, FiTrash2, FiActivity, FiUser, FiInfo, FiSend } from "react-icons/fi";
+import { FiSearch, FiLayers, FiAlertCircle, FiCheckCircle, FiXCircle, FiTrendingUp, FiSettings, FiEdit, FiTrash2, FiActivity, FiUser, FiInfo, FiSend, FiEye, FiMaximize2, FiMail, FiPhone, FiCalendar, FiPackage, FiDollarSign, FiX } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import api from "../../../shared/utils/api";
@@ -14,6 +14,9 @@ const ProductRequestsDashboard = () => {
   const [selectedReq, setSelectedReq] = useState(null);
   const [nextStatus, setNextStatus] = useState("");
   const [adminComment, setAdminComment] = useState("");
+
+  // Full Details View state
+  const [viewingDetailsReq, setViewingDetailsReq] = useState(null);
 
   // Detailed Sourcing Workspace state
   const [sourcingReq, setSourcingReq] = useState(null);
@@ -82,6 +85,9 @@ const ProductRequestsDashboard = () => {
         toast.success(`Updated request status to ${nextStatus}`);
         loadRequests();
         setSelectedReq(null);
+        if (viewingDetailsReq && viewingDetailsReq.id === selectedReq.id) {
+          setViewingDetailsReq(null);
+        }
       }
     } catch (error) {
       console.error(error);
@@ -164,6 +170,9 @@ const ProductRequestsDashboard = () => {
         if (response.success || response.statusCode === 200) {
           toast.success("Request record deleted.");
           loadRequests();
+          if (viewingDetailsReq && viewingDetailsReq.id === id) {
+            setViewingDetailsReq(null);
+          }
         }
       } catch (error) {
         console.error(error);
@@ -178,7 +187,8 @@ const ProductRequestsDashboard = () => {
     const matchesSearch = (
       r.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.category.toLowerCase().includes(searchQuery.toLowerCase())
+      r.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (r.description && r.description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     if (!matchesSearch) return false;
@@ -314,17 +324,36 @@ const ProductRequestsDashboard = () => {
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         {req.image ? (
-                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-150">
+                          <div 
+                            onClick={() => setViewingDetailsReq(req)}
+                            className="w-12 h-12 rounded-lg overflow-hidden bg-gray-50 shrink-0 border border-gray-150 cursor-pointer hover:opacity-80 transition-opacity"
+                            title="Click to view full image & details"
+                          >
                             <img src={req.image} alt={req.productName} className="w-full h-full object-cover" />
                           </div>
                         ) : (
-                          <div className="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0 text-indigo-600 font-bold text-sm">
+                          <div 
+                            onClick={() => setViewingDetailsReq(req)}
+                            className="w-12 h-12 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0 text-indigo-600 font-bold text-sm cursor-pointer hover:bg-indigo-100 transition-colors"
+                          >
                             {req.productName?.charAt(0).toUpperCase() || "P"}
                           </div>
                         )}
                         <div>
-                          <h4 className="font-extrabold text-gray-800">{req.productName}</h4>
-                          <span className="text-xs text-gray-400 font-mono">{req.id}</span>
+                          <h4 
+                            onClick={() => setViewingDetailsReq(req)}
+                            className="font-extrabold text-gray-800 hover:text-indigo-600 cursor-pointer transition-colors"
+                          >
+                            {req.productName}
+                          </h4>
+                          <div className="flex items-center gap-2 text-xs text-gray-400 font-mono">
+                            <span>{req.id}</span>
+                            {req.userId?.name && (
+                              <span className="font-sans font-bold text-gray-600">
+                                • {req.userId.name}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -332,6 +361,11 @@ const ProductRequestsDashboard = () => {
                       <div>Category: <strong className="text-gray-700">{req.category}</strong></div>
                       <div>Requested Qty: <strong className="text-gray-700">{req.quantity}</strong></div>
                       <div>Budget: <strong className="text-gray-700">₹{req.expectedBudget}</strong></div>
+                      {req.description && (
+                        <div className="text-[11px] text-gray-400 line-clamp-1 italic mt-0.5">
+                          "{req.description}"
+                        </div>
+                      )}
                     </td>
                     <td className="p-4">
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100">
@@ -352,6 +386,13 @@ const ProductRequestsDashboard = () => {
                     </td>
                     <td className="p-4">
                       <div className="flex flex-col gap-1 items-center max-w-[200px] mx-auto">
+                        <button
+                          onClick={() => setViewingDetailsReq(req)}
+                          className="w-full px-3 py-1 bg-gray-100 text-gray-750 hover:bg-gray-200 font-extrabold text-xs rounded transition-all flex items-center justify-center gap-1"
+                        >
+                          <FiEye className="text-xs" />
+                          <span>Full Details</span>
+                        </button>
                         <button
                           onClick={() => handleOpenSourcingWorkspace(req)}
                           className="w-full px-3 py-1 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 font-extrabold text-xs rounded transition-all"
@@ -387,6 +428,216 @@ const ProductRequestsDashboard = () => {
           )}
         </div>
       </div>
+
+      {/* Full Request Details Modal */}
+      <AnimatePresence>
+        {viewingDetailsReq && (
+          <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm overflow-y-auto">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl p-6 shadow-2xl max-w-3xl w-full border border-gray-100 space-y-6 my-8 max-h-[90vh] overflow-y-auto"
+            >
+              {/* Modal Header */}
+              <div className="flex items-start justify-between border-b border-gray-100 pb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-indigo-600 font-mono font-black">{viewingDetailsReq.id}</span>
+                    {getStatusBadge(viewingDetailsReq.status)}
+                  </div>
+                  <h2 className="text-2xl font-black text-gray-850">{viewingDetailsReq.productName}</h2>
+                </div>
+                <button
+                  onClick={() => setViewingDetailsReq(null)}
+                  className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FiX className="text-xl" />
+                </button>
+              </div>
+
+              {/* Reference Image (If Uploaded) */}
+              {viewingDetailsReq.image && (
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Buyer Uploaded Reference Image</label>
+                  <div className="relative rounded-2xl overflow-hidden border border-gray-200 max-h-80 bg-gray-50 flex items-center justify-center">
+                    <img
+                      src={viewingDetailsReq.image}
+                      alt={viewingDetailsReq.productName}
+                      className="max-h-80 w-full object-contain"
+                    />
+                    <a
+                      href={viewingDetailsReq.image}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="absolute top-3 right-3 bg-black/75 hover:bg-black text-white text-xs px-3.5 py-2 rounded-xl font-bold backdrop-blur-sm transition-colors flex items-center gap-1.5 shadow"
+                    >
+                      <FiMaximize2 />
+                      <span>Open Full High-Res Image</span>
+                    </a>
+                  </div>
+                </div>
+              )}
+
+              {/* Comprehensive Details Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-150 text-xs">
+                <div>
+                  <span className="text-gray-400 font-medium block mb-0.5">Category</span>
+                  <strong className="text-gray-850 font-bold text-sm">{viewingDetailsReq.category}</strong>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-medium block mb-0.5">Quantity Required</span>
+                  <strong className="text-indigo-600 font-black text-sm">{viewingDetailsReq.quantity} units</strong>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-medium block mb-0.5">Expected Budget</span>
+                  <strong className="text-emerald-600 font-black text-sm">₹{viewingDetailsReq.expectedBudget}</strong>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-medium block mb-0.5">Sourcing Channel</span>
+                  <strong className="text-gray-800 font-bold">
+                    {viewingDetailsReq.requestType === 'SHOP_SPECIFIC' ? 'Direct Shop Request' : 'Marketplace Sourcing'}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-medium block mb-0.5">Target Entity</span>
+                  <strong className="text-gray-800 font-bold">
+                    {viewingDetailsReq.targetEntityId?.storeName || viewingDetailsReq.targetEntityId?.name || (viewingDetailsReq.requestType === 'SHOP_SPECIFIC' ? 'Direct Store' : 'All Vendors')}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-gray-400 font-medium block mb-0.5">Submission Date</span>
+                  <strong className="text-gray-800 font-bold">{new Date(viewingDetailsReq.date).toLocaleString()}</strong>
+                </div>
+              </div>
+
+              {/* Full Description & Requirements */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Full Specifications & Requirements (Filled by Buyer)</label>
+                <div className="p-4 rounded-2xl bg-indigo-50/40 border border-indigo-100 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed font-medium">
+                  {viewingDetailsReq.description || "No specific detailed description provided by buyer."}
+                </div>
+              </div>
+
+              {/* Buyer Information Section */}
+              {viewingDetailsReq.userId && (
+                <div className="space-y-2 bg-gray-50 p-4 rounded-2xl border border-gray-150">
+                  <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Buyer Account Details</label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                    <div className="flex items-center gap-2">
+                      <FiUser className="text-gray-400 shrink-0 text-base" />
+                      <div>
+                        <span className="text-gray-400 block text-[10px]">Name</span>
+                        <strong className="text-gray-800 font-bold">{viewingDetailsReq.userId.name || "N/A"}</strong>
+                      </div>
+                    </div>
+                    {viewingDetailsReq.userId.email && (
+                      <div className="flex items-center gap-2">
+                        <FiMail className="text-gray-400 shrink-0 text-base" />
+                        <div>
+                          <span className="text-gray-400 block text-[10px]">Email</span>
+                          <strong className="text-gray-800 font-bold">{viewingDetailsReq.userId.email}</strong>
+                        </div>
+                      </div>
+                    )}
+                    {viewingDetailsReq.userId.phone && (
+                      <div className="flex items-center gap-2">
+                        <FiPhone className="text-gray-400 shrink-0 text-base" />
+                        <div>
+                          <span className="text-gray-400 block text-[10px]">Phone</span>
+                          <strong className="text-gray-800 font-bold">{viewingDetailsReq.userId.phone}</strong>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Sourcing Strategy & Vendor Bids Overview */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Assigned Sourcing Bids ({viewingDetailsReq.assignedVendors?.length || 0})</label>
+                {viewingDetailsReq.assignedVendors && viewingDetailsReq.assignedVendors.length > 0 ? (
+                  <div className="border border-gray-150 rounded-2xl overflow-hidden max-h-48 overflow-y-auto text-xs">
+                    <table className="w-full text-left">
+                      <thead className="bg-gray-50 border-b border-gray-100 text-gray-400 font-bold uppercase">
+                        <tr>
+                          <th className="p-3">Vendor</th>
+                          <th className="p-3">Bid Status</th>
+                          <th className="p-3 text-right">Offered Price</th>
+                          <th className="p-3 text-right">Delivery Days</th>
+                          <th className="p-3">Comments</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-gray-650">
+                        {viewingDetailsReq.assignedVendors.map((v, i) => (
+                          <tr key={i} className="hover:bg-gray-50/50">
+                            <td className="p-3 font-bold text-gray-800">{v.vendorName || "Assigned Vendor"}</td>
+                            <td className="p-3">
+                              <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                v.status === "RESPONDED" ? "bg-green-50 text-green-700" :
+                                v.status === "UNAVAILABLE" ? "bg-red-50 text-red-700" :
+                                "bg-yellow-50 text-yellow-750"
+                              }`}>
+                                {v.status}
+                              </span>
+                            </td>
+                            <td className="p-3 text-right font-extrabold text-gray-850">₹{v.offeredPrice || "N/A"}</td>
+                            <td className="p-3 text-right">{v.deliveryTimeline ? `${v.deliveryTimeline} days` : "N/A"}</td>
+                            <td className="p-3 text-gray-500">{v.message || "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-xl text-xs text-gray-400 italic border border-gray-100">
+                    No vendors assigned yet. Click "Sourcing Strategy" to match inventory & assign vendors.
+                  </div>
+                )}
+              </div>
+
+              {/* Quick Actions Footer */}
+              <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-2">
+                <button
+                  onClick={() => {
+                    const r = viewingDetailsReq;
+                    setViewingDetailsReq(null);
+                    handleOpenSourcingWorkspace(r);
+                  }}
+                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-750 text-white font-bold rounded-xl text-xs transition-colors shadow"
+                >
+                  Sourcing Strategy
+                </button>
+                <button
+                  onClick={() => {
+                    const r = viewingDetailsReq;
+                    setViewingDetailsReq(null);
+                    handleOpenProposalWorkspace(r);
+                  }}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-750 text-white font-bold rounded-xl text-xs transition-colors shadow"
+                >
+                  Select Fulfillment & Proposal
+                </button>
+                <button
+                  onClick={() => {
+                    const r = viewingDetailsReq;
+                    handleStatusChangeClick(r, "Under Review");
+                  }}
+                  className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-750 font-bold rounded-xl text-xs transition-colors"
+                >
+                  Change Status
+                </button>
+                <button
+                  onClick={() => setViewingDetailsReq(null)}
+                  className="ml-auto px-6 py-2.5 bg-gray-150 hover:bg-gray-250 text-gray-700 font-bold rounded-xl text-xs transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Sourcing Workspace Modal */}
       <AnimatePresence>
@@ -661,3 +912,4 @@ const ProductRequestsDashboard = () => {
 };
 
 export default ProductRequestsDashboard;
+

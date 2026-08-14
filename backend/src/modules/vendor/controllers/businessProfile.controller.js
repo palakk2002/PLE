@@ -43,6 +43,9 @@ export const getBusinessProfile = asyncHandler(async (req, res) => {
 
 // POST /api/vendor/business-profile & PUT /api/vendor/business-profile
 export const updateBusinessProfile = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor business profile is managed by Administrator and cannot be updated directly.');
+    }
     const {
         businessType,
         gstRegistered,
@@ -122,6 +125,9 @@ export const updateBusinessProfile = asyncHandler(async (req, res) => {
 
 // Helper file uploader
 const handleDocumentUpload = async (req, folderName, docField) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor accounts cannot upload business verification documents directly. Please contact Administrator.');
+    }
     if (!req.file?.path) {
         throw new ApiError(400, 'Document file is required.');
     }

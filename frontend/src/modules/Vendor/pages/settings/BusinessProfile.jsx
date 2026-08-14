@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
-import { FiSave, FiFileText, FiUploadCloud, FiCheckCircle, FiAlertCircle, FiXCircle } from 'react-icons/fi';
+import { FiSave, FiFileText, FiUploadCloud, FiCheckCircle, FiAlertCircle, FiXCircle, FiShield } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { getVendorBusinessProfile, updateVendorBusinessProfile, uploadGstCertificate, uploadMsmeCertificate, uploadIdentityProof } from '../../services/vendorService';
+import { useVendorAuthStore } from '../../store/vendorAuthStore';
 import toast from 'react-hot-toast';
 
 const BusinessProfile = () => {
+    const { vendor } = useVendorAuthStore();
+    const isManaged = vendor?.role === 'managed_vendor';
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [profile, setProfile] = useState({
@@ -225,6 +228,18 @@ const BusinessProfile = () => {
         <div className="space-y-6">
             {renderVerificationBadge()}
 
+            {isManaged && (
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-3">
+                    <FiShield className="text-xl mt-0.5 flex-shrink-0 text-amber-600" />
+                    <div>
+                        <h4 className="font-semibold text-sm">Managed Business Profile Notice</h4>
+                        <p className="text-xs sm:text-sm mt-1 text-amber-700">
+                            Your business information and document verification are managed directly by the Shop Administrator. Direct modifications are disabled for managed accounts.
+                        </p>
+                    </div>
+                </div>
+            )}
+
             <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="bg-white rounded-xl p-4 sm:p-6 border border-gray-200 shadow-sm space-y-6">
                     <h3 className="text-lg font-bold text-gray-800 border-b pb-3">Business Information</h3>
@@ -377,16 +392,18 @@ const BusinessProfile = () => {
                         </div>
                     </div>
 
-                    <div className="flex justify-end pt-4">
-                        <button
-                            type="submit"
-                            disabled={submitting}
-                            className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold"
-                        >
-                            <FiSave />
-                            {submitting ? 'Saving...' : 'Save Profile Details'}
-                        </button>
-                    </div>
+                    {!isManaged && (
+                        <div className="flex justify-end pt-4">
+                            <button
+                                type="submit"
+                                disabled={submitting}
+                                className="flex items-center gap-2 px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold"
+                            >
+                                <FiSave />
+                                {submitting ? 'Saving...' : 'Save Profile Details'}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </form>
 

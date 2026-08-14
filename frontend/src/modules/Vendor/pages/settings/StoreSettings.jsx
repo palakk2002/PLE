@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { FiSave, FiImage, FiGlobe, FiShoppingBag } from "react-icons/fi";
+import { FiSave, FiImage, FiGlobe, FiShoppingBag, FiShield } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import AnimatedSelect from "../../../Admin/components/AnimatedSelect";
@@ -7,6 +6,7 @@ import toast from "react-hot-toast";
 
 const StoreSettings = () => {
   const { vendor, updateProfile } = useVendorAuthStore();
+  const isManaged = vendor?.role === 'managed_vendor';
   const [formData, setFormData] = useState({});
   const [activeSection, setActiveSection] = useState("identity");
 
@@ -135,6 +135,18 @@ const StoreSettings = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="p-3 sm:p-4 md:p-6">
+          {isManaged && (
+            <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-3">
+              <FiShield className="text-xl mt-0.5 flex-shrink-0 text-amber-600" />
+              <div>
+                <h4 className="font-semibold text-sm">Managed Store Notice</h4>
+                <p className="text-xs sm:text-sm mt-1 text-amber-700">
+                  Your store settings and identity are managed by the Shop Administrator. Editing is disabled for managed accounts.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Store Identity Section */}
           {activeSection === "identity" && (
             <div className="space-y-6">
@@ -347,14 +359,16 @@ const StoreSettings = () => {
             </div>
           )}
 
-          <div className="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 mt-4 sm:mt-6">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base w-full sm:w-auto">
-              <FiSave />
-              Save Settings
-            </button>
-          </div>
+          {!isManaged && (
+            <div className="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 mt-4 sm:mt-6">
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all font-semibold text-sm sm:text-base w-full sm:w-auto">
+                <FiSave />
+                Save Settings
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </motion.div>

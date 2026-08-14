@@ -58,7 +58,7 @@ const AdminHeader = ({ onMenuClick }) => {
 
   return (
     <header
-      className="bg-white border-b border-gray-200 fixed top-0 left-0 lg:left-64 right-0 z-30"
+      className="bg-white dark:bg-[#121212] border-b border-gray-200 dark:border-white/10 fixed top-0 left-0 lg:left-64 right-0 z-30"
       style={{
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
@@ -69,7 +69,7 @@ const AdminHeader = ({ onMenuClick }) => {
           <Button
             onClick={onMenuClick}
             variant="icon"
-            className="lg:hidden text-gray-700"
+            className="lg:hidden text-gray-700 dark:text-gray-200"
             icon={FiMenu}
           />
 
@@ -77,8 +77,8 @@ const AdminHeader = ({ onMenuClick }) => {
           <div className="hidden lg:flex items-center gap-6">
             <img src={logoImage} alt="PLE Logo" className="h-10 w-auto object-contain" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-1">{pageName}</h1>
-              <p className="text-sm text-gray-600">Welcome back! Here's your business overview.</p>
+              <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-1">{pageName}</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-300">Welcome back! Here's your business overview.</p>
             </div>
           </div>
         </div>
@@ -91,7 +91,7 @@ const AdminHeader = ({ onMenuClick }) => {
               data-notification-button
               onClick={toggleNotifications}
               variant="icon"
-              className="text-gray-700"
+              className="text-gray-700 dark:text-gray-200"
               icon={FiBell}
             />
             {unreadCount > 0 && (
@@ -112,7 +112,7 @@ const AdminHeader = ({ onMenuClick }) => {
             variant="ghost"
             icon={FiLogOut}
             size="sm"
-            className="text-gray-700 hover:bg-red-600 hover:text-white hover:border-red-600 border border-gray-300"
+            className="text-gray-700 dark:text-gray-200 hover:bg-red-600 hover:text-white hover:border-red-600 border border-gray-300 dark:border-white/20"
           >
             Logout
           </Button>

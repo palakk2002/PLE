@@ -43,7 +43,7 @@ const SearchSuggestions = ({
 
       try {
         const response = await api.get('/products', {
-          params: { q: trimmedQuery, page: 1, limit: 5, sort: 'newest' },
+          params: { q: trimmedQuery, page: 1, limit: 5, sort: 'rating' },
         });
         const payload = response?.data ?? response;
         const products = Array.isArray(payload?.products) ? payload.products : [];

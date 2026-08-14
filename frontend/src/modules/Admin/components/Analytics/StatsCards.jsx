@@ -12,7 +12,7 @@ const StatsCards = ({ stats }) => {
       icon: IndianRupee,
       color: 'text-white',
       bgColor: 'bg-gradient-to-br from-green-500 to-emerald-600',
-      cardBg: 'bg-gradient-to-br from-green-50 to-emerald-50',
+      cardBg: 'bg-gradient-to-br from-green-50 to-emerald-50 dark:from-emerald-950/40 dark:to-emerald-900/30 dark:border-emerald-800/40',
       iconBg: 'bg-white/20',
     },
     {
@@ -22,7 +22,7 @@ const StatsCards = ({ stats }) => {
       icon: FiShoppingBag,
       color: 'text-white',
       bgColor: 'bg-gradient-to-br from-blue-500 to-indigo-600',
-      cardBg: 'bg-gradient-to-br from-blue-50 to-indigo-50',
+      cardBg: 'bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/40 dark:to-indigo-900/30 dark:border-blue-800/40',
       iconBg: 'bg-white/20',
     },
     {
@@ -32,7 +32,7 @@ const StatsCards = ({ stats }) => {
       icon: FiPackage,
       color: 'text-white',
       bgColor: 'bg-gradient-to-br from-purple-500 to-violet-600',
-      cardBg: 'bg-gradient-to-br from-purple-50 to-violet-50',
+      cardBg: 'bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-950/40 dark:to-violet-900/30 dark:border-purple-800/40',
       iconBg: 'bg-white/20',
     },
     {
@@ -42,7 +42,7 @@ const StatsCards = ({ stats }) => {
       icon: FiUsers,
       color: 'text-white',
       bgColor: 'bg-gradient-to-br from-orange-500 to-amber-600',
-      cardBg: 'bg-gradient-to-br from-orange-50 to-amber-50',
+      cardBg: 'bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950/40 dark:to-amber-900/30 dark:border-orange-800/40',
       iconBg: 'bg-white/20',
     },
   ];
@@ -60,7 +60,7 @@ const StatsCards = ({ stats }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className={`${card.cardBg} rounded-xl p-4 sm:p-6 shadow-md border-2 border-transparent hover:shadow-lg transition-all duration-300 relative overflow-hidden`}
+            className={`${card.cardBg} rounded-xl p-4 sm:p-6 shadow-md border-2 border-transparent dark:border-white/5 hover:shadow-lg transition-all duration-300 relative overflow-hidden`}
           >
             {/* Decorative gradient overlay */}
             <div className={`absolute top-0 right-0 w-32 h-32 ${card.bgColor} opacity-10 rounded-full -mr-16 -mt-16`}></div>
@@ -71,7 +71,7 @@ const StatsCards = ({ stats }) => {
               </div>
               {hasChange && (
                 <div
-                  className={`text-xs sm:text-sm font-semibold px-2 py-1 rounded-full ${isPositive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  className={`text-xs sm:text-sm font-semibold px-2 py-1 rounded-full ${isPositive ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300'
                     }`}
                 >
                   {isPositive ? '+' : ''}
@@ -80,8 +80,8 @@ const StatsCards = ({ stats }) => {
               )}
             </div>
             <div className="relative z-10">
-              <h3 className="text-gray-600 text-xs sm:text-sm font-medium mb-1">{card.title}</h3>
-              <p className="text-gray-800 text-xl sm:text-2xl font-bold">{card.value}</p>
+              <h3 className="text-gray-600 dark:text-gray-300 text-xs sm:text-sm font-medium mb-1">{card.title}</h3>
+              <p className="text-gray-800 dark:text-white text-xl sm:text-2xl font-bold">{card.value}</p>
             </div>
           </motion.div>
         );

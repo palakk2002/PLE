@@ -86,7 +86,13 @@ const ProductRequestHistory = () => {
         <div className="flex items-center gap-4">
           {!isB2B && (
             <button
-              onClick={() => navigate(-1)}
+              onClick={() => {
+                if (window.history.state && window.history.state.idx > 0) {
+                  navigate(-1);
+                } else {
+                  navigate("/profile");
+                }
+              }}
               className="p-2 hover:bg-gray-200 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
             >
               <FiArrowLeft className="text-xl text-gray-700" />

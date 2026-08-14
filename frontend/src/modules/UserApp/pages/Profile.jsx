@@ -33,9 +33,8 @@ import {
 import { useOffers } from "../../offers/hooks/useOffers";
 import OfferCard from "../../offers/components/OfferCard";
 import OfferModal from "../../offers/components/OfferModal";
-import { Link } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 import MobileLayout from "../components/Layout/MobileLayout";
 import { useAuthStore } from "../../../shared/store/authStore";
 import { useLoyaltyStore } from "../../../shared/store/loyaltyStore";
@@ -50,7 +49,7 @@ import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 import { useB2bStore } from "../../../shared/store/b2bStore";
 import { B2BBusinessBadge } from "../components/B2B/B2BBusinessBadge";
 import { B2BBusinessDashboard } from "../components/B2B/B2BBusinessDashboard";
-import { B2BMyEnquiries } from "../components/B2B/B2BMyEnquiries";
+import { B2BBusinessDashboard as B2BMyEnquiriesDashboard } from "../components/B2B/B2BBusinessDashboard";
 import { MyProductEnquiries } from "../components/Enquiry/MyProductEnquiries";
 import { useB2BAdminStore } from "../../B2BAdmin/store/b2bAdminStore";
 
@@ -58,6 +57,7 @@ import { useB2BAdminStore } from "../../B2BAdmin/store/b2bAdminStore";
 
 const MobileProfile = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isBusiness, setUserRole } = useBusinessBuyer();
   const {
     user,
@@ -72,7 +72,18 @@ const MobileProfile = () => {
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [pendingUpdateId, setPendingUpdateId] = useState(null);
   const avatarInputRef = useRef(null);
-  const [activeTab, setActiveTab] = useState("menu"); // 'menu', 'personal', 'password'
+
+  const [activeTab, setActiveTabState] = useState(() => searchParams.get("tab") || "menu");
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    if (tab === "menu") {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ tab }, { replace: true });
+    }
+  };
+
   const [isDesktop, setIsDesktop] = useState(
     typeof window !== "undefined" ? window.innerWidth >= 1024 : false,
   );
@@ -654,9 +665,7 @@ const MobileProfile = () => {
           <div className="lg:hidden px-4 py-4 bg-white border-b border-gray-200 sticky top-0 z-30">
             <div className="flex items-center gap-3">
               <button
-                onClick={() =>
-                  activeTab === "menu" ? navigate("/home") : setActiveTab("menu")
-                }
+                onClick={() => navigate("/home")}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <FiArrowLeft className="text-xl text-gray-700" />

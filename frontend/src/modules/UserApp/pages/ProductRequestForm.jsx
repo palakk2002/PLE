@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { FiArrowLeft, FiCamera, FiUploadCloud, FiTrash2, FiFileText } from "react-icons/fi";
 import { motion } from "framer-motion";
 import toast from "react-hot-toast";
@@ -9,6 +9,7 @@ import api from "../../../shared/utils/api";
 
 const ProductRequestForm = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const prefilledName = searchParams.get("name") || "";
   const targetType = searchParams.get("targetType") || "";
@@ -146,7 +147,7 @@ const ProductRequestForm = () => {
     }
   };
 
-  const isB2B = useLocation().pathname.startsWith("/b2b-dashboard");
+  const isB2B = location.pathname.startsWith("/b2b-dashboard");
 
   const content = (
     <div className={`w-full pb-24 max-w-2xl mx-auto min-h-screen px-4 py-6 ${isB2B ? 'bg-white rounded-3xl border border-gray-150 p-6 shadow-sm mt-4' : 'bg-gray-50'}`}>

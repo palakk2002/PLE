@@ -178,7 +178,7 @@ const listProducts = asyncHandler(async (req, res) => {
         vendor,
         search,
         q,
-        sort = 'newest',
+        sort = 'rating',
         flashSale,
         isNewArrival,
         minPrice,
@@ -218,9 +218,9 @@ const listProducts = asyncHandler(async (req, res) => {
     const searchQuery = String(search || q || '').trim();
     if (searchQuery) filter.$text = { $search: searchQuery };
 
-    const sortMap = { newest: { createdAt: -1 }, oldest: { createdAt: 1 }, 'price-asc': { price: 1 }, 'price-desc': { price: -1 }, popular: { reviewCount: -1 }, rating: { rating: -1 } };
+    const sortMap = { newest: { createdAt: -1 }, oldest: { createdAt: 1 }, 'price-asc': { price: 1 }, 'price-desc': { price: -1 }, popular: { reviewCount: -1 }, rating: { rating: -1, createdAt: -1 } };
 
-    const products = await Product.find(filter).populate('categoryId', 'name').populate('brandId', 'name').populate('vendorId', 'storeName').sort(sortMap[sort] || { createdAt: -1 }).skip(skip).limit(Number(limit));
+    const products = await Product.find(filter).populate('categoryId', 'name').populate('brandId', 'name').populate('vendorId', 'storeName').sort(sortMap[sort] || { rating: -1, createdAt: -1 }).skip(skip).limit(Number(limit));
     const total = await Product.countDocuments(filter);
 
     res.status(200).json(new ApiResponse(200, { products, total, page: Number(page), pages: Math.ceil(total / limit) }, 'Products fetched.'));

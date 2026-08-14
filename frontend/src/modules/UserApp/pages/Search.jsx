@@ -88,7 +88,7 @@ const MobileSearch = () => {
   useEffect(() => {
     const q = searchParams.get('q');
     setSearchQuery(q || '');
-    setSortBy(searchParams.get('sort') || 'newest');
+    setSortBy(searchParams.get('sort') || 'rating');
 
     setFilters({
       category: searchParams.get('category') || '',
@@ -202,7 +202,7 @@ const MobileSearch = () => {
       const query = {
         page: pageNumber,
         limit: PAGE_SIZE,
-        sort: sortBy || 'newest',
+        sort: sortBy || 'rating',
       };
 
       const q = String(searchParams.get('q') || '').trim();

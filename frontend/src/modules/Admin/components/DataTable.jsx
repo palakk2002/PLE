@@ -63,21 +63,21 @@ const DataTable = ({
   const actionsColumn = columns.find(col => col.key === 'actions');
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm overflow-hidden ${className}`}>
+    <div className={`bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm overflow-hidden ${className}`}>
       {/* Mobile Card View - Show on mobile, hide on desktop */}
       <div className="md:hidden">
         {paginatedData.length === 0 ? (
-          <div className="px-4 py-12 text-center text-gray-500">
+          <div className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
             No data available
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-gray-200 dark:divide-white/5">
             {paginatedData.map((row, index) => (
               <div
                 key={row.id || index}
                 onClick={() => onRowClick && onRowClick(row)}
                 className={`p-4 ${
-                  onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
+                  onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5' : ''
                 } transition-colors`}
               >
                 <div className="space-y-2.5">
@@ -102,17 +102,17 @@ const DataTable = ({
                     
                     return (
                       <div key={column.key} className="flex items-start gap-2">
-                        <span className="text-xs font-semibold text-gray-600 flex-shrink-0 min-w-[80px] sm:min-w-[100px]">
+                        <span className="text-xs font-semibold text-gray-600 dark:text-gray-400 flex-shrink-0 min-w-[80px] sm:min-w-[100px]">
                           {column.label}:
                         </span>
-                        <span className="text-sm text-gray-800 break-words flex-1">
+                        <span className="text-sm text-gray-800 dark:text-gray-200 break-words flex-1">
                           {displayValue}
                         </span>
                       </div>
                     );
                   })}
                   {actionsColumn && (
-                    <div className="pt-2 border-t border-gray-100 mt-3">
+                    <div className="pt-2 border-t border-gray-100 dark:border-white/5 mt-3">
                       {actionsColumn.render(null, row)}
                     </div>
                   )}
@@ -126,14 +126,14 @@ const DataTable = ({
       {/* Desktop Table View - Hide on mobile, show on desktop */}
       <div className="hidden md:block overflow-x-auto scrollbar-admin">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-gray-50 dark:bg-[#222] border-b border-gray-200 dark:border-white/10">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider ${
+                  className={`px-3 sm:px-6 py-3 sm:py-4 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider ${
                     sortable && column.sortable !== false
-                      ? 'cursor-pointer hover:bg-gray-100'
+                      ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5'
                       : ''
                   }`}
                   onClick={() => column.sortable !== false && handleSort(column.key)}
@@ -156,12 +156,12 @@ const DataTable = ({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white dark:bg-[#1A1A1A] divide-y divide-gray-200 dark:divide-white/5">
             {paginatedData.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="px-3 sm:px-6 py-8 sm:py-12 text-center text-gray-500"
+                  className="px-3 sm:px-6 py-8 sm:py-12 text-center text-gray-500 dark:text-gray-400"
                 >
                   No data available
                 </td>
@@ -172,7 +172,7 @@ const DataTable = ({
                   key={row.id || index}
                   onClick={() => onRowClick && onRowClick(row)}
                   className={`${
-                    onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
+                    onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5' : ''
                   } transition-colors`}
                 >
                   {columns.map((column) => {
@@ -193,7 +193,7 @@ const DataTable = ({
                     return (
                       <td
                         key={column.key}
-                        className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-700"
+                        className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300"
                       >
                         {displayValue}
                       </td>

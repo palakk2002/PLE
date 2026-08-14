@@ -430,33 +430,28 @@ export const getProfile = asyncHandler(async (req, res) => {
 
 // PUT /api/vendor/auth/profile
 export const updateProfile = asyncHandler(async (req, res) => {
-    let allowed, userModel, userDoc, email;
     if (req.user.role === 'managed_vendor') {
-        allowed = ['name', 'phone', 'companyName', 'gstNumber', 'address'];
-        userModel = 'ManagedVendorUser';
-        userDoc = await ManagedVendorUser.findById(req.user.id);
-        if (!userDoc) throw new ApiError(404, 'Vendor not found.');
-        email = userDoc.email;
-    } else {
-        allowed = [
-            'name',
-            'phone',
-            'storeName',
-            'storeDescription',
-            'storeLogo',
-            'address',
-            'shippingEnabled',
-            'freeShippingThreshold',
-            'defaultShippingRate',
-            'shippingMethods',
-            'handlingTime',
-            'processingTime',
-        ];
-        userModel = 'Vendor';
-        userDoc = await Vendor.findById(req.user.id);
-        if (!userDoc) throw new ApiError(404, 'Vendor not found.');
-        email = userDoc.email;
+        throw new ApiError(403, 'Managed vendor accounts are managed by the Administrator and cannot edit profile details directly.');
     }
+    let allowed, userModel, userDoc, email;
+    allowed = [
+        'name',
+        'phone',
+        'storeName',
+        'storeDescription',
+        'storeLogo',
+        'address',
+        'shippingEnabled',
+        'freeShippingThreshold',
+        'defaultShippingRate',
+        'shippingMethods',
+        'handlingTime',
+        'processingTime',
+    ];
+    userModel = 'Vendor';
+    userDoc = await Vendor.findById(req.user.id);
+    if (!userDoc) throw new ApiError(404, 'Vendor not found.');
+    email = userDoc.email;
 
     const updates = Object.fromEntries(Object.entries(req.body).filter(([k]) => allowed.includes(k)));
     if (updates.gstNumber) updates.gstNumber = updates.gstNumber.toUpperCase();
@@ -515,6 +510,9 @@ export const resendProfileOTP = asyncHandler(async (req, res) => {
 
 // PUT /api/vendor/auth/bank-details
 export const updateBankDetails = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor accounts cannot update bank details directly. Please contact Administrator.');
+    }
     const { accountName, accountNumber, bankName, ifscCode } = req.body;
     if (!accountName && !accountNumber && !bankName && !ifscCode) {
         throw new ApiError(400, 'At least one bank detail field is required.');
@@ -537,6 +535,9 @@ export const updateBankDetails = asyncHandler(async (req, res) => {
 
 // POST /api/vendor/auth/change-password/request-otp
 export const requestChangePasswordOTP = asyncHandler(async (req, res) => {
+    if (req.user.role === 'managed_vendor') {
+        throw new ApiError(403, 'Managed vendor accounts cannot change password directly. Please contact Administrator.');
+    }
     const { currentPassword, newPassword } = req.body;
     if (!currentPassword || !newPassword) {
         throw new ApiError(400, 'Current password and new password are required.');
