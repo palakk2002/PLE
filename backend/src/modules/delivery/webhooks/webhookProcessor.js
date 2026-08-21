@@ -18,7 +18,7 @@ export async function processDeliveryWebhook(providerName, rawBody, headers) {
     const { orderId, externalShipmentId, awbCode, providerStatus, courierName, etd, location, activity, rawPayload } = parsed;
 
     if (!orderId && !externalShipmentId && !awbCode) {
-        return { processed: false, reason: 'Missing identifiable order or shipment identifiers' };
+        return { processed: true, message: 'Webhook received. No shipment identifiers provided (test ping).' };
     }
 
     // Build query to find matching DeliveryShipment

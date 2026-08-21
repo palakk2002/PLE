@@ -10,11 +10,18 @@ export function verifyShiprocketWebhookSignature(rawBody, headers) {
     const headerToken = headers['x-api-key'] || headers['x-shiprocket-token'] || headers['x-shiprocket-signature'] || headers['authorization'];
     if (!headerToken) return false;
 
-    // Direct token comparison or timing-safe equal check
+    const incoming = String(headerToken).trim();
+    const expected = String(expectedToken).trim();
+
     try {
-        return crypto.timingSafeEqual(Buffer.from(headerToken), Buffer.from(expectedToken));
+        const bufA = Buffer.from(incoming);
+        const bufB = Buffer.from(expected);
+        if (bufA.length === bufB.length) {
+            return crypto.timingSafeEqual(bufA, bufB);
+        }
+        return incoming === expected;
     } catch {
-        return headerToken === expectedToken;
+        return incoming === expected;
     }
 }
 

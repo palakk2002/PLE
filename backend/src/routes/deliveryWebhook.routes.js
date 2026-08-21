@@ -21,6 +21,11 @@ const captureRawBody = (req, res, next) => {
     });
 };
 
+router.get('/webhook/:provider', (req, res) => res.status(200).json({ success: true, message: 'Webhook endpoint is active' }));
+router.get('/webhook', (req, res) => res.status(200).json({ success: true, message: 'Webhook endpoint is active' }));
+router.head('/webhook/:provider', (req, res) => res.status(200).end());
+router.head('/webhook', (req, res) => res.status(200).end());
+
 router.post('/webhook/:provider', captureRawBody, handleDeliveryWebhook);
 router.post('/webhook', captureRawBody, handleDeliveryWebhook);
 
