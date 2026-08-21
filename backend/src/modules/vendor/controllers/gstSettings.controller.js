@@ -1,5 +1,5 @@
-import { Product } from '../../../models/product.model.js';
-import { Category } from '../../../models/category.model.js';
+import { Product } from '../../../models/Product.model.js';
+import { Category } from '../../../models/Category.model.js';
 import { ApiResponse } from '../../../utils/ApiResponse.js';
 import { asyncHandler } from '../../../utils/asyncHandler.js';
 import { ApiError } from '../../../utils/ApiError.js';
