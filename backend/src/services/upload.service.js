@@ -9,7 +9,11 @@ import fs from 'fs/promises';
  * @returns {Promise<{url: string, publicId: string}>}
  */
 export const uploadToCloudinary = async (localFilePath, folder, publicId) => {
-    const uploadOptions = { folder, resource_type: 'image' };
+    let rType = 'image';
+    if (localFilePath && localFilePath.toLowerCase().endsWith('.pdf')) {
+        rType = 'raw';
+    }
+    const uploadOptions = { folder, resource_type: rType };
     if (publicId) uploadOptions.public_id = publicId;
 
     try {
@@ -52,6 +56,9 @@ export const uploadFileToCloudinary = async (
     resourceType = 'auto',
     publicId
 ) => {
+    if (localFilePath && localFilePath.toLowerCase().endsWith('.pdf')) {
+        resourceType = 'raw';
+    }
     const uploadOptions = { folder, resource_type: resourceType };
     if (publicId) uploadOptions.public_id = publicId;
     

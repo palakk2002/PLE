@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { FiSave, FiUpload, FiX } from "react-icons/fi";
+import { FiSave, FiUpload, FiX, FiInfo, FiLock } from "react-icons/fi";
 import { motion } from "framer-motion";
 import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import { useVendorProductStore } from "../../store/vendorProductStore";
@@ -22,7 +22,9 @@ import { DEFAULT_REFURBISHED_STATE } from "../../components/Refurbished/refurbis
 
 const AddProduct = () => {
   const navigate = useNavigate();
-  const { vendor } = useVendorAuthStore();
+  const { vendor, refreshProfile } = useVendorAuthStore();
+  const isManagedVendor = vendor?.role === "managed_vendor";
+  const isB2BApproved = isManagedVendor || vendor?.b2bSellingStatus?.toLowerCase() === 'approved';
   const { addProduct, isSaving } = useVendorProductStore();
   const { initialize: initCategories } = useCategoryStore();
   const { brands, initialize: initBrands } = useBrandStore();
@@ -406,8 +408,8 @@ const AddProduct = () => {
     }
 
     // Validate required fields based on channel
-    const isB2c = formData.salesChannel === 'B2C' || formData.salesChannel === 'BOTH';
-    const isB2b = formData.salesChannel === 'B2B' || formData.salesChannel === 'BOTH';
+    const isB2c = isManagedVendor ? true : (formData.salesChannel === 'B2C' || formData.salesChannel === 'BOTH');
+    const isB2b = isManagedVendor ? false : (formData.salesChannel === 'B2B' || formData.salesChannel === 'BOTH');
 
     if (!formData.name || !formData.stockQuantity || !formData.categoryId) {
       toast.error("Please fill in all required fields");
@@ -507,12 +509,12 @@ const AddProduct = () => {
         .filter((faq) => faq.question && faq.answer),
       variants: buildVariantPayload(formData.variants || {}),
       b2bEnabled: isB2b,
-      salesChannel: formData.salesChannel,
-      b2bWholesalePrice: parsedB2bWholesalePrice,
-      b2bMinOrderQty: parsedB2bMinOrderQty,
+      salesChannel: isManagedVendor ? 'B2C' : formData.salesChannel,
+      b2bWholesalePrice: isManagedVendor ? null : parsedB2bWholesalePrice,
+      b2bMinOrderQty: isManagedVendor ? 1 : parsedB2bMinOrderQty,
       b2bUnitsPerCarton: formData.b2bUnitsPerCarton ? parseInt(formData.b2bUnitsPerCarton, 10) : 1,
       b2bGstRate: formData.b2bGstRate || "18",
-      b2bBulkPricingSlabs: formData.b2bBulkPricingSlabs || [],
+      b2bBulkPricingSlabs: isManagedVendor ? [] : (formData.b2bBulkPricingSlabs || []),
       b2bGstInvoice: formData.b2bGstInvoice !== undefined ? formData.b2bGstInvoice : true,
       b2bPackagingType: formData.b2bPackagingType || "standard",
       b2bLeadTimeDays: formData.b2bLeadTimeDays ? parseInt(formData.b2bLeadTimeDays, 10) : 1,
@@ -544,27 +546,79 @@ const AddProduct = () => {
         className="bg-white rounded-xl p-3 sm:p-4 shadow-sm border border-gray-200 space-y-4">
         
         {/* Sales Channel Selector */}
-        <div className="border-b border-gray-100 pb-4">
-          <label className="block text-sm font-bold text-gray-800 mb-2">
-            Sales Channel
-          </label>
-          <div className="flex gap-2">
-            {['B2C', 'B2B', 'BOTH'].map((channel) => (
-              <button
-                key={channel}
-                type="button"
-                onClick={() => setFormData(prev => ({ ...prev, salesChannel: channel }))}
-                className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${
-                  formData.salesChannel === channel
-                    ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {channel}
-              </button>
-            ))}
+        {isManagedVendor ? (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+            <FiInfo className="text-amber-600 text-lg mt-0.5 flex-shrink-0" />
+            <div>
+              <h4 className="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                Admin-Moderated Listing & Channel Placement
+              </h4>
+              <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                As a managed vendor, you only need to enter the standard product information and pricing. The admin will review your listing and assign where it should be published (B2C Marketplace, B2B Wholesale, or Both).
+              </p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="border-b border-gray-100 pb-4">
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-bold text-gray-800">
+                Sales Channel
+              </label>
+              {!isB2BApproved && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200">
+                  <FiLock className="text-xs" /> B2B Locked (GST Approval Required)
+                </span>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {['B2C', 'B2B', 'BOTH'].map((channel) => {
+                const isChannelLocked = channel !== 'B2C' && !isB2BApproved;
+                return (
+                  <button
+                    key={channel}
+                    type="button"
+                    disabled={isChannelLocked}
+                    onClick={() => {
+                      if (isChannelLocked) {
+                        toast.error('B2B selling requires GST verification and Admin approval.');
+                        return;
+                      }
+                      setFormData(prev => ({ ...prev, salesChannel: channel }));
+                    }}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold border flex items-center gap-1.5 transition-all ${
+                      isChannelLocked
+                        ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed opacity-75'
+                        : formData.salesChannel === channel
+                          ? 'bg-primary-600 text-white border-primary-600 shadow-sm'
+                          : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    {isChannelLocked && <FiLock className="text-xs" />}
+                    {channel}
+                  </button>
+                );
+              })}
+            </div>
+            {!isB2BApproved && (
+              <div className="mt-3 p-3.5 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-blue-900 shadow-sm">
+                <div className="flex items-center gap-2.5">
+                  <FiInfo className="text-primary-600 text-lg shrink-0" />
+                  <span className="font-medium">
+                    Wholesale B2B selling is locked. Submit your GST certificate to unlock B2B sales.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate('/vendor/b2b-application')}
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-primary-600 to-indigo-600 hover:from-primary-700 hover:to-indigo-700 text-white font-bold rounded-xl text-xs shadow-md hover:shadow-lg transition-all shrink-0 active:scale-95 whitespace-nowrap cursor-pointer"
+                >
+                  <span>Apply for B2B Selling</span>
+                  <span className="text-sm font-black">&rarr;</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Basic Information */}
         <div>
@@ -752,8 +806,8 @@ const AddProduct = () => {
           onChange={handleChange}
         />
 
-        {/* B2B / Wholesale Settings - Visible for B2B and BOTH */}
-        {(formData.salesChannel === 'B2B' || formData.salesChannel === 'BOTH') && (
+        {/* B2B / Wholesale Settings - Visible for B2B and BOTH for non-managed vendors */}
+        {!isManagedVendor && (formData.salesChannel === 'B2B' || formData.salesChannel === 'BOTH') && (
           <div className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm space-y-4">
             <div className="border-b border-gray-100 pb-3">
               <h2 className="text-base font-bold text-gray-800 flex items-center gap-2">

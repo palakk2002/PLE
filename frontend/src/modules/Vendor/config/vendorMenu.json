@@ -29,6 +29,7 @@
         "title": "B2B Enquiries",
         "route": "/vendor/b2b-enquiries",
         "children": [
+            "B2B Seller Application",
             "All Enquiries",
             "B2B Orders",
             "B2B Analytics",

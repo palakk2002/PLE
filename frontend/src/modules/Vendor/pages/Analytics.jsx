@@ -137,14 +137,14 @@ const Analytics = () => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-1">
             Analytics & Reports
           </h1>
-          <p className="text-gray-600">Your store performance and metrics</p>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Your store performance and metrics</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <TimePeriodFilter selectedPeriod={period} onPeriodChange={setPeriod} />
           <ExportButton
             data={exportData}
@@ -158,73 +158,81 @@ const Analytics = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Revenue</p>
-            <FiDollarSign className="text-green-600" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium truncate">Total Revenue</p>
+            <FiDollarSign className="text-green-600 flex-shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-gray-800">
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
             {formatPrice(analyticsSummary.totalRevenue)}
           </p>
           <div className="flex items-center gap-1 mt-2">
-            <FiTrendingUp className="text-green-600" />
-            <span className="text-sm text-green-600">
+            <FiTrendingUp className="text-green-600 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-green-600">
               {analyticsSummary.revenueChange}%
             </span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Orders</p>
-            <FiShoppingBag className="text-blue-600" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium truncate">Total Orders</p>
+            <FiShoppingBag className="text-blue-600 flex-shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-gray-800">
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
             {analyticsSummary.totalOrders}
           </p>
           <div className="flex items-center gap-1 mt-2">
-            <FiTrendingUp className="text-green-600" />
-            <span className="text-sm text-green-600">
+            <FiTrendingUp className="text-green-600 flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-green-600">
               {analyticsSummary.ordersChange}%
             </span>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Products</p>
-            <FiPackage className="text-purple-600" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium truncate">Total Products</p>
+            <FiPackage className="text-purple-600 flex-shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-gray-800">
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
             {analyticsSummary.totalProducts}
           </p>
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Pending Earnings</p>
-            <FiBarChart2 className="text-orange-600" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-medium truncate">Pending Earnings</p>
+            <FiBarChart2 className="text-orange-600 flex-shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-gray-800">
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
             {formatPrice(analyticsSummary.pendingEarnings)}
           </p>
-          <p className="text-xs text-gray-500 mt-2">Awaiting settlement</p>
+          <p className="text-[11px] sm:text-xs text-gray-500 dark:text-gray-400 mt-2 truncate">Awaiting settlement</p>
         </div>
       </div>
 
       {analyticsData.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RevenueLineChart data={analyticsData} period={period} />
-            <SalesBarChart data={analyticsData} period={period} />
+        <div className="space-y-6 min-w-0">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 min-w-0">
+            <div className="w-full min-w-0 overflow-hidden bg-white dark:bg-[#1A1A1A] p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm">
+              <RevenueLineChart data={analyticsData} period={period} />
+            </div>
+            <div className="w-full min-w-0 overflow-hidden bg-white dark:bg-[#1A1A1A] p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm">
+              <SalesBarChart data={analyticsData} period={period} />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RevenueVsOrdersChart data={analyticsData} period={period} />
-            <OrderStatusPieChart data={statusData} />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 min-w-0">
+            <div className="w-full min-w-0 overflow-hidden bg-white dark:bg-[#1A1A1A] p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm">
+              <RevenueVsOrdersChart data={analyticsData} period={period} />
+            </div>
+            <div className="w-full min-w-0 overflow-hidden bg-white dark:bg-[#1A1A1A] p-4 sm:p-6 rounded-xl border border-gray-200 dark:border-white/5 shadow-sm">
+              <OrderStatusPieChart data={statusData} />
+            </div>
           </div>
-        </>
+        </div>
       ) : (
         <div className="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
           <FiBarChart2 className="text-4xl text-gray-400 mx-auto mb-4" />

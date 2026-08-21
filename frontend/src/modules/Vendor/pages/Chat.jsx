@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import { FiMessageCircle, FiSend, FiUser, FiSearch } from "react-icons/fi";
+import { FiMessageCircle, FiSend, FiUser, FiSearch, FiArrowLeft } from "react-icons/fi";
 import { motion } from "framer-motion";
 import Badge from "../../../shared/components/Badge";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
@@ -182,36 +182,39 @@ const Chat = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col">
-          <div className="p-4 border-b border-gray-200">
-            <div className="relative mb-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
+        {/* Chat List Panel */}
+        <div className={`bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 flex flex-col min-w-0 ${
+          selectedChat ? "hidden lg:flex" : "flex"
+        }`}>
+          <div className="p-4 border-b border-gray-200 dark:border-white/5">
+            <div className="relative mb-3">
               <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search chats..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-white/10 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs sm:text-sm"
               />
             </div>
             <div className="flex gap-2">
               <button
                 onClick={() => setFilterStatus("all")}
-                className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`flex-1 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors ${
                   filterStatus === "all"
                     ? "bg-primary-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
                 }`}
               >
                 All ({chats.length})
               </button>
               <button
                 onClick={() => setFilterStatus("active")}
-                className={`flex-1 px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`flex-1 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-colors ${
                   filterStatus === "active"
                     ? "bg-primary-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
                 }`}
               >
                 Active ({activeChats})
@@ -219,31 +222,31 @@ const Chat = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto max-h-[600px] scrollbar-admin">
             {isLoadingChats ? (
               <div className="p-8 text-center text-gray-500">Loading chats...</div>
             ) : filteredChats.length > 0 ? (
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-gray-200 dark:divide-white/5">
                 {filteredChats.map((chat) => (
                   <div
                     key={chat._id}
                     onClick={() => handleSelectChat(chat)}
-                    className={`p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                    className={`p-3.5 sm:p-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ${
                       selectedChat?._id === chat._id
-                        ? "bg-primary-50 border-l-4 border-primary-600"
+                        ? "bg-primary-50 dark:bg-primary-950/30 border-l-4 border-primary-600"
                         : ""
                     }`}
                   >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="flex items-start justify-between mb-1.5">
+                      <div className="flex items-center gap-2.5 sm:gap-3 flex-1 min-w-0">
+                        <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-100 dark:bg-primary-950/50 rounded-full flex items-center justify-center flex-shrink-0">
                           <FiUser className="text-primary-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-800 truncate">
+                          <h3 className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-white truncate">
                             {chat.customerName}
                           </h3>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                             {chat.orderDisplayId
                               ? `Order: ${chat.orderDisplayId}`
                               : chat.customerEmail}
@@ -251,15 +254,15 @@ const Chat = () => {
                         </div>
                       </div>
                       {chat.unreadCount > 0 && (
-                        <Badge variant="warning" className="text-xs">
+                        <Badge variant="warning" className="text-[10px]">
                           {chat.unreadCount}
                         </Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 truncate mb-1">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 truncate mb-1">
                       {chat.lastMessage || "No messages yet"}
                     </p>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-[10px] text-gray-400">
                       {chat.lastActivity
                         ? new Date(chat.lastActivity).toLocaleDateString()
                         : "N/A"}
@@ -276,19 +279,27 @@ const Chat = () => {
           </div>
         </div>
 
+        {/* Chat Conversation Panel */}
         {selectedChat ? (
-          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 flex flex-col">
-            <div className="p-4 border-b border-gray-200 bg-primary-50">
+          <div className="lg:col-span-2 bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 flex flex-col min-w-0">
+            <div className="p-3 sm:p-4 border-b border-gray-200 dark:border-white/5 bg-primary-50 dark:bg-primary-950/30">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                  <button
+                    onClick={() => setSelectedChat(null)}
+                    className="p-1.5 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 rounded-lg lg:hidden"
+                    title="Back to chats"
+                  >
+                    <FiArrowLeft className="text-lg" />
+                  </button>
+                  <div className="w-9 h-9 sm:w-10 sm:h-10 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center flex-shrink-0">
                     <FiUser className="text-primary-600" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-800">
+                  <div className="min-w-0">
+                    <h3 className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-white truncate">
                       {selectedChat.customerName}
                     </h3>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 truncate">
                       {selectedChat.orderDisplayId
                         ? `Order: ${selectedChat.orderDisplayId}`
                         : selectedChat.customerEmail}
@@ -297,7 +308,7 @@ const Chat = () => {
                 </div>
                 <Badge
                   variant={selectedChat.status === "active" ? "success" : "info"}
-                  className="text-xs"
+                  className="text-xs flex-shrink-0"
                 >
                   {selectedChat.status === "active" ? "Active" : "Resolved"}
                 </Badge>

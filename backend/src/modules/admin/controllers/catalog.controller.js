@@ -547,7 +547,20 @@ export const deleteBrand = asyncHandler(async (req, res) => {
 
 // PATCH /api/admin/products/:id/review
 export const reviewProduct = asyncHandler(async (req, res) => {
-    const { status, reason, price, originalPrice, name, description, images } = req.body;
+    const {
+        status,
+        reason,
+        price,
+        originalPrice,
+        name,
+        description,
+        images,
+        salesChannel,
+        b2bWholesalePrice,
+        b2bMinOrderQty,
+        b2bBulkPricingSlabs
+    } = req.body;
+
     if (!['approved', 'rejected'].includes(status)) {
         throw new ApiError(400, 'Invalid review status. Must be approved or rejected.');
     }
@@ -558,10 +571,33 @@ export const reviewProduct = asyncHandler(async (req, res) => {
     product.approvalStatus = status;
     product.approvedBy = req.user.id;
     product.approvalDate = new Date();
+
     if (status === 'rejected') {
         product.rejectionReason = reason || '';
+        product.isActive = false;
     } else {
         product.rejectionReason = undefined;
+        product.isActive = true;
+        product.isVisible = true;
+
+        if (salesChannel && ['B2C', 'B2B', 'BOTH'].includes(salesChannel)) {
+            product.salesChannel = salesChannel;
+            product.b2bEnabled = (salesChannel === 'B2B' || salesChannel === 'BOTH');
+        }
+
+        if (b2bWholesalePrice !== undefined && Number(b2bWholesalePrice) >= 0) {
+            product.b2bWholesalePrice = Number(b2bWholesalePrice);
+        } else if ((product.salesChannel === 'B2B' || product.salesChannel === 'BOTH') && !product.b2bWholesalePrice) {
+            product.b2bWholesalePrice = price !== undefined ? Number(price) : product.price;
+        }
+
+        if (b2bMinOrderQty !== undefined && Number(b2bMinOrderQty) >= 1) {
+            product.b2bMinOrderQty = Number(b2bMinOrderQty);
+        }
+
+        if (b2bBulkPricingSlabs !== undefined) {
+            product.b2bBulkPricingSlabs = b2bBulkPricingSlabs;
+        }
     }
 
     // Admin can edit product details during review
@@ -577,7 +613,7 @@ export const reviewProduct = asyncHandler(async (req, res) => {
         userId: req.user.id,
         userType: 'admin',
         timestamp: new Date(),
-        reason: reason || ''
+        reason: reason || (status === 'approved' ? `Approved with channel: ${product.salesChannel}` : '')
     });
 
     await product.save();

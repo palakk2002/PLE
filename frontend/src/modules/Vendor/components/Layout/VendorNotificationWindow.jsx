@@ -92,7 +92,7 @@ const VendorNotificationWindow = ({ isOpen, onClose, position = "right" }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`fixed lg:absolute ${positionClasses[position]} top-[calc(4rem-40px)] lg:top-full lg:-mt-[38px] right-[11px] lg:-right-[5px] z-[10000] w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 max-h-[calc(100vh-8rem)] flex flex-col overflow-hidden`}
+            className={`fixed sm:absolute ${positionClasses[position]} top-16 sm:top-full sm:mt-2 right-3 sm:right-0 z-[10000] w-[calc(100vw-1.5rem)] sm:w-96 max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 max-h-[calc(100vh-6rem)] sm:max-h-[calc(100vh-8rem)] flex flex-col overflow-hidden`}
             style={{ willChange: "transform" }}
           >
             <div className="sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-10">

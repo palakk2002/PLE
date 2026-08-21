@@ -56,6 +56,7 @@
     "children": [
       "Business Users",
       "Company Management",
+      "B2B Seller Requests",
       "B2B Products",
       "B2B Orders",
       "B2B Settings",
@@ -68,6 +69,7 @@
     "children": [
       "Manage B2B Users",
       "Pending Approvals",
+      "B2B Seller Requests",
       "B2B Analytics"
     ]
   },
@@ -119,6 +121,7 @@
     "children": [
       "Manage Vendors",
       "Pending Approvals",
+      "B2B Seller Requests",
       "Commission Rates",
       "Vendor Analytics",
       "Managed Vendor Chats",

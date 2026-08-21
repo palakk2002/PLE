@@ -153,31 +153,30 @@ const OrderDetail = () => {
         );
     }
 
-    return (
-        <motion.div
+    return (        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-6"
+            className="space-y-6 min-w-0"
         >
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                     <Link
                         to="/vendor/orders"
-                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg transition-colors flex-shrink-0"
                     >
-                        <FiArrowLeft className="text-gray-600" />
+                        <FiArrowLeft className="text-gray-600 dark:text-gray-300" />
                     </Link>
-                    <div>
+                    <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <h1 className="text-2xl font-bold text-gray-800">
+                            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 dark:text-white truncate">
                                 Order #{order.orderId ?? order._id}
                             </h1>
                             <Badge variant={order.isB2b || order.orderType === 'b2b' ? 'warning' : 'success'}>
                                 {order.isB2b || order.orderType === 'b2b' ? 'WHOLESALE' : 'RETAIL'}
                             </Badge>
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                             Placed on{' '}
                             {order.createdAt
                                 ? new Date(order.createdAt).toLocaleDateString()
@@ -186,7 +185,7 @@ const OrderDetail = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-shrink-0">
                     <AnimatedSelect
                         options={visibleStatusOptions}
                         value={currentStatus}
@@ -200,48 +199,44 @@ const OrderDetail = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 min-w-0">
                 {/* Main Content */}
-                <div className="lg:col-span-2 space-y-6">
+                <div className="lg:col-span-2 space-y-4 sm:space-y-6 min-w-0">
                     {/* Order Items */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                        <div className="p-4 border-b border-gray-200">
-                            <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 overflow-hidden min-w-0">
+                        <div className="p-4 border-b border-gray-200 dark:border-white/5">
+                            <h2 className="font-semibold text-gray-800 dark:text-white flex items-center gap-2 text-sm sm:text-base">
                                 <FiPackage />
                                 Your Items in this Order
                             </h2>
                         </div>
-                        <div className="divide-y divide-gray-200">
+                        <div className="divide-y divide-gray-200 dark:divide-white/5">
                             {vendorItems.length > 0 ? (
                                 vendorItems.map((item, index) => (
-                                    <div key={index} className="p-4 flex gap-4">
-                                        <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                                    <div key={index} className="p-4 flex flex-col sm:flex-row gap-3 sm:gap-4">
+                                        <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-lg overflow-hidden flex-shrink-0">
                                             <img
                                                 src={item.image}
                                                 alt={item.name}
                                                 className="w-full h-full object-cover"
                                                 onError={(e) => {
                                                     e.target.src =
-                                                        'https://via.placeholder.com/64?text=P';
+                                                        'https://via.placeholder.com/64?text=Product';
                                                 }}
                                             />
                                         </div>
-                                        <div className="flex-1">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <h3 className="font-medium text-gray-800">
-                                                        {item.name}
-                                                    </h3>
-                                                    <p className="text-sm text-gray-500">
-                                                        Qty: {item.quantity}
-                                                    </p>
-                                                </div>
-                                                <p className="font-semibold text-gray-800">
-                                                    {formatPrice(
-                                                        (item.price ?? 0) * (item.quantity ?? 1)
-                                                    )}
-                                                </p>
-                                            </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base truncate">
+                                                {item.name}
+                                            </h3>
+                                            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+                                                {formatPrice(item.price)} × {item.quantity}
+                                            </p>
+                                        </div>
+                                        <div className="text-left sm:text-right flex-shrink-0">
+                                            <p className="font-semibold text-gray-800 dark:text-white text-sm sm:text-base">
+                                                {formatPrice((item.price ?? 0) * (item.quantity ?? 1))}
+                                            </p>
                                         </div>
                                     </div>
                                 ))

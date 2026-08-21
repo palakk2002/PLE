@@ -7,7 +7,7 @@ export function verifyShiprocketWebhookSignature(rawBody, headers) {
         return true;
     }
 
-    const headerToken = headers['x-shiprocket-token'] || headers['x-shiprocket-signature'] || headers['authorization'];
+    const headerToken = headers['x-api-key'] || headers['x-shiprocket-token'] || headers['x-shiprocket-signature'] || headers['authorization'];
     if (!headerToken) return false;
 
     // Direct token comparison or timing-safe equal check

@@ -100,24 +100,24 @@ const Earnings = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-1">
             Earnings
           </h1>
-          <p className="text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
             View your earnings and commission history
           </p>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
-          <div className="flex overflow-x-auto scrollbar-hide -mx-1 px-1">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
+        <div className="border-b border-gray-200 dark:border-white/5 overflow-x-auto scrollbar-admin">
+          <div className="flex -mx-1 px-1 min-w-max">
             <button
               onClick={() => handleTabChange("overview")}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap text-sm ${activeTab === "overview"
+              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap text-xs sm:text-sm ${activeTab === "overview"
                 ? "border-purple-600 text-purple-600 font-semibold"
                 : "border-transparent text-gray-600 hover:text-gray-800"
                 }`}>
@@ -126,7 +126,7 @@ const Earnings = () => {
             </button>
             <button
               onClick={() => handleTabChange("commission")}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap text-sm ${activeTab === "commission"
+              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap text-xs sm:text-sm ${activeTab === "commission"
                 ? "border-purple-600 text-purple-600 font-semibold"
                 : "border-transparent text-gray-600 hover:text-gray-800"
                 }`}>
@@ -135,7 +135,7 @@ const Earnings = () => {
             </button>
             <button
               onClick={() => handleTabChange("settlement")}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap text-sm ${activeTab === "settlement"
+              className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors whitespace-nowrap text-xs sm:text-sm ${activeTab === "settlement"
                 ? "border-purple-600 text-purple-600 font-semibold"
                 : "border-transparent text-gray-600 hover:text-gray-800"
                 }`}>
@@ -145,67 +145,67 @@ const Earnings = () => {
           </div>
         </div>
 
-        <div className="p-3 sm:p-4 md:p-6">
+        <div className="p-3 sm:p-4 md:p-6 min-w-0">
           {/* Earnings Summary Cards - Show on Overview tab */}
           {activeTab === "overview" && (
             <div className="mb-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 shadow-sm border border-green-200">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 sm:p-6 shadow-sm border border-green-200 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-green-700 font-medium">
+                    <p className="text-xs sm:text-sm text-green-700 font-medium truncate">
                       Total Earnings
                     </p>
-                    <FiDollarSign className="text-green-600" />
+                    <FiDollarSign className="text-green-600 flex-shrink-0" />
                   </div>
-                  <p className="text-2xl font-bold text-green-800">
+                  <p className="text-xl sm:text-2xl font-bold text-green-800 truncate">
                     {earningsSummary
                       ? formatPrice(earningsSummary.totalEarnings)
                       : formatPrice(0)}
                   </p>
-                  <p className="text-xs text-green-600 mt-1">All time</p>
+                  <p className="text-[11px] sm:text-xs text-green-600 mt-1">All time</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-6 shadow-sm border border-yellow-200">
+                <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl p-4 sm:p-6 shadow-sm border border-yellow-200 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-yellow-700 font-medium">
+                    <p className="text-xs sm:text-sm text-yellow-700 font-medium truncate">
                       Pending
                     </p>
-                    <FiClock className="text-yellow-600" />
+                    <FiClock className="text-yellow-600 flex-shrink-0" />
                   </div>
-                  <p className="text-2xl font-bold text-yellow-800">
+                  <p className="text-xl sm:text-2xl font-bold text-yellow-800 truncate">
                     {earningsSummary
                       ? formatPrice(earningsSummary.pendingEarnings)
                       : formatPrice(0)}
                   </p>
-                  <p className="text-xs text-yellow-600 mt-1">
+                  <p className="text-[11px] sm:text-xs text-yellow-600 mt-1">
                     Awaiting settlement
                   </p>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 shadow-sm border border-blue-200">
+                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-4 sm:p-6 shadow-sm border border-blue-200 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-blue-700 font-medium">Paid</p>
-                    <FiCheckCircle className="text-blue-600" />
+                    <p className="text-xs sm:text-sm text-blue-700 font-medium truncate">Paid</p>
+                    <FiCheckCircle className="text-blue-600 flex-shrink-0" />
                   </div>
-                  <p className="text-2xl font-bold text-blue-800">
+                  <p className="text-xl sm:text-2xl font-bold text-blue-800 truncate">
                     {earningsSummary
                       ? formatPrice(earningsSummary.paidEarnings)
                       : formatPrice(0)}
                   </p>
-                  <p className="text-xs text-blue-600 mt-1">Settled</p>
+                  <p className="text-[11px] sm:text-xs text-blue-600 mt-1">Settled</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-6 shadow-sm border border-purple-200">
+                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-xl p-4 sm:p-6 shadow-sm border border-purple-200 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm text-purple-700 font-medium">
+                    <p className="text-xs sm:text-sm text-purple-700 font-medium truncate">
                       Total Orders
                     </p>
-                    <FiTrendingUp className="text-purple-600" />
+                    <FiTrendingUp className="text-purple-600 flex-shrink-0" />
                   </div>
-                  <p className="text-2xl font-bold text-purple-800">
+                  <p className="text-xl sm:text-2xl font-bold text-purple-800 truncate">
                     {earningsSummary ? earningsSummary.totalOrders : 0}
                   </p>
-                  <p className="text-xs text-purple-600 mt-1">With earnings</p>
+                  <p className="text-[11px] sm:text-xs text-purple-600 mt-1">With earnings</p>
                 </div>
               </div>
             </div>
@@ -214,17 +214,17 @@ const Earnings = () => {
           {/* Commission History Section */}
           {(activeTab === "overview" || activeTab === "commission") && (
             <div className={activeTab === "overview" ? "mb-6" : ""}>
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+              <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6">
                   <div>
-                    <h2 className="text-lg font-bold text-gray-800 mb-1">
+                    <h2 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mb-1">
                       Commission History
                     </h2>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                       View all your commission records
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                     <AnimatedSelect
                       value={selectedStatus}
                       onChange={(e) => setSelectedStatus(e.target.value)}
@@ -234,7 +234,7 @@ const Earnings = () => {
                         { value: "paid", label: "Paid" },
                         { value: "cancelled", label: "Cancelled" },
                       ]}
-                      className="min-w-[140px]"
+                      className="min-w-[130px]"
                     />
                     <ExportButton
                       data={filteredCommissions}

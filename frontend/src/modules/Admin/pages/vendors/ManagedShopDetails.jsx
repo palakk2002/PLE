@@ -40,6 +40,9 @@ const ManagedShopDetails = () => {
   });
   const [reviewProduct, setReviewProduct] = useState(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [reviewChannel, setReviewChannel] = useState("B2C");
+  const [reviewB2bPrice, setReviewB2bPrice] = useState(0);
+  const [reviewB2bMinQty, setReviewB2bMinQty] = useState(1);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -54,6 +57,9 @@ const ManagedShopDetails = () => {
       await api.patch(`/admin/products/${reviewProduct._id}/review`, {
         status,
         reason: rejectionReason,
+        salesChannel: reviewChannel,
+        b2bWholesalePrice: reviewB2bPrice,
+        b2bMinOrderQty: reviewB2bMinQty,
       });
       toast.success(`Product ${status === "approved" ? "approved" : "rejected"} successfully`);
       setReviewProduct(null);
@@ -508,7 +514,12 @@ const ManagedShopDetails = () => {
                         <td className="p-4 pr-6 text-right space-x-2">
                           {product.approvalStatus === "pending" && (
                             <button
-                              onClick={() => setReviewProduct(product)}
+                              onClick={() => {
+                                setReviewProduct(product);
+                                setReviewChannel(product.salesChannel || "B2C");
+                                setReviewB2bPrice(product.b2bWholesalePrice !== undefined && product.b2bWholesalePrice !== null ? product.b2bWholesalePrice : product.price || 0);
+                                setReviewB2bMinQty(product.b2bMinOrderQty || 1);
+                              }}
                               className="px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-xs font-semibold shadow-sm transition-all"
                               title="Review Product"
                             >
@@ -736,9 +747,71 @@ const ManagedShopDetails = () => {
                   <h3 className="font-bold text-gray-900 text-sm">{reviewProduct.name}</h3>
                   <p className="text-xs text-gray-500 truncate max-w-xs">{reviewProduct.description}</p>
                   <div className="text-xs font-semibold text-gray-700">
-                    Price: <span className="text-primary-600">{formatPrice(reviewProduct.price)}</span>
+                    Retail Price: <span className="text-primary-600">{formatPrice(reviewProduct.price)}</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Target Sales Channel Selector */}
+              <div className="bg-amber-50/60 border border-amber-200/80 p-3.5 rounded-2xl space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-900 mb-1 flex items-center justify-between">
+                    <span>Target Sales Channel *</span>
+                    <span className="text-[10px] text-amber-800 font-semibold uppercase">Admin Publish Destination</span>
+                  </label>
+                  <p className="text-[11px] text-gray-500 mb-2">
+                    Select where this product will be visible upon approval:
+                  </p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { id: 'B2C', label: 'B2C Only', desc: 'Retail' },
+                      { id: 'B2B', label: 'B2B Only', desc: 'Wholesale' },
+                      { id: 'BOTH', label: 'Both', desc: 'B2C + B2B' },
+                    ].map((chan) => (
+                      <button
+                        key={chan.id}
+                        type="button"
+                        onClick={() => setReviewChannel(chan.id)}
+                        className={`p-2 rounded-xl text-center border transition-all ${
+                          reviewChannel === chan.id
+                            ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+                            : 'bg-white text-gray-700 border-gray-200 hover:bg-amber-50/50'
+                        }`}
+                      >
+                        <div className="text-xs font-bold">{chan.label}</div>
+                        <div className={`text-[10px] ${reviewChannel === chan.id ? 'text-amber-100' : 'text-gray-400'}`}>
+                          {chan.desc}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {(reviewChannel === 'B2B' || reviewChannel === 'BOTH') && (
+                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-amber-200/60">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-800">B2B Wholesale Price (₹)</label>
+                      <input
+                        type="number"
+                        value={reviewB2bPrice}
+                        onChange={(e) => setReviewB2bPrice(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none"
+                        placeholder="Wholesale price"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-bold text-gray-800">Min Order Qty (MOQ)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={reviewB2bMinQty}
+                        onChange={(e) => setReviewB2bMinQty(Number(e.target.value))}
+                        className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none"
+                        placeholder="e.g. 10"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Rejection Form Input */}
@@ -748,7 +821,7 @@ const ManagedShopDetails = () => {
                   value={rejectionReason}
                   onChange={(e) => setRejectionReason(e.target.value)}
                   placeholder="e.g. Image resolution is low, or incorrect category selected."
-                  rows={3}
+                  rows={2}
                   className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/35 text-xs text-gray-750"
                 />
               </div>

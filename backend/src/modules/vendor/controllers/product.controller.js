@@ -4,7 +4,20 @@ import ApiError from '../../../utils/ApiError.js';
 import Product from '../../../models/Product.model.js';
 import Category from '../../../models/Category.model.js';
 import Brand from '../../../models/Brand.model.js';
+import Vendor from '../../../models/Vendor.model.js';
 import { slugify } from '../../../utils/slugify.js';
+
+const checkB2BPermission = async (vendorId, salesChannel) => {
+    if (salesChannel === 'B2B' || salesChannel === 'BOTH') {
+        const vendor = await Vendor.findById(vendorId).select('b2bSellingStatus');
+        if (!vendor || vendor.b2bSellingStatus !== 'approved') {
+            throw new ApiError(
+                403,
+                'B2B selling is locked for your account. Please submit a B2B Seller Application with GST verification and get approval from the Administrator.'
+            );
+        }
+    }
+};
 
 const deriveStockStatus = (stockQuantity = 0, lowStockThreshold = 10) => {
     if (stockQuantity <= 0) return 'out_of_stock';
@@ -264,22 +277,31 @@ export const createProduct = asyncHandler(async (req, res) => {
         : stockQuantity;
     const stock = deriveStockStatus(finalStockQuantity, lowStockThreshold);
 
+    const isManaged = req.user.role === 'managed_vendor';
+    const targetSalesChannel = isManaged ? 'B2C' : (rest.salesChannel || 'B2C');
+
+    if (!isManaged) {
+        await checkB2BPermission(req.user.id, targetSalesChannel);
+    }
+
     const product = await Product.create({
         name,
         slug,
-        vendorId: req.user.role === 'managed_vendor' ? undefined : req.user.id,
-        shopId: req.user.role === 'managed_vendor' ? req.user.shopId : undefined,
-        vendorUserId: req.user.role === 'managed_vendor' ? req.user.id : undefined,
+        vendorId: isManaged ? undefined : req.user.id,
+        shopId: isManaged ? req.user.shopId : undefined,
+        vendorUserId: isManaged ? req.user.id : undefined,
         createdBy: req.user.id,
-        approvalStatus: req.user.role === 'managed_vendor' ? 'pending' : 'approved',
+        approvalStatus: isManaged ? 'pending' : 'approved',
+        isActive: !isManaged,
         auditLog: [{
             action: 'created',
             userId: req.user.id,
-            userType: req.user.role === 'managed_vendor' ? 'managed_vendor' : 'vendor',
+            userType: isManaged ? 'managed_vendor' : 'vendor',
             timestamp: new Date(),
-            reason: 'Product created'
+            reason: isManaged ? 'Product submitted for admin review' : 'Product created'
         }],
         ...rest,
+        salesChannel: targetSalesChannel,
         price,
         variants: normalizedVariants,
         faqs: sanitizeFaqs(rest.faqs),
@@ -306,6 +328,11 @@ export const updateProduct = asyncHandler(async (req, res) => {
         // If product was rejected, editing resubmits it for review
         if (product.approvalStatus === 'rejected') {
             product.approvalStatus = 'pending';
+        }
+    } else {
+        const incomingChannel = req.body.salesChannel || product.salesChannel;
+        if (req.body.salesChannel && ['B2B', 'BOTH'].includes(req.body.salesChannel)) {
+            await checkB2BPermission(req.user.id, req.body.salesChannel);
         }
     }
 
@@ -408,6 +435,12 @@ export const createBulkProducts = asyncHandler(async (req, res) => {
     }
 
     const isManaged = req.user.role === 'managed_vendor';
+    let isB2BApproved = isManaged;
+    if (!isManaged) {
+        const vendorDoc = await Vendor.findById(req.user.id).select('b2bSellingStatus');
+        isB2BApproved = vendorDoc?.b2bSellingStatus === 'approved';
+    }
+
     const createdProducts = [];
     const errors = [];
 
@@ -461,8 +494,15 @@ export const createBulkProducts = asyncHandler(async (req, res) => {
                 }
             }
 
-            const targetSalesChannel = ['B2C', 'B2B', 'BOTH'].includes(item.salesChannel) ? item.salesChannel : 'B2C';
-            if ((targetSalesChannel === 'B2B' || targetSalesChannel === 'BOTH') && (!item.b2bWholesalePrice || isNaN(item.b2bWholesalePrice) || Number(item.b2bWholesalePrice) <= 0)) {
+            const targetSalesChannel = isManaged
+                ? 'B2C'
+                : (['B2C', 'B2B', 'BOTH'].includes(item.salesChannel) ? item.salesChannel : 'B2C');
+
+            if (!isManaged && (targetSalesChannel === 'B2B' || targetSalesChannel === 'BOTH') && !isB2BApproved) {
+                throw new Error(`Row #${rowNum}: B2B selling is locked for your account. Please apply for B2B selling approval with GST verification.`);
+            }
+
+            if (!isManaged && (targetSalesChannel === 'B2B' || targetSalesChannel === 'BOTH') && (!item.b2bWholesalePrice || isNaN(item.b2bWholesalePrice) || Number(item.b2bWholesalePrice) <= 0)) {
                 throw new Error(`Row #${rowNum}: Missing or invalid B2B Wholesale Price for ${targetSalesChannel} product '${name}'.`);
             }
 
@@ -495,6 +535,7 @@ export const createBulkProducts = asyncHandler(async (req, res) => {
                 vendorUserId: isManaged ? req.user.id : undefined,
                 createdBy: req.user.id,
                 approvalStatus: isManaged ? 'pending' : 'approved',
+                isActive: !isManaged,
                 stockQuantity,
                 lowStockThreshold: Number(item.lowStockThreshold || 10),
                 minimumOrderQuantity: item.minimumOrderQuantity ? Math.max(1, Number(item.minimumOrderQuantity)) : 1,
@@ -516,9 +557,9 @@ export const createBulkProducts = asyncHandler(async (req, res) => {
                 taxRate: item.gstRate !== undefined && item.gstRate !== '' ? Number(item.gstRate) : (item.taxRate ? Number(item.taxRate) : 18),
 
                 // B2B Details
-                salesChannel: ['B2C', 'B2B', 'BOTH'].includes(item.salesChannel) ? item.salesChannel : 'B2C',
-                b2bWholesalePrice: item.b2bWholesalePrice ? Number(item.b2bWholesalePrice) : undefined,
-                b2bMinOrderQty: item.b2bMinOrderQty ? Number(item.b2bMinOrderQty) : 1,
+                salesChannel: targetSalesChannel,
+                b2bWholesalePrice: !isManaged && item.b2bWholesalePrice ? Number(item.b2bWholesalePrice) : undefined,
+                b2bMinOrderQty: !isManaged && item.b2bMinOrderQty ? Number(item.b2bMinOrderQty) : 1,
                 b2bUnitsPerCarton: item.b2bUnitsPerCarton ? Number(item.b2bUnitsPerCarton) : undefined,
                 b2bGstRate: item.b2bGstRate ? String(item.b2bGstRate) : '18',
                 b2bPackagingType: item.b2bPackagingType || 'standard',

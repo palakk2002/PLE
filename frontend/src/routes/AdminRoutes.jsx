@@ -48,6 +48,7 @@ const AdminVendorAnalytics = lazy(() => import("../modules/Admin/pages/vendors/V
 const ManagedShops = lazy(() => import("../modules/Admin/pages/vendors/ManagedShops"));
 const ManagedShopDetails = lazy(() => import("../modules/Admin/pages/vendors/ManagedShopDetails"));
 const AdminProductApprovals = lazy(() => import("../modules/Admin/pages/vendors/ProductApprovals"));
+const B2BSellerRequests = lazy(() => import("../modules/Admin/pages/vendors/B2BSellerRequests"));
 const B2BUsersDashboard = lazy(() => import("../modules/Admin/pages/b2b-users/B2BUsersDashboard"));
 const ManageB2BUsers = lazy(() => import("../modules/Admin/pages/b2b-users/ManageB2BUsers"));
 const PendingB2BApprovals = lazy(() => import("../modules/Admin/pages/b2b-users/PendingB2BApprovals"));
@@ -205,6 +206,7 @@ export default function AdminRoutes() {
         <Route path="vendors/managed-shops" element={<ManagedShops />} />
         <Route path="vendors/managed-shops/:id" element={<ManagedShopDetails />} />
         <Route path="vendors/product-approvals" element={<AdminProductApprovals />} />
+        <Route path="vendors/b2b-requests" element={<B2BSellerRequests />} />
 
         <Route path="b2b-users" element={<B2BUsersDashboard />} />
         <Route path="b2b-users/manage" element={<ManageB2BUsers />} />

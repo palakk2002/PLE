@@ -18,6 +18,7 @@ import {
 } from "react-icons/fi";
 import api from "../../../../shared/utils/api";
 import { createBulkProducts, uploadVendorImage } from "../../services/vendorService";
+import { useVendorAuthStore } from "../../store/vendorAuthStore";
 import { useCategoryStore } from "../../../../shared/store/categoryStore";
 import { useBrandStore } from "../../../../shared/store/brandStore";
 
@@ -116,6 +117,8 @@ const DEFAULT_PRODUCT_ROW = {
 
 export default function BulkProducts() {
   const navigate = useNavigate();
+  const { vendor, refreshProfile } = useVendorAuthStore();
+  const isManagedVendor = vendor?.role === "managed_vendor";
   const [activeTab, setActiveTab] = useState("grid"); // 'grid' | 'file'
   const [submitting, setSubmitting] = useState(false);
 
@@ -138,6 +141,9 @@ export default function BulkProducts() {
   useEffect(() => {
     initCategories();
     initBrands();
+    if (refreshProfile) {
+      refreshProfile();
+    }
   }, [initCategories, initBrands]);
 
   // ----------------------------------------------------
@@ -207,8 +213,12 @@ export default function BulkProducts() {
       }
       if (Number(row.stockQuantity) < 0) errors.push("Invalid Stock Quantity");
 
-      const channel = row.salesChannel || "B2C";
-      if ((channel === "B2B" || channel === "BOTH") && (row.b2bWholesalePrice === "" || isNaN(row.b2bWholesalePrice) || Number(row.b2bWholesalePrice) <= 0)) {
+      const isB2BApproved = isManagedVendor || vendor?.b2bSellingStatus === 'approved';
+      const channel = isManagedVendor ? "B2C" : (row.salesChannel || "B2C");
+      if (!isB2BApproved && (channel === "B2B" || channel === "BOTH")) {
+        errors.push("B2B selling is locked. GST verification & Admin approval required.");
+      }
+      if (!isManagedVendor && (channel === "B2B" || channel === "BOTH") && (row.b2bWholesalePrice === "" || isNaN(row.b2bWholesalePrice) || Number(row.b2bWholesalePrice) <= 0)) {
         errors.push(`Missing B2B Wholesale Price for ${channel} product`);
       }
 
@@ -230,9 +240,9 @@ export default function BulkProducts() {
           totalAllowedQuantity: row.totalAllowedQuantity ? Number(row.totalAllowedQuantity) : undefined,
           warrantyPeriod: row.warrantyPeriod || "",
           guaranteePeriod: row.guaranteePeriod || "",
-          salesChannel: row.salesChannel || "B2C",
-          b2bWholesalePrice: row.b2bWholesalePrice ? Number(row.b2bWholesalePrice) : undefined,
-          b2bMinOrderQty: row.b2bMinOrderQty ? Number(row.b2bMinOrderQty) : 1,
+          salesChannel: isManagedVendor ? "B2C" : (row.salesChannel || "B2C"),
+          b2bWholesalePrice: !isManagedVendor && row.b2bWholesalePrice ? Number(row.b2bWholesalePrice) : undefined,
+          b2bMinOrderQty: !isManagedVendor && row.b2bMinOrderQty ? Number(row.b2bMinOrderQty) : 1,
           b2bUnitsPerCarton: row.b2bUnitsPerCarton ? Number(row.b2bUnitsPerCarton) : undefined,
           b2bGstRate: row.b2bGstRate || "18",
           b2bLeadTimeDays: row.b2bLeadTimeDays ? Number(row.b2bLeadTimeDays) : undefined,
@@ -385,7 +395,11 @@ export default function BulkProducts() {
           const errors = [];
           if (!name) errors.push("Missing Product Name");
           if (isNaN(price) || price <= 0) errors.push("Invalid Price");
-          if ((salesChannel === "B2B" || salesChannel === "BOTH") && (!b2bWholesalePrice || isNaN(b2bWholesalePrice) || Number(b2bWholesalePrice) <= 0)) {
+          const isB2BApproved = isManagedVendor || vendor?.b2bSellingStatus === 'approved';
+          if (!isB2BApproved && (salesChannel === "B2B" || salesChannel === "BOTH")) {
+            errors.push(`B2B selling is locked for your account (Row #${index + 1})`);
+          }
+          if (!isManagedVendor && (salesChannel === "B2B" || salesChannel === "BOTH") && (!b2bWholesalePrice || isNaN(b2bWholesalePrice) || Number(b2bWholesalePrice) <= 0)) {
             errors.push(`B2B Wholesale Price required for ${salesChannel} channel`);
           }
 
@@ -405,8 +419,8 @@ export default function BulkProducts() {
             totalAllowedQuantity,
             warrantyPeriod,
             guaranteePeriod,
-            salesChannel,
-            b2bWholesalePrice,
+            salesChannel: isManagedVendor ? "B2C" : salesChannel,
+            b2bWholesalePrice: isManagedVendor ? "" : b2bWholesalePrice,
             b2bMinOrderQty,
             b2bUnitsPerCarton,
             b2bGstRate,
@@ -446,7 +460,7 @@ export default function BulkProducts() {
         if (isNaN(updated.price) || Number(updated.price) <= 0) {
           errors.push("Invalid Price");
         }
-        if ((updated.salesChannel === "B2B" || updated.salesChannel === "BOTH") && (!updated.b2bWholesalePrice || isNaN(updated.b2bWholesalePrice) || Number(updated.b2bWholesalePrice) <= 0)) {
+        if (!isManagedVendor && (updated.salesChannel === "B2B" || updated.salesChannel === "BOTH") && (!updated.b2bWholesalePrice || isNaN(updated.b2bWholesalePrice) || Number(updated.b2bWholesalePrice) <= 0)) {
           errors.push(`B2B Wholesale Price required for ${updated.salesChannel} channel`);
         }
 
@@ -479,9 +493,9 @@ export default function BulkProducts() {
       totalAllowedQuantity: row.totalAllowedQuantity ? Number(row.totalAllowedQuantity) : undefined,
       warrantyPeriod: row.warrantyPeriod,
       guaranteePeriod: row.guaranteePeriod,
-      salesChannel: row.salesChannel,
-      b2bWholesalePrice: row.b2bWholesalePrice ? Number(row.b2bWholesalePrice) : undefined,
-      b2bMinOrderQty: row.b2bMinOrderQty ? Number(row.b2bMinOrderQty) : 1,
+      salesChannel: isManagedVendor ? "B2C" : row.salesChannel,
+      b2bWholesalePrice: !isManagedVendor && row.b2bWholesalePrice ? Number(row.b2bWholesalePrice) : undefined,
+      b2bMinOrderQty: !isManagedVendor && row.b2bMinOrderQty ? Number(row.b2bMinOrderQty) : 1,
       b2bUnitsPerCarton: row.b2bUnitsPerCarton ? Number(row.b2bUnitsPerCarton) : undefined,
       b2bGstRate: row.b2bGstRate,
       b2bLeadTimeDays: row.b2bLeadTimeDays ? Number(row.b2bLeadTimeDays) : undefined,
@@ -515,68 +529,68 @@ export default function BulkProducts() {
   return (
     <div className="space-y-6">
       {/* HEADER SECTION - LIGHT THEME */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl border border-amber-100 shadow-sm">
-            <FiBox className="w-6 h-6" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white border border-gray-200 p-4 sm:p-6 rounded-2xl shadow-sm min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-2.5 sm:p-3 bg-amber-50 text-amber-600 rounded-xl border border-amber-100 shadow-sm flex-shrink-0">
+            <FiBox className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
               Bulk Product Upload
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 truncate">
               Add multiple catalog products simultaneously via interactive grid or Excel file.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-shrink-0">
           <button
             onClick={() => downloadSampleTemplate("xlsx")}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium rounded-xl border border-gray-300 transition shadow-sm"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium rounded-xl border border-gray-300 transition shadow-sm"
           >
-            <FiDownload className="w-4 h-4 text-emerald-600" />
+            <FiDownload className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
             <span>Sample Excel</span>
           </button>
           <button
             onClick={() => downloadSampleTemplate("csv")}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium rounded-xl border border-gray-300 transition shadow-sm"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium rounded-xl border border-gray-300 transition shadow-sm"
           >
-            <FiDownload className="w-4 h-4 text-indigo-600" />
+            <FiDownload className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
             <span>Sample CSV</span>
           </button>
         </div>
       </div>
 
       {/* TAB SWITCHER - LIGHT THEME */}
-      <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200 w-fit">
+      <div className="flex flex-wrap items-center gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200 w-full sm:w-fit">
         <button
           onClick={() => setActiveTab("grid")}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition ${
+          className={`flex items-center justify-center gap-2 px-3.5 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex-1 sm:flex-initial ${
             activeTab === "grid"
               ? "bg-white text-gray-900 shadow-sm border border-gray-200 font-semibold"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
           <FiGrid className="w-4 h-4 text-amber-600" />
-          <span>Manual Grid Entry</span>
-          <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">
+          <span>Manual Grid</span>
+          <span className="ml-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">
             {gridRows.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab("file")}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition ${
+          className={`flex items-center justify-center gap-2 px-3.5 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex-1 sm:flex-initial ${
             activeTab === "file"
               ? "bg-white text-gray-900 shadow-sm border border-gray-200 font-semibold"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
           <FiUploadCloud className="w-4 h-4 text-indigo-600" />
-          <span>Excel / CSV Upload</span>
+          <span>Sheet Upload</span>
           {parsedRows.length > 0 && (
-            <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
+            <span className="ml-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
               {parsedRows.length}
             </span>
           )}
@@ -904,14 +918,23 @@ export default function BulkProducts() {
                     <td className="p-2">
                       <select
                         value={row.salesChannel}
-                        onChange={(e) =>
-                          handleGridChange(row.id, "salesChannel", e.target.value)
-                        }
+                        onChange={(e) => {
+                          const isB2BApproved = isManagedVendor || vendor?.b2bSellingStatus?.toLowerCase() === 'approved';
+                          if (!isB2BApproved && e.target.value !== "B2C") {
+                            toast.error("B2B selling requires GST verification & Admin approval.");
+                            return;
+                          }
+                          handleGridChange(row.id, "salesChannel", e.target.value);
+                        }}
                         className="w-full bg-white border border-gray-300 focus:border-amber-500 rounded-lg px-2 py-1.5 text-gray-900 text-xs outline-none"
                       >
                         <option value="B2C">B2C</option>
-                        <option value="B2B">B2B Only</option>
-                        <option value="BOTH">BOTH (B2C & B2B)</option>
+                        <option value="B2B" disabled={!isManagedVendor && vendor?.b2bSellingStatus?.toLowerCase() !== 'approved'}>
+                          {(!isManagedVendor && vendor?.b2bSellingStatus?.toLowerCase() !== 'approved') ? "🔒 B2B (Locked)" : "B2B Only"}
+                        </option>
+                        <option value="BOTH" disabled={!isManagedVendor && vendor?.b2bSellingStatus?.toLowerCase() !== 'approved'}>
+                          {(!isManagedVendor && vendor?.b2bSellingStatus?.toLowerCase() !== 'approved') ? "🔒 BOTH (Locked)" : "BOTH (B2C & B2B)"}
+                        </option>
                       </select>
                     </td>
 

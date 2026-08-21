@@ -122,7 +122,35 @@ const vendorSchema = new mongoose.Schema(
         businessLetterUploadedAt: { type: Date },
         partnershipAgreementUrl: { type: String },
         partnershipAgreementName: { type: String },
-        partnershipAgreementUploadedAt: { type: Date }
+        partnershipAgreementUploadedAt: { type: Date },
+
+        // B2B Selling Authorization & Application Fields
+        b2bSellingStatus: {
+            type: String,
+            enum: ['not_applied', 'pending', 'approved', 'rejected'],
+            default: 'not_applied',
+            index: true
+        },
+        b2bSellingGstStatus: {
+            type: String,
+            enum: ['gst_registered', 'non_gst'],
+            default: 'non_gst'
+        },
+        b2bSellingGstNumber: { type: String },
+        b2bSellingGstCertificate: { type: String },
+        b2bSellingLegalName: { type: String },
+        b2bSellingTradeName: { type: String },
+        b2bSellingPan: { type: String },
+        b2bSellingAddress: { type: String },
+        b2bSellingCity: { type: String },
+        b2bSellingState: { type: String },
+        b2bSellingPincode: { type: String },
+        b2bSellingDeclaration: { type: String },
+        b2bSellingAppliedAt: { type: Date },
+        b2bSellingApprovedAt: { type: Date },
+        b2bSellingRejectedAt: { type: Date },
+        b2bSellingRejectionReason: { type: String },
+        b2bSellingApprovedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' }
     },
     { timestamps: true }
 );

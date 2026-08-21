@@ -227,6 +227,25 @@ export const useVendorAuthStore = create(
         set({ vendor: updatedVendor });
       },
 
+      refreshProfile: async () => {
+        try {
+          const res = await api.get("/vendor/auth/profile");
+          const vendorData = res?.data?.data || res?.data || res;
+          if (vendorData && (vendorData._id || vendorData.id || vendorData.email)) {
+            const normalized = {
+              ...vendorData,
+              id: vendorData._id || vendorData.id,
+              b2bSellingStatus: vendorData.b2bSellingStatus || 'not_applied'
+            };
+            set({ vendor: normalized });
+            return normalized;
+          }
+        } catch {
+          // silently ignore if failed
+        }
+        return null;
+      },
+
       // Initialize vendor auth state from localStorage
       initialize: () => {
         const token = sessionStorage.getItem("vendor-token") || localStorage.getItem("vendor-token");
@@ -245,6 +264,8 @@ export const useVendorAuthStore = create(
               isAuthenticated: true,
               isLoading: false, // Reset stale disk-persisted loading state
             });
+            // Automatically sync fresh permissions from database
+            get().refreshProfile();
           }
         } else {
           set({ isLoading: false });

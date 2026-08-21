@@ -97,6 +97,10 @@ router.delete('/brands/:id', ...adminAuth, validate(brandIdParamSchema, 'params'
 // ─── Vendors ──────────────────────────────────────────────────────────────────
 router.get('/vendors', ...adminAuth, validate(vendorListQuerySchema, 'query'), vendorController.getAllVendors);
 router.get('/vendors/pending', ...adminAuth, (req, res, next) => { req.query.status = 'pending'; next(); }, validate(vendorListQuerySchema, 'query'), vendorController.getAllVendors);
+router.get('/vendors/b2b-applications', ...adminAuth, vendorController.getB2BApplications);
+router.get('/vendors/b2b-applications/:id', ...adminAuth, vendorController.getB2BApplicationDetail);
+router.patch('/vendors/b2b-applications/:id/approve', ...adminAuth, vendorController.approveB2BApplication);
+router.patch('/vendors/b2b-applications/:id/reject', ...adminAuth, vendorController.rejectB2BApplication);
 router.get('/vendors/:id', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.getVendorDetail);
 router.get('/vendors/:id/commissions', ...adminAuth, validate(vendorIdParamSchema, 'params'), validate(vendorCommissionsQuerySchema, 'query'), vendorController.getVendorCommissions);
 router.get('/vendors/:id/documents', ...adminAuth, validate(vendorIdParamSchema, 'params'), vendorController.getVendorDocuments);

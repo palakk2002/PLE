@@ -146,31 +146,31 @@ const ManagedVendorAdminChat = () => {
   };
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-3 sm:p-4 md:p-6 max-w-5xl mx-auto space-y-4 sm:space-y-6 min-w-0">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
-            <FiShield className="w-6 h-6" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white dark:bg-[#1A1A1A] p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-2.5 sm:p-3 bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 rounded-xl flex-shrink-0">
+            <FiShield className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Admin Support & Conversation</h1>
-            <p className="text-sm text-gray-500">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">Admin Support & Conversation</h1>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 truncate">
               Direct line to communicate with Admin regarding catalog, orders, or support
             </p>
           </div>
         </div>
         <button
           onClick={loadChatData}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 hover:bg-gray-100 rounded-xl text-sm font-medium transition-colors border border-gray-200"
+          className="flex items-center justify-center gap-2 px-3.5 py-2 bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-xs sm:text-sm font-medium transition-colors border border-gray-200 dark:border-white/10 flex-shrink-0"
         >
           <FiRefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
-          Refresh Chat
+          <span>Refresh</span>
         </button>
       </div>
 
       {/* Main Chat Box */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden h-[650px] flex flex-col">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden h-[550px] sm:h-[650px] flex flex-col min-w-0">
         {/* Chat Title / Admin Status */}
         <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-emerald-50/50">
           <div className="flex items-center gap-3">

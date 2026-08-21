@@ -270,7 +270,7 @@ export const uploadB2BAgreement = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'No file uploaded.');
     }
     const folder = 'b2b/agreements';
-    const result = await uploadLocalFileToCloudinaryAndCleanupWithType(req.file.path, folder, 'auto');
+    const result = await uploadLocalFileToCloudinaryAndCleanupWithType(req.file.path, folder, 'raw');
     res.status(200).json(
         new ApiResponse(200, {
             url: result.url,

@@ -178,20 +178,19 @@ const VendorDashboard = () => {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mb-2">
+      <div className="flex flex-col gap-1 sm:gap-2">
+        <div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-1">
             Dashboard
           </h1>
-          <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-            Welcome back, {vendor?.storeName || vendor?.name}! Here's your store
-            overview.
+          <p className="text-xs sm:text-sm md:text-base text-gray-600 dark:text-gray-300">
+            Welcome back, {vendor?.storeName || vendor?.name}! Here's your store overview.
           </p>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((stat, index) => (
           <motion.div
             key={index}
@@ -199,17 +198,17 @@ const VendorDashboard = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
             onClick={() => stat.link && navigate(stat.link)}
-            className={`${stat.bgColor} rounded-xl p-4 cursor-pointer hover:shadow-lg transition-shadow`}>
+            className={`${stat.bgColor} rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all min-w-0`}>
             <div className="flex items-center justify-between mb-2">
-              <div className={`${stat.color} p-3 rounded-lg`}>
-                <stat.icon className="text-white text-xl" />
+              <div className={`${stat.color} p-2.5 sm:p-3 rounded-lg flex-shrink-0`}>
+                <stat.icon className="text-white text-lg sm:text-xl" />
               </div>
-              <FiArrowRight className={`${stat.textColor} text-lg`} />
+              <FiArrowRight className={`${stat.textColor} text-lg flex-shrink-0`} />
             </div>
-            <h3 className={`${stat.textColor} text-sm font-medium mb-1`}>
+            <h3 className={`${stat.textColor} text-xs sm:text-sm font-medium mb-1 truncate`}>
               {stat.label}
             </h3>
-            <p className={`${stat.textColor} text-2xl font-bold`}>
+            <p className={`${stat.textColor} text-xl sm:text-2xl font-bold truncate`}>
               {isLoading ? "—" : stat.value}
             </p>
           </motion.div>
@@ -217,22 +216,22 @@ const VendorDashboard = () => {
       </div>
 
       {/* Revenue & Performance Analytics Charts */}
-      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 space-y-6">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 space-y-6 min-w-0">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-100 dark:border-white/5 pb-4">
           <div>
-            <h2 className="text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
-              <FiBarChart2 className="text-primary-600 text-xl" />
-              Revenue & Performance Analytics
+            <h2 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white flex items-center gap-2">
+              <FiBarChart2 className="text-primary-600 text-xl flex-shrink-0" />
+              <span>Revenue & Performance Analytics</span>
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               Sales, revenue trends, and order status breakdown.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <TimePeriodFilter activePeriod={analyticsPeriod} onPeriodChange={setAnalyticsPeriod} />
             <button
               onClick={() => navigate("/vendor/analytics")}
-              className="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 bg-primary-50 dark:bg-primary-950/40 px-3 py-2 rounded-lg transition-colors border border-primary-100 dark:border-primary-900/40 flex items-center gap-1"
+              className="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 bg-primary-50 dark:bg-primary-950/40 px-3 py-2 rounded-lg transition-colors border border-primary-100 dark:border-primary-900/40 flex items-center gap-1 flex-shrink-0"
             >
               Full Report <FiArrowRight />
             </button>
@@ -242,9 +241,13 @@ const VendorDashboard = () => {
         {isAnalyticsLoading ? (
           <div className="py-12 text-center text-gray-400">Loading analytics charts...</div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RevenueLineChart data={analyticsData} period={analyticsPeriod} />
-            <SalesBarChart data={analyticsData} period={analyticsPeriod} />
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 min-w-0">
+            <div className="w-full min-w-0 overflow-hidden">
+              <RevenueLineChart data={analyticsData} period={analyticsPeriod} />
+            </div>
+            <div className="w-full min-w-0 overflow-hidden">
+              <SalesBarChart data={analyticsData} period={analyticsPeriod} />
+            </div>
           </div>
         )}
       </div>
@@ -330,18 +333,18 @@ const VendorDashboard = () => {
       )}
 
       {/* Quick Actions */}
-      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5">
-        <h2 className="text-lg font-bold text-gray-800 dark:text-white mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
+        <h2 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white mb-3 sm:mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           <button
             onClick={() => navigate("/vendor/products/add-product")}
-            className="flex items-center gap-3 p-4 bg-primary-50 dark:bg-primary-950/30 hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-lg transition-colors text-left border border-transparent dark:border-primary-800/30">
-            <div className="bg-primary-500 p-2 rounded-lg">
-              <FiPackage className="text-white text-xl" />
+            className="flex items-center gap-3 p-3.5 sm:p-4 bg-primary-50 dark:bg-primary-950/30 hover:bg-primary-100 dark:hover:bg-primary-900/40 rounded-xl transition-all text-left border border-transparent dark:border-primary-800/30 min-w-0">
+            <div className="bg-primary-500 p-2 sm:p-2.5 rounded-lg flex-shrink-0">
+              <FiPackage className="text-white text-lg sm:text-xl" />
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 dark:text-gray-100">Add New Product</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100 truncate">Add New Product</h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">
                 Create a new product listing
               </p>
             </div>
@@ -349,39 +352,39 @@ const VendorDashboard = () => {
 
           <button
             onClick={() => navigate("/vendor/orders")}
-            className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-950/30 hover:bg-green-100 dark:hover:bg-green-900/40 rounded-lg transition-colors text-left border border-transparent dark:border-green-800/30">
-            <div className="bg-green-500 p-2 rounded-lg">
-              <FiShoppingBag className="text-white text-xl" />
+            className="flex items-center gap-3 p-3.5 sm:p-4 bg-green-50 dark:bg-green-950/30 hover:bg-green-100 dark:hover:bg-green-900/40 rounded-xl transition-all text-left border border-transparent dark:border-green-800/30 min-w-0">
+            <div className="bg-green-500 p-2 sm:p-2.5 rounded-lg flex-shrink-0">
+              <FiShoppingBag className="text-white text-lg sm:text-xl" />
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 dark:text-gray-100">View Orders</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Manage your orders</p>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100 truncate">View Orders</h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">Manage your orders</p>
             </div>
           </button>
 
           <button
             onClick={() => navigate("/vendor/earnings")}
-            className="flex items-center gap-3 p-4 bg-purple-50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-lg transition-colors text-left border border-transparent dark:border-purple-800/30">
-            <div className="bg-purple-500 p-2 rounded-lg">
-              <FiDollarSign className="text-white text-xl" />
+            className="flex items-center gap-3 p-3.5 sm:p-4 bg-purple-50 dark:bg-purple-950/30 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded-xl transition-all text-left border border-transparent dark:border-purple-800/30 min-w-0">
+            <div className="bg-purple-500 p-2 sm:p-2.5 rounded-lg flex-shrink-0">
+              <FiDollarSign className="text-white text-lg sm:text-xl" />
             </div>
-            <div>
-              <h3 className="font-semibold text-gray-800 dark:text-gray-100">View Earnings</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Check your earnings</p>
+            <div className="min-w-0">
+              <h3 className="font-semibold text-sm sm:text-base text-gray-800 dark:text-gray-100 truncate">View Earnings</h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">Check your earnings</p>
             </div>
           </button>
         </div>
       </div>
 
       {/* Recent Orders & Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 min-w-0">
         {/* Recent Orders */}
-        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800">Recent Orders</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">Recent Orders</h2>
             <button
               onClick={() => navigate("/vendor/orders")}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+              className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium">
               View All
             </button>
           </div>
@@ -403,21 +406,21 @@ const VendorDashboard = () => {
                   onClick={() =>
                     navigate(`/vendor/orders/${order.orderId ?? order._id}`)
                   }
-                  className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">
-                  <div>
-                    <p className="font-semibold text-gray-800">
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg cursor-pointer transition-colors min-w-0">
+                  <div className="min-w-0 flex-1 mr-2">
+                    <p className="font-semibold text-sm text-gray-800 dark:text-white truncate">
                       {order.orderId ?? order._id}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-gray-800">
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-semibold text-sm text-gray-800 dark:text-white">
                       {formatPrice(displayAmount)}
                     </p>
                     <span
-                      className={`text-xs px-2 py-1 rounded-full ${displayStatus === "delivered"
+                      className={`text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-full ${displayStatus === "delivered"
                           ? "bg-green-100 text-green-700"
                           : displayStatus === "pending"
                             ? "bg-yellow-100 text-yellow-700"
@@ -436,12 +439,12 @@ const VendorDashboard = () => {
         </div>
 
         {/* Top Products */}
-        <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800">Your Products</h2>
+            <h2 className="text-base sm:text-lg font-bold text-gray-800 dark:text-white">Your Products</h2>
             <button
               onClick={() => navigate("/vendor/products")}
-              className="text-sm text-primary-600 hover:text-primary-700 font-medium">
+              className="text-xs sm:text-sm text-primary-600 hover:text-primary-700 font-medium">
               View All
             </button>
           </div>
@@ -453,26 +456,26 @@ const VendorDashboard = () => {
                   onClick={() =>
                     navigate(`/vendor/products/${product._id ?? product.id}`)
                   }
-                  className="flex items-center gap-3 p-3 bg-gray-50 hover:bg-gray-100 rounded-lg cursor-pointer transition-colors">
+                  className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg cursor-pointer transition-colors min-w-0">
                   <img
                     src={product.image || product.images?.[0]}
                     alt={product.name}
-                    className="w-12 h-12 object-cover rounded-lg"
+                    className="w-10 h-10 sm:w-12 sm:h-12 object-cover rounded-lg flex-shrink-0"
                     onError={(e) => {
                       e.target.src =
                         "https://via.placeholder.com/48x48?text=P";
                     }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-800 truncate">
+                    <p className="font-semibold text-xs sm:text-sm text-gray-800 dark:text-white truncate">
                       {product.name}
                     </p>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
                       {formatPrice(product.price || 0)}
                     </p>
                   </div>
                   <span
-                    className={`text-xs px-2 py-1 rounded-full ${product.stock === "in_stock"
+                    className={`text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-full flex-shrink-0 ${product.stock === "in_stock"
                         ? "bg-green-100 text-green-700"
                         : product.stock === "low_stock"
                           ? "bg-yellow-100 text-yellow-700"

@@ -40,6 +40,9 @@ const ProductApprovals = () => {
     description: "",
     price: 0,
     originalPrice: 0,
+    salesChannel: "B2C",
+    b2bWholesalePrice: 0,
+    b2bMinOrderQty: 1,
   });
 
   useEffect(() => {
@@ -88,6 +91,9 @@ const ProductApprovals = () => {
       description: product.description || "",
       price: product.price || 0,
       originalPrice: product.originalPrice || 0,
+      salesChannel: product.salesChannel || "B2C",
+      b2bWholesalePrice: product.b2bWholesalePrice !== undefined && product.b2bWholesalePrice !== null ? product.b2bWholesalePrice : product.price || 0,
+      b2bMinOrderQty: product.b2bMinOrderQty || 1,
     });
     setRejectionReason("");
     setShowRejectForm(false);
@@ -374,7 +380,7 @@ const ProductApprovals = () => {
                 </div>
 
                 {/* Edit Form Fields */}
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wide">
                     Edit Product Parameters
                   </h4>
@@ -391,7 +397,7 @@ const ProductApprovals = () => {
 
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-gray-700">Price (₹)</label>
+                      <label className="text-xs font-semibold text-gray-700">Retail / B2C Price (₹)</label>
                       <input
                         type="number"
                         value={editForm.price}
@@ -410,12 +416,74 @@ const ProductApprovals = () => {
                     </div>
                   </div>
 
+                  {/* Admin Channel Selection */}
+                  <div className="bg-amber-50/60 border border-amber-200/80 p-3.5 rounded-2xl space-y-3">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-900 mb-1 flex items-center justify-between">
+                        <span>Target Sales Channel *</span>
+                        <span className="text-[10px] text-amber-800 font-semibold uppercase">Admin Publish Destination</span>
+                      </label>
+                      <p className="text-[11px] text-gray-500 mb-2">
+                        Decide where this product should be displayed once approved:
+                      </p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: 'B2C', label: 'B2C Only', desc: 'Retail Marketplace' },
+                          { id: 'B2B', label: 'B2B Only', desc: 'Wholesale Platform' },
+                          { id: 'BOTH', label: 'Both Channels', desc: 'B2C + B2B Wholesale' },
+                        ].map((chan) => (
+                          <button
+                            key={chan.id}
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm, salesChannel: chan.id })}
+                            className={`p-2.5 rounded-xl text-center border transition-all ${
+                              editForm.salesChannel === chan.id
+                                ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+                                : 'bg-white text-gray-700 border-gray-200 hover:bg-amber-50/50'
+                            }`}
+                          >
+                            <div className="text-xs font-bold">{chan.label}</div>
+                            <div className={`text-[10px] truncate ${editForm.salesChannel === chan.id ? 'text-amber-100' : 'text-gray-400'}`}>
+                              {chan.desc}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {(editForm.salesChannel === 'B2B' || editForm.salesChannel === 'BOTH') && (
+                      <div className="grid grid-cols-2 gap-3 pt-2 border-t border-amber-200/60">
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-gray-800">B2B Wholesale Price (₹)</label>
+                          <input
+                            type="number"
+                            value={editForm.b2bWholesalePrice}
+                            onChange={(e) => setEditForm({ ...editForm, b2bWholesalePrice: Number(e.target.value) })}
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none"
+                            placeholder="Wholesale price"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-[11px] font-bold text-gray-800">Min Order Qty (MOQ)</label>
+                          <input
+                            type="number"
+                            min="1"
+                            value={editForm.b2bMinOrderQty}
+                            onChange={(e) => setEditForm({ ...editForm, b2bMinOrderQty: Number(e.target.value) })}
+                            className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs focus:outline-none"
+                            placeholder="e.g. 10"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="space-y-1">
                     <label className="text-xs font-semibold text-gray-700">Description</label>
                     <textarea
                       value={editForm.description}
                       onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                      rows={4}
+                      rows={3}
                       className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs focus:outline-none"
                     />
                   </div>

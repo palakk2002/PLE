@@ -322,3 +322,183 @@ export const rejectVendorBusiness = asyncHandler(async (req, res) => {
 
     res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'Business verification rejected.'));
 });
+
+// GET /api/admin/vendors/b2b-applications
+export const getB2BApplications = asyncHandler(async (req, res) => {
+    const { status = 'all', gstStatus = 'all', page = 1, limit = 20, search } = req.query;
+    const numericPage = Math.max(parseInt(page, 10) || 1, 1);
+    const numericLimit = Math.max(parseInt(limit, 10) || 20, 1);
+    const skip = (numericPage - 1) * numericLimit;
+
+    const filter = {};
+
+    if (status !== 'all') {
+        filter.b2bSellingStatus = status;
+    } else {
+        // By default, include all vendors who have applied or interacted with B2B selling
+        filter.b2bSellingStatus = { $in: ['pending', 'approved', 'rejected'] };
+    }
+
+    if (gstStatus !== 'all') {
+        filter.b2bSellingGstStatus = gstStatus;
+    }
+
+    const trimmedSearch = String(search || '').trim();
+    if (trimmedSearch) {
+        const safeRegex = new RegExp(escapeRegex(trimmedSearch), 'i');
+        filter.$or = [
+            { name: safeRegex },
+            { email: safeRegex },
+            { storeName: safeRegex },
+            { b2bSellingLegalName: safeRegex },
+            { b2bSellingTradeName: safeRegex },
+            { b2bSellingGstNumber: safeRegex },
+            { b2bSellingPan: safeRegex }
+        ];
+    }
+
+    const applications = await Vendor.find(filter)
+        .select('-password -otp -otpExpiry')
+        .populate('b2bSellingApprovedBy', 'name email')
+        .sort({ b2bSellingAppliedAt: -1, createdAt: -1 })
+        .skip(skip)
+        .limit(numericLimit);
+
+    const total = await Vendor.countDocuments(filter);
+
+    // Also get quick counts for tab badges
+    const pendingCount = await Vendor.countDocuments({ b2bSellingStatus: 'pending' });
+    const approvedCount = await Vendor.countDocuments({ b2bSellingStatus: 'approved' });
+    const rejectedCount = await Vendor.countDocuments({ b2bSellingStatus: 'rejected' });
+    const nonGstCount = await Vendor.countDocuments({ b2bSellingGstStatus: 'non_gst', b2bSellingStatus: { $in: ['pending', 'approved', 'rejected'] } });
+
+    res.status(200).json(
+        new ApiResponse(200, {
+            applications: applications.map(toApiVendor),
+            total,
+            page: numericPage,
+            pages: Math.ceil(total / numericLimit),
+            counts: {
+                pending: pendingCount,
+                approved: approvedCount,
+                rejected: rejectedCount,
+                nonGst: nonGstCount,
+            }
+        }, 'B2B applications fetched successfully.')
+    );
+});
+
+// GET /api/admin/vendors/b2b-applications/:id
+export const getB2BApplicationDetail = asyncHandler(async (req, res) => {
+    const vendor = await Vendor.findById(req.params.id)
+        .select('-password -otp -otpExpiry')
+        .populate('b2bSellingApprovedBy', 'name email');
+
+    if (!vendor) throw new ApiError(404, 'Vendor application not found.');
+    res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'B2B application detail fetched.'));
+});
+
+// PATCH /api/admin/vendors/b2b-applications/:id/approve
+export const approveB2BApplication = asyncHandler(async (req, res) => {
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    // Enforce GST check: Non-GST vendors cannot sell in B2B
+    if (vendor.b2bSellingGstStatus === 'non_gst' || !vendor.b2bSellingGstNumber) {
+        throw new ApiError(
+            400,
+            'Non-GST vendors cannot be approved for B2B wholesale selling. GST registration & valid certificate are mandatory for B2B selling.'
+        );
+    }
+
+    vendor.b2bSellingStatus = 'approved';
+    vendor.b2bSellingApprovedAt = new Date();
+    vendor.b2bSellingApprovedBy = req.user.id;
+    vendor.b2bSellingRejectionReason = '';
+
+    // Synchronize to vendor profile
+    vendor.gstRegistered = true;
+    if (vendor.b2bSellingGstNumber) vendor.gstNumber = vendor.b2bSellingGstNumber;
+    if (vendor.b2bSellingGstCertificate) vendor.gstCertificate = vendor.b2bSellingGstCertificate;
+    if (vendor.b2bSellingLegalName) vendor.businessName = vendor.b2bSellingLegalName;
+
+    await vendor.save();
+
+    const message = `Congratulations! Your B2B selling application for "${vendor.storeName || vendor.name}" has been approved by the Administrator. You can now list and sell products on the B2B marketplace.`;
+    
+    await createNotification({
+        recipientId: vendor._id,
+        recipientType: 'vendor',
+        title: 'B2B Selling Permission Approved',
+        message,
+        type: 'system',
+        data: { b2bSellingStatus: 'approved' },
+    });
+
+    try {
+        await sendEmail({
+            to: vendor.email,
+            subject: 'B2B Selling Application Approved - PLE Wholesale Marketplace',
+            text: message,
+            html: `<div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #16a34a;">B2B Selling Approved!</h2>
+                <p>Hello <strong>${vendor.name}</strong>,</p>
+                <p>${message}</p>
+                <p>You can now choose B2B or BOTH sales channels when listing products in your seller dashboard.</p>
+                <p style="margin-top: 20px; font-size: 12px; color: #777;">Thank you for partnering with PLE Marketplace.</p>
+            </div>`,
+        });
+    } catch (err) {
+        console.warn(`Vendor B2B approval email failed: ${err.message}`);
+    }
+
+    res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'B2B selling application approved successfully.'));
+});
+
+// PATCH /api/admin/vendors/b2b-applications/:id/reject
+export const rejectB2BApplication = asyncHandler(async (req, res) => {
+    const { remark } = req.body;
+    if (!remark || !remark.trim()) {
+        throw new ApiError(400, 'Rejection remark is required.');
+    }
+
+    const vendor = await Vendor.findById(req.params.id);
+    if (!vendor) throw new ApiError(404, 'Vendor not found.');
+
+    vendor.b2bSellingStatus = 'rejected';
+    vendor.b2bSellingRejectedAt = new Date();
+    vendor.b2bSellingRejectionReason = remark.trim();
+
+    await vendor.save();
+
+    const message = `Your B2B selling application for "${vendor.storeName || vendor.name}" was not approved. Reason: ${remark}`;
+    
+    await createNotification({
+        recipientId: vendor._id,
+        recipientType: 'vendor',
+        title: 'B2B Selling Application Rejected',
+        message,
+        type: 'system',
+        data: { b2bSellingStatus: 'rejected', remark },
+    });
+
+    try {
+        await sendEmail({
+            to: vendor.email,
+            subject: 'B2B Selling Application Status Update - PLE Marketplace',
+            text: message,
+            html: `<div style="font-family: sans-serif; line-height: 1.6; color: #333;">
+                <h2 style="color: #dc2626;">B2B Selling Application Update</h2>
+                <p>Hello <strong>${vendor.name}</strong>,</p>
+                <p>Your B2B selling application for <strong>${vendor.storeName || vendor.name}</strong> has been rejected.</p>
+                <p><strong>Reason:</strong> ${remark}</p>
+                <p>You can update your business details or GST certificate and resubmit your application from your seller dashboard.</p>
+            </div>`,
+        });
+    } catch (err) {
+        console.warn(`Vendor B2B rejection email failed: ${err.message}`);
+    }
+
+    res.status(200).json(new ApiResponse(200, toApiVendor(vendor), 'B2B selling application rejected.'));
+});
+

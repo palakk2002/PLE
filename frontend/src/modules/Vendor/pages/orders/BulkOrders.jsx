@@ -415,68 +415,68 @@ export default function BulkOrders() {
   return (
     <div className="space-y-6">
       {/* HEADER SECTION - LIGHT THEME */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white border border-gray-200 p-6 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100 shadow-sm">
-            <FiShoppingBag className="w-6 h-6" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white border border-gray-200 p-4 sm:p-6 rounded-2xl shadow-sm min-w-0">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="p-2.5 sm:p-3 bg-indigo-50 text-indigo-600 rounded-xl border border-indigo-100 shadow-sm flex-shrink-0">
+            <FiShoppingBag className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 truncate">
               Vendor Bulk Orders
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 truncate">
               Manage and process multiple orders quickly via manual grid or sheet upload.
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 flex-shrink-0">
           <button
             onClick={() => downloadSampleTemplate("xlsx")}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium rounded-xl border border-gray-300 transition shadow-sm"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium rounded-xl border border-gray-300 transition shadow-sm"
           >
-            <FiDownload className="w-4 h-4 text-emerald-600" />
+            <FiDownload className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600" />
             <span>Sample Excel</span>
           </button>
           <button
             onClick={() => downloadSampleTemplate("csv")}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-sm font-medium rounded-xl border border-gray-300 transition shadow-sm"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium rounded-xl border border-gray-300 transition shadow-sm"
           >
-            <FiDownload className="w-4 h-4 text-indigo-600" />
+            <FiDownload className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-600" />
             <span>Sample CSV</span>
           </button>
         </div>
       </div>
 
       {/* TAB NAVIGATION - LIGHT THEME */}
-      <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200 w-fit">
+      <div className="flex flex-wrap items-center gap-2 p-1 bg-gray-100 rounded-xl border border-gray-200 w-full sm:w-fit">
         <button
           onClick={() => setActiveTab("grid")}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition ${
+          className={`flex items-center justify-center gap-2 px-3.5 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex-1 sm:flex-initial ${
             activeTab === "grid"
               ? "bg-white text-gray-900 shadow-sm border border-gray-200 font-semibold"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
           <FiGrid className="w-4 h-4 text-indigo-600" />
-          <span>Manual Grid Entry</span>
-          <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
+          <span>Manual Grid</span>
+          <span className="ml-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 font-bold">
             {gridRows.length}
           </span>
         </button>
 
         <button
           onClick={() => setActiveTab("file")}
-          className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-medium transition ${
+          className={`flex items-center justify-center gap-2 px-3.5 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-medium transition flex-1 sm:flex-initial ${
             activeTab === "file"
               ? "bg-white text-gray-900 shadow-sm border border-gray-200 font-semibold"
               : "text-gray-600 hover:text-gray-900"
           }`}
         >
           <FiUploadCloud className="w-4 h-4 text-emerald-600" />
-          <span>Excel / CSV Upload</span>
+          <span>Sheet Upload</span>
           {parsedRows.length > 0 && (
-            <span className="ml-1 text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
+            <span className="ml-1 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold">
               {parsedRows.length}
             </span>
           )}

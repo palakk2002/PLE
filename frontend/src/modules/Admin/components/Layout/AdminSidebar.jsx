@@ -98,6 +98,7 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/b2b": {
       "Business Users": "/admin/b2b/business-users",
       "Company Management": "/admin/b2b/companies",
+      "B2B Seller Requests": "/admin/vendors/b2b-requests",
       "B2B Products": "/admin/b2b/b2b-products",
       "B2B Orders": "/admin/b2b/b2b-orders",
       "B2B Settings": "/admin/b2b/b2b-settings",
@@ -128,6 +129,7 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/vendors": {
       "Manage Vendors": "/admin/vendors/manage-vendors",
       "Pending Approvals": "/admin/vendors/pending-approvals",
+      "B2B Seller Requests": "/admin/vendors/b2b-requests",
       "Commission Rates": "/admin/vendors/commission-rates",
       "Vendor Analytics": "/admin/vendors/vendor-analytics",
       "Managed Shops": "/admin/vendors/managed-shops",
@@ -137,6 +139,7 @@ const getChildRoute = (parentRoute, childName) => {
     "/admin/b2b-users": {
       "Manage B2B Users": "/admin/b2b-users/manage",
       "Pending Approvals": "/admin/b2b-users/pending",
+      "B2B Seller Requests": "/admin/vendors/b2b-requests",
       "B2B Analytics": "/admin/b2b-users/analytics",
     },
     "/admin/offers": {

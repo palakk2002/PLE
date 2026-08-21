@@ -79,6 +79,7 @@ const getChildRoute = (parentRoute, childName) => {
       "Order Tracking": "/vendor/orders/order-tracking",
     },
     "/vendor/b2b-enquiries": {
+      "B2B Seller Application": "/vendor/b2b-application",
       "All Enquiries": "/vendor/b2b-enquiries/all",
       "B2B Orders": "/vendor/b2b-enquiries/orders",
       "B2B Analytics": "/vendor/b2b-enquiries/analytics",
@@ -108,7 +109,7 @@ const getChildRoute = (parentRoute, childName) => {
   return routeMap[parentRoute]?.[childName] || parentRoute;
 };
 
-const VendorSidebar = ({ isOpen, onClose }) => {
+const VendorSidebar = ({ isOpen, onClose, isCollapsed = false, onToggleCollapse }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { vendor } = useVendorAuthStore();
@@ -196,11 +197,37 @@ const VendorSidebar = ({ isOpen, onClose }) => {
   };
 
   // Render menu item
-  const renderMenuItem = (item) => {
+  const renderMenuItem = (item, collapsed = false) => {
     const Icon = iconMap[item.title] || FiPackage;
     const hasChildren = item.children && item.children.length > 0;
     const isExpanded = expandedItems[item.title];
     const active = isActive(item.route);
+
+    if (collapsed) {
+      return (
+        <div key={item.route} className="mb-1 relative group">
+          <div
+            onClick={() => {
+              handleMenuItemClick(item.route);
+            }}
+            title={item.title}
+            className={`
+              flex items-center justify-center w-12 h-12 mx-auto rounded-xl transition-all duration-200 cursor-pointer
+              ${
+                active
+                  ? "bg-[#C07A3D] text-white shadow-sm"
+                  : "text-[#C8B3A3] hover:bg-[#2A1F1A]"
+              }
+            `}>
+            <Icon className="text-xl" />
+          </div>
+          {/* Tooltip on hover in collapsed mode */}
+          <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1 bg-gray-900 text-white text-xs rounded-md shadow-lg opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto transition-opacity whitespace-nowrap z-50">
+            {item.title}
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div key={item.route} className="mb-1">
@@ -280,25 +307,27 @@ const VendorSidebar = ({ isOpen, onClose }) => {
   };
 
   // Sidebar content
-  const sidebarContent = (
+  const renderSidebarContent = (collapsed = false) => (
     <div className="h-full flex flex-col bg-[#1A1310] shadow-xl">
       {/* Header Section */}
-      <div className="p-4 border-b border-white/[0.06] bg-[#120D0B]">
+      <div className={`p-4 border-b border-white/[0.06] bg-[#120D0B] ${collapsed ? "px-2 text-center" : ""}`}>
         {/* Header with Close Button and Vendor Info */}
-        <div className="flex items-center justify-between gap-3">
+        <div className={`flex items-center ${collapsed ? "justify-center" : "justify-between gap-3"}`}>
           {/* Vendor User Info */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#C07A3D] to-[#D18B4A] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
-              <FiShoppingBag className="text-white text-xl" />
+          <div className={`flex items-center gap-3 min-w-0 ${collapsed ? "justify-center" : "flex-1"}`}>
+            <div className="w-10 h-10 lg:w-11 lg:h-11 bg-gradient-to-br from-[#C07A3D] to-[#D18B4A] rounded-xl flex items-center justify-center shadow-md flex-shrink-0">
+              <FiShoppingBag className="text-white text-lg" />
             </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="font-semibold text-white text-sm truncate">
-                {vendor?.storeName || vendor?.name || "Vendor Store"}
-              </h2>
-              <p className="text-xs text-[#8E7768] truncate">
-                {vendor?.email || "vendor@example.com"}
-              </p>
-            </div>
+            {!collapsed && (
+              <div className="flex-1 min-w-0">
+                <h2 className="font-semibold text-white text-sm truncate">
+                  {vendor?.storeName || vendor?.name || "Vendor Store"}
+                </h2>
+                <p className="text-xs text-[#8E7768] truncate">
+                  {vendor?.email || "vendor@example.com"}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Close Button - Mobile Only */}
@@ -312,14 +341,14 @@ const VendorSidebar = ({ isOpen, onClose }) => {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 overflow-y-auto p-3 scrollbar-admin lg:pb-3">
+      <nav className={`flex-1 overflow-y-auto ${collapsed ? "p-2" : "p-3"} scrollbar-admin lg:pb-3`}>
         {(() => {
           const allowedTitles = ["Dashboard", "Products", "Orders", "Return Requests", "Admin Support Chat", "Profile"];
           const isManagedVendor = vendor?.role === "managed_vendor";
           const filteredMenu = isManagedVendor
             ? vendorMenu.filter((item) => allowedTitles.includes(item.title))
             : vendorMenu;
-          return filteredMenu.map((item) => renderMenuItem(item));
+          return filteredMenu.map((item) => renderMenuItem(item, collapsed));
         })()}
       </nav>
     </div>
@@ -348,15 +377,18 @@ const VendorSidebar = ({ isOpen, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: -300 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed left-0 top-0 bottom-0 w-64 z-[10000] lg:hidden">
-            {sidebarContent}
+            className="fixed left-0 top-0 bottom-0 w-64 max-w-[80vw] z-[10000] lg:hidden">
+            {renderSidebarContent(false)}
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Sidebar - Desktop Fixed */}
-      <div className="hidden lg:flex fixed left-0 top-0 bottom-0 w-64 z-20">
-        {sidebarContent}
+      {/* Sidebar - Desktop / Laptop Fixed */}
+      <div
+        className={`hidden lg:flex fixed left-0 top-0 bottom-0 z-20 transition-all duration-300 ${
+          isCollapsed ? "w-20" : "w-64"
+        }`}>
+        {renderSidebarContent(isCollapsed)}
       </div>
     </>
   );

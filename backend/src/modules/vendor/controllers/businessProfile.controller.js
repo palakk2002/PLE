@@ -248,7 +248,7 @@ export const uploadPartnershipAgreement = asyncHandler(async (req, res) => {
         uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
             req.file.path,
             'vendors/verification/partnership_agreements',
-            'auto'
+            req.file.mimetype === 'application/pdf' ? 'raw' : 'auto'
         );
 
         vendor.partnershipAgreementUrl = uploaded.url;

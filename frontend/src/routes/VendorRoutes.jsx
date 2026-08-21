@@ -50,6 +50,7 @@ const VendorB2BQuoteDetail = lazy(() => import("../modules/Vendor/pages/b2b/B2BQ
 const VendorB2BOrders = lazy(() => import("../modules/Vendor/pages/b2b/VendorB2BOrders"));
 const VendorB2BAnalytics = lazy(() => import("../modules/Vendor/pages/b2b/B2BAnalytics"));
 const VendorB2BSettings = lazy(() => import("../modules/Vendor/pages/b2b/B2BSettings"));
+const VendorB2BSellerApplication = lazy(() => import("../modules/Vendor/pages/b2b/B2BSellerApplication"));
 const VendorDirectRFQs = lazy(() => import("../modules/Vendor/pages/b2b/VendorDirectRFQs"));
 const VendorDirectRFQDetail = lazy(() => import("../modules/Vendor/pages/b2b/VendorDirectRFQDetail"));
 const VendorDeliverySettings = lazy(() => import("../modules/Vendor/pages/VendorDeliverySettings"));
@@ -126,8 +127,10 @@ export default function VendorRoutes() {
         <Route path="settings/business" element={<VendorSettings />} />
 
         {/* B2B Enquiry Routes */}
+        <Route path="b2b-application" element={<VendorB2BSellerApplication />} />
         <Route path="b2b-enquiries" element={<VendorB2BEnquiries />} />
         <Route path="b2b-enquiries/all" element={<VendorB2BEnquiries />} />
+        <Route path="b2b-enquiries/application" element={<VendorB2BSellerApplication />} />
         <Route path="b2b-enquiries/:id" element={<VendorB2BEnquiryDetail />} />
         <Route path="b2b-enquiries/:id/create-quote" element={<VendorB2BCreateQuote />} />
         <Route path="b2b-enquiries/:id/quote/:quoteId" element={<VendorB2BQuoteDetail />} />

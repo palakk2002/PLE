@@ -141,9 +141,9 @@ export const verifyLogin2FA = asyncHandler(async (req, res) => {
     await persistRefreshSession(user, refreshToken);
 
     const userRes = decoded.role === 'managed_vendor'
-        ? { id: user._id, name: user.name, username: user.username, role: 'managed_vendor', shopId: user.shopId }
+        ? { id: user._id, name: user.name, username: user.username, role: 'managed_vendor', shopId: user.shopId, b2bSellingStatus: 'approved' }
         : decoded.role === 'vendor'
-            ? { id: user._id, name: user.name, storeName: user.storeName, email: user.email, storeLogo: user.storeLogo, role: 'vendor' }
+            ? { id: user._id, name: user.name, storeName: user.storeName, email: user.email, storeLogo: user.storeLogo, role: 'vendor', b2bSellingStatus: user.b2bSellingStatus || 'not_applied' }
             : decoded.role === 'delivery'
                 ? { id: user._id, name: user.name, email: user.email, phone: user.phone, role: 'delivery' }
                 : decoded.role === 'b2bAdmin' || decoded.role === 'b2bEmployee'

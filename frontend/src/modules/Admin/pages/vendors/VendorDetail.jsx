@@ -43,6 +43,8 @@ const VendorDetail = () => {
   const [isRefurbishedEnabled, setIsRefurbishedEnabled] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectRemark, setRejectRemark] = useState("");
+  const [showB2BRejectModal, setShowB2BRejectModal] = useState(false);
+  const [b2bRejectRemark, setB2bRejectRemark] = useState("");
   const isSameVendorId = (a, b) => String(a) === String(b);
 
   const handleVerifyBusiness = async () => {
@@ -77,6 +79,40 @@ const VendorDetail = () => {
       toast.success("Business verification rejected.");
     } catch {
       toast.error("Failed to reject business.");
+    }
+  };
+
+  const handleApproveB2B = async () => {
+    try {
+      await api.patch(`/admin/vendors/b2b-applications/${id}/approve`);
+      setVendor(prev => ({
+        ...prev,
+        b2bSellingStatus: 'approved',
+        b2bSellingApprovedAt: new Date().toISOString()
+      }));
+      toast.success("B2B wholesale selling authorization approved!");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to approve B2B selling.");
+    }
+  };
+
+  const handleRejectB2BSubmit = async () => {
+    if (!b2bRejectRemark.trim()) {
+      toast.error("Please enter a rejection remark.");
+      return;
+    }
+    try {
+      await api.patch(`/admin/vendors/b2b-applications/${id}/reject`, { remark: b2bRejectRemark.trim() });
+      setVendor(prev => ({
+        ...prev,
+        b2bSellingStatus: 'rejected',
+        b2bSellingRejectionReason: b2bRejectRemark.trim()
+      }));
+      setShowB2BRejectModal(false);
+      setB2bRejectRemark("");
+      toast.success("B2B application rejected.");
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to reject B2B application.");
     }
   };
 
@@ -857,6 +893,104 @@ const VendorDetail = () => {
                     )}
                   </div>
                 </div>
+
+                {/* B2B Selling Authorization Section */}
+                <div className="mt-8 border-t border-gray-200 pt-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                        <FiShield className="text-primary-600" /> B2B Wholesale Selling Authorization
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Controls whether this vendor is authorized to list products and sell in B2B Wholesale channels.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={
+                          vendor.b2bSellingStatus === "approved"
+                            ? "success"
+                            : vendor.b2bSellingStatus === "pending"
+                              ? "warning"
+                              : vendor.b2bSellingStatus === "rejected"
+                                ? "error"
+                                : "neutral"
+                        }
+                      >
+                        {vendor.b2bSellingStatus === "approved" 
+                          ? "B2B Approved" 
+                          : vendor.b2bSellingStatus === "pending" 
+                            ? "Pending Review" 
+                            : vendor.b2bSellingStatus === "rejected" 
+                              ? "B2B Rejected" 
+                              : "Not Applied"}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 p-5 rounded-xl border border-gray-200 space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                      <div>
+                        <span className="text-gray-500 block">GST Status:</span>
+                        <span className="font-bold text-gray-800">
+                          {vendor.b2bSellingGstStatus === 'gst_registered' || vendor.gstRegistered ? 'GST Registered' : 'Non-GST Seller'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">GST Number:</span>
+                        <span className="font-bold font-mono text-gray-800">
+                          {vendor.b2bSellingGstNumber || vendor.gstNumber || 'N/A'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">GST Certificate:</span>
+                        {(vendor.b2bSellingGstCertificate || vendor.gstCertificate) ? (
+                          <a
+                            href={vendor.b2bSellingGstCertificate || vendor.gstCertificate}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-bold text-primary-600 hover:text-primary-800 inline-flex items-center gap-1"
+                          >
+                            <FiFileText /> View Certificate &rarr;
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">Not Uploaded</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {vendor.b2bSellingRejectionReason && (
+                      <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-700">
+                        <strong>B2B Rejection Reason:</strong> {vendor.b2bSellingRejectionReason}
+                      </div>
+                    )}
+
+                    <div className="pt-3 border-t flex flex-wrap items-center gap-3">
+                      {vendor.b2bSellingStatus !== 'approved' ? (
+                        <button
+                          onClick={handleApproveB2B}
+                          disabled={!vendor.b2bSellingGstNumber && !vendor.gstNumber}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg transition-colors font-semibold text-xs shadow-sm"
+                        >
+                          <FiCheckCircle />
+                          Approve B2B Selling
+                        </button>
+                      ) : (
+                        <span className="text-xs text-green-700 font-bold flex items-center gap-1">
+                          <FiCheckCircle /> B2B Selling is active for this seller
+                        </span>
+                      )}
+
+                      <button
+                        onClick={() => { setB2bRejectRemark(""); setShowB2BRejectModal(true); }}
+                        className="flex items-center gap-1.5 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg transition-colors font-semibold text-xs"
+                      >
+                        <FiXCircle />
+                        Reject / Revoke B2B Access
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -1034,6 +1168,38 @@ const VendorDetail = () => {
                 className="px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 font-semibold"
               >
                 Reject Verification
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reject B2B Application Modal */}
+      {showB2BRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl max-w-md w-full p-6 shadow-xl space-y-4">
+            <h3 className="text-lg font-bold text-red-600">Reject / Revoke B2B Selling Access</h3>
+            <p className="text-sm text-gray-600">Please provide a reason for rejecting the B2B wholesale application. This remark will be visible to the vendor.</p>
+            <textarea
+              value={b2bRejectRemark}
+              onChange={(e) => setB2bRejectRemark(e.target.value)}
+              rows={4}
+              placeholder="Enter B2B rejection remark (e.g. Invalid GST certificate, Non-GST seller)..."
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-800 text-sm"
+              required
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { setShowB2BRejectModal(false); setB2bRejectRemark(""); }}
+                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 font-semibold"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRejectB2BSubmit}
+                className="px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700 font-semibold"
+              >
+                Confirm B2B Rejection
               </button>
             </div>
           </div>

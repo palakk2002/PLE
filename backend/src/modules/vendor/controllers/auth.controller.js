@@ -53,11 +53,13 @@ export const register = asyncHandler(async (req, res) => {
     let partnershipAgreementUploadedAt = null;
 
     if (req.files) {
+        const getResourceType = (file) => (file?.mimetype === 'application/pdf' ? 'raw' : 'auto');
+
         if (req.files.gstCertificate?.[0]) {
             const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
                 req.files.gstCertificate[0].path,
                 'vendors/verification/gst',
-                'auto'
+                getResourceType(req.files.gstCertificate[0])
             );
             gstCertificate = uploaded.url;
         }
@@ -65,7 +67,7 @@ export const register = asyncHandler(async (req, res) => {
             const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
                 req.files.msmeCertificate[0].path,
                 'vendors/verification/msme',
-                'auto'
+                getResourceType(req.files.msmeCertificate[0])
             );
             msmeCertificate = uploaded.url;
         }
@@ -73,7 +75,7 @@ export const register = asyncHandler(async (req, res) => {
             const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
                 req.files.identityProof[0].path,
                 'vendors/verification/identity',
-                'auto'
+                getResourceType(req.files.identityProof[0])
             );
             identityProof = uploaded.url;
         }
@@ -81,7 +83,7 @@ export const register = asyncHandler(async (req, res) => {
             const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
                 req.files.registrationProof[0].path,
                 'vendors/verification/registration_proof',
-                'auto'
+                getResourceType(req.files.registrationProof[0])
             );
             registrationProofUrl = uploaded.url;
             registrationProofName = req.files.registrationProof[0].originalname;
@@ -92,7 +94,7 @@ export const register = asyncHandler(async (req, res) => {
             const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
                 req.files.businessLetter[0].path,
                 'vendors/verification/business_letters',
-                'auto'
+                getResourceType(req.files.businessLetter[0])
             );
             businessLetterUrl = uploaded.url;
             businessLetterName = req.files.businessLetter[0].originalname;
@@ -102,7 +104,7 @@ export const register = asyncHandler(async (req, res) => {
             const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
                 req.files.partnershipAgreement[0].path,
                 'vendors/verification/partnership_agreements',
-                'auto'
+                getResourceType(req.files.partnershipAgreement[0])
             );
             partnershipAgreementUrl = uploaded.url;
             partnershipAgreementName = req.files.partnershipAgreement[0].originalname;
@@ -347,8 +349,8 @@ export const login = asyncHandler(async (req, res) => {
     await persistRefreshSession(vendor, refreshToken);
 
     const resUser = isManaged
-        ? { id: vendor._id, name: vendor.name, username: vendor.username, role: 'managed_vendor', shopId: vendor.shopId._id, storeName: vendor.shopId.name, storeLogo: vendor.shopId.logo }
-        : { id: vendor._id, name: vendor.name, storeName: vendor.storeName, email: vendor.email, storeLogo: vendor.storeLogo, role: 'vendor' };
+        ? { id: vendor._id, name: vendor.name, username: vendor.username, role: 'managed_vendor', shopId: vendor.shopId._id, storeName: vendor.shopId.name, storeLogo: vendor.shopId.logo, b2bSellingStatus: 'approved' }
+        : { id: vendor._id, name: vendor.name, storeName: vendor.storeName, email: vendor.email, storeLogo: vendor.storeLogo, role: 'vendor', b2bSellingStatus: vendor.b2bSellingStatus || 'not_applied' };
 
     res.status(200).json(new ApiResponse(200, { accessToken, refreshToken, vendor: resUser }, 'Login successful.'));
 });

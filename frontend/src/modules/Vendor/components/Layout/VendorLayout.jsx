@@ -14,13 +14,20 @@ import { formatPrice } from '../../../../shared/utils/helpers';
 
 const VendorLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    // Default to collapsed on small laptops (< 1280px) for maximum working space
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 1024 && window.innerWidth < 1280;
+    }
+    return false;
+  });
   const [newOrder, setNewOrder] = useState(null);
   const [updating, setUpdating] = useState(false);
   
   const headerHeight = useAdminHeaderHeight();
   const navigate = useNavigate();
   
-  const { vendor } = useVendorAuthStore();
+  const { vendor, refreshProfile } = useVendorAuthStore();
   const vendorId = vendor?.id || vendor?._id;
 
   // Bottom nav height is 64px (h-16)
@@ -29,6 +36,12 @@ const VendorLayout = () => {
   // Add small buffer to prevent content overlap (8px)
   const topPadding = headerHeight + 8;
   const bottomPadding = bottomNavHeight + 8;
+
+  useEffect(() => {
+    if (refreshProfile) {
+      refreshProfile();
+    }
+  }, []);
 
   useEffect(() => {
     if (!vendorId) return;
@@ -108,22 +121,37 @@ const VendorLayout = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-[#0F0F0F] dark:text-gray-100 flex">
       {/* Sidebar */}
       <div className="print:hidden">
-        <VendorSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <VendorSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          isCollapsed={isCollapsed}
+          onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
+        />
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col lg:ml-64 min-w-0 max-w-full overflow-x-hidden print:ml-0">
+      <div
+        className={`flex-1 flex flex-col min-w-0 max-w-full overflow-x-hidden print:ml-0 transition-all duration-300 ${
+          isCollapsed ? "lg:ml-20" : "lg:ml-64"
+        }`}
+      >
         {/* Header */}
         <div className="print:hidden">
-          <VendorHeader onMenuClick={() => setSidebarOpen(true)} />
+          <VendorHeader
+            onMenuClick={() => setSidebarOpen(true)}
+            isCollapsed={isCollapsed}
+            onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
+          />
         </div>
 
         {/* Page Content - with dynamic padding to account for fixed header and bottom nav */}
         <main
-          className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto overflow-x-hidden lg:pb-6 scrollbar-admin w-full min-w-0 print:p-0 print:m-0"
+          className="flex-1 p-3 sm:p-4 lg:p-6 overflow-y-auto overflow-x-hidden scrollbar-admin w-full min-w-0 print:p-0 print:m-0"
           style={{
-            paddingTop: `${Math.max(topPadding, 80)}px`,
-            paddingBottom: `calc(${Math.max(bottomPadding, 80)}px + env(safe-area-inset-bottom, 0px))`,
+            paddingTop: `${Math.max(topPadding, 72)}px`,
+            paddingBottom: typeof window !== 'undefined' && window.innerWidth < 1024
+              ? `calc(${Math.max(bottomPadding, 72)}px + env(safe-area-inset-bottom, 0px))`
+              : "2rem",
           }}
         >
           <div className="w-full max-w-full overflow-x-hidden min-w-0">

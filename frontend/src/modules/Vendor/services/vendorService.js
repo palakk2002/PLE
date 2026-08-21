@@ -619,3 +619,31 @@ export const createBulkProducts = (products) => {
     return api.post('/vendor/products/bulk', { products });
 };
 
+/**
+ * Get vendor B2B application status & details
+ */
+export const getB2BApplication = () => {
+    return api.get('/vendor/b2b-application');
+};
+
+/**
+ * Submit / Update vendor B2B selling application
+ * @param {object} data
+ */
+export const submitB2BApplication = (data) => {
+    return api.post('/vendor/b2b-application', data);
+};
+
+/**
+ * Upload GST Certificate for B2B selling application
+ * @param {File} file
+ */
+export const uploadB2BGstCertificate = (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/vendor/b2b-application/upload-document', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+};
+
+

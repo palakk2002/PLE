@@ -16,6 +16,7 @@ import * as shippingController from '../controllers/shipping.controller.js';
 import * as uploadController from '../controllers/upload.controller.js';
 import * as vendorPurchaseOrderController from '../controllers/vendorPurchaseOrder.controller.js';
 import * as businessProfileController from '../controllers/businessProfile.controller.js';
+import * as b2bApplicationController from '../controllers/b2bApplication.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
 import { authLimiter } from '../../../middlewares/rateLimiter.js';
@@ -77,6 +78,11 @@ router.post('/business-profile/upload-msme', ...strictVendorAuth, uploadDocument
 router.post('/business-profile/upload-identity', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadIdentityProof);
 router.post('/business-profile/upload-registration', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadRegistrationProof);
 router.post('/business-profile/upload-partnership', ...strictVendorAuth, uploadDocumentSingle('file'), businessProfileController.uploadPartnershipAgreement);
+
+// B2B Seller Application Routes
+router.get('/b2b-application', ...strictVendorAuth, b2bApplicationController.getB2BApplication);
+router.post('/b2b-application', ...strictVendorAuth, b2bApplicationController.submitB2BApplication);
+router.post('/b2b-application/upload-document', ...strictVendorAuth, uploadDocumentSingle('file'), b2bApplicationController.uploadB2BGstCertificate);
 
 // Products
 router.get('/products', ...vendorAuth, productController.getVendorProducts);

@@ -231,25 +231,25 @@ const PickupLocations = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-1">
             Pickup Locations
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
             Manage your store pickup locations
           </p>
         </div>
         <button
           onClick={() => setLocationModal({ isOpen: true, location: null })}
-          className="flex items-center gap-2 px-4 py-2 gradient-green text-white rounded-lg hover:shadow-glow-green transition-all font-semibold">
+          className="flex items-center gap-2 px-3.5 py-2 sm:px-4 sm:py-2.5 gradient-green text-white rounded-xl hover:shadow-glow-green transition-all font-semibold text-xs sm:text-sm flex-shrink-0">
           <FiPlus />
           <span>Add Location</span>
         </button>
       </div>
 
       {/* Search */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
         <div className="relative">
           <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
@@ -257,13 +257,13 @@ const PickupLocations = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search locations..."
-            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-white/10 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs sm:text-sm"
           />
         </div>
       </div>
 
       {/* Locations Table */}
-      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
         {filteredLocations.length > 0 ? (
           <DataTable
             data={filteredLocations}

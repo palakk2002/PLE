@@ -44,11 +44,21 @@ export const uploadMedia = asyncHandler(async (req, res) => {
     const folder = (req.body?.folder || 'general').toString().trim() || 'general';
     const publicId = req.body?.publicId ? String(req.body.publicId).trim() : undefined;
 
+    const PDF_DOCUMENT_MIMES = [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    ];
+    const isDocument = PDF_DOCUMENT_MIMES.includes(req.file.mimetype) || req.file.originalname?.toLowerCase().endsWith('.pdf');
+    const resourceType = isDocument ? 'raw' : 'auto';
+
     try {
         const uploaded = await uploadLocalFileToCloudinaryAndCleanupWithType(
             req.file.path,
             folder,
-            'auto',
+            resourceType,
             publicId
         );
         return res.status(201).json(

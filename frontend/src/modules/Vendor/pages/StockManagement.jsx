@@ -164,68 +164,68 @@ const StockManagement = () => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="lg:hidden">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 dark:text-white mb-1">
             Stock Management
           </h1>
-          <p className="text-sm sm:text-base text-gray-600">
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
             Manage your product inventory and stock levels
           </p>
         </div>
       </div>
 
       {/* Stock Statistics */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3.5 sm:p-4 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Total Products</p>
-            <FiPackage className="text-blue-500 text-xl" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">Total Products</p>
+            <FiPackage className="text-blue-500 text-lg sm:text-xl flex-shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-gray-800">
+          <p className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-white truncate">
             {stockStats.totalProducts}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3.5 sm:p-4 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">In Stock</p>
-            <FiPackage className="text-green-500 text-xl" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">In Stock</p>
+            <FiPackage className="text-green-500 text-lg sm:text-xl flex-shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-green-600">
+          <p className="text-xl sm:text-2xl font-bold text-green-600 truncate">
             {stockStats.inStock}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3.5 sm:p-4 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Low Stock</p>
-            <FiAlertTriangle className="text-orange-500 text-xl" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">Low Stock</p>
+            <FiAlertTriangle className="text-orange-500 text-lg sm:text-xl flex-shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-orange-600">
+          <p className="text-xl sm:text-2xl font-bold text-orange-600 truncate">
             {stockStats.lowStock}
           </p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-3.5 sm:p-4 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm text-gray-600">Out of Stock</p>
-            <FiTrendingDown className="text-red-500 text-xl" />
+            <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 truncate">Out of Stock</p>
+            <FiTrendingDown className="text-red-500 text-lg sm:text-xl flex-shrink-0" />
           </div>
-          <p className="text-2xl font-bold text-red-600">
+          <p className="text-xl sm:text-2xl font-bold text-red-600 truncate">
             {stockStats.outOfStock}
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 dark:border-white/5 min-w-0">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 mb-6">
+          <div className="relative flex-1 min-w-[200px]">
             <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search products..."
-              className="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-full pl-10 pr-4 py-2 bg-gray-50 dark:bg-[#222] border border-gray-200 dark:border-white/10 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs sm:text-sm"
             />
           </div>
           <AnimatedSelect
@@ -237,11 +237,11 @@ const StockManagement = () => {
               { value: "low_stock", label: "Low Stock" },
               { value: "out_of_stock", label: "Out of Stock" },
             ]}
-            className="w-full sm:w-auto min-w-[160px]"
+            className="w-full sm:w-auto min-w-[150px]"
           />
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 whitespace-nowrap">
-              Alert Threshold:
+            <label className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+              Threshold:
             </label>
             <input
               type="number"
@@ -250,7 +250,7 @@ const StockManagement = () => {
                 setAlertThreshold(parseInt(e.target.value, 10) || 10)
               }
               min="1"
-              className="w-20 px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className="w-20 px-2.5 py-1.5 border border-gray-200 dark:border-white/10 dark:bg-[#222] dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 text-xs sm:text-sm"
             />
           </div>
         </div>
