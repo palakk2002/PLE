@@ -39,12 +39,16 @@ const AgreementTemplateManagement = () => {
         getAgreementTemplates(),
       ]);
 
-      const fetchedConfigs = configsRes?.data || configsRes || [];
-      setConfigs(fetchedConfigs);
-      setTemplates(templatesRes?.data || templatesRes || []);
+      const rawConfigs = configsRes?.data || configsRes || [];
+      const configList = Array.isArray(rawConfigs) ? rawConfigs : (rawConfigs.data || []);
+      setConfigs(configList);
 
-      if (fetchedConfigs.length > 0 && !selectedConfigKey) {
-        setSelectedConfigKey(fetchedConfigs[0].key || fetchedConfigs[0].templateKey);
+      const rawTemplates = templatesRes?.data || templatesRes || [];
+      const templateList = Array.isArray(rawTemplates) ? rawTemplates : (rawTemplates.data || []);
+      setTemplates(templateList);
+
+      if (configList.length > 0 && !selectedConfigKey) {
+        setSelectedConfigKey(configList[0].key || configList[0].templateKey);
       }
     } catch (error) {
       console.warn("Failed to fetch templates/configs:", error);
@@ -84,7 +88,8 @@ const AgreementTemplateManagement = () => {
   };
 
   const validateAndSetFile = (file) => {
-    if (file.type !== "application/pdf") {
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (!isPdf) {
       toast.error("Only PDF files are allowed.");
       return;
     }
@@ -104,15 +109,21 @@ const AgreementTemplateManagement = () => {
 
     try {
       const response = await uploadAgreementTemplateGeneric(formData);
-      if (response?.data?.success || response?.success || response?.data?.data) {
+      if (
+        response?.statusCode === 201 ||
+        response?.success ||
+        response?.data?.success ||
+        response?.data?.data ||
+        response?.data
+      ) {
         toast.success("Agreement Template uploaded successfully!");
         setSelectedFile(null);
-        fetchData();
+        await fetchData();
       } else {
         toast.error("Failed to upload template.");
       }
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to upload template.");
+      toast.error(error.response?.data?.message || error?.message || "Failed to upload template.");
     } finally {
       setUploading(false);
     }
@@ -148,13 +159,31 @@ const AgreementTemplateManagement = () => {
     }
   };
 
-  const activeConfig = configs.find((c) => c.key === selectedConfigKey);
-  const filteredTemplates = templates.filter((t) => t.templateKey === selectedConfigKey);
+  const activeConfig = Array.isArray(configs) ? configs.find((c) => c.key === selectedConfigKey) : null;
+  const filteredTemplates = Array.isArray(templates) ? templates.filter((t) => t.templateKey === selectedConfigKey) : [];
   const activeTemplate = filteredTemplates.find((t) => t.status === "Active");
 
   const [zoomLevel, setZoomLevel] = useState(100);
-  const [iframeLoading, setIframeLoading] = useState(true);
+  const [iframeLoading, setIframeLoading] = useState(false);
   const [iframeError, setIframeError] = useState(false);
+
+  const isImageFile = (url) => {
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    return (
+      lower.includes("unsplash.com") ||
+      lower.endsWith(".jpg") ||
+      lower.endsWith(".jpeg") ||
+      lower.endsWith(".png") ||
+      lower.endsWith(".webp") ||
+      lower.endsWith(".gif")
+    );
+  };
+
+  const getCleanPdfUrl = (url) => {
+    if (!url) return "";
+    return url.replace("/raw/upload/", "/image/upload/");
+  };
 
   return (
     <div className="p-6 space-y-6 text-sm bg-gray-50 dark:bg-zinc-950 min-h-screen">
@@ -409,9 +438,9 @@ const AgreementTemplateManagement = () => {
       {/* Inline Preview Container */}
       {showPreviewUrl && (
         <div className="bg-white dark:bg-zinc-900 border dark:border-zinc-800 rounded-2xl p-5 shadow-sm space-y-4">
-          <div className="flex justify-between items-center pb-3 border-b dark:border-zinc-800">
+          <div className="flex flex-wrap justify-between items-center gap-3 pb-3 border-b dark:border-zinc-800">
             <h3 className="font-bold text-gray-800 dark:text-zinc-100 flex items-center gap-2">
-              <FiFileText className="text-[#AE020B]" /> Template PDF Previewer
+              <FiFileText className="text-[#AE020B]" /> Agreement Document Previewer
             </h3>
             <div className="flex items-center gap-3">
               <button
@@ -447,48 +476,62 @@ const AgreementTemplateManagement = () => {
           </div>
 
           <div 
-            className="w-full border dark:border-zinc-850 rounded-xl overflow-y-auto bg-gray-100 relative flex justify-center items-start"
+            className="w-full border dark:border-zinc-850 rounded-xl overflow-hidden bg-gray-100 dark:bg-zinc-950 relative flex justify-center items-start"
             style={{ height: "650px" }}
           >
-            {iframeLoading && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-zinc-900/80 z-10">
-                <div className="w-10 h-10 border-4 border-[#AE020B] border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-xs text-gray-500 mt-3 font-semibold">Loading document preview...</p>
-              </div>
-            )}
-
-            {iframeError ? (
-              <div className="flex flex-col items-center justify-center p-12 text-center space-y-3">
-                <FiAlertCircle className="text-4xl text-[#AE020B]" />
-                <h4 className="font-bold text-gray-800 dark:text-zinc-200">Unable to display PDF preview inline</h4>
-                <p className="text-xs text-gray-500 dark:text-zinc-400 max-w-sm">
-                  This might be due to security sandbox headers or network settings. Please view the document directly.
-                </p>
-                <a
-                  href={showPreviewUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 bg-[#AE020B] hover:bg-[#8d0208] text-white font-bold rounded-xl text-xs transition-colors"
-                >
-                  Open PDF in New Browser Tab
-                </a>
+            {isImageFile(showPreviewUrl) ? (
+              <div className="w-full h-full flex items-center justify-center p-4 overflow-auto bg-gray-900/5">
+                <img
+                  src={showPreviewUrl}
+                  alt="Template Document"
+                  className="max-h-full max-w-full object-contain rounded-lg shadow-sm"
+                  style={{ width: `${zoomLevel}%` }}
+                />
               </div>
             ) : (
-              <iframe
-                src={showPreviewUrl}
-                className="border-none transition-all duration-300"
+              <object
+                key={showPreviewUrl}
+                data={getCleanPdfUrl(showPreviewUrl)}
+                type="application/pdf"
+                className="w-full h-full bg-white transition-all duration-300"
                 style={{ 
                   width: `${zoomLevel}%`, 
                   height: "100%",
                   minWidth: "100%"
                 }}
-                onLoad={() => setIframeLoading(false)}
-                onError={() => {
-                  setIframeLoading(false);
-                  setIframeError(true);
-                }}
-                title="Agreement Template Preview"
-              />
+              >
+                {/* Fallback if browser does not support inline PDF object */}
+                <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 bg-gray-50 dark:bg-zinc-900 w-full h-full">
+                  <FiFileText className="text-5xl text-[#AE020B]" />
+                  <div>
+                    <h4 className="font-bold text-gray-800 dark:text-zinc-200 text-base">
+                      Agreement Document
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-zinc-400 mt-1 max-w-sm">
+                      Your browser does not support inline PDF rendering. You can open or download the PDF document directly.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2 justify-center pt-2">
+                    <a
+                      href={showPreviewUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2.5 bg-[#AE020B] hover:bg-[#8d0208] text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
+                    >
+                      <FiEye /> Open Document in New Tab
+                    </a>
+                    <a
+                      href={showPreviewUrl}
+                      download
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2.5 bg-gray-800 hover:bg-gray-900 text-white font-bold rounded-xl text-xs flex items-center gap-1.5 transition-colors"
+                    >
+                      <FiDownload /> Download PDF
+                    </a>
+                  </div>
+                </div>
+              </object>
             )}
           </div>
         </div>

@@ -21,6 +21,7 @@ import walletRoutes from './routes/wallet.routes.js';
 import { apiLimiter } from './middlewares/rateLimiter.js';
 import errorHandler from './middlewares/errorHandler.js';
 import notFound from './middlewares/notFound.js';
+import { getRobotsTxt, getSitemapXml } from './controllers/seo.controller.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -69,6 +70,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ─── Rate Limiting ───────────────────────────────────────────────────────────
 app.use('/api', apiLimiter);
+
+// ─── SEO Endpoints ───────────────────────────────────────────────────────────
+app.get('/robots.txt', getRobotsTxt);
+app.get('/sitemap.xml', getSitemapXml);
 
 // ─── Health Check ────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {

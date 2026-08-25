@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate, Link, useLocation } from "react-router-dom";
 import {
   FiStar,
   FiHeart,
@@ -37,6 +37,7 @@ import PageTransition from "../../../shared/components/PageTransition";
 import Badge from "../../../shared/components/Badge";
 import ProductCard from "../../../shared/components/ProductCard";
 import { getVariantSignature } from "../../../shared/utils/variant";
+import { useSafeBack } from "../../../shared/hooks/useSafeBack";
 import { useBusinessBuyer } from "../hooks/useBusinessBuyer";
 import { useLoyaltyStore } from "../../../shared/store/loyaltyStore";
 import {
@@ -54,6 +55,7 @@ import { ProductEnquiryModal } from "../components/Enquiry/ProductEnquiryModal";
 import { useOffers } from "../../offers/hooks/useOffers";
 import OfferCard from "../../offers/components/OfferCard";
 import OfferModal from "../../offers/components/OfferModal";
+import SEO from "../../../shared/components/SEO/SEO";
 
 const resolveVariantPrice = (product, selectedVariant) => {
   const basePrice = Number(product?.price) || 0;
@@ -198,15 +200,29 @@ const normalizeProduct = (raw) => {
 const MobileProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const handleBack = useSafeBack('/home');
+
+  const passedProduct = useMemo(() => {
+    return normalizeProduct(location.state?.product);
+  }, [location.state?.product]);
+
   const localFallbackProduct = useMemo(
-    () => normalizeProduct(getProductById(id)),
-    [id],
+    () => passedProduct || normalizeProduct(getProductById(id)),
+    [passedProduct, id],
   );
   const [product, setProduct] = useState(localFallbackProduct);
   const [similarProducts, setSimilarProducts] = useState([]);
-  const [isLoadingProduct, setIsLoadingProduct] = useState(true);
+  const [isLoadingProduct, setIsLoadingProduct] = useState(!localFallbackProduct);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariant, setSelectedVariant] = useState(null);
+
+  useEffect(() => {
+    if (passedProduct && (!product || String(product.id) !== String(passedProduct.id))) {
+      setProduct(passedProduct);
+      setIsLoadingProduct(false);
+    }
+  }, [passedProduct]);
 
   const [selectedOffer, setSelectedOffer] = useState(null);
   // Get active offers for this specific product
@@ -646,22 +662,80 @@ const MobileProductDetail = () => {
     return true;
   };
 
+  const productSchema = useMemo(() => {
+    if (!product) return null;
+    const origin = window.location.origin;
+    const prodUrl = window.location.href;
+
+    const brandName = product.brandName || product.brand?.name || "PLE";
+    const categoryName = product.categoryName || product.category?.name || "Products";
+    
+    return [
+      {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": product.name,
+        "image": productImages.map(img => img.startsWith('http') ? img : `${origin}${img}`),
+        "description": product.description || `Buy ${product.name} online at Peoples League of Electronics.`,
+        "sku": product.sku || product.id || product._id,
+        "brand": {
+          "@type": "Brand",
+          "name": brandName
+        },
+        "offers": {
+          "@type": "Offer",
+          "url": prodUrl,
+          "priceCurrency": "INR",
+          "price": currentPrice,
+          "availability": selectedAvailableStock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+          "itemCondition": product.isRefurbished ? "https://schema.org/RefurbishedCondition" : "https://schema.org/NewCondition"
+        }
+      },
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": origin
+          },
+          {
+            "@type": "ListItem",
+            "position": 2,
+            "name": categoryName,
+            "item": `${origin}/category/${product.categoryId}`
+          },
+          {
+            "@type": "ListItem",
+            "position": 3,
+            "name": product.name,
+            "item": prodUrl
+          }
+        ]
+      }
+    ];
+  }, [product, productImages, currentPrice, selectedAvailableStock]);
+
   return (
     <>
+      {product && (
+        <SEO
+          title={product.name}
+          description={product.description || `Buy ${product.name} online. Details: ${product.description}`}
+          image={productImages[0]}
+          type="product"
+          schema={productSchema}
+        />
+      )}
       <PageTransition>
       <MobileLayout showBottomNav={false} showCartBar={true}>
         <div className="w-full pb-24 lg:pb-12 max-w-7xl mx-auto">
           {/* Back Button */}
           <div className="px-4 pt-2 lg:pt-8 lg:px-8 mb-2">
             <button
-              onClick={() => {
-                const prevPath = sessionStorage.getItem('prevPath');
-                if (prevPath && prevPath !== '/portal' && !prevPath.includes('login') && !prevPath.includes('register')) {
-                  navigate(prevPath);
-                } else {
-                  navigate('/home');
-                }
-              }}
+              onClick={handleBack}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors group"
             >
               <div className="p-2 rounded-full group-hover:bg-gray-100 transition-colors">

@@ -19,7 +19,7 @@ import * as businessProfileController from '../controllers/businessProfile.contr
 import * as b2bApplicationController from '../controllers/b2bApplication.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
-import { authLimiter } from '../../../middlewares/rateLimiter.js';
+import { authLimiter, chatLimiter } from '../../../middlewares/rateLimiter.js';
 import { validate } from '../../../middlewares/validate.js';
 import {
     registerSchema,
@@ -86,6 +86,7 @@ router.post('/b2b-application/upload-document', ...strictVendorAuth, uploadDocum
 
 // Products
 router.get('/products', ...vendorAuth, productController.getVendorProducts);
+router.get('/brand-requests', ...vendorAuth, productController.getVendorBrandRequests);
 router.post('/products/bulk', ...vendorAuth, productController.createBulkProducts);
 router.get('/products/:id', ...vendorAuth, validate(productIdParamSchema, 'params'), productController.getVendorProductById);
 router.post('/products', ...vendorAuth, validate(createProductSchema), productController.createProduct);
@@ -98,6 +99,7 @@ router.get('/orders', ...vendorAuth, orderController.getVendorOrders);
 router.post('/orders/bulk', ...vendorAuth, orderController.createBulkOrders);
 router.get('/orders/:id', ...vendorAuth, orderController.getVendorOrderById);
 router.patch('/orders/:id/status', ...vendorAuth, orderController.updateOrderStatus);
+router.post('/orders/:id/shiprocket-shipment', ...vendorAuth, orderController.createShiprocketShipment);
 
 // Customers
 router.get('/customers', ...strictVendorAuth, customerController.getVendorCustomers);
@@ -106,7 +108,7 @@ router.get('/customers/:id', ...strictVendorAuth, customerController.getVendorCu
 // Chat
 router.get('/chat/threads', ...strictVendorAuth, chatController.getVendorChatThreads);
 router.get('/chat/threads/:id/messages', ...strictVendorAuth, chatController.getVendorChatMessages);
-router.post('/chat/threads/:id/messages', ...strictVendorAuth, chatController.sendVendorChatMessage);
+router.post('/chat/threads/:id/messages', ...strictVendorAuth, chatLimiter, chatController.sendVendorChatMessage);
 router.patch('/chat/threads/:id/read', ...strictVendorAuth, chatController.markVendorChatRead);
 router.patch('/chat/threads/:id/status', ...strictVendorAuth, chatController.updateVendorChatStatus);
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ChevronDown, MapPin, Mail, Phone, ArrowRight } from 'lucide-react';
+import SEO from '../../../shared/components/SEO/SEO';
 import faqImage from '../assets/footer-illustration/undraw_mobile-assistant_iifm.svg';
 
 const faqsSection1 = [
@@ -82,8 +83,36 @@ export default function FAQ() {
   const [openIndex1, setOpenIndex1] = useState(0);
   const [openIndex2, setOpenIndex2] = useState(0);
 
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      ...faqsSection1.map(faq => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      })),
+      ...faqsSection2.map(faq => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    ]
+  };
+
   return (
     <div className="min-h-screen bg-app-bg pt-20">
+      <SEO
+        title="Frequently Asked Questions (FAQ)"
+        description="Find answers to common questions about our services, ordering process, hardware procurement, software licensing, and how we work."
+        schema={faqSchema}
+      />
       {/* Header Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 lg:pt-20 pb-8 lg:pb-16">
         <div className="flex flex-col-reverse lg:flex-row items-center gap-12 lg:gap-24">

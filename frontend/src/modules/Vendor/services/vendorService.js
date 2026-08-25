@@ -183,6 +183,13 @@ export const updateVendorOrderStatus = (orderId, status) =>
     api.patch(`/vendor/orders/${orderId}/status`, { status });
 
 /**
+ * Create a Shiprocket shipment for a vendor order
+ * @param {string} orderId — the order's _id or orderId
+ */
+export const createShiprocketShipment = (orderId) =>
+    api.post(`/vendor/orders/${orderId}/shiprocket-shipment`);
+
+/**
  * Get customers for the authenticated vendor
  * @param {{ search?: string }} params
  */

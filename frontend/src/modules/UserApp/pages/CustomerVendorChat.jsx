@@ -8,6 +8,7 @@ import api from "../../../shared/utils/api";
 import socketService from "../../../shared/utils/socket";
 import toast from "react-hot-toast";
 import { useB2bStore } from "../../../shared/store/b2bStore";
+import { getChatBlockMessage } from "../../../shared/utils/chatModerationMessages";
 
 const CustomerVendorChat = () => {
   const { threadId } = useParams();
@@ -112,8 +113,16 @@ const CustomerVendorChat = () => {
         setNewMessage("");
       }
     } catch (err) {
-      console.error("Failed to send message:", err);
-      toast.error("Failed to send message.");
+      // Handle moderation block specifically
+      const errData = err?.response?.data;
+      if (errData?.code === 'MESSAGE_BLOCKED') {
+        toast.error(getChatBlockMessage(errData?.category), {
+          duration: 6000,
+          style: { maxWidth: '340px' },
+        });
+      } else {
+        toast.error('Failed to send message.');
+      }
     } finally {
       setSending(false);
     }

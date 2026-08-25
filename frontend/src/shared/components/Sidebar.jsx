@@ -2,11 +2,11 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FiX, FiUser, FiShoppingBag, FiSettings, FiLogOut, FiChevronDown, FiHeart, FiCreditCard, FiMapPin, FiMessageSquare, FiRefreshCw, FiFileText, FiBell, FiTag, FiHelpCircle, FiGift, FiTool } from 'react-icons/fi';
 import { useCategoryStore } from '../store/categoryStore';
 import { useCampaignStore } from '../store/campaignStore';
 import { categories as fallbackCategories } from '../../data/categories';
 import LucideIcon from './LucideIcon';
+import { performUserLogout } from '../utils/userLogout';
 
 /**
  * Reusable slide‑in sidebar with categories support.
@@ -264,7 +264,11 @@ const Sidebar = ({ isOpen, onClose, user, onLogout }) => {
               </Link>
               <button
                 onClick={() => {
-                  onLogout();
+                  if (typeof onLogout === 'function') {
+                    onLogout();
+                  } else {
+                    performUserLogout('/');
+                  }
                   onClose();
                 }}
                 className="flex w-full items-center gap-3 px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"

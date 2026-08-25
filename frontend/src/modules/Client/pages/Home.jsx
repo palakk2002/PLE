@@ -20,9 +20,34 @@ import SmartDeals from '../components/home/SmartDeals';
 import LoyaltyRewards from '../components/home/LoyaltyRewards';
 import ZeroMaintenance from '../components/home/ZeroMaintenance';
 import { useCMS } from '../hooks/useCMS';
+import SEO from '../../../shared/components/SEO/SEO';
 
 export default function Home() {
   const { sections } = useCMS();
+
+  const origin = window.location.origin;
+
+  const homepageSchema = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Peoples League of Electronics",
+      "url": origin,
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": `${origin}/search?q={search_term_string}`,
+        "query-input": "required name=search_term_string"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Peoples League of Electronics",
+      "alternateName": "PLE",
+      "url": origin,
+      "logo": `${origin}/PLE-logo-light-transparent.png`
+    }
+  ];
 
   // Mapping from section IDs to components
   const componentMap = {
@@ -60,6 +85,11 @@ export default function Home() {
       transition={{ duration: 0.4 }}
       className="bg-app-bg text-app-text-muted min-h-screen relative"
     >
+      <SEO
+        title="Home"
+        description="Welcome to Peoples League of Electronics (PLE) - Your premier multi-vendor electronics e-commerce platform for high-quality electronics, smart deals, and zero-maintenance products."
+        schema={homepageSchema}
+      />
       {visibleSections.map((sec) => componentMap[sec.id] || null)}
     </motion.div>
   );

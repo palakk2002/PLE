@@ -91,6 +91,7 @@ router.delete('/categories/:id', ...adminAuth, validate(categoryIdParamSchema, '
 // ─── Brands ───────────────────────────────────────────────────────────────────
 router.get('/brands', ...adminAuth, catalogController.getAllBrands);
 router.post('/brands', ...adminAuth, validate(createBrandSchema), catalogController.createBrand);
+router.patch('/brands/:id/review', ...adminAuth, validate(brandIdParamSchema, 'params'), catalogController.reviewBrand);
 router.put('/brands/:id', ...adminAuth, validate(brandIdParamSchema, 'params'), validate(updateBrandSchema), catalogController.updateBrand);
 router.delete('/brands/:id', ...adminAuth, validate(brandIdParamSchema, 'params'), catalogController.deleteBrand);
 
@@ -319,5 +320,10 @@ router.post('/managed-vendor-chat/threads/initiate', ...adminAuth, adminManagedV
 router.get('/managed-vendor-chat/threads/:threadId/messages', ...adminAuth, adminManagedVendorChatController.getAdminManagedVendorMessages);
 router.post('/managed-vendor-chat/threads/:threadId/messages', ...adminAuth, adminManagedVendorChatController.sendAdminManagedVendorMessage);
 router.patch('/managed-vendor-chat/threads/:threadId/read', ...adminAuth, adminManagedVendorChatController.markAdminManagedVendorThreadRead);
+
+// ─── Admin Chat Moderation Routes ──────────────────────────────────────────────
+import * as chatModerationController from '../controllers/chatModeration.controller.js';
+router.get('/chat-moderation/violations', ...adminAuth, chatModerationController.getChatViolations);
+router.get('/chat-moderation/stats', ...adminAuth, chatModerationController.getChatViolationStats);
 
 export default router;

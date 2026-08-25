@@ -34,7 +34,7 @@ const AUTH_SCOPES = {
     accessKey: 'b2bAdminToken',
     refreshKey: 'b2bAdminRefreshToken', // Not implemented yet, but keeping for structure
     persistKey: 'b2badmin-auth-storage', // Need to match exactly what is in b2bAdminStore.js
-    loginPath: '/login',
+    loginPath: '/',
     areaPrefix: '/b2b-dashboard',
   },
   user: {
@@ -42,7 +42,7 @@ const AUTH_SCOPES = {
     accessKey: 'token',
     refreshKey: 'refresh-token',
     persistKey: 'auth-storage',
-    loginPath: '/login',
+    loginPath: '/',
     areaPrefix: '/',
   },
 };
@@ -265,6 +265,16 @@ api.interceptors.request.use(
         config.headers.set('Authorization', `Bearer ${token}`);
       } else {
         config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
+    if (config.data instanceof FormData) {
+      if (typeof config.headers.delete === 'function') {
+        config.headers.delete('Content-Type');
+        config.headers.delete('content-type');
+      } else if (config.headers) {
+        delete config.headers['Content-Type'];
+        delete config.headers['content-type'];
       }
     }
 

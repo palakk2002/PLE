@@ -43,6 +43,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     pathname === '/wallet' ||
     pathname === '/settings' ||
     pathname === '/help-support' ||
+    pathname === '/support' ||
     pathname === '/support-tickets' ||
     pathname.startsWith('/support-chat/') ||
     pathname.startsWith('/chat/vendor/') ||
@@ -54,7 +55,6 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     pathname === '/terms-and-conditions' ||
     pathname === '/user-agreement' ||
     pathname === '/return-policy' ||
-    pathname === '/warranty-policy' ||
     pathname === '/warranty-policy' ||
     pathname === '/about-us' ||
     pathname.startsWith('/legal/');
@@ -81,7 +81,7 @@ const MobileLayout = ({ children, showBottomNav = true, showCartBar = true, noPa
     };
   }, []);
 
-      const isLegalPath = pathname.startsWith('/legal/') || pathname === '/privacy-policy' || pathname === '/terms-and-conditions' || pathname === '/user-agreement' || pathname === '/return-policy' || pathname === '/warranty-policy' || pathname === '/business-onboarding-policy' || pathname === '/execution-acceptance-policy';
+      const isLegalPath = pathname.startsWith('/legal/') || pathname === '/privacy-policy' || pathname === '/support' || pathname === '/terms-and-conditions' || pathname === '/user-agreement' || pathname === '/return-policy' || pathname === '/warranty-policy' || pathname === '/business-onboarding-policy' || pathname === '/execution-acceptance-policy';
 
       const paddingClasses = shouldNoPadding 
         ? "px-0" 

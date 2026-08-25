@@ -24,3 +24,13 @@ export const otpLimiter = rateLimit({
     max: process.env.NODE_ENV === 'production' ? 3 : 1000, // High limit for testing
     message: { success: false, message: 'Too many OTP requests, please wait a minute.' },
 });
+
+// Chat message rate limiter — 30 messages per minute per IP
+// Prevents spam/flooding while allowing normal conversation pace
+export const chatLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: process.env.NODE_ENV === 'production' ? 30 : 10000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { success: false, message: 'You are sending messages too quickly. Please wait a moment.' },
+});

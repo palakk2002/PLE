@@ -219,6 +219,66 @@ const calculateVariantAggregateStock = (variants = {}) => {
     }, 0);
 };
 
+const resolveBrandForVendorProduct = async (vendorUser, brandId, customBrandName, isCustomBrand) => {
+    const trimmedCustomName = String(customBrandName || '').trim();
+    const isManaged = vendorUser.role === 'managed_vendor';
+
+    if (isCustomBrand || (trimmedCustomName && !brandId)) {
+        if (!trimmedCustomName) {
+            throw new ApiError(400, 'Custom brand name is required when requesting a new brand.');
+        }
+
+        const escaped = trimmedCustomName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const existingBrand = await Brand.findOne({ name: { $regex: new RegExp(`^${escaped}$`, 'i') } });
+
+        if (existingBrand) {
+            const isApproved = existingBrand.status === 'approved' || (existingBrand.isActive && !existingBrand.status);
+            return {
+                brandId: existingBrand._id,
+                brandApprovalStatus: isApproved ? 'approved' : (existingBrand.status || 'pending'),
+                customBrandName: existingBrand.name,
+                needsBrandReview: !isApproved,
+            };
+        }
+
+        const newBrand = await Brand.create({
+            name: trimmedCustomName,
+            slug: slugify(trimmedCustomName) + '-' + Date.now(),
+            status: 'pending',
+            isActive: false,
+            requestedBy: isManaged ? undefined : vendorUser.id,
+            requestedByShop: isManaged ? vendorUser.shopId : undefined,
+        });
+
+        return {
+            brandId: newBrand._id,
+            brandApprovalStatus: 'pending',
+            customBrandName: trimmedCustomName,
+            needsBrandReview: true,
+        };
+    }
+
+    if (brandId) {
+        const brandDoc = await Brand.findById(brandId);
+        if (brandDoc) {
+            const isApproved = brandDoc.status === 'approved' || (brandDoc.isActive && !brandDoc.status);
+            return {
+                brandId: brandDoc._id,
+                brandApprovalStatus: isApproved ? 'approved' : (brandDoc.status || 'pending'),
+                customBrandName: brandDoc.name,
+                needsBrandReview: !isApproved,
+            };
+        }
+    }
+
+    return {
+        brandId: null,
+        brandApprovalStatus: 'none',
+        customBrandName: '',
+        needsBrandReview: false,
+    };
+};
+
 // GET /api/vendor/products
 export const getVendorProducts = asyncHandler(async (req, res) => {
     const { page = 1, limit = 20, search, stock, salesChannel, approvalStatus } = req.query;
@@ -235,7 +295,12 @@ export const getVendorProducts = asyncHandler(async (req, res) => {
     if (salesChannel) filter.salesChannel = salesChannel;
     if (approvalStatus) filter.approvalStatus = approvalStatus;
 
-    const products = await Product.find(filter).populate('categoryId', 'name gstRate').populate('brandId', 'name').sort({ createdAt: -1 }).skip(skip).limit(numericLimit);
+    const products = await Product.find(filter)
+        .populate('categoryId', 'name gstRate')
+        .populate('brandId', 'name status logo')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(numericLimit);
     const total = await Product.countDocuments(filter);
     res.status(200).json(new ApiResponse(200, { products, total, page: numericPage, pages: Math.ceil(total / numericLimit) }, 'Products fetched.'));
 });
@@ -248,14 +313,24 @@ export const getVendorProductById = asyncHandler(async (req, res) => {
 
     const product = await Product.findOne(query)
         .populate('categoryId', 'name parentId gstRate')
-        .populate('brandId', 'name');
+        .populate('brandId', 'name status logo');
     if (!product) throw new ApiError(404, 'Product not found or access denied.');
     res.status(200).json(new ApiResponse(200, product, 'Product fetched.'));
 });
 
+// GET /api/vendor/brand-requests
+export const getVendorBrandRequests = asyncHandler(async (req, res) => {
+    const filter = req.user.role === 'managed_vendor'
+        ? { requestedByShop: req.user.shopId }
+        : { requestedBy: req.user.id };
+
+    const brands = await Brand.find(filter).sort({ createdAt: -1 });
+    res.status(200).json(new ApiResponse(200, brands, 'Vendor brand requests fetched.'));
+});
+
 // POST /api/vendor/products
 export const createProduct = asyncHandler(async (req, res) => {
-    const { name, ...rest } = req.body;
+    const { name, isCustomBrand, customBrandName: inputCustomBrandName, ...rest } = req.body;
     if (!name) throw new ApiError(400, 'Product name is required.');
     const slug = slugify(name) + '-' + Date.now();
     const stockQuantity = Number(rest.stockQuantity ?? 0);
@@ -284,6 +359,11 @@ export const createProduct = asyncHandler(async (req, res) => {
         await checkB2BPermission(req.user.id, targetSalesChannel);
     }
 
+    const { brandId: resolvedBrandId, brandApprovalStatus, customBrandName, needsBrandReview } =
+        await resolveBrandForVendorProduct(req.user, rest.brandId, inputCustomBrandName, isCustomBrand);
+
+    const shouldBePending = isManaged || needsBrandReview;
+
     const product = await Product.create({
         name,
         slug,
@@ -291,16 +371,22 @@ export const createProduct = asyncHandler(async (req, res) => {
         shopId: isManaged ? req.user.shopId : undefined,
         vendorUserId: isManaged ? req.user.id : undefined,
         createdBy: req.user.id,
-        approvalStatus: isManaged ? 'pending' : 'approved',
-        isActive: !isManaged,
+        approvalStatus: shouldBePending ? 'pending' : 'approved',
+        brandApprovalStatus,
+        customBrandName: customBrandName || undefined,
+        brandId: resolvedBrandId || undefined,
+        isActive: !shouldBePending,
         auditLog: [{
             action: 'created',
             userId: req.user.id,
             userType: isManaged ? 'managed_vendor' : 'vendor',
             timestamp: new Date(),
-            reason: isManaged ? 'Product submitted for admin review' : 'Product created'
+            reason: needsBrandReview
+                ? `Product submitted for review with custom brand request: "${customBrandName}"`
+                : (isManaged ? 'Product submitted for admin review' : 'Product created')
         }],
         ...rest,
+        brandId: resolvedBrandId || undefined,
         salesChannel: targetSalesChannel,
         price,
         variants: normalizedVariants,
@@ -333,6 +419,22 @@ export const updateProduct = asyncHandler(async (req, res) => {
         const incomingChannel = req.body.salesChannel || product.salesChannel;
         if (req.body.salesChannel && ['B2B', 'BOTH'].includes(req.body.salesChannel)) {
             await checkB2BPermission(req.user.id, req.body.salesChannel);
+        }
+    }
+
+    const isManaged = req.user.role === 'managed_vendor';
+    let brandReviewNeeded = false;
+
+    if (req.body.isCustomBrand !== undefined || req.body.customBrandName !== undefined || req.body.brandId !== undefined) {
+        const { brandId: resolvedBrandId, brandApprovalStatus, customBrandName, needsBrandReview } =
+            await resolveBrandForVendorProduct(req.user, req.body.brandId, req.body.customBrandName, req.body.isCustomBrand);
+        product.brandId = resolvedBrandId || undefined;
+        product.brandApprovalStatus = brandApprovalStatus;
+        product.customBrandName = customBrandName || undefined;
+        brandReviewNeeded = needsBrandReview;
+        if (needsBrandReview) {
+            product.approvalStatus = 'pending';
+            product.isActive = false;
         }
     }
 
@@ -378,9 +480,11 @@ export const updateProduct = asyncHandler(async (req, res) => {
     product.auditLog.push({
         action: 'updated',
         userId: req.user.id,
-        userType: req.user.role === 'managed_vendor' ? 'managed_vendor' : 'vendor',
+        userType: isManaged ? 'managed_vendor' : 'vendor',
         timestamp: new Date(),
-        reason: 'Product details updated'
+        reason: brandReviewNeeded
+            ? `Product updated with custom brand request: "${product.customBrandName}"`
+            : 'Product details updated'
     });
 
     await product.save();

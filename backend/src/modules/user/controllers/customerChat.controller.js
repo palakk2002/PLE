@@ -5,6 +5,8 @@ import VendorChatThread from '../../../models/VendorChatThread.model.js';
 import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import { getIO } from '../../../config/socket.js';
+import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import ChatViolation from '../../../models/ChatViolation.model.js';
 
 const serializeMessage = (messageDoc) => ({
     id: messageDoc._id,
@@ -90,6 +92,38 @@ export const sendCustomerChatMessage = asyncHandler(async (req, res) => {
         customerUserId: req.user.id,
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    // ── Moderation Layer ──────────────────────────────────────
+    const moderationResult = moderateMessage(message);
+
+    if (moderationResult.action !== MODERATION_ACTION.ALLOW) {
+        // Log the violation (no message content stored for privacy)
+        try {
+            await ChatViolation.create({
+                threadId:   thread._id,
+                senderId:   req.user.id,
+                senderType: 'customer',
+                vendorId:   thread.vendorId,
+                category:   moderationResult.category,
+                action:     moderationResult.action,
+                direction:  'USER_TO_VENDOR',
+                reason:     moderationResult.reason,
+            });
+        } catch (logErr) {
+            console.warn('Failed to log chat violation:', logErr.message);
+        }
+
+        if (moderationResult.action === MODERATION_ACTION.BLOCK) {
+            return res.status(422).json({
+                success:  false,
+                code:     'MESSAGE_BLOCKED',
+                category: moderationResult.category,
+                message:  moderationResult.userMessage,
+            });
+        }
+        // FLAG: log but allow through
+    }
+    // ── End Moderation ────────────────────────────────────────
 
     const created = await VendorChatMessage.create({
         threadId: thread._id,

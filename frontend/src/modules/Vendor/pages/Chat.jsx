@@ -3,6 +3,8 @@ import { FiMessageCircle, FiSend, FiUser, FiSearch, FiArrowLeft } from "react-ic
 import { motion } from "framer-motion";
 import Badge from "../../../shared/components/Badge";
 import { useVendorAuthStore } from "../store/vendorAuthStore";
+import toast from "react-hot-toast";
+import { getChatBlockMessage } from "../../../shared/utils/chatModerationMessages";
 import {
   getVendorChatThreads,
   getVendorChatMessages,
@@ -119,6 +121,17 @@ const Chat = () => {
             }
           : prev
       );
+    } catch (err) {
+      // Handle moderation block specifically
+      const errData = err?.response?.data;
+      if (errData?.code === 'MESSAGE_BLOCKED') {
+        toast.error(getChatBlockMessage(errData?.category), {
+          duration: 6000,
+          style: { maxWidth: '340px' },
+        });
+      } else {
+        toast.error('Failed to send message.');
+      }
     } finally {
       setIsSending(false);
     }

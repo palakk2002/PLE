@@ -9,11 +9,14 @@ import fs from 'fs/promises';
  * @returns {Promise<{url: string, publicId: string}>}
  */
 export const uploadToCloudinary = async (localFilePath, folder, publicId) => {
-    let rType = 'image';
-    if (localFilePath && localFilePath.toLowerCase().endsWith('.pdf')) {
-        rType = 'raw';
+    const isPdf = localFilePath && localFilePath.toLowerCase().endsWith('.pdf');
+    const uploadOptions = { 
+        folder, 
+        resource_type: isPdf ? 'auto' : 'image' 
+    };
+    if (isPdf) {
+        uploadOptions.format = 'pdf';
     }
-    const uploadOptions = { folder, resource_type: rType };
     if (publicId) uploadOptions.public_id = publicId;
 
     try {
@@ -22,16 +25,18 @@ export const uploadToCloudinary = async (localFilePath, folder, publicId) => {
     } catch (error) {
         console.warn("Cloudinary upload failed, using local/placeholder fallback image:", error.message);
         
-        const cleanFolder = String(folder || 'general').split('/').pop().toLowerCase();
+        const folderStr = String(folder || 'general').toLowerCase();
         let fallbackUrl = `https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop&q=60`; // Default premium red shoe
         
-        if (cleanFolder.includes('category') || cleanFolder.includes('categories')) {
+        if (isPdf || folderStr.includes('agreement') || folderStr.includes('template') || folderStr.includes('document')) {
+            fallbackUrl = `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`;
+        } else if (folderStr.includes('category') || folderStr.includes('categories')) {
             fallbackUrl = `https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&auto=format&fit=crop&q=60`; // Fashion shopping bag category
-        } else if (cleanFolder.includes('product') || cleanFolder.includes('products')) {
+        } else if (folderStr.includes('product') || folderStr.includes('products')) {
             fallbackUrl = `https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&auto=format&fit=crop&q=60`; // Premium gadget watch
-        } else if (cleanFolder.includes('banner') || cleanFolder.includes('banners')) {
+        } else if (folderStr.includes('banner') || folderStr.includes('banners')) {
             fallbackUrl = `https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&auto=format&fit=crop&q=60`; // Beautiful apparel storefront banner
-        } else if (cleanFolder.includes('brand') || cleanFolder.includes('brands')) {
+        } else if (folderStr.includes('brand') || folderStr.includes('brands')) {
             fallbackUrl = `https://images.unsplash.com/photo-1560243563-062bff001d68?w=400&auto=format&fit=crop&q=60`; // Clothes hanging brand
         }
 
@@ -56,10 +61,14 @@ export const uploadFileToCloudinary = async (
     resourceType = 'auto',
     publicId
 ) => {
-    if (localFilePath && localFilePath.toLowerCase().endsWith('.pdf')) {
-        resourceType = 'raw';
+    const isPdf = localFilePath && localFilePath.toLowerCase().endsWith('.pdf');
+    const uploadOptions = { 
+        folder, 
+        resource_type: resourceType === 'raw' && !isPdf ? 'raw' : 'auto' 
+    };
+    if (isPdf) {
+        uploadOptions.format = 'pdf';
     }
-    const uploadOptions = { folder, resource_type: resourceType };
     if (publicId) uploadOptions.public_id = publicId;
     
     try {
@@ -68,18 +77,18 @@ export const uploadFileToCloudinary = async (
     } catch (error) {
         console.warn("Cloudinary file upload failed, using local/placeholder fallback:", error.message);
         
-        const cleanFolder = String(folder || 'general').split('/').pop().toLowerCase();
+        const folderStr = String(folder || 'general').toLowerCase();
         let fallbackUrl = `https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&auto=format&fit=crop&q=60`;
         
-        if (cleanFolder.includes('agreement') || cleanFolder.includes('templates') || resourceType === 'raw') {
+        if (isPdf || folderStr.includes('agreement') || folderStr.includes('template') || folderStr.includes('document')) {
             fallbackUrl = `https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf`;
-        } else if (cleanFolder.includes('category') || cleanFolder.includes('categories')) {
+        } else if (folderStr.includes('category') || folderStr.includes('categories')) {
             fallbackUrl = `https://images.unsplash.com/photo-1483985988355-763728e1935b?w=400&auto=format&fit=crop&q=60`;
-        } else if (cleanFolder.includes('product') || cleanFolder.includes('products')) {
+        } else if (folderStr.includes('product') || folderStr.includes('products')) {
             fallbackUrl = `https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&auto=format&fit=crop&q=60`;
-        } else if (cleanFolder.includes('banner') || cleanFolder.includes('banners')) {
+        } else if (folderStr.includes('banner') || folderStr.includes('banners')) {
             fallbackUrl = `https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&auto=format&fit=crop&q=60`;
-        } else if (cleanFolder.includes('brand') || cleanFolder.includes('brands')) {
+        } else if (folderStr.includes('brand') || folderStr.includes('brands')) {
             fallbackUrl = `https://images.unsplash.com/photo-1560243563-062bff001d68?w=400&auto=format&fit=crop&q=60`;
         }
 

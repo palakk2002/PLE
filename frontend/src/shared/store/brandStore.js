@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { getAllBrands, getPublicBrands, createBrand, updateBrand, deleteBrand } from '../../modules/Admin/services/adminService';
+import { getAllBrands, getPublicBrands, createBrand, updateBrand, reviewBrand, deleteBrand } from '../../modules/Admin/services/adminService';
 import toast from 'react-hot-toast';
 
 export const useBrandStore = create(
@@ -83,6 +83,30 @@ export const useBrandStore = create(
             isLoading: false
           }));
           toast.success('Brand updated successfully');
+          return updatedBrand;
+        } catch (error) {
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      // Review brand (Approve / Reject)
+      reviewBrand: async (id, { status, reason, autoActivateProducts = true }) => {
+        set({ isLoading: true });
+        try {
+          const response = await reviewBrand(id, { status, reason, autoActivateProducts });
+          const updatedBrand = {
+            ...response.data,
+            id: response.data._id
+          };
+
+          set((state) => ({
+            brands: state.brands.map((brand) =>
+              String(brand.id) === String(id) ? { ...brand, ...updatedBrand } : brand
+            ),
+            isLoading: false
+          }));
+          toast.success(`Brand ${status === 'approved' ? 'approved' : 'rejected'} successfully`);
           return updatedBrand;
         } catch (error) {
           set({ isLoading: false });

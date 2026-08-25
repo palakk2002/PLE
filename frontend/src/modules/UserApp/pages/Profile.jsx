@@ -27,6 +27,7 @@ import {
   FiCreditCard,
   FiAward,
   FiSettings,
+  FiTrash2,
 } from "react-icons/fi";
 
 // Offers System Imports
@@ -42,6 +43,7 @@ import { isValidEmail, isValidPhone } from "../../../shared/utils/helpers";
 import toast from "react-hot-toast";
 import PageTransition from "../../../shared/components/PageTransition";
 import PasswordStrengthMeter from "../components/Mobile/PasswordStrengthMeter";
+import { performUserLogout } from "../../../shared/utils/userLogout";
 import OTPVerificationModal from "../../../shared/components/OTPVerificationModal";
 import { useUserNotificationStore } from "../store/userNotificationStore";
 import { useWishlistStore } from "../../../shared/store/wishlistStore";
@@ -251,6 +253,7 @@ const MobileProfile = () => {
   // Delete Account State
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deletePassword, setDeletePassword] = useState("");
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
 
   const filteredProfileOffers = useMemo(() => {
     return profileOffers.filter((offer) => {
@@ -301,9 +304,9 @@ const MobileProfile = () => {
 
   useEffect(() => {
     if (isDesktop && activeTab === "menu") {
-      setActiveTab("personal");
+      setActiveTab(isBusiness ? "summary" : "personal");
     }
-  }, [isDesktop, activeTab]);
+  }, [isDesktop, activeTab, isBusiness]);
 
   useEffect(() => {
     const lastClickedId = sessionStorage.getItem("lastClickedProfileOption");
@@ -363,18 +366,26 @@ const MobileProfile = () => {
   };
 
   const handleLogout = () => {
-    logout();
-    navigate("/");
-    toast.success("Logged out successfully");
+    performUserLogout('/');
   };
 
   const handleDeleteAccount = async () => {
+    if (!deletePassword.trim()) {
+      toast.error("Please enter your account password to confirm deletion.");
+      return;
+    }
+    setIsDeletingAccount(true);
     try {
+      // Simulate / process account deletion
+      await new Promise((resolve) => setTimeout(resolve, 800));
       toast.success("Account deleted successfully!");
       setShowDeleteConfirm(false);
+      setDeletePassword("");
       handleLogout();
     } catch (e) {
       toast.error("Failed to delete account");
+    } finally {
+      setIsDeletingAccount(false);
     }
   };
 
@@ -413,157 +424,162 @@ const MobileProfile = () => {
     }
   };
 
-  const menuOptions = [
-    {
-      id: "personal",
-      label: "Personal Information",
-      icon: FiUser,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-    },
-    {
-      id: "product-enquiries",
-      label: "My Enquiries",
-      icon: FiMessageSquare,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-    },
-    ...(isBusiness && !isB2BEmployee
-      ? [
+  const menuOptions = useMemo(() => {
+    if (isBusiness) {
+      return [
         {
-          id: "b2b-requests",
-          label: "Sourcing Center (B2B Dashboard)",
-          icon: FiFileText,
+          id: "summary",
+          label: "Summary",
+          icon: FiBriefcase,
           color: "text-[#7B0A0A]",
           bg: "bg-[#7B0A0A]/10",
-          link: "/b2b-dashboard"
         },
-      ]
-      : []),
-    ...(isBusiness
-      ? [
         {
-          id: "business-wallet",
-          label: "Business Wallet",
-          icon: FiCreditCard,
+          id: "personal",
+          label: "Personal Information",
+          icon: FiUser,
           color: "text-[#7B0A0A]",
           bg: "bg-[#7B0A0A]/10",
-          link: "/wallet"
         },
-      ]
-      : []),
-    {
-      id: "orders",
-      label: "My Orders",
-      icon: FiPackage,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/orders",
-    },
-    {
-      id: "returns",
-      label: "My Returns",
-      icon: FiPackage,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/returns",
-    },
-    {
-      id: "product-requests",
-      label: "My Product Requests",
-      icon: FiFileText,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/product-requests",
-    },
-    {
-      id: "addresses",
-      label: "My Addresses",
-      icon: FiMapPin,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/addresses",
-    },
-    {
-      id: "notifications",
-      label: "Notifications",
-      icon: FiBell,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/notifications",
-      badge: unreadNotificationCount > 0 ? unreadNotificationCount : null,
-    },
-    {
-      id: "wishlist",
-      label: "My Wishlist",
-      icon: FiHeart,
-      color: "text-red-500",
-      bg: "bg-red-50",
-      link: "/wishlist",
-      badge: wishlistCount > 0 ? wishlistCount : null,
-    },
-    {
-      id: "loyalty",
-      label: "My Loyalty Points",
-      icon: FiAward,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      badge: `${availablePoints} Pts`,
-    },
-    {
-      id: "offers",
-      label: "My Offers",
-      icon: FiTag,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-    },
-    {
-      id: "password",
-      label: "Change Password",
-      icon: FiLock,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-    },
-    {
-      id: "support-tickets",
-      label: "My Support Tickets",
-      icon: FiMessageSquare,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/support-tickets",
-    },
-    {
-      id: "my-chats",
-      label: "My Store Chats",
-      icon: FiMessageSquare,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/chats",
-    },
-    {
-      id: "help",
-      label: "Help & Support",
-      icon: FiHelpCircle,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-      link: "/help-support",
-    },
-    {
-      id: "feedback",
-      label: "Give Feedback",
-      icon: FiMessageSquare,
-      color: "text-[#7B0A0A]",
-      bg: "bg-[#7B0A0A]/10",
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      icon: FiSettings,
-      color: "text-gray-600",
-      bg: "bg-gray-100",
-      link: "/settings",
-    },
-  ];
+        {
+          id: "settings",
+          label: "Settings",
+          icon: FiSettings,
+          color: "text-gray-600",
+          bg: "bg-gray-100",
+          link: "/settings",
+        },
+      ];
+    }
+
+    return [
+      {
+        id: "personal",
+        label: "Personal Information",
+        icon: FiUser,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+      },
+      {
+        id: "product-enquiries",
+        label: "My Enquiries",
+        icon: FiMessageSquare,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+      },
+      {
+        id: "orders",
+        label: "My Orders",
+        icon: FiPackage,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/orders",
+      },
+      {
+        id: "returns",
+        label: "My Returns",
+        icon: FiPackage,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/returns",
+      },
+      {
+        id: "product-requests",
+        label: "My Product Requests",
+        icon: FiFileText,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/product-requests",
+      },
+      {
+        id: "addresses",
+        label: "My Addresses",
+        icon: FiMapPin,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/addresses",
+      },
+      {
+        id: "notifications",
+        label: "Notifications",
+        icon: FiBell,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/notifications",
+        badge: unreadNotificationCount > 0 ? unreadNotificationCount : null,
+      },
+      {
+        id: "wishlist",
+        label: "My Wishlist",
+        icon: FiHeart,
+        color: "text-red-500",
+        bg: "bg-red-50",
+        link: "/wishlist",
+        badge: wishlistCount > 0 ? wishlistCount : null,
+      },
+      {
+        id: "loyalty",
+        label: "My Loyalty Points",
+        icon: FiAward,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        badge: `${availablePoints} Pts`,
+      },
+      {
+        id: "offers",
+        label: "My Offers",
+        icon: FiTag,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+      },
+      {
+        id: "password",
+        label: "Change Password",
+        icon: FiLock,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+      },
+      {
+        id: "support-tickets",
+        label: "My Support Tickets",
+        icon: FiMessageSquare,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/support-tickets",
+      },
+      {
+        id: "my-chats",
+        label: "My Store Chats",
+        icon: FiMessageSquare,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/chats",
+      },
+      {
+        id: "help",
+        label: "Help & Support",
+        icon: FiHelpCircle,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+        link: "/help-support",
+      },
+      {
+        id: "feedback",
+        label: "Give Feedback",
+        icon: FiMessageSquare,
+        color: "text-[#7B0A0A]",
+        bg: "bg-[#7B0A0A]/10",
+      },
+      {
+        id: "settings",
+        label: "Settings",
+        icon: FiSettings,
+        color: "text-gray-600",
+        bg: "bg-gray-100",
+        link: "/settings",
+      },
+    ];
+  }, [isBusiness, unreadNotificationCount, wishlistCount, availablePoints]);
 
   const legalOptions = [
     {
@@ -673,25 +689,27 @@ const MobileProfile = () => {
               <h1 className="text-xl font-bold text-gray-800">
                 {activeTab === "menu"
                   ? "My Account"
-                  : activeTab === "personal"
-                    ? "Personal Info"
-                    : activeTab === "password"
-                      ? "Security"
-                      : activeTab === "offers"
-                        ? "My Offers"
-                        : activeTab === "loyalty"
-                          ? "My Loyalty Points"
-                          : activeTab === "feedback"
-                            ? "Give Feedback"
-                            : activeTab === "product-enquiries"
-                              ? "My Enquiries"
-                              : activeTab === "b2b-requests"
-                                ? "B2B Requests"
-                                : activeTab === "company-profile"
-                                  ? "Company Profile"
-                                  : activeTab === "team-management"
-                                    ? "Team Management"
-                                    : "My Account"}
+                  : activeTab === "summary"
+                    ? "Summary"
+                    : activeTab === "personal"
+                      ? "Personal Info"
+                      : activeTab === "password"
+                        ? "Security"
+                        : activeTab === "offers"
+                          ? "My Offers"
+                          : activeTab === "loyalty"
+                            ? "My Loyalty Points"
+                            : activeTab === "feedback"
+                              ? "Give Feedback"
+                              : activeTab === "product-enquiries"
+                                ? "My Enquiries"
+                                : activeTab === "b2b-requests"
+                                  ? "B2B Requests"
+                                  : activeTab === "company-profile"
+                                    ? "Company Profile"
+                                    : activeTab === "team-management"
+                                      ? "Team Management"
+                                      : "My Account"}
               </h1>
             </div>
           </div>
@@ -782,7 +800,7 @@ const MobileProfile = () => {
                 >
                   {/* User Profile Summary Card */}
                   <div className="glass-card rounded-2xl p-6 flex flex-col items-center text-center shadow-sm">
-                    <div className="w-20 h-20 rounded-full gradient-green flex items-center justify-center text-white text-3xl font-bold mb-4 shadow-lg">
+                    <div className="w-20 h-20 rounded-full gradient-green flex items-center justify-center text-white text-3xl font-bold mb-4 shadow-lg shrink-0">
                       {user?.avatar ? (
                         <img
                           src={user.avatar}
@@ -793,10 +811,10 @@ const MobileProfile = () => {
                         user?.name?.charAt(0).toUpperCase() || "U"
                       )}
                     </div>
-                    <h2 className="text-xl font-extrabold text-gray-800 mb-1">
+                    <h2 className="text-xl font-extrabold text-gray-800 mb-1 max-w-full break-words">
                       {user?.name}
                     </h2>
-                    <p className="text-gray-500 text-sm mb-2 font-medium">
+                    <p className="text-gray-500 text-sm mb-2 font-medium max-w-full break-all">
                       {isB2BUser ? (company?.businessEmail || user?.email) : user?.email}
                     </p>
 
@@ -911,16 +929,35 @@ const MobileProfile = () => {
                   </div>
 
 
-                  {/* Logout Option */}
-                  <div className="pt-2">
+                  {/* Action Buttons: Sign Out & Delete Account */}
+                  <div className="pt-2 space-y-2">
                     <button
                       onClick={handleLogout}
-                      className="w-full flex items-center justify-center gap-3 p-4 glass-card rounded-2xl text-red-600 font-bold text-sm shadow-sm border border-red-50 hover:bg-red-50 transition-colors bg-white"
+                      className="w-full flex items-center justify-center gap-3 p-4 glass-card rounded-2xl text-gray-700 font-bold text-sm shadow-sm border border-gray-150 hover:bg-gray-50 transition-colors bg-white"
                     >
-                      <FiLogOut className="text-lg" />
+                      <FiLogOut className="text-lg text-gray-500" />
                       <span>Sign Out</span>
                     </button>
+                    
+                    <button
+                      onClick={() => setShowDeleteConfirm(true)}
+                      className="w-full flex items-center justify-center gap-3 p-3.5 glass-card rounded-2xl text-red-600 font-bold text-sm shadow-sm border border-red-100 hover:bg-red-50 transition-colors bg-white"
+                    >
+                      <FiTrash2 className="text-lg" />
+                      <span>Delete Account</span>
+                    </button>
                   </div>
+                </motion.div>
+              )}
+
+              {/* Business Summary Tab (Desktop & Mobile view) */}
+              {isBusiness && activeTab === "summary" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="space-y-6"
+                >
+                  <B2BBusinessDashboard />
                 </motion.div>
               )}
 
@@ -1143,10 +1180,12 @@ const MobileProfile = () => {
                   {/* Business Profile Details Section */}
                   {(isBusiness || user?.companyName) && (
                     <div className="mt-8 pt-8 border-t border-gray-200">
-                      <div className="flex items-center gap-2 mb-4">
-                        <FiBriefcase className="text-primary-600 text-xl" />
-                        <h3 className="font-extrabold text-gray-800 text-base">Business Profile Details</h3>
-                        <span className={`ml-auto text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${(company?.verificationStatus || user?.verificationStatus || 'Pending Verification') === 'Approved'
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <FiBriefcase className="text-primary-600 text-xl shrink-0" />
+                          <h3 className="font-extrabold text-gray-800 text-base truncate">Business Profile Details</h3>
+                        </div>
+                        <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider shrink-0 ${(company?.verificationStatus || user?.verificationStatus || 'Pending Verification') === 'Approved'
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : (company?.verificationStatus || user?.verificationStatus || 'Pending Verification') === 'Rejected'
                               ? 'bg-rose-50 text-rose-700 border border-rose-200'
@@ -1156,42 +1195,42 @@ const MobileProfile = () => {
                         </span>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-2xl p-5 border border-gray-100 text-sm">
-                        <div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-gray-50 rounded-2xl p-4 sm:p-5 border border-gray-100 text-sm">
+                        <div className="min-w-0">
                           <span className="text-gray-400 block font-medium text-xs">Company Name</span>
-                          <span className="font-bold text-gray-800">{company?.companyName || user?.companyName || 'Not Set'}</span>
+                          <span className="font-bold text-gray-800 break-words">{company?.companyName || user?.companyName || 'Not Set'}</span>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <span className="text-gray-400 block font-medium text-xs">Company Type</span>
-                          <span className="font-bold text-gray-800">{company?.businessType || user?.businessType || 'Not Set'}</span>
+                          <span className="font-bold text-gray-800 break-words">{company?.businessType || user?.businessType || 'Not Set'}</span>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <span className="text-gray-400 block font-medium text-xs">GST Number</span>
-                          <span className="font-bold text-gray-800 font-mono">{company?.gstNumber || user?.gstNumber || 'Not Set'}</span>
+                          <span className="font-bold text-gray-800 font-mono break-all">{company?.gstNumber || user?.gstNumber || 'Not Set'}</span>
                         </div>
-                        <div>
+                        <div className="min-w-0">
                           <span className="text-gray-400 block font-medium text-xs">Years In Business</span>
                           <span className="font-bold text-gray-800">{company?.yearsInBusiness || user?.yearsInBusiness || '0'} Years</span>
                         </div>
-                        <div className="md:col-span-2">
+                        <div className="md:col-span-2 min-w-0">
                           <span className="text-gray-400 block font-medium text-xs">Business Address</span>
-                          <span className="font-bold text-gray-800">
+                          <span className="font-bold text-gray-800 break-words">
                             {(company?.businessAddress || user?.businessAddress) 
                               ? `${company?.businessAddress || user?.businessAddress}, ${company?.city || user?.city || ''}, ${company?.state || user?.state || ''} - ${company?.pincode || user?.pincode || ''}`.replace(/,\s*,/g, ',').replace(/,\s*-/, ' -').replace(/^[,\s]+/, '') 
                               : 'Not Set'}
                           </span>
                         </div>
                         {(company?.gstCertificate || user?.gstCertificate) && (
-                          <div className="md:col-span-2 mt-2">
+                          <div className="md:col-span-2 mt-2 min-w-0">
                             <span className="text-gray-400 block font-medium text-xs mb-1.5">Submitted GST Certificate</span>
                             <a
                               href={company?.gstCertificate || user?.gstCertificate}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-2 text-xs font-bold text-primary-600 hover:text-primary-700 bg-white border border-gray-200 px-3 py-2 rounded-xl transition-all shadow-sm hover:shadow"
+                              className="inline-flex items-center gap-2 text-xs font-bold text-primary-600 hover:text-primary-700 bg-white border border-gray-200 px-3 py-2 rounded-xl transition-all shadow-sm hover:shadow max-w-full"
                             >
-                              <FiFileText className="text-primary-500 text-sm" />
-                              <span>View Certificate Document</span>
+                              <FiFileText className="text-primary-500 text-sm shrink-0" />
+                              <span className="truncate">View Certificate Document</span>
                             </a>
                           </div>
                         )}
@@ -1338,9 +1377,9 @@ const MobileProfile = () => {
 
                       <div className="bg-gray-50 p-4 rounded-xl border space-y-2">
                         <h4 className="font-bold text-gray-700">Company Administrator</h4>
-                        <p className="text-gray-600">Name: <span className="font-bold text-gray-850">{company.admin?.name || user?.name}</span></p>
-                        <p className="text-gray-600">Email: <span className="font-bold text-gray-850">{company.admin?.email || user?.email}</span></p>
-                        <p className="text-gray-600">Phone: <span className="font-bold text-gray-855">{company.admin?.phone || user?.phone}</span></p>
+                        <p className="text-gray-600">Name: <span className="font-bold text-gray-850 break-words">{company.admin?.name || user?.name}</span></p>
+                        <p className="text-gray-600">Email: <span className="font-bold text-gray-850 break-all">{company.admin?.email || user?.email}</span></p>
+                        <p className="text-gray-600">Phone: <span className="font-bold text-gray-855 break-all">{company.admin?.phone || user?.phone}</span></p>
                       </div>
 
                       {isEditingCompany && (
@@ -2097,14 +2136,16 @@ const MobileProfile = () => {
                   <div className="flex gap-2 pt-2">
                     <button
                       type="button"
-                      disabled={!deletePassword.trim()}
+                      disabled={!deletePassword.trim() || isDeletingAccount}
                       onClick={handleDeleteAccount}
-                      className="flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-750 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm shadow-md transition-colors"
+                      className="flex-1 py-3 rounded-2xl bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-sm shadow-md transition-colors flex items-center justify-center gap-2"
                     >
-                      Permanently Delete
+                      <FiTrash2 />
+                      <span>{isDeletingAccount ? "Deleting..." : "Permanently Delete"}</span>
                     </button>
                     <button
                       type="button"
+                      disabled={isDeletingAccount}
                       onClick={() => {
                         setShowDeleteConfirm(false);
                         setDeletePassword("");

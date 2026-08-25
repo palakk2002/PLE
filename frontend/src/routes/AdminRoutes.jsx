@@ -113,6 +113,9 @@ const AdminWalletDashboard = lazy(() => import("../modules/Admin/pages/wallet/Ad
 // Product Requests System Pages
 const AdminProductRequestsDashboard = lazy(() => import("../modules/Admin/pages/ProductRequestsDashboard"));
 
+// Chat Moderation
+const ChatModerationDashboard = lazy(() => import("../modules/Admin/pages/ChatModerationDashboard"));
+
 // Product Enquiries System Pages
 const AdminProductEnquiries = lazy(() => import("../modules/Admin/pages/AdminProductEnquiries"));
 
@@ -322,6 +325,7 @@ export default function AdminRoutes() {
 
         <Route path="about-page/*" element={<AboutPageDashboard />} />
         <Route path="portfolio-page/*" element={<PortfolioPageDashboard />} />
+        <Route path="chat-moderation" element={<ChatModerationDashboard />} />
       </Route>
     </Routes>
   );

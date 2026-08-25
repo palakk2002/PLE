@@ -34,38 +34,9 @@ const RouteWrapper = ({ children }) => {
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
-  // Prevent back navigation from /home to /
-  useEffect(() => {
-    if (location.pathname === '/') {
-      const prev = sessionStorage.getItem('currentPath');
-      if (prev === '/home') {
-        navigate('/home', { replace: true });
-      }
-    }
-  }, [location.pathname, navigate]);
 
-  // Track valid history to support safe back navigation
-  useEffect(() => {
-    const currentPath = location.pathname.toLowerCase();
-    const isAuthOrPortal = 
-      currentPath === '/' ||
-      currentPath === '/login' ||
-      currentPath === '/register' ||
-      currentPath === '/verification' ||
-      currentPath === '/portal' ||
-      currentPath.startsWith('/portal/') ||
-      currentPath.startsWith('/b2b/login') ||
-      currentPath.startsWith('/b2b/register');
 
-    if (!isAuthOrPortal) {
-      const prev = sessionStorage.getItem('currentPath');
-      // Only set previous path if it's a valid application page (non-auth, non-portal)
-      if (prev && prev !== location.pathname) {
-        sessionStorage.setItem('prevPath', prev);
-      }
-      sessionStorage.setItem('currentPath', location.pathname);
-    }
-  }, [location.pathname]);
+
   
   // Return children with location key to force remount on route change
   // For home page, we don't want search parameter changes to force a remount (this breaks tab animations)

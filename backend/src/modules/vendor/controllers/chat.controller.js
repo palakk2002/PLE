@@ -7,6 +7,8 @@ import VendorChatMessage from '../../../models/VendorChatMessage.model.js';
 import Notification from '../../../models/Notification.model.js';
 import Vendor from '../../../models/Vendor.model.js';
 import { getIO } from '../../../config/socket.js';
+import { moderateMessage, MODERATION_ACTION } from '../../../services/chatModeration.service.js';
+import ChatViolation from '../../../models/ChatViolation.model.js';
 
 const buildThreadSeedFromOrder = (order) => {
     const customerName =
@@ -57,10 +59,10 @@ export const getVendorChatThreads = asyncHandler(async (req, res) => {
                 $setOnInsert: {
                     vendorId,
                     orderRef: order._id,
-                    ...seed,
                     lastMessage: 'Hello, I need help with my order',
                     lastActivity: order?.createdAt || new Date(),
                     unreadCount: 0,
+                    status: 'active',
                 },
                 $set: {
                     orderDisplayId: seed.orderDisplayId,
@@ -121,6 +123,38 @@ export const sendVendorChatMessage = asyncHandler(async (req, res) => {
         vendorId: req.user.id,
     });
     if (!thread) throw new ApiError(404, 'Chat thread not found.');
+
+    // ── Moderation Layer ──────────────────────────────────────
+    const moderationResult = moderateMessage(message);
+
+    if (moderationResult.action !== MODERATION_ACTION.ALLOW) {
+        // Log the violation (no message content stored for privacy)
+        try {
+            await ChatViolation.create({
+                threadId:   thread._id,
+                senderId:   req.user.id,
+                senderType: 'vendor',
+                vendorId:   req.user.id,
+                category:   moderationResult.category,
+                action:     moderationResult.action,
+                direction:  'VENDOR_TO_USER',
+                reason:     moderationResult.reason,
+            });
+        } catch (logErr) {
+            console.warn('Failed to log chat violation:', logErr.message);
+        }
+
+        if (moderationResult.action === MODERATION_ACTION.BLOCK) {
+            return res.status(422).json({
+                success:  false,
+                code:     'MESSAGE_BLOCKED',
+                category: moderationResult.category,
+                message:  moderationResult.userMessage,
+            });
+        }
+        // FLAG: log but allow through
+    }
+    // ── End Moderation ────────────────────────────────────────
 
     const created = await VendorChatMessage.create({
         threadId: thread._id,

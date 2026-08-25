@@ -7,8 +7,8 @@ const B2BProtectedRoute = ({ children }) => {
   const location = useLocation();
 
   if (!isAuthenticated) {
-    // Redirect to the login page, passing the intent
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    // Redirect to the portal selection page
+    return <Navigate to="/" state={{ from: location }} replace />;
   }
 
   return children;

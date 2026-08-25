@@ -352,7 +352,7 @@ const B2BHome = ({
                     className="flex items-center justify-center gap-1 px-2.5 py-2 border border-white/20 bg-white/10 hover:bg-white/20 text-white font-extrabold text-[10px] sm:text-xs uppercase rounded-lg transition-all active:scale-95 cursor-pointer w-full text-center"
                   >
                     <FiPlus className="text-xs shrink-0" />
-                    Request Product
+                    Source Now
                   </button>
                 </div>
               </div>
@@ -572,7 +572,7 @@ const B2BHome = ({
                   onClick={() => navigate('/product-request/new')}
                   className="px-6 py-3 border border-zinc-800 bg-black/40 hover:bg-zinc-900 text-white font-extrabold text-xs uppercase rounded-xl transition-all active:scale-95"
                 >
-                  Request Product
+                  Source Now
                 </button>
               </div>
 

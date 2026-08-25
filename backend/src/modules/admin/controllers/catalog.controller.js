@@ -5,6 +5,7 @@ import Product from '../../../models/Product.model.js';
 import Category from '../../../models/Category.model.js';
 import Brand from '../../../models/Brand.model.js';
 import Settings from '../../../models/Settings.model.js';
+import { createNotification } from '../../../services/notification.service.js';
 import { slugify } from '../../../utils/slugify.js';
 
 const sanitizeFaqs = (faqs) => {
@@ -506,8 +507,40 @@ export const reorderCategories = asyncHandler(async (req, res) => {
 
 // GET /api/admin/brands
 export const getAllBrands = asyncHandler(async (req, res) => {
-    const brands = await Brand.find().sort({ displayOrder: 1, name: 1 });
-    res.status(200).json(new ApiResponse(200, brands, 'Brands fetched.'));
+    const { status, search } = req.query;
+    const filter = {};
+
+    if (status && status !== 'all') {
+        if (status === 'approved') {
+            filter.$or = [{ status: 'approved' }, { status: { $exists: false } }];
+        } else {
+            filter.status = status;
+        }
+    }
+
+    if (search) {
+        filter.name = { $regex: String(search).trim(), $options: 'i' };
+    }
+
+    const brands = await Brand.find(filter)
+        .populate('requestedBy', 'storeName email phone contactPerson')
+        .populate('requestedByShop', 'name logo')
+        .populate('reviewedBy', 'name email')
+        .sort({ displayOrder: 1, createdAt: -1 });
+
+    const brandIds = brands.map((b) => b._id);
+    const productCounts = await Product.aggregate([
+        { $match: { brandId: { $in: brandIds } } },
+        { $group: { _id: '$brandId', count: { $sum: 1 } } },
+    ]);
+    const countMap = Object.fromEntries(productCounts.map((p) => [String(p._id), p.count]));
+
+    const brandsWithCounts = brands.map((b) => ({
+        ...b.toObject(),
+        productCount: countMap[String(b._id)] || 0,
+    }));
+
+    res.status(200).json(new ApiResponse(200, brandsWithCounts, 'Brands fetched.'));
 });
 
 // POST /api/admin/brands
@@ -515,7 +548,7 @@ export const createBrand = asyncHandler(async (req, res) => {
     const payload = sanitizeBrandPayload(req.body);
     const { name, ...rest } = payload;
     const slug = slugify(name);
-    const brand = await Brand.create({ name, slug, ...rest });
+    const brand = await Brand.create({ name, slug, status: 'approved', isActive: true, ...rest });
     res.status(201).json(new ApiResponse(201, brand, 'Brand created.'));
 });
 
@@ -545,6 +578,100 @@ export const deleteBrand = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, null, 'Brand deleted.'));
 });
 
+// PATCH /api/admin/brands/:id/review
+export const reviewBrand = asyncHandler(async (req, res) => {
+    const { status, reason, autoActivateProducts = true } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+        throw new ApiError(400, 'Invalid review status. Must be approved or rejected.');
+    }
+
+    const brand = await Brand.findById(req.params.id);
+    if (!brand) throw new ApiError(404, 'Brand not found.');
+
+    brand.status = status;
+    brand.reviewedBy = req.user.id;
+    brand.reviewedAt = new Date();
+
+    if (status === 'approved') {
+        brand.isActive = true;
+        brand.rejectionReason = undefined;
+
+        if (autoActivateProducts) {
+            await Product.updateMany(
+                { brandId: brand._id, approvalStatus: 'pending' },
+                {
+                    $set: {
+                        approvalStatus: 'approved',
+                        brandApprovalStatus: 'approved',
+                        isActive: true,
+                        approvedBy: req.user.id,
+                        approvalDate: new Date(),
+                    },
+                    $push: {
+                        auditLog: {
+                            action: 'approved',
+                            userId: req.user.id,
+                            userType: 'admin',
+                            timestamp: new Date(),
+                            reason: `Brand "${brand.name}" approved by admin`,
+                        },
+                    },
+                }
+            );
+        }
+
+        if (brand.requestedBy) {
+            await createNotification({
+                recipientId: brand.requestedBy,
+                recipientType: 'vendor',
+                title: 'Brand Request Approved! 🎉',
+                message: `Your brand request for "${brand.name}" has been approved. Products linked to this brand are now active, and the brand is available for future listings.`,
+                type: 'system',
+                data: { brandId: brand._id, brandName: brand.name, status: 'approved' },
+            }).catch((err) => console.error('Notification error:', err));
+        }
+    } else {
+        brand.isActive = false;
+        brand.rejectionReason = reason || 'Brand request rejected by admin.';
+
+        await Product.updateMany(
+            { brandId: brand._id, approvalStatus: 'pending' },
+            {
+                $set: {
+                    approvalStatus: 'rejected',
+                    brandApprovalStatus: 'rejected',
+                    rejectionReason: brand.rejectionReason,
+                    isActive: false,
+                },
+                $push: {
+                    auditLog: {
+                        action: 'rejected',
+                        userId: req.user.id,
+                        userType: 'admin',
+                        timestamp: new Date(),
+                        reason: `Brand "${brand.name}" rejected: ${brand.rejectionReason}`,
+                    },
+                },
+            }
+        );
+
+        if (brand.requestedBy) {
+            await createNotification({
+                recipientId: brand.requestedBy,
+                recipientType: 'vendor',
+                title: 'Brand Request Update',
+                message: `Your brand request for "${brand.name}" was not approved. Reason: ${brand.rejectionReason}`,
+                type: 'system',
+                data: { brandId: brand._id, brandName: brand.name, status: 'rejected', rejectionReason: brand.rejectionReason },
+            }).catch((err) => console.error('Notification error:', err));
+        }
+    }
+
+    await brand.save();
+    res.status(200).json(new ApiResponse(200, brand, `Brand successfully ${status}.`));
+});
+
 // PATCH /api/admin/products/:id/review
 export const reviewProduct = asyncHandler(async (req, res) => {
     const {
@@ -558,7 +685,8 @@ export const reviewProduct = asyncHandler(async (req, res) => {
         salesChannel,
         b2bWholesalePrice,
         b2bMinOrderQty,
-        b2bBulkPricingSlabs
+        b2bBulkPricingSlabs,
+        approveBrand = true,
     } = req.body;
 
     if (!['approved', 'rejected'].includes(status)) {
@@ -575,10 +703,39 @@ export const reviewProduct = asyncHandler(async (req, res) => {
     if (status === 'rejected') {
         product.rejectionReason = reason || '';
         product.isActive = false;
+        if (product.brandApprovalStatus === 'pending') {
+            product.brandApprovalStatus = 'rejected';
+        }
     } else {
         product.rejectionReason = undefined;
         product.isActive = true;
         product.isVisible = true;
+        if (product.brandApprovalStatus === 'pending') {
+            product.brandApprovalStatus = 'approved';
+        }
+
+        // If product has a linked brand that is currently pending approval, approve the brand
+        if (product.brandId && approveBrand) {
+            const linkedBrand = await Brand.findById(product.brandId);
+            if (linkedBrand && linkedBrand.status === 'pending') {
+                linkedBrand.status = 'approved';
+                linkedBrand.isActive = true;
+                linkedBrand.reviewedBy = req.user.id;
+                linkedBrand.reviewedAt = new Date();
+                await linkedBrand.save();
+
+                if (linkedBrand.requestedBy) {
+                    await createNotification({
+                        recipientId: linkedBrand.requestedBy,
+                        recipientType: 'vendor',
+                        title: 'Brand Approved! 🎉',
+                        message: `Your brand "${linkedBrand.name}" was approved during product review.`,
+                        type: 'system',
+                        data: { brandId: linkedBrand._id, brandName: linkedBrand.name, status: 'approved' },
+                    }).catch((err) => console.error('Notification error:', err));
+                }
+            }
+        }
 
         if (salesChannel && ['B2C', 'B2B', 'BOTH'].includes(salesChannel)) {
             product.salesChannel = salesChannel;

@@ -292,7 +292,7 @@ const ProductApprovals = () => {
                 </div>
 
                 {/* Content */}
-                <div className="space-y-1">
+                  <div className="space-y-1">
                   <h3 className="font-bold text-gray-800 text-sm sm:text-base line-clamp-2 min-h-[44px]">
                     {product.name}
                   </h3>
@@ -302,6 +302,12 @@ const ProductApprovals = () => {
                       {product.shopId?.name || product.vendorId?.storeName || "Unknown"}
                     </span>
                   </p>
+                  {(product.brandApprovalStatus === 'pending' || product.customBrandName) && (
+                    <p className="text-[11px] text-amber-700 font-semibold flex items-center gap-1 pt-0.5">
+                      <FiTag className="w-3 h-3 text-amber-500" />
+                      <span>Brand Request: <strong>{product.customBrandName || product.brandId?.name}</strong></span>
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -378,6 +384,21 @@ const ProductApprovals = () => {
                     <p className="text-xs text-gray-400">Status: {selectedProduct.approvalStatus?.toUpperCase()}</p>
                   </div>
                 </div>
+
+                {(selectedProduct.brandApprovalStatus === 'pending' || selectedProduct.customBrandName) && (
+                  <div className="p-3.5 bg-gradient-to-r from-amber-50 to-orange-50/50 border border-amber-200 rounded-xl space-y-1.5 shadow-xs">
+                    <div className="flex items-center gap-2">
+                      <FiTag className="w-4 h-4 text-amber-600" />
+                      <span className="text-xs font-bold text-amber-900">Custom Brand Request:</span>
+                      <span className="px-2 py-0.5 bg-amber-200/80 text-amber-950 font-extrabold text-xs rounded-md shadow-2xs">
+                        {selectedProduct.customBrandName || selectedProduct.brandId?.name}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-amber-800 font-medium leading-relaxed">
+                      Approving this product will automatically approve this custom brand into the master catalog, making it permanently available for all vendors and publishing all associated products to the live store.
+                    </p>
+                  </div>
+                )}
 
                 {/* Edit Form Fields */}
                 <div className="space-y-4">

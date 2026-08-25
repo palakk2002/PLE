@@ -19,6 +19,8 @@ import { getCatalogBrands } from "../../data/catalogData";
 
 import { useCampaignStore } from "../../../../shared/store/campaignStore";
 
+import { performUserLogout } from "../../../../shared/utils/userLogout";
+
 const DesktopHeader = () => {
     const { theme, toggleTheme } = useThemeStore();
     const isBusiness = useB2bStore((state) => state.userRole === 'business_buyer');
@@ -34,6 +36,8 @@ const DesktopHeader = () => {
     const unreadCount = useUserNotificationStore((state) => state.unreadCount);
     const ensureHydrated = useUserNotificationStore((state) => state.ensureHydrated);
     const toggleCart = useUIStore((state) => state.toggleCart);
+    const quotations = useB2bStore((state) => state.quotations || []);
+    const rfqCount = quotations.length;
 
     const { campaigns, initialize } = useCampaignStore();
     useEffect(() => {
@@ -68,9 +72,8 @@ const DesktopHeader = () => {
     }, []);
 
     const handleLogout = () => {
-        logout();
         setShowUserMenu(false);
-        navigate("/");
+        performUserLogout('/');
     };
 
     if (isBusiness) {
@@ -111,7 +114,7 @@ const DesktopHeader = () => {
                         
                         <div className="relative group cursor-pointer text-zinc-450 hover:text-white transition-colors py-2 flex items-center gap-1">
                             <span>Brands by PLE</span>
-                            <span className="bg-red-650 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider scale-90 origin-left animate-pulse">New</span>
+                            <span className="bg-red-600 text-white text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider scale-90 origin-left animate-pulse">New</span>
                             <span className="text-[10px] opacity-70">▼</span>
                             
                             {/* Hover Dropdown for Brands */}
@@ -147,30 +150,37 @@ const DesktopHeader = () => {
                     {/* Actions */}
                     <div className="flex items-center gap-4">
                         {/* RFQ Icon */}
-                        <button onClick={() => navigate('/product-requests')} className="relative text-zinc-450 hover:text-white transition-colors flex flex-col items-center justify-center shrink-0 h-12 w-12">
+                        <button 
+                            onClick={() => navigate('/product-requests')} 
+                            className="relative text-zinc-400 hover:text-white transition-colors flex flex-col items-center justify-center shrink-0 h-12 w-12 group"
+                            title="Request for Quotation"
+                        >
                             <div className="relative flex items-center justify-center h-6 w-6">
-                                <FiFileText className="text-2xl" />
-                                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-650 text-white text-[9px] font-bold flex items-center justify-center">
-                                    3
-                                </span>
+                                <FiFileText className="text-2xl text-zinc-300 group-hover:text-white transition-colors" />
+                                {rfqCount > 0 && (
+                                    <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E53E3E] text-white text-[10px] font-bold flex items-center justify-center shadow-md ring-2 ring-[#0d0d0d]">
+                                        {rfqCount > 99 ? '99+' : rfqCount}
+                                    </span>
+                                )}
                             </div>
-                            <span className="text-[8px] font-extrabold uppercase mt-1 tracking-wider leading-none">RFQ</span>
+                            <span className="text-[9px] font-extrabold uppercase mt-1 tracking-wider leading-none text-zinc-400 group-hover:text-zinc-200">RFQ</span>
                         </button>
 
                         {/* Cart */}
                         <button
                             onClick={toggleCart}
-                            className="relative text-zinc-450 hover:text-white transition-colors flex flex-col items-center justify-center shrink-0 h-12 w-12"
+                            className="relative text-zinc-400 hover:text-white transition-colors flex flex-col items-center justify-center shrink-0 h-12 w-12 group"
+                            title="Cart"
                         >
                             <div className="relative flex items-center justify-center h-6 w-6">
-                                <FiShoppingBag className="text-2xl" />
+                                <FiShoppingBag className="text-2xl text-zinc-300 group-hover:text-white transition-colors" />
                                 {itemCount > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-650 text-white text-[9px] font-bold flex items-center justify-center">
-                                        {itemCount}
+                                    <span className="absolute -top-1.5 -right-2.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E53E3E] text-white text-[10px] font-bold flex items-center justify-center shadow-md ring-2 ring-[#0d0d0d]">
+                                        {itemCount > 99 ? '99+' : itemCount}
                                     </span>
                                 )}
                             </div>
-                            <span className="text-[8px] font-extrabold uppercase mt-1 tracking-wider leading-none opacity-0 select-none pointer-events-none">Cart</span>
+                            <span className="text-[9px] font-extrabold uppercase mt-1 tracking-wider leading-none opacity-0 select-none pointer-events-none">Cart</span>
                         </button>
 
                         {/* Theme Toggle */}

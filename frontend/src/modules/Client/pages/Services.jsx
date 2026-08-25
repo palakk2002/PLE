@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { contentService } from '../services/contentService';
 import ServiceCard from '../components/services/ServiceCard';
 import { Cpu, Laptop, Monitor, Server, Wifi, ShieldCheck } from 'lucide-react';
+import SEO from '../../../shared/components/SEO/SEO';
 
 // Image Assets
 import webDevImg from '../assets/web_dev.webp';
@@ -114,8 +115,21 @@ export default function Services() {
     }
   };
 
+  const servicesSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "Electronics Sourcing and IT Licensing Services",
+    "description": "Explore our B2B procurement, corporate IT hardware sourcing, software licensing, and custom IT enterprise services.",
+    "url": window.location.href
+  };
+
   return (
     <div className="bg-app-bg text-app-text-muted min-h-screen py-16 sm:py-24 px-4 sm:px-6 lg:px-8 mesh-grid relative overflow-hidden">
+      <SEO
+        title="Services"
+        description="Explore our range of B2B electronics and IT sourcing, software licensing, hardware procurement, and MIS reporting services."
+        schema={servicesSchema}
+      />
       {/* Background Ambient Glows */}
       <div className="absolute top-1/4 left-1/3 w-96 h-96 bg-client-primary/5 rounded-full filter blur-[150px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-client-primary/2 dark:bg-white/2 rounded-full filter blur-[150px] pointer-events-none" />

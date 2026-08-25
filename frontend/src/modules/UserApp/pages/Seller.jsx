@@ -14,6 +14,7 @@ import api from "../../../shared/utils/api";
 import toast from "react-hot-toast";
 import { useAuthStore } from "../../../shared/store/authStore";
 import { useB2bStore } from "../../../shared/store/b2bStore";
+import { useSafeBack } from "../../../shared/hooks/useSafeBack";
 
 const normalizeVendor = (raw) => ({
     ...raw,
@@ -40,6 +41,7 @@ const normalizeProduct = (raw) => ({
 const Seller = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const handleBack = useSafeBack('/home');
     const { isAuthenticated, user } = useAuthStore();
     const vendorId = String(id ?? "").trim();
     const [catalogVersion, setCatalogVersion] = useState(0);
@@ -280,14 +282,7 @@ const Seller = () => {
                         <div className="px-2 md:px-4 py-2 md:py-4">
                             <div className="flex items-center gap-3 mb-4">
                                 <button
-                                    onClick={() => {
-                                        const prevPath = sessionStorage.getItem('prevPath');
-                                        if (prevPath && prevPath !== '/portal' && !prevPath.includes('login') && !prevPath.includes('register')) {
-                                            navigate(prevPath);
-                                        } else {
-                                            navigate('/home');
-                                        }
-                                    }}
+                                    onClick={handleBack}
                                     className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                                 >
                                     <FiArrowLeft className="text-xl text-gray-700" />

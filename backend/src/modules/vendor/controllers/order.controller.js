@@ -7,6 +7,7 @@ import Commission from '../../../models/Commission.model.js';
 import Settlement from '../../../models/Settlement.model.js';
 import mongoose from 'mongoose';
 import { createNotification } from '../../../services/notification.service.js';
+import { createShipment } from '../../delivery/deliveryManager.js';
 
 const deriveTopLevelOrderStatus = (vendorItems = [], fallback = 'pending') => {
     const statuses = (vendorItems || [])
@@ -437,5 +438,96 @@ export const createBulkOrders = asyncHandler(async (req, res) => {
             },
             `Bulk order creation completed. Created: ${createdOrders.length}, Failed: ${errors.length}.`
         )
+    );
+});
+
+// POST /api/vendor/orders/:id/shiprocket-shipment
+export const createShiprocketShipment = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const idFilter = [{ orderId: id }];
+    if (mongoose.Types.ObjectId.isValid(id)) {
+        idFilter.push({ _id: id });
+    }
+
+    const vendorIdsToMatch = req.user.role === 'managed_vendor'
+        ? [req.user.shopId, req.user.id].filter(Boolean)
+        : [req.user.id];
+
+    const order = await Order.findOne({
+        $or: idFilter,
+        'vendorItems.vendorId': { $in: vendorIdsToMatch },
+    });
+
+    if (!order) throw new ApiError(404, 'Order not found or does not belong to your store.');
+
+    // Prevent duplicate shipments
+    if (order.trackingNumber) {
+        throw new ApiError(409, `Shipment already exists. AWB: ${order.trackingNumber}`);
+    }
+
+    const vendorItem = order.vendorItems.find((vi) =>
+        vendorIdsToMatch.map(String).includes(String(vi.vendorId?._id || vi.vendorId))
+    );
+
+    const currentStatus = String(vendorItem?.status ?? order.status ?? 'pending').toLowerCase();
+    if (!['processing', 'shipped'].includes(currentStatus)) {
+        throw new ApiError(400, `Order must be in 'processing' or 'shipped' status to create a shipment. Current: ${currentStatus}`);
+    }
+
+    const shippingAddr = order.shippingAddress || {};
+    const items = vendorItem?.items?.length ? vendorItem.items : (order.items || []);
+
+    const shipmentContext = {
+        preferredProvider: 'shiprocket',
+        orderId: order.orderId || String(order._id),
+        orderMongoId: order._id,
+        orderDate: order.createdAt,
+        billingAddress: {
+            name: shippingAddr.name || shippingAddr.fullName || order.guestInfo?.name || 'Customer',
+            address: shippingAddr.address || shippingAddr.street || 'Address',
+            city: shippingAddr.city || 'City',
+            state: shippingAddr.state || 'State',
+            zipCode: shippingAddr.zipCode || shippingAddr.pincode || '110001',
+            country: shippingAddr.country || 'India',
+            email: shippingAddr.email || order.guestInfo?.email || 'customer@example.com',
+            phone: shippingAddr.phone || order.guestInfo?.phone || '9999999999',
+        },
+        shippingAddress: {
+            name: shippingAddr.name || shippingAddr.fullName || order.guestInfo?.name || 'Customer',
+            address: shippingAddr.address || shippingAddr.street || 'Address',
+            city: shippingAddr.city || 'City',
+            state: shippingAddr.state || 'State',
+            zipCode: shippingAddr.zipCode || shippingAddr.pincode || '110001',
+            country: shippingAddr.country || 'India',
+            email: shippingAddr.email || order.guestInfo?.email || 'customer@example.com',
+            phone: shippingAddr.phone || order.guestInfo?.phone || '9999999999',
+        },
+        orderItems: items.map((item, idx) => ({
+            name: item.name || `Item ${idx + 1}`,
+            sku: item.sku || item.productId || `SKU-${idx + 1}`,
+            quantity: item.quantity || 1,
+            price: item.price || 0,
+            discount: item.discount || 0,
+            tax: item.tax || 0,
+            hsn: item.hsn || '',
+            productId: item.productId,
+        })),
+        paymentMethod: order.paymentMethod === 'cod' ? 'COD' : 'Prepaid',
+        subtotal: vendorItem?.subtotal ?? order.subtotal ?? order.total ?? 0,
+    };
+
+    const { shipment, result } = await createShipment(shipmentContext);
+
+    res.status(200).json(
+        new ApiResponse(200, {
+            shipmentId: shipment?._id,
+            awbCode: result?.awbCode || null,
+            trackingNumber: result?.awbCode || result?.externalShipmentId || null,
+            trackingUrl: result?.trackingUrl || null,
+            courierName: result?.courierName || null,
+            shiprocketOrderId: result?.shiprocketOrderId || null,
+            status: shipment?.status || 'created',
+        }, 'Shiprocket shipment created successfully.')
     );
 });

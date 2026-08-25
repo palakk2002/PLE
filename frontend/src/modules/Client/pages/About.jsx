@@ -4,10 +4,23 @@ import { Check, ArrowRight } from 'lucide-react';
 import * as LucideIcons from 'lucide-react';
 import { EncryptedText } from '@/components/ui/encrypted-text';
 import api from '../services/api';
+import SEO from '../../../shared/components/SEO/SEO';
 
 export default function About() {
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const aboutSchema = {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "About Us - Peoples League of Electronics",
+    "description": "Learn more about Peoples League of Electronics (PLE), our mission, vision, team, and multi-vendor e-commerce platform.",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "Peoples League of Electronics",
+      "alternateName": "PLE"
+    }
+  };
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -81,7 +94,11 @@ export default function About() {
 
   return (
     <div className="bg-app-bg text-app-text-muted min-h-screen pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8 mesh-grid relative overflow-hidden">
-      
+      <SEO
+        title="About Us"
+        description="Learn more about Peoples League of Electronics (PLE), our mission, vision, team, and multi-vendor e-commerce platform."
+        schema={aboutSchema}
+      />
       {/* Dynamic Floating Gradient Glow Backgrounds */}
       <div className="absolute top-1/4 -right-20 w-96 h-96 bg-client-primary/8 rounded-full filter blur-[150px] animate-pulse pointer-events-none" />
       <div className="absolute bottom-1/4 -left-20 w-[450px] h-[450px] bg-client-primary/4 dark:bg-white/2 rounded-full filter blur-[150px] pointer-events-none" />

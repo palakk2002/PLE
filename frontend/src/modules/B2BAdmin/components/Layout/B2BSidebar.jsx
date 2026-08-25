@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { FiHome, FiUsers, FiBriefcase, FiUser, FiActivity, FiBell, FiSettings, FiLogOut, FiX, FiFileText, FiTrendingUp, FiMessageCircle, FiDollarSign, FiMessageSquare } from 'react-icons/fi';
+import { FiHome, FiUsers, FiBriefcase, FiUser, FiActivity, FiBell, FiSettings, FiLogOut, FiX, FiFileText, FiTrendingUp, FiMessageCircle, FiDollarSign, FiMessageSquare, FiCreditCard } from 'react-icons/fi';
 import { useB2BAdminStore } from '../../store/b2bAdminStore';
+import { performUserLogout } from '../../../../shared/utils/userLogout';
 
 const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
   const location = useLocation();
@@ -17,6 +18,7 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     { name: 'RFQ Discussions', path: '/b2b-dashboard/discussions', icon: FiMessageCircle },
     { name: 'Shop Chats', path: '/b2b-dashboard/shop-chats', icon: FiMessageSquare },
     { name: 'Purchase Orders', path: '/b2b-dashboard/purchase-orders', icon: FiDollarSign },
+    { name: 'Business Wallet', path: '/wallet', icon: FiCreditCard },
     { name: 'Company Profile', path: '/b2b-dashboard/company-profile', icon: FiBriefcase },
     { name: 'Legal Documents', path: '/b2b-dashboard/legal-documents', icon: FiFileText },
     { name: 'Admin Profile', path: '/b2b-dashboard/admin-profile', icon: FiUser },
@@ -30,9 +32,8 @@ const B2BSidebar = ({ isOpen, setIsOpen, isMobile }) => {
     return true;
   });
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/');
+  const handleLogout = () => {
+    performUserLogout('/');
   };
 
   return (

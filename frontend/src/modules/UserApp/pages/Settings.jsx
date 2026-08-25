@@ -32,6 +32,7 @@ import PageTransition from "../../../shared/components/PageTransition";
 import TwoFactorToggle from "../../../shared/components/TwoFactorToggle";
 import toast from "react-hot-toast";
 import { isValidPhone } from "../../../shared/utils/helpers";
+import { performUserLogout } from "../../../shared/utils/userLogout";
 
 const MobileSettings = () => {
   const navigate = useNavigate();
@@ -127,9 +128,7 @@ const MobileSettings = () => {
   };
 
   const handleLogout = () => {
-    logout();
-    navigate("/");
-    toast.success("Logged out successfully");
+    performUserLogout('/');
   };
 
   const handleTogglePref = (key) => {

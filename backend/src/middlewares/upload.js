@@ -200,7 +200,16 @@ export const uploadPDFSingle = (fieldName) =>
     multer({
         storage: imageDiskStorage,
         fileFilter: (req, file, cb) => {
-            if (file.mimetype === 'application/pdf') {
+            const allowedMimes = [
+                'application/pdf',
+                'application/x-pdf',
+                'application/acrobat',
+                'applications/vnd.pdf',
+                'text/pdf',
+                'application/octet-stream'
+            ];
+            const extension = file.originalname?.split('.').pop()?.toLowerCase();
+            if (allowedMimes.includes(file.mimetype) || extension === 'pdf') {
                 cb(null, true);
             } else {
                 cb(new ApiError(400, 'Invalid file type. Only PDF files are allowed.'), false);

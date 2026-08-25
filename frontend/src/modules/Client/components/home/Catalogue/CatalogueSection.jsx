@@ -1,32 +1,59 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { BookOpen } from 'lucide-react';
 import { motion } from 'framer-motion';
 import * as pdfjsLib from 'pdfjs-dist';
-import { BookOpen, AlertCircle, FileText } from 'lucide-react';
+
 import CatalogueBook from './CatalogueBook';
 import CatalogueControls from './CatalogueControls';
-import CatalogueThumbnails from './CatalogueThumbnails';
 import CatalogueFullscreen from './CatalogueFullscreen';
+import CatalogueThumbnails from './CatalogueThumbnails';
 import './catalogue.css';
 
-import workerContent from 'pdfjs-dist/build/pdf.worker.mjs?raw';
+// Set matching version of the PDF.js web worker via CDN to avoid bundler payload issues
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.2.108/build/pdf.worker.min.mjs';
 
-const blob = new Blob([workerContent], { type: 'text/javascript' });
-const workerUrl = URL.createObjectURL(blob);
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+// Configurable Constants
+const PAGE_DURATION = 5000; // 5 seconds display duration
+const PAGE_TURN_DURATION = 1200; // 1.2 seconds animation transition duration
+
+// Error Boundary Component to catch downstream rendering exceptions and trigger fallback
+class CatalogueErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Interactive Catalogue rendering error:', error, errorInfo);
+    if (this.props.onFallback) {
+      this.props.onFallback();
+    }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 export default function CatalogueSection() {
   const [doc, setDoc] = useState(null);
-  const [totalPages, setTotalPages] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [zoom, setZoom] = useState(1.0);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const [zoom, setZoom] = useState(1.0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
-  const pdfUrl = '/catalogue/PLE-Catalogue.pdf';
-
-  // Handle window resizing to switch between mobile single page & desktop two-page spreads
+  // Responsive device width checker
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -35,14 +62,15 @@ export default function CatalogueSection() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Initialize and load PDF Document via PDFJS
+  // PDF Loading
   useEffect(() => {
     let active = true;
-
-    async function loadPdf() {
-      setLoading(true);
-      setError(false);
+    const pdfUrl = '/catalogue/PLE-Catalogue.pdf';
+    
+    async function loadPDF() {
       try {
+        setLoading(true);
+        setError(false);
         const loadingTask = pdfjsLib.getDocument(pdfUrl);
         const pdf = await loadingTask.promise;
         if (active) {
@@ -51,119 +79,167 @@ export default function CatalogueSection() {
           setLoading(false);
         }
       } catch (err) {
-        console.error('Error loading PDF document:', err);
+        console.error('Failed to load catalogue PDF:', err);
         if (active) {
-          setError(err);
+          setError(true);
           setLoading(false);
         }
       }
     }
 
-    loadPdf();
+    loadPDF();
     return () => {
       active = false;
     };
-  }, [pdfUrl]);
+  }, []);
 
-  // Handle keyboard page turn navigation
+  // Navigation Logic
+  const handleNext = () => {
+    if (isMobile) {
+      if (currentPage < totalPages) {
+        setCurrentPage((prev) => prev + 1);
+      } else {
+        setCurrentPage(1); // loop
+      }
+    } else {
+      if (currentPage === 1) {
+        setCurrentPage(2);
+      } else if (currentPage + 2 <= totalPages) {
+        setCurrentPage((prev) => prev + 2);
+      } else {
+        setCurrentPage(1); // loop
+      }
+    }
+  };
+
+  const handlePrev = () => {
+    if (isMobile) {
+      if (currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
+    } else {
+      if (currentPage === 2) {
+        setCurrentPage(1);
+      } else if (currentPage > 2) {
+        setCurrentPage((prev) => prev - 2);
+      }
+    }
+  };
+
+  const userNext = () => {
+    setIsPlaying(false);
+    handleNext();
+  };
+
+  const userPrev = () => {
+    setIsPlaying(false);
+    handlePrev();
+  };
+
+  const handleThumbnailNavigate = (pageNum) => {
+    setIsPlaying(false);
+    setCurrentPage(pageNum);
+  };
+
+  // Autoplay Effect
+  useEffect(() => {
+    if (!isPlaying || !doc || totalPages === 0) return;
+
+    const timer = setTimeout(() => {
+      handleNext();
+    }, PAGE_DURATION);
+
+    return () => clearTimeout(timer);
+  }, [isPlaying, currentPage, totalPages, doc, isMobile]);
+
+  // Fullscreen Keyboard Navigation support
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key === 'ArrowLeft') {
-        handlePrev();
-      } else if (e.key === 'ArrowRight') {
-        handleNext();
-      } else if (e.key === 'Home') {
-        handleNavigate(1);
-      } else if (e.key === 'End') {
-        handleNavigate(totalPages);
+      if (isFullscreen) {
+        if (e.key === 'ArrowRight') {
+          userNext();
+        } else if (e.key === 'ArrowLeft') {
+          userPrev();
+        } else if (e.key === ' ') {
+          e.preventDefault();
+          setIsPlaying((prev) => !prev);
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentPage, totalPages, isMobile]);
+  }, [isFullscreen, currentPage, totalPages, isMobile]);
 
-  const handlePrev = () => {
-    if (currentPage <= 1) return;
-    if (isMobile) {
-      setCurrentPage((prev) => prev - 1);
-    } else {
-      // In double page mode, move back by 2 pages (unless going to cover page 1)
-      setCurrentPage((prev) => (prev === 2 ? 1 : Math.max(1, prev - 2)));
-    }
+  // Renders the original working video player
+  const renderOriginalVideo = () => {
+    return (
+      <div className="w-full rounded-2xl overflow-hidden border border-app-border bg-white shadow-2xl">
+        <video 
+          className="w-full h-auto aspect-video object-cover" 
+          controls 
+          autoPlay 
+          muted 
+          loop 
+          playsInline
+          src="/PLE_2026_Catalogue_Book_Slow_Pages.mp4"
+        >
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    );
   };
 
-  const handleNext = () => {
-    if (isMobile) {
-      if (currentPage >= totalPages) return;
-      setCurrentPage((prev) => prev + 1);
-    } else {
-      if (currentPage >= totalPages - 1) return;
-      // In double page mode, advance by 2 pages (from cover 1 to 2, then to 4, etc.)
-      setCurrentPage((prev) => (prev === 1 ? 2 : Math.min(totalPages, prev + 2)));
-    }
+  // Main interactive catalogue components rendering
+  const renderCatalogue = () => {
+    return (
+      <CatalogueErrorBoundary 
+        fallback={renderOriginalVideo()} 
+        onFallback={() => setError(true)}
+      >
+        <CatalogueBook
+          doc={doc}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          zoom={zoom}
+          isMobile={isMobile}
+          onNavigate={handleThumbnailNavigate}
+        />
+        
+        <CatalogueControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          zoom={zoom}
+          isFullscreen={isFullscreen}
+          isMobile={isMobile}
+          onPrev={userPrev}
+          onNext={userNext}
+          onZoomIn={() => setZoom((z) => Math.min(z + 0.2, 2.0))}
+          onZoomOut={() => setZoom((z) => Math.max(z - 0.2, 0.8))}
+          onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+          pdfUrl="/catalogue/PLE-Catalogue.pdf"
+        />
+
+        {/* Thumbnail Preview Strip */}
+        <CatalogueThumbnails
+          doc={doc}
+          totalPages={totalPages}
+          currentPage={currentPage}
+          onNavigate={handleThumbnailNavigate}
+        />
+      </CatalogueErrorBoundary>
+    );
   };
-
-  const handleNavigate = (pageNum) => {
-    // Keep double page boundaries aligned on navigation
-    if (!isMobile && pageNum > 1 && pageNum % 2 !== 0) {
-      setCurrentPage(pageNum - 1);
-    } else {
-      setCurrentPage(pageNum);
-    }
-  };
-
-  const handleZoomIn = () => setZoom((prev) => Math.min(2.0, prev + 0.15));
-  const handleZoomOut = () => setZoom((prev) => Math.max(0.8, prev - 0.15));
-
-  const handleToggleFullscreen = () => {
-    setIsFullscreen((prev) => !prev);
-  };
-
-  const renderBookContent = () => (
-    <>
-      <CatalogueBook
-        doc={doc}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        zoom={zoom}
-        isMobile={isMobile}
-        onNavigate={handleNavigate}
-      />
-      
-      <CatalogueControls
-        currentPage={currentPage}
-        totalPages={totalPages}
-        zoom={zoom}
-        isFullscreen={isFullscreen}
-        isMobile={isMobile}
-        onPrev={handlePrev}
-        onNext={handleNext}
-        onZoomIn={handleZoomIn}
-        onZoomOut={handleZoomOut}
-        onToggleFullscreen={handleToggleFullscreen}
-        pdfUrl={pdfUrl}
-      />
-
-      <CatalogueThumbnails
-        doc={doc}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        onNavigate={handleNavigate}
-      />
-    </>
-  );
 
   return (
     <section className="py-20 px-4 bg-app-bg relative overflow-hidden" id="catalogue">
-      {/* Visual background ambient lighting */}
+      {/* Background Ambience */}
       <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-client-primary/3 rounded-full filter blur-[130px] pointer-events-none" />
       <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-client-primary/5 rounded-full filter blur-[130px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10">
         
         {/* Section Header */}
-        <div className="text-center space-y-4 mb-16 max-w-3xl mx-auto">
+        <div className="text-center space-y-4 mb-12 max-w-3xl mx-auto">
           <div className="flex items-center justify-center gap-3">
             <span className="w-8 h-[2px] bg-client-primary" />
             <span className="text-xs font-black text-client-primary uppercase tracking-[0.3em] flex items-center gap-1.5">
@@ -182,62 +258,62 @@ export default function CatalogueSection() {
           </p>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex flex-col items-center justify-center py-32 gap-4">
-            <div className="w-12 h-12 border-4 border-client-primary border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-sm font-bold text-app-text-muted animate-pulse">
-              Initializing Digital Catalogue...
-            </span>
-          </div>
-        )}
-
-        {/* Error Fallback State */}
-        {error && (
-          <div className="max-w-xl mx-auto p-8 bg-app-card rounded-2xl border border-app-border text-center shadow-xl">
-            <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 text-red-500">
-              <AlertCircle className="w-6 h-6" />
+        {/* Premium Entrance Motion Wrapper */}
+        <motion.div
+          initial={{ opacity: 0, y: 30, scale: 0.98 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="max-w-5xl mx-auto"
+        >
+          {loading && !error && (
+            <div className="w-full h-[60vh] flex flex-col items-center justify-center bg-app-card rounded-2xl border border-app-border shadow-2xl p-6">
+              <div className="w-12 h-12 border-4 border-client-primary border-t-transparent rounded-full animate-spin mb-4" />
+              <p className="text-sm font-bold text-app-text">Initializing Premium Flipbook...</p>
+              <p className="text-xs text-app-text-muted mt-1">Preparing catalog pages & assets</p>
             </div>
-            <h3 className="text-lg font-black text-app-text mb-2">Could Not Load Catalogue</h3>
-            <p className="text-xs text-app-text-muted mb-4 leading-relaxed">
-              We encountered an issue preparing the interactive digital book viewer. You can access the catalogue directly by downloading the file below.
-            </p>
-            {error && (
-              <div className="mb-6 p-3 bg-red-500/10 rounded text-left border border-red-500/20 overflow-x-auto">
-                <p className="text-[11px] font-mono text-red-400">
-                  <strong>Error details:</strong> {error.message || String(error)}
-                </p>
-                {error.stack && (
-                  <pre className="text-[9px] font-mono text-red-400/80 mt-1 max-h-32 overflow-y-auto whitespace-pre-wrap">
-                    {error.stack}
-                  </pre>
-                )}
-              </div>
-            )}
-            <a
-              href={pdfUrl}
-              download="PLE-Catalogue.pdf"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-client-primary hover:bg-client-primary-hover text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Download PDF Version</span>
-            </a>
-          </div>
-        )}
+          )}
 
-        {/* Main interactive book render */}
-        {!loading && !error && (
-          <div className="w-full">
-            {renderBookContent()}
+          {error && renderOriginalVideo()}
 
-            {/* Fullscreen Overlay handling */}
-            <CatalogueFullscreen isOpen={isFullscreen} onClose={() => setIsFullscreen(false)}>
-              {renderBookContent()}
-            </CatalogueFullscreen>
-          </div>
-        )}
-
+          {!loading && !error && renderCatalogue()}
+        </motion.div>
       </div>
+
+      {/* Fullscreen Reading Mode Portal overlay */}
+      <CatalogueFullscreen
+        isOpen={isFullscreen}
+        onClose={() => setIsFullscreen(false)}
+      >
+        <div className="flex-grow flex flex-col justify-center items-center">
+          <CatalogueErrorBoundary 
+            fallback={renderOriginalVideo()} 
+            onFallback={() => setError(true)}
+          >
+            <CatalogueBook
+              doc={doc}
+              totalPages={totalPages}
+              currentPage={currentPage}
+              zoom={zoom}
+              isMobile={isMobile}
+              onNavigate={handleThumbnailNavigate}
+            />
+            <CatalogueControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              zoom={zoom}
+              isFullscreen={isFullscreen}
+              isMobile={isMobile}
+              onPrev={userPrev}
+              onNext={userNext}
+              onZoomIn={() => setZoom((z) => Math.min(z + 0.2, 2.0))}
+              onZoomOut={() => setZoom((z) => Math.max(z - 0.2, 0.8))}
+              onToggleFullscreen={() => setIsFullscreen(false)}
+              pdfUrl="/catalogue/PLE-Catalogue.pdf"
+            />
+          </CatalogueErrorBoundary>
+        </div>
+      </CatalogueFullscreen>
     </section>
   );
 }

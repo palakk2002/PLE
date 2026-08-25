@@ -7,6 +7,27 @@ const brandSchema = new mongoose.Schema(
         logo: { type: String },
         description: { type: String },
         website: { type: String, trim: true },
+        status: {
+            type: String,
+            enum: ['pending', 'approved', 'rejected'],
+            default: 'approved',
+            index: true,
+        },
+        requestedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Vendor',
+            index: true,
+        },
+        requestedByShop: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'ManagedShop',
+        },
+        rejectionReason: { type: String },
+        reviewedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Admin',
+        },
+        reviewedAt: { type: Date },
         isActive: { type: Boolean, default: true },
         displayOrder: { type: Number, default: 0 },
     },

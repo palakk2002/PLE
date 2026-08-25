@@ -187,7 +187,11 @@ const listProducts = asyncHandler(async (req, res) => {
         condition
     } = req.query;
     const skip = (page - 1) * limit;
-    const filter = { isActive: true };
+    const filter = {
+        isActive: true,
+        approvalStatus: { $ne: 'pending' },
+        brandApprovalStatus: { $ne: 'pending' },
+    };
 
     if (category) {
         const categoryId = String(category);
@@ -356,7 +360,10 @@ router.get('/categories/all', asyncHandler(async (req, res) => {
 
 // GET /api/brands/all (public)
 router.get('/brands/all', asyncHandler(async (req, res) => {
-    const brands = await Brand.find({ isActive: true }).sort({ displayOrder: 1, name: 1 });
+    const brands = await Brand.find({
+        isActive: true,
+        $or: [{ status: 'approved' }, { status: { $exists: false } }],
+    }).sort({ displayOrder: 1, name: 1 });
     res.status(200).json(new ApiResponse(200, brands, 'Brands fetched.'));
 }));
 

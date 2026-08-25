@@ -127,8 +127,9 @@ const productSchema = new mongoose.Schema(
         createdBy: { type: mongoose.Schema.Types.ObjectId },
         updatedBy: { type: mongoose.Schema.Types.ObjectId },
         approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'Admin' },
-        approvalDate: { type: Date },
         approvalStatus: { type: String, enum: ['draft', 'pending', 'approved', 'rejected', 'archived'], default: 'approved', index: true },
+        brandApprovalStatus: { type: String, enum: ['none', 'pending', 'approved', 'rejected'], default: 'none', index: true },
+        customBrandName: { type: String, trim: true },
         rejectionReason: { type: String },
         auditLog: [{
             action: { type: String },

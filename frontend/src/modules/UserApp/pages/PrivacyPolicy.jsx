@@ -648,15 +648,17 @@ City/Town/Village: Belagavi
 District: Belagavi
 State: Karnataka
 Pin Code: 590010
-Email: info@peoplesleagueofelectronics.com
-Customer Support: contact@peoplesleagueofelectronics.com / support@peoplesleagueofelectronics.com
+Email: peoplesleagueofelectronics@gmail.com
+Customer Support: peoplesleagueofelectronics@gmail.com / support@peoplesleagueofelectronics.com
+Phone Number: 9513164326
 Website: www.peoplesleagueofelectronics.com
 
 Grievance Officer
 In accordance with applicable law, the Company has designated a Grievance Officer to address complaints and concerns relating to the processing of Personal Information.
-Name: Owais Raja Mahammed Pathan
-Designation: Grievance Officer
-Email: grievance@peoplesleagueofelectronics.com
+Name: Mohmmad Jain kankudti
+Designation: Grievance Officer & Operations Head
+Email: peoplesleagueofelectronics@gmail.com
+Phone Number: 9513164326
 Postal Address:
 Building No./Flat No.: SHOP NO 25, R.S NO. 1045/3
 Road/Street: Ujwal Nagar Main Road
@@ -743,9 +745,12 @@ The Company will make reasonable efforts to acknowledge and address grievances w
               ))}
             </div>
 
-            <div className="border-t border-gray-100 pt-6 text-center">
+            <div className="border-t border-gray-100 pt-6 text-center space-y-1">
+              <p className="text-xs font-semibold text-gray-700">
+                Grievance Officer: Mohmmad Jain kankudti
+              </p>
               <p className="text-xs text-gray-500">
-                If you have questions about this Policy, please contact our Grievance Officer at grievance@peoplesleagueofelectronics.com.
+                Email: <a href="mailto:peoplesleagueofelectronics@gmail.com" className="text-[#7B0A0A] font-bold underline">peoplesleagueofelectronics@gmail.com</a> | Phone: <a href="tel:9513164326" className="text-[#7B0A0A] font-bold">9513164326</a>
               </p>
             </div>
           </motion.div>

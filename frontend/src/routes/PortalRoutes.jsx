@@ -52,6 +52,7 @@ const MobileOrderConfirmation = lazy(() => import("../modules/UserApp/pages/Orde
 const PortalSelection = lazy(() => import("../modules/UserApp/pages/PortalSelection"));
 const PortalWelcome = lazy(() => import("../modules/UserApp/pages/PortalWelcome"));
 const UserPrivacyPolicy = lazy(() => import("../modules/UserApp/pages/PrivacyPolicy"));
+const UserSupport = lazy(() => import("../modules/UserApp/pages/Support"));
 const UserTermsConditions = lazy(() => import("../modules/UserApp/pages/TermsConditions"));
 const UserAgreement = lazy(() => import("../modules/UserApp/pages/UserAgreement"));
 const LegalPage = lazy(() => import("../modules/UserApp/pages/LegalPage"));
@@ -435,6 +436,14 @@ export default function PortalRoutes() {
         element={
           <RouteWrapper>
             <UserPrivacyPolicy />
+          </RouteWrapper>
+        }
+      />
+      <Route
+        path="/support"
+        element={
+          <RouteWrapper>
+            <UserSupport />
           </RouteWrapper>
         }
       />

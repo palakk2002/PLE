@@ -1,11 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 
-import workerContent from 'pdfjs-dist/build/pdf.worker.mjs?raw';
-
-const blob = new Blob([workerContent], { type: 'text/javascript' });
-const workerUrl = URL.createObjectURL(blob);
-pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
+// Set matching version of the PDF.js web worker via CDN to avoid bundler payload issues
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@6.2.108/build/pdf.worker.min.mjs';
 
 export default function CataloguePage({ doc, pageNum, zoom, isMobile, onRenderSuccess }) {
   const canvasRef = useRef(null);
@@ -95,7 +92,7 @@ export default function CataloguePage({ doc, pageNum, zoom, isMobile, onRenderSu
   }, [doc, pageNum, zoom, isMobile]);
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center bg-app-bg overflow-hidden select-none">
+    <div className="relative w-full h-full flex items-center justify-center bg-white overflow-hidden select-none">
       {loading && (
         <div className="absolute inset-0 flex items-center justify-center bg-app-card/30 animate-pulse">
           <div className="flex flex-col items-center gap-2">

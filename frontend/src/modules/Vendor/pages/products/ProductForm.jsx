@@ -48,6 +48,8 @@ const ProductForm = () => {
     categoryId: null,
     subcategoryId: null,
     brandId: null,
+    isCustomBrand: false,
+    customBrandName: "",
     stock: "in_stock",
     stockQuantity: "",
     totalAllowedQuantity: "",
@@ -169,6 +171,9 @@ const ProductForm = () => {
       product.price
     );
 
+    const isBrandPending = product.brandApprovalStatus === 'pending' || Boolean(product.customBrandName) || (typeof product.brandId === 'object' && product.brandId?.status === 'pending');
+    const resolvedCustomBrandName = product.customBrandName || (typeof product.brandId === 'object' ? product.brandId?.name : '');
+
     setFormData({
       name: product.name || "",
       unit: product.unit || "",
@@ -182,7 +187,9 @@ const ProductForm = () => {
       subcategoryId: isSubcategory
         ? normalizedCategoryId
         : normalizedSubcategoryId || null,
-      brandId: normalizedBrandId || null,
+      brandId: isBrandPending ? "__custom__" : (normalizedBrandId || null),
+      isCustomBrand: isBrandPending,
+      customBrandName: resolvedCustomBrandName || "",
       stock: product.stock || "in_stock",
       stockQuantity: product.stockQuantity || "",
       totalAllowedQuantity: product.totalAllowedQuantity || "",
@@ -244,6 +251,16 @@ const ProductForm = () => {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    if (name === "brandId") {
+      const isCustom = value === "__custom__";
+      setFormData((prev) => ({
+        ...prev,
+        brandId: value,
+        isCustomBrand: isCustom,
+        customBrandName: isCustom ? prev.customBrandName : "",
+      }));
+      return;
+    }
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -597,6 +614,12 @@ const ProductForm = () => {
       }
     }
 
+    const isCustomBrandActive = formData.isCustomBrand || formData.brandId === "__custom__";
+    if (isCustomBrandActive && !formData.customBrandName?.trim()) {
+      toast.error("Please enter a custom brand name");
+      return;
+    }
+
     const payload = {
       ...formData,
       price: parsedPrice,
@@ -606,7 +629,9 @@ const ProductForm = () => {
       minimumOrderQuantity: parsedMinimumOrderQuantity,
       categoryId: finalCategoryId,
       subcategoryId: formData.subcategoryId ? formData.subcategoryId : null,
-      brandId: formData.brandId ?? null,
+      brandId: isCustomBrandActive ? null : (formData.brandId || null),
+      isCustomBrand: isCustomBrandActive,
+      customBrandName: isCustomBrandActive ? formData.customBrandName.trim() : null,
       faqs: (formData.faqs || [])
         .map((faq) => ({
           question: String(faq?.question || "").trim(),
@@ -781,9 +806,22 @@ const ProductForm = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Brand
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-xs font-semibold text-gray-700">
+                  Brand
+                </label>
+                {formData.brandId !== "__custom__" && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleChange({ target: { name: "brandId", value: "__custom__" } })
+                    }
+                    className="text-[11px] font-semibold text-primary-600 hover:text-primary-700 underline"
+                  >
+                    + Brand not listed?
+                  </button>
+                )}
+              </div>
               <AnimatedSelect
                 name="brandId"
                 value={formData.brandId || ""}
@@ -791,11 +829,48 @@ const ProductForm = () => {
                 placeholder="Select Brand"
                 options={[
                   { value: "", label: "Select Brand" },
+                  { value: "__custom__", label: "✨ + Add Custom Brand (Not Listed)" },
                   ...brands
-                    .filter((brand) => brand.isActive !== false)
+                    .filter((brand) => brand.isActive !== false && brand.status !== 'rejected')
                     .map((brand) => ({ value: String(brand.id), label: brand.name })),
                 ]}
               />
+
+              {(formData.isCustomBrand || formData.brandId === "__custom__") && (
+                <div className="mt-2.5 p-3 bg-gradient-to-r from-amber-50 to-orange-50/40 border border-amber-200 rounded-xl">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                      <span>Custom Brand Name</span>
+                      <span className="text-red-500">*</span>
+                      <span className="text-[10px] font-medium px-2 py-0.5 bg-amber-200/70 text-amber-900 rounded-md">
+                        Requires Admin Approval
+                      </span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleChange({ target: { name: "brandId", value: "" } })
+                      }
+                      className="text-[11px] text-gray-500 hover:text-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    name="customBrandName"
+                    value={formData.customBrandName}
+                    onChange={handleChange}
+                    placeholder="e.g. Apex Electronics, Organic Glow"
+                    required
+                    className="w-full px-3 py-2 bg-white border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm font-medium text-gray-900 placeholder:text-gray-400 shadow-sm"
+                  />
+                  <p className="text-[11px] text-amber-800 mt-1.5 flex items-start gap-1.5">
+                    <FiInfo className="w-3.5 h-3.5 mt-0.5 text-amber-600 flex-shrink-0" />
+                    <span>This brand and product will be reviewed by the admin. Once approved, the product goes live and the brand will be saved in your dropdown permanently!</span>
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="md:col-span-2">

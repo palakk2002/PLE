@@ -64,6 +64,8 @@ const OfferList = lazy(() => import("../modules/offers/pages/OfferList"));
 const CreateOffer = lazy(() => import("../modules/offers/pages/CreateOffer"));
 const EditOffer = lazy(() => import("../modules/offers/pages/EditOffer"));
 const OfferDetails = lazy(() => import("../modules/offers/pages/OfferDetails"));
+const VendorPrivacyPolicy = lazy(() => import("../modules/Vendor/pages/PrivacyPolicy"));
+const VendorSupport = lazy(() => import("../modules/Vendor/pages/Support"));
 
 export default function VendorRoutes() {
   return (
@@ -73,6 +75,8 @@ export default function VendorRoutes() {
       <Route path="/verification" element={<VendorVerification />} />
       <Route path="/forgot-password" element={<VendorForgotPassword />} />
       <Route path="/reset-password" element={<VendorResetPassword />} />
+      <Route path="/privacy-policy" element={<VendorPrivacyPolicy />} />
+      <Route path="/support" element={<VendorSupport />} />
       <Route
         path="/"
         element={

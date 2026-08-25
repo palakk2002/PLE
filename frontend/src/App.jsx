@@ -8,6 +8,7 @@ import ScrollToTop from "./shared/components/ScrollToTop";
 import AppBootstrap from "./shared/components/AppBootstrap";
 import OfflineDetector from "./shared/components/OfflineDetector";
 import AppSuspenseLoader from "./shared/components/AppSuspenseLoader";
+import SEO from "./shared/components/SEO/SEO";
 
 import { isLandingDomain } from "./shared/utils/domain";
 import LandingRoutes from "./routes/LandingRoutes";
@@ -43,6 +44,7 @@ function App() {
           v7_startTransition: true,
           v7_relativeSplatPath: true,
         }}>
+        <SEO />
         <OfflineDetector>
           <AppBootstrap />
           <ScrollToTop />

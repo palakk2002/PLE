@@ -13,11 +13,13 @@ import useInfiniteScroll from "../../../shared/hooks/useInfiniteScroll";
 import LazyImage from "../../../shared/components/LazyImage";
 import { getPlaceholderImage } from "../../../shared/utils/helpers";
 import api from "../../../shared/utils/api";
+import { useSafeBack } from "../../../shared/hooks/useSafeBack";
 
 // Offers System Imports
 import { useOffers } from "../../offers/hooks/useOffers";
 import OfferBanner from "../../offers/components/OfferBanner";
 import OfferModal from "../../offers/components/OfferModal";
+import SEO from "../../../shared/components/SEO/SEO";
 
 const normalizeId = (value) => String(value ?? "").trim();
 
@@ -76,6 +78,7 @@ const normalizeProduct = (raw) => {
 const MobileCategory = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const handleBack = useSafeBack('/home');
   const categoryId = normalizeId(id);
   const { categories, initialize, getCategoryById } = useCategoryStore();
 
@@ -277,22 +280,30 @@ const MobileCategory = () => {
     );
   }
 
+  const categorySchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": category.name,
+    "description": category.description || `Browse all products in ${category.name} at Peoples League of Electronics.`,
+    "url": window.location.href,
+    "image": category.image
+  };
+
   return (
     <PageTransition>
+      <SEO
+        title={category.name}
+        description={category.description || `Browse the best electronics in ${category.name} at PLE.`}
+        image={category.image}
+        schema={categorySchema}
+      />
       <MobileLayout showBottomNav={true} showCartBar={true}>
         <div className="w-full pb-24">
           {/* Header */}
           <div className="px-4 py-4 bg-white border-b border-gray-200">
             <div className="flex items-center gap-3 mb-4">
               <button
-                onClick={() => {
-                  const prevPath = sessionStorage.getItem('prevPath');
-                  if (prevPath && prevPath !== '/portal' && !prevPath.includes('login') && !prevPath.includes('register')) {
-                    navigate(prevPath);
-                  } else {
-                    navigate('/home');
-                  }
-                }}
+                onClick={handleBack}
                 className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                 <FiArrowLeft className="text-xl text-gray-700" />
               </button>

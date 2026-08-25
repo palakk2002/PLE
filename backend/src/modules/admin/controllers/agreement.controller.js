@@ -33,7 +33,7 @@ export const uploadTemplate = asyncHandler(async (req, res) => {
     const nextVersion = latestTemplate ? latestTemplate.version + 1 : 1;
 
     const folder = `admin/agreement-templates/${templateKey.toLowerCase()}`;
-    const result = await uploadLocalFileToCloudinaryAndCleanupWithType(req.file.path, folder, 'raw');
+    const result = await uploadLocalFileToCloudinaryAndCleanupWithType(req.file.path, folder, 'auto');
 
     // Deactivate previous active templates of the same templateKey
     await AgreementTemplate.updateMany({ templateKey, status: 'Active' }, { status: 'Inactive' });
@@ -49,7 +49,7 @@ export const uploadTemplate = asyncHandler(async (req, res) => {
         fileSize: req.file.size,
         status: 'Active',
         version: nextVersion,
-        uploadedBy: req.user.id
+        uploadedBy: req.user?.id || req.user?._id
     });
 
     res.status(201).json(new ApiResponse(201, template, 'Agreement template uploaded successfully.'));

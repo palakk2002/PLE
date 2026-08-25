@@ -9,7 +9,7 @@ import * as walletController from '../controllers/wallet.controller.js';
 import * as paymentController from '../controllers/payment.controller.js';
 import { authenticate } from '../../../middlewares/authenticate.js';
 import { authorize, enforceAccountStatus } from '../../../middlewares/authorize.js';
-import { authLimiter, otpLimiter } from '../../../middlewares/rateLimiter.js';
+import { authLimiter, otpLimiter, chatLimiter } from '../../../middlewares/rateLimiter.js';
 import { validate } from '../../../middlewares/validate.js';
 import { uploadSingle, uploadDocumentSingle } from '../../../middlewares/upload.js';
 import {
@@ -134,7 +134,7 @@ import * as customerChatController from '../controllers/customerChat.controller.
 router.post('/chat/vendor/initiate', ...customerAuth, customerChatController.initiateVendorChat);
 router.get('/chat/vendor/threads', ...customerAuth, customerChatController.getCustomerChatThreads);
 router.get('/chat/vendor/threads/:id/messages', ...customerAuth, customerChatController.getCustomerChatMessages);
-router.post('/chat/vendor/threads/:id/messages', ...customerAuth, customerChatController.sendCustomerChatMessage);
+router.post('/chat/vendor/threads/:id/messages', ...customerAuth, chatLimiter, customerChatController.sendCustomerChatMessage);
 router.patch('/chat/vendor/threads/:id/read', ...customerAuth, customerChatController.markCustomerChatRead);
 
 export default router;

@@ -6,10 +6,12 @@ import {
     FiMapPin,
     FiUser,
     FiDollarSign,
+    FiTruck,
+    FiExternalLink,
 } from 'react-icons/fi';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useVendorAuthStore } from '../../store/vendorAuthStore';
-import { getVendorOrderById, updateVendorOrderStatus } from '../../services/vendorService';
+import { getVendorOrderById, updateVendorOrderStatus, createShiprocketShipment } from '../../services/vendorService';
 import { formatPrice } from '../../../../shared/utils/helpers';
 import Badge from '../../../../shared/components/Badge';
 import AnimatedSelect from '../../../Admin/components/AnimatedSelect';
@@ -23,6 +25,8 @@ const OrderDetail = () => {
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
     const [updatingStatus, setUpdatingStatus] = useState(false);
+    const [creatingShipment, setCreatingShipment] = useState(false);
+    const [shipmentInfo, setShipmentInfo] = useState(null);
 
     const vendorIdsToMatch = [
         vendor?.id?.toString(),
@@ -88,6 +92,27 @@ const OrderDetail = () => {
             // api.js shows toast
         } finally {
             setUpdatingStatus(false);
+        }
+    };
+
+    const handleCreateShiprocketShipment = async () => {
+        if (!order) return;
+        setCreatingShipment(true);
+        try {
+            const res = await createShiprocketShipment(order.orderId ?? order._id);
+            const data = res?.data ?? res;
+            setShipmentInfo(data);
+            // Update local order state with tracking info
+            setOrder((prev) => ({
+                ...prev,
+                trackingNumber: data?.trackingNumber || data?.awbCode || prev?.trackingNumber,
+            }));
+            toast.success('Shiprocket shipment created successfully!');
+        } catch (err) {
+            const msg = err?.response?.data?.message || err?.message || 'Failed to create shipment';
+            toast.error(msg);
+        } finally {
+            setCreatingShipment(false);
         }
     };
 
@@ -186,6 +211,31 @@ const OrderDetail = () => {
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">
+                    {/* Ship via Shiprocket button — visible only when order is processing and no tracking yet */}
+                    {['processing', 'shipped'].includes(currentStatus) && !order.trackingNumber && !shipmentInfo && (
+                        <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={handleCreateShiprocketShipment}
+                            disabled={creatingShipment}
+                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-sm font-semibold rounded-xl shadow-md shadow-violet-200 dark:shadow-violet-900/30 transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
+                        >
+                            {creatingShipment ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <FiTruck className="w-4 h-4" />
+                                    Ship via Shiprocket
+                                </>
+                            )}
+                        </motion.button>
+                    )}
                     <AnimatedSelect
                         options={visibleStatusOptions}
                         value={currentStatus}
@@ -331,13 +381,13 @@ const OrderDetail = () => {
                     </div>
 
                     {/* Shipping Address */}
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
-                        <h2 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <div className="bg-white dark:bg-[#1A1A1A] rounded-xl shadow-sm border border-gray-200 dark:border-white/5 p-4">
+                        <h2 className="font-semibold text-gray-800 dark:text-white mb-4 flex items-center gap-2">
                             <FiMapPin />
                             Shipping Address
                         </h2>
                         {shippingAddress ? (
-                            <p className="text-gray-600 text-sm leading-relaxed">
+                            <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed">
                                 {shippingAddress.address ?? shippingAddress.street ?? 'N/A'}
                                 <br />
                                 {shippingAddress.city}, {shippingAddress.state}{' '}
@@ -351,6 +401,58 @@ const OrderDetail = () => {
                             </p>
                         )}
                     </div>
+
+                    {/* Shiprocket Shipment Info */}
+                    <AnimatePresence>
+                        {(order.trackingNumber || shipmentInfo) && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-950/40 dark:to-indigo-950/40 rounded-xl shadow-sm border border-violet-200 dark:border-violet-800/40 p-4"
+                            >
+                                <h2 className="font-semibold text-violet-900 dark:text-violet-200 mb-3 flex items-center gap-2 text-sm">
+                                    <FiTruck className="text-violet-600 dark:text-violet-400" />
+                                    Shiprocket Shipment
+                                </h2>
+                                <div className="space-y-2">
+                                    {(shipmentInfo?.awbCode || order.trackingNumber) && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-violet-600 dark:text-violet-400 font-medium">AWB Code</span>
+                                            <span className="text-sm font-bold text-violet-900 dark:text-violet-100 font-mono">
+                                                {shipmentInfo?.awbCode || order.trackingNumber}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {shipmentInfo?.courierName && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-violet-600 dark:text-violet-400 font-medium">Courier</span>
+                                            <span className="text-sm font-semibold text-violet-900 dark:text-violet-100">
+                                                {shipmentInfo.courierName}
+                                            </span>
+                                        </div>
+                                    )}
+                                    {shipmentInfo?.status && (
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-xs text-violet-600 dark:text-violet-400 font-medium">Status</span>
+                                            <Badge variant="info">{shipmentInfo.status.toUpperCase()}</Badge>
+                                        </div>
+                                    )}
+                                    {shipmentInfo?.trackingUrl && (
+                                        <a
+                                            href={shipmentInfo.trackingUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="mt-2 flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition-colors"
+                                        >
+                                            <FiExternalLink className="w-3.5 h-3.5" />
+                                            Track on Shiprocket
+                                        </a>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
         </motion.div>

@@ -100,7 +100,19 @@ const ManageProducts = () => {
               e.target.src = "https://via.placeholder.com/50x50?text=Product";
             }}
           />
-          <span className="font-medium">{value}</span>
+          <div className="flex flex-col">
+            <span className="font-medium">{value}</span>
+            {(row.customBrandName || row.brandId?.name) && (
+              <span className="text-[11px] text-gray-500 flex items-center gap-1">
+                Brand: <strong className="text-gray-700">{row.customBrandName || row.brandId?.name}</strong>
+                {row.brandApprovalStatus === 'pending' && (
+                  <span className="text-[10px] bg-amber-100 text-amber-800 font-semibold px-1 rounded">
+                    Brand Review
+                  </span>
+                )}
+              </span>
+            )}
+          </div>
         </div>
       ),
     },

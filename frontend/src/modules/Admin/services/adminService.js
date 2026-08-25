@@ -114,8 +114,8 @@ export const reorderCategories = (categoryIds) =>
     api.patch('/admin/categories/reorder', { categoryIds });
 
 // ─── Brands ───────────────────────────────────────────────────────────────────
-export const getAllBrands = () =>
-    api.get('/admin/brands');
+export const getAllBrands = (params = {}) =>
+    api.get('/admin/brands', { params });
 
 export const getPublicBrands = () =>
     api.get('/brands/all');
@@ -125,6 +125,9 @@ export const createBrand = (data) =>
 
 export const updateBrand = (id, data) =>
     api.put(`/admin/brands/${id}`, data);
+
+export const reviewBrand = (id, data) =>
+    api.patch(`/admin/brands/${id}/review`, data);
 
 export const deleteBrand = (id) =>
     api.delete(`/admin/brands/${id}`);
@@ -379,7 +382,10 @@ export const updatePortfolioPage = (data) => api.put('/admin/cms/portfolio-page'
 // ─── Agreement Template Management ──────────────────────────────────────────
 export const getAgreementTemplates = (params) => api.get('/admin/b2b-users/agreement-templates', { params });
 export const getAgreementTemplateConfigs = () => api.get('/admin/b2b-users/agreement-templates/configs');
-export const uploadAgreementTemplateGeneric = (formData) => api.post('/admin/b2b-users/agreement-templates', formData);
+export const uploadAgreementTemplateGeneric = (formData) =>
+    api.post('/admin/b2b-users/agreement-templates', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+    });
 export const updateAgreementTemplateStatus = (id, status) => api.patch(`/admin/b2b-users/agreement-templates/${id}/status`, { status });
 export const deleteAgreementTemplateGeneric = (id) => api.delete(`/admin/b2b-users/agreement-templates/${id}`);
 

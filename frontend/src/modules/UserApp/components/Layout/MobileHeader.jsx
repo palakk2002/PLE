@@ -28,6 +28,7 @@ import Sidebar from "../../../../shared/components/Sidebar";
 import { useBusinessBuyer } from "../../hooks/useBusinessBuyer";
 import { B2BBusinessBadge } from "../B2B/B2BBusinessBadge";
 import { useCampaignStore } from "../../../../shared/store/campaignStore";
+import { performUserLogout } from "../../../../shared/utils/userLogout";
 import { useAddressStore } from "../../../../shared/store/addressStore";
 import AddressBottomSheet from "../Mobile/AddressBottomSheet";
 
@@ -251,9 +252,8 @@ const MobileHeader = () => {
   }, [hasPlayed]);
 
   const handleLogout = () => {
-    logout();
     setShowUserMenu(false);
-    navigate("/");
+    performUserLogout('/');
   };
 
   // Animation content - straight line movement only, starting from behind logo

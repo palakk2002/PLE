@@ -55,41 +55,41 @@ export const B2BBusinessDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Business Details & Credit Panel */}
-      <div className="glass-card rounded-2xl p-5 shadow-sm border border-gray-100 bg-white">
+      <div className="glass-card rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 bg-white">
         <div className="flex items-center gap-2 mb-4">
-          <FiBriefcase className="text-primary-600 text-xl" />
+          <FiBriefcase className="text-primary-600 text-xl shrink-0" />
           <h3 className="font-extrabold text-gray-800 text-base">Apex Business Profile</h3>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-4 mb-4 text-xs">
-          <div>
+        <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-3 sm:gap-4 border-b border-gray-100 pb-4 mb-4 text-xs">
+          <div className="min-w-0">
             <span className="text-gray-400 block font-medium">Company Name</span>
-            <span className="font-bold text-gray-800">{businessProfile.companyName}</span>
+            <span className="font-bold text-gray-800 break-words">{businessProfile.companyName}</span>
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="text-gray-400 block font-medium">GSTIN Registered</span>
-            <span className="font-bold text-primary-600 font-mono text-[11px]">
+            <span className="font-bold text-primary-600 font-mono text-[11px] break-all">
               {businessProfile.gstNumber}
             </span>
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="text-gray-400 block font-medium">Procurement Contact</span>
-            <span className="font-bold text-gray-800">{businessProfile.businessEmail}</span>
+            <span className="font-bold text-gray-800 break-all">{businessProfile.businessEmail}</span>
           </div>
-          <div>
+          <div className="min-w-0">
             <span className="text-gray-400 block font-medium">Billing Terms</span>
-            <span className="font-bold text-gray-800">{businessProfile.creditTerms}</span>
+            <span className="font-bold text-gray-800 break-words">{businessProfile.creditTerms}</span>
           </div>
         </div>
 
         {/* Credit Facilities */}
         <div className="space-y-3 pt-2">
-          <div className="flex justify-between items-center text-xs">
-            <span className="text-gray-500 font-semibold flex items-center gap-1">
-              <FiCreditCard />
+          <div className="flex flex-wrap sm:flex-nowrap justify-between items-center gap-1.5 text-xs">
+            <span className="text-gray-500 font-semibold flex items-center gap-1 shrink-0">
+              <FiCreditCard className="shrink-0" />
               <span>Available Credit Facility</span>
             </span>
-            <span className="font-bold text-primary-600">
+            <span className="font-bold text-primary-600 break-all sm:text-right">
               {formatPrice(creditAvailable)} / {formatPrice(businessProfile.creditLimit)}
             </span>
           </div>
@@ -101,19 +101,19 @@ export const B2BBusinessDashboard = () => {
             />
           </div>
 
-          <div className="flex items-center justify-between text-[10px] text-gray-400">
+          <div className="flex flex-wrap items-center justify-between gap-1.5 text-[10px] text-gray-400">
             <span>Used: {formatPrice(businessProfile.creditUsed)}</span>
-            <span>Terms: NET 30 Days invoicing allowed</span>
+            <span className="text-right">Terms: NET 30 Days invoicing allowed</span>
           </div>
 
-          <div className="flex items-center justify-between text-xs pt-2 mt-1 border-t border-dashed border-gray-100">
-            <span className="text-gray-500 font-semibold flex items-center gap-1">
-              <FiCreditCard />
+          <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 text-xs pt-2 mt-1 border-t border-dashed border-gray-100">
+            <span className="text-gray-500 font-semibold flex items-center gap-1 shrink-0">
+              <FiCreditCard className="shrink-0" />
               <span>Business Wallet Balance</span>
             </span>
             <button
               onClick={() => navigate('/wallet')}
-              className="text-[#7B0A0A] font-bold hover:underline"
+              className="text-[#7B0A0A] font-bold hover:underline shrink-0"
             >
               Go to Wallet →
             </button>
@@ -121,34 +121,34 @@ export const B2BBusinessDashboard = () => {
         </div>
 
         {/* Quick actions buttons */}
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-2 border-t border-gray-50">
+        <div className="grid grid-cols-1 min-[380px]:grid-cols-2 gap-2 mt-4 pt-2 border-t border-gray-50">
           <button
             type="button"
             onClick={handleRepeatOrder}
-            className="py-2.5 rounded-xl bg-primary-50 hover:bg-primary-100 text-primary-600 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-primary-100/50"
+            className="w-full py-2.5 px-3 rounded-xl bg-primary-50 hover:bg-primary-100 text-primary-600 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-primary-100/50"
           >
-            <FiRefreshCw className="w-3.5 h-3.5" />
-            <span>Repeat Last Order</span>
+            <FiRefreshCw className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Repeat Last Order</span>
           </button>
           <button
             type="button"
             onClick={() => handleDownloadInvoice()}
-            className="py-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-gray-200"
+            className="w-full py-2.5 px-3 rounded-xl bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-gray-200"
           >
-            <FiDownload className="w-3.5 h-3.5" />
-            <span>Download Invoices</span>
+            <FiDownload className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Download Invoices</span>
           </button>
         </div>
       </div>
 
       {/* RFQ & Quote Quotation Panel */}
-      <div className="glass-card rounded-2xl p-5 shadow-sm border border-gray-100 bg-white">
+      <div className="glass-card rounded-2xl p-4 sm:p-5 shadow-sm border border-gray-100 bg-white">
         <div className="flex items-center gap-2 mb-4 justify-between">
-          <div className="flex items-center gap-2">
-            <FiTrendingUp className="text-primary-600 text-xl" />
-            <h3 className="font-extrabold text-gray-800 text-base">Active RFQs & Quotes</h3>
+          <div className="flex items-center gap-2 min-w-0">
+            <FiTrendingUp className="text-primary-600 text-xl shrink-0" />
+            <h3 className="font-extrabold text-gray-800 text-base truncate">Active RFQs & Quotes</h3>
           </div>
-          <span className="text-[10px] text-gray-400 font-bold">
+          <span className="text-[10px] text-gray-400 font-bold shrink-0">
             Total: {quotations.length}
           </span>
         </div>
@@ -165,10 +165,10 @@ export const B2BBusinessDashboard = () => {
                 key={quote.id} 
                 className="bg-gray-50 rounded-xl p-3 border border-gray-100 hover:shadow-sm transition-all text-xs flex flex-col gap-2"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono font-bold text-gray-800">{quote.id}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-mono font-bold text-gray-800 truncate">{quote.id}</span>
                   <span 
-                    className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider ${
+                    className={`px-2 py-0.5 rounded-full font-bold text-[9px] uppercase tracking-wider shrink-0 ${
                       quote.status === 'Approved'
                         ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
                         : 'bg-amber-50 text-amber-600 border border-amber-100'
@@ -178,16 +178,16 @@ export const B2BBusinessDashboard = () => {
                   </span>
                 </div>
 
-                <div>
-                  <p className="font-bold text-gray-900 line-clamp-1">{quote.productName}</p>
-                  <p className="text-gray-500 text-[10px]">
+                <div className="min-w-0">
+                  <p className="font-bold text-gray-900 line-clamp-1 break-words">{quote.productName}</p>
+                  <p className="text-gray-500 text-[10px] break-words">
                     Qty: {quote.quantity} {quote.unit}s | Target: ₹{quote.targetPrice}/unit
                   </p>
                 </div>
 
                 {quote.status === 'Approved' ? (
-                  <div className="flex items-center justify-between border-t border-dashed border-gray-200 pt-2 mt-1">
-                    <div>
+                  <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 border-t border-dashed border-gray-200 pt-2 mt-1">
+                    <div className="min-w-0">
                       <span className="text-[9px] text-emerald-600 font-bold uppercase tracking-wide block">
                         Approved Price
                       </span>
@@ -199,14 +199,14 @@ export const B2BBusinessDashboard = () => {
                     <button
                       type="button"
                       onClick={() => handleAddQuotationToCart(quote)}
-                      className="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] flex items-center gap-1 transition-all shadow-sm"
+                      className="px-2.5 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] flex items-center gap-1 transition-all shadow-sm shrink-0"
                     >
-                      <FiCheck className="w-3 h-3" />
+                      <FiCheck className="w-3 h-3 shrink-0" />
                       <span>Order Now</span>
                     </button>
                   </div>
                 ) : (
-                  <div className="border-t border-dashed border-gray-100 pt-2 text-[10px] text-gray-400 italic">
+                  <div className="border-t border-dashed border-gray-100 pt-2 text-[10px] text-gray-400 italic break-words">
                     RFQ pending vendor approval review. Standard response time: &lt;2 hours.
                   </div>
                 )}
