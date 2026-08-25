@@ -461,18 +461,13 @@ export const createShiprocketShipment = asyncHandler(async (req, res) => {
 
     if (!order) throw new ApiError(404, 'Order not found or does not belong to your store.');
 
-    // Prevent duplicate shipments
-    if (order.trackingNumber) {
-        throw new ApiError(409, `Shipment already exists. AWB: ${order.trackingNumber}`);
-    }
-
     const vendorItem = order.vendorItems.find((vi) =>
         vendorIdsToMatch.map(String).includes(String(vi.vendorId?._id || vi.vendorId))
     );
 
     const currentStatus = String(vendorItem?.status ?? order.status ?? 'pending').toLowerCase();
-    if (!['processing', 'shipped'].includes(currentStatus)) {
-        throw new ApiError(400, `Order must be in 'processing' or 'shipped' status to create a shipment. Current: ${currentStatus}`);
+    if (!['pending', 'processing', 'shipped'].includes(currentStatus)) {
+        throw new ApiError(400, `Order must be in 'pending', 'processing', or 'shipped' status to create a shipment. Current: ${currentStatus}`);
     }
 
     const shippingAddr = order.shippingAddress || {};

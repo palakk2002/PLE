@@ -211,8 +211,8 @@ const OrderDetail = () => {
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">
-                    {/* Ship via Shiprocket button — visible only when order is processing and no tracking yet */}
-                    {['processing', 'shipped'].includes(currentStatus) && !order.trackingNumber && !shipmentInfo && (
+                    {/* Ship via Shiprocket button — visible for active order states */}
+                    {['pending', 'processing', 'shipped'].includes(currentStatus) && (
                         <motion.button
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
@@ -231,7 +231,7 @@ const OrderDetail = () => {
                             ) : (
                                 <>
                                     <FiTruck className="w-4 h-4" />
-                                    Ship via Shiprocket
+                                    {order.trackingNumber || shipmentInfo ? 'Re-ship via Shiprocket' : 'Ship via Shiprocket'}
                                 </>
                             )}
                         </motion.button>
