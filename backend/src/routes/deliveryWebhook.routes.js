@@ -3,8 +3,21 @@ import { handleDeliveryWebhook } from '../modules/delivery/webhooks/webhookContr
 
 const router = express.Router();
 
-// Capture raw body for signature validation
+// Capture raw body for signature validation without stream hanging
 const captureRawBody = (req, res, next) => {
+    if (req.rawBody || req.body) {
+        if (!req.rawBody && req.body) {
+            req.rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
+        }
+        return next();
+    }
+
+    if (req.readableEnded) {
+        req.rawBody = '';
+        req.body = {};
+        return next();
+    }
+
     let data = '';
     req.setEncoding('utf8');
     req.on('data', chunk => {
@@ -17,6 +30,11 @@ const captureRawBody = (req, res, next) => {
         } catch {
             req.body = {};
         }
+        next();
+    });
+    req.on('error', () => {
+        req.rawBody = '';
+        req.body = {};
         next();
     });
 };
