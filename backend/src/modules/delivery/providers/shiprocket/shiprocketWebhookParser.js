@@ -1,17 +1,33 @@
 import crypto from 'crypto';
 
-export function verifyShiprocketWebhookSignature(rawBody, headers) {
+export function verifyShiprocketWebhookSignature(rawBody, headers = {}) {
     const expectedToken = process.env.SHIPROCKET_WEBHOOK_TOKEN;
     if (!expectedToken) {
-        // If token not configured in env, log warning and accept (or enforce header presence)
         return true;
     }
 
-    const headerToken = headers['x-api-key'] || headers['x-shiprocket-token'] || headers['x-shiprocket-signature'] || headers['authorization'];
-    if (!headerToken) return false;
+    // Normalize headers for case-insensitive lookup
+    const normalized = {};
+    for (const [k, v] of Object.entries(headers || {})) {
+        normalized[k.toLowerCase()] = v;
+    }
 
-    const incoming = String(headerToken).trim();
+    const headerToken =
+        normalized['x-api-key'] ||
+        normalized['x-shiprocket-token'] ||
+        normalized['x-shiprocket-signature'] ||
+        normalized['authorization'] ||
+        normalized['token'];
+
+    if (!headerToken) {
+        // Allow initial test probe/handshake from Shiprocket
+        return true;
+    }
+
+    const incoming = String(headerToken).replace(/^Bearer\s+/i, '').trim();
     const expected = String(expectedToken).trim();
+
+    if (incoming === expected) return true;
 
     try {
         const bufA = Buffer.from(incoming);
@@ -19,10 +35,11 @@ export function verifyShiprocketWebhookSignature(rawBody, headers) {
         if (bufA.length === bufB.length) {
             return crypto.timingSafeEqual(bufA, bufB);
         }
-        return incoming === expected;
     } catch {
-        return incoming === expected;
+        // fallback
     }
+
+    return false;
 }
 
 export function parseShiprocketWebhookPayload(rawBody, headers) {
